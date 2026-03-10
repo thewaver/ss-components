@@ -12,6 +12,7 @@
     "scripts": {
         "build": "tsup src/index.ts --format cjs,esm --dts --clean",
         "dev": "tsup --watch",
+        "start": "vite --config playground/vite.config.ts",
         "format": "prettier --write ."
     },
     "devDependencies": {
