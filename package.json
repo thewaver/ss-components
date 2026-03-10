@@ -2,8 +2,8 @@
     "name": "@thewaver/ss-components",
     "type": "module",
     "version": "0.0.1",
-    "main": "./dist/index.js",
-    "module": "./dist/index.js",
+    "main": "./dist/index.cjs.js",
+    "module": "./dist/index.esm.js",
     "types": "./dist/index.d.ts",
     "files": [
         "dist"
@@ -15,10 +15,20 @@
         "format": "prettier --write ."
     },
     "devDependencies": {
+        "@thewaver/ss-utils": "^0.0.2",
         "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+        "@vanilla-extract/css": "^1.18.0",
+        "@vanilla-extract/vite-plugin": "^5.1.4",
         "prettier": "^3.8.1",
+        "solid-js": "^1.9.11",
         "tsup": "^8.5.1",
-        "typescript": "^5.9.3"
+        "typescript": "^5.9.3",
+        "vite": "^7.3.1",
+        "vite-plugin-checker": "^0.12.0",
+        "vite-plugin-solid": "^2.11.10"
+    },
+    "peerDependencies": {
+        "solid-js": "^1.9.11"
     },
     "prettier": {
         "tabWidth": 4,
