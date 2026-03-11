@@ -8,9 +8,9 @@ import { ScreenWiperProps, ScreenWiperShape } from "./ScreenWiper.types";
 
 import * as styles from "./ScreenWiper.css";
 
-export const DEFAULT_SCREENWIPER_SHAPE: ScreenWiperShape = "lozenge";
-export const DEFAULT_SCREENWIPER_TRANSITION_DURATION_MS = 1000;
-export const DEFAULT_SCREENWIPER_CELL_SIZE: Size2d = { width: 120, height: 120 };
+const DEFAULT_SCREENWIPER_SHAPE: ScreenWiperShape = "lozenge";
+const DEFAULT_SCREENWIPER_TRANSITION_DURATION_MS = 1000;
+const DEFAULT_SCREENWIPER_CELL_SIZE: Size2d = { width: 120, height: 120 };
 
 const getTargetFromDirection = (direction: AnimDirection) => (direction === "in" ? 1 : 0);
 

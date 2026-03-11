@@ -1,6 +1,7 @@
 import { JSX } from "solid-js";
 
 import { AccessorProps } from "../../Utils/typeUtils";
+import { TooltipProps } from "../Tooltip/Tooltip.types";
 
 export type ButtonFlags = {
     isDisabled?: boolean;
@@ -19,7 +20,7 @@ export type ButtonProps = AccessorProps<
         ButtonFlags & {
             id?: string;
             className?: string;
-            renderCorners?: (getFlags: () => ButtonFlags) => JSX.Element;
-            renderTooltip?: (anchorRect: HTMLDivElement | undefined, getFlags: () => ButtonFlags) => JSX.Element;
+            tooltipDefs?: Omit<TooltipProps, "anchorRef">;
+            renderCorners?: () => JSX.Element;
         }
 >;

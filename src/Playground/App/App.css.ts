@@ -1,5 +1,3 @@
-import { DEFAULT_TOOLTIP_TRANSITION_DURATION_MS } from "src/Lib/Fundamentals/Tooltip/Tooltip";
-
 import { style } from "@vanilla-extract/css";
 
 export const isVisible = style({});
@@ -34,7 +32,6 @@ export const tooltipContent = style([
         width: "240px",
         padding: "20px",
         opacity: 0,
-        transition: `opacity ${DEFAULT_TOOLTIP_TRANSITION_DURATION_MS}ms`,
 
         selectors: {
             [`&.${isVisible}`]: {
@@ -43,3 +40,9 @@ export const tooltipContent = style([
         },
     },
 ]);
+
+export const textContent = style({
+    width: "240px",
+    padding: "20px",
+    border: "2px solid #F0E0D0",
+});

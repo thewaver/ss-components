@@ -6,10 +6,10 @@ import { CornerKey, CornersProps } from "./Corners.types";
 
 import * as styles from "./Corners.css";
 
-export const DEFAULT_CORNERS_TRANSITION_DURATION_MS = 200;
-export const DEFAULT_CORNERS_STROKE_THICKNESS = 4;
-export const DEFAULT_CORNERS_CORNER_LENGTH: Size2d = { width: 20, height: 20 };
-export const DEFAULT_CORNERS_VISIBLE_CORNERS: Partial<Record<CornerKey, boolean>> = {
+const DEFAULT_CORNERS_TRANSITION_DURATION_MS = 200;
+const DEFAULT_CORNERS_STROKE_THICKNESS = 4;
+const DEFAULT_CORNERS_CORNER_LENGTH: Size2d = { width: 20, height: 20 };
+const DEFAULT_CORNERS_VISIBLE_CORNERS: Partial<Record<CornerKey, boolean>> = {
     bottomLeft: true,
     bottomRight: true,
     topLeft: true,

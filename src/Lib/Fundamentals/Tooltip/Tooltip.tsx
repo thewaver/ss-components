@@ -8,9 +8,9 @@ import { TooltipUtils } from "./Tooltip.utils";
 
 import * as styles from "./Tooltip.css";
 
-export const DEFAULT_TOOLTIP_TRANSITION_DURATION_MS = 2000;
-export const DEFAULT_TOOLTIP_SHOW_ON_FOCUS_DELAY_MS = 500;
-export const DEFAULT_TOOLTIP_RESERVED_SCREEN_SIZE: Size2d = { width: 0, height: 0 };
+const DEFAULT_TOOLTIP_TRANSITION_DURATION_MS = 200;
+const DEFAULT_TOOLTIP_SHOW_ON_FOCUS_DELAY_MS = 500;
+const DEFAULT_TOOLTIP_RESERVED_SCREEN_SIZE: Size2d = { width: 0, height: 0 };
 
 export const Tooltip = (props: TooltipProps) => {
     const viewportContext = useViewportContext();
@@ -76,17 +76,21 @@ export const Tooltip = (props: TooltipProps) => {
     });
 
     const show = () => {
-        setTransitionTarget(1);
         setHasTransitionFinished(false);
-        clearTimeout(transitionTimeout);
-        transitionTimeout = setTimeout(() => setHasTransitionFinished(true), getTransitionDurationMs());
+        setTimeout(() => {
+            setTransitionTarget(1);
+            clearTimeout(transitionTimeout);
+            transitionTimeout = setTimeout(() => setHasTransitionFinished(true), getTransitionDurationMs());
+        }, 0);
     };
 
     const hide = () => {
-        setTransitionTarget(0);
         setHasTransitionFinished(false);
-        clearTimeout(transitionTimeout);
-        transitionTimeout = setTimeout(() => setHasTransitionFinished(true), getTransitionDurationMs());
+        setTimeout(() => {
+            setTransitionTarget(0);
+            clearTimeout(transitionTimeout);
+            transitionTimeout = setTimeout(() => setHasTransitionFinished(true), getTransitionDurationMs());
+        }, 0);
     };
 
     const handleMouseEnter = () => {
@@ -161,7 +165,7 @@ export const Tooltip = (props: TooltipProps) => {
             }}
         >
             <Show when={getTransitionTarget() === 1 || !getHasTransitionFinished()}>
-                {props.renderContent(getTransitionTarget, getPlacement)}
+                {props.renderContent(getTransitionTarget, getTransitionDurationMs, getPlacement)}
             </Show>
         </div>
     );

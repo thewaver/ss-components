@@ -6,7 +6,7 @@ import { ImageSwitcherProps } from "./ImageSwitcher.types";
 
 import * as styles from "./ImageSwitcher.css";
 
-export const DEFAULT_IMAGE_SWITCHER_TRANSITION_DURATION_MS = 100;
+const DEFAULT_IMAGE_SWITCHER_TRANSITION_DURATION_MS = 100;
 
 export const ImageSwitcher = (props: ImageSwitcherProps) => {
     const [getPrevImage, setPrevImage] = createSignal<string>();

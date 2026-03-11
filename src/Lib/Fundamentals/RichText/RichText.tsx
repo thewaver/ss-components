@@ -5,7 +5,7 @@ import { RichTextUtils } from "./RichText.utils";
 
 import * as styles from "./RichText.css";
 
-export const DEFAULT_RICH_TEXT_CLASSES = {
+const DEFAULT_RICH_TEXT_CLASSES = {
     b: styles.boldText,
     i: styles.italicText,
     s: styles.strikedText,
@@ -57,7 +57,7 @@ export const RichText = (props: RichTextProps) => {
         <>
             {renderNodes(
                 parsedTree(),
-                props.getClassNames?.() ?? DEFAULT_RICH_TEXT_CLASSES,
+                props.getClassNames?.(DEFAULT_RICH_TEXT_CLASSES) ?? DEFAULT_RICH_TEXT_CLASSES,
                 props.getRemoveOtherTags?.(),
             )}
         </>

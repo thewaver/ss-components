@@ -10,6 +10,15 @@ export const buttonRoot = style({
     height: "fit-content",
     pointerEvents: "none",
     userSelect: "none",
+
+    selectors: {
+        "&:focus-within:not([disabled]), &[aria-selected='true']:not([disabled])": {
+            zIndex: 1,
+        },
+        "&:hover:not([disabled])": {
+            zIndex: 2,
+        },
+    },
 });
 
 export const buttonElement = style({

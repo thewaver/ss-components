@@ -1,26 +1,18 @@
-import { ParentProps, Show, createMemo } from "solid-js";
+import { ParentProps, Show } from "solid-js";
 
+import { Tooltip } from "../Tooltip/Tooltip";
 import { ButtonProps } from "./Button.types";
 
 import * as styles from "./Button.css";
 
 export const Button = (props: ParentProps<ButtonProps>) => {
-    let anchorRect: HTMLDivElement | undefined;
-
-    const getFlags = createMemo(() => {
-        return {
-            isSelectible: true,
-            isSelected: props.getIsSelected?.(),
-            isDisabled: props.getIsDisabled?.(),
-            hasError: props.getHasError?.(),
-        };
-    });
+    let anchorRef: HTMLDivElement | undefined;
 
     return (
         <div class={styles.buttonRoot}>
             <button
                 ref={(el) => {
-                    anchorRect = el as any;
+                    anchorRef = el as any;
                 }}
                 type="button"
                 class={`${styles.buttonElement} ${props.getClassName?.()}`}
@@ -29,6 +21,7 @@ export const Button = (props: ParentProps<ButtonProps>) => {
                     [styles.buttonSelected]: props.getIsSelected?.(),
                 }}
                 disabled={props.getIsDisabled?.()}
+                aria-selected={props.getIsSelected?.()}
                 onClick={props.onClick}
                 onMouseEnter={props.onMouseEnter}
                 onMouseLeave={props.onMouseLeave}
@@ -37,10 +30,12 @@ export const Button = (props: ParentProps<ButtonProps>) => {
             </button>
 
             <Show when={props.renderCorners}>
-                <div class={styles.buttonCornersWrapper}>{props.renderCorners?.(getFlags)}</div>
+                <div class={styles.buttonCornersWrapper}>{props.renderCorners!()}</div>
             </Show>
 
-            <Show when={props.renderTooltip}>{props.renderTooltip?.(anchorRect, getFlags)}</Show>
+            <Show when={props.getTooltipDefs}>
+                <Tooltip {...props.getTooltipDefs!()} anchorRef={anchorRef} />
+            </Show>
         </div>
     );
 };

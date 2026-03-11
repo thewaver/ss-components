@@ -20,5 +20,9 @@ export type TooltipProps = AccessorProps<{
     reservedScreenSize?: Size2d;
     transitionDurationMs?: number;
     focusShowDelayMs?: number;
-    renderContent: (getVisibilityTarget: () => 0 | 1, getPlacement: () => TooltipPlacement) => JSX.Element;
+    renderContent: (
+        getVisibilityTarget: () => 0 | 1,
+        getTransitionDurationMs: () => number,
+        getPlacement: () => TooltipPlacement,
+    ) => JSX.Element;
 }>;

@@ -5,6 +5,7 @@ import { ScreenWiper } from "../../Lib//Fundamentals/ScreenWiper/ScreenWiper";
 import { Button } from "../../Lib/Fundamentals/Button/Button";
 import { Corners } from "../../Lib/Fundamentals/Corners/Corners";
 import { Tooltip } from "../../Lib/Fundamentals/Tooltip/Tooltip";
+import { Typewriter } from "../../Lib/Fundamentals/Typewriter/Typewriter";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
 
 import * as styles from "./App.css";
@@ -17,6 +18,8 @@ export function AppContent() {
     const [getIsWiping, setIsWiping] = createSignal(false);
     // TOGGLE
     const [getToggleOn, setToggleOn] = createSignal(false);
+    // TYPEWRITER
+    const [getTextPrefix, setTextPrefix] = createSignal("");
 
     return (
         <div class={styles.appContent}>
@@ -33,20 +36,18 @@ export function AppContent() {
             />
 
             <Button
-                renderTooltip={(anchorRef) => (
-                    <Tooltip
-                        anchorRef={anchorRef}
-                        getPlacement={() => ({ x: "center", y: "top-out" })}
-                        renderContent={(getVisibilityTarget) => (
-                            <div
-                                class={styles.tooltipContent}
-                                classList={{ [styles.isVisible]: getVisibilityTarget() === 1 }}
-                            >
-                                Click me to wipe the screen. You should see a back and forth animation.
-                            </div>
-                        )}
-                    />
-                )}
+                getTooltipDefs={() => ({
+                    getPlacement: () => ({ x: "center", y: "top-out" }),
+                    renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
+                        <div
+                            class={styles.tooltipContent}
+                            classList={{ [styles.isVisible]: getVisibilityTarget() === 1 }}
+                            style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
+                        >
+                            Click me to wipe the screen. You should see a back and forth animation.
+                        </div>
+                    ),
+                })}
                 onClick={async () => {
                     if (!getIsWiping()) {
                         setWipeDirection("in");
@@ -59,15 +60,25 @@ export function AppContent() {
 
             <Button
                 getIsSelected={getToggleOn}
-                renderCorners={(getFlags) => (
-                    <Corners getColor={() => (getFlags().isSelected ? "lime" : "transparent")} />
-                )}
+                renderCorners={() => <Corners getColor={() => (getToggleOn() ? "lime" : "transparent")} />}
                 onClick={async () => {
                     setToggleOn((prev) => !prev);
                 }}
             >
                 <div class={styles.buttonContent}>Toggle me</div>
             </Button>
+
+            <Button
+                onClick={async () => {
+                    setTextPrefix((prev) => (prev ? "" : "And some more text to make it longer!"));
+                }}
+            >
+                <div class={styles.buttonContent}>Restart text animation</div>
+            </Button>
+
+            <div class={styles.textContent}>
+                <Typewriter>{`This is a bit of text that fades in one line at a time. ${getTextPrefix()}`}</Typewriter>
+            </div>
         </div>
     );
 }

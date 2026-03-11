@@ -4,9 +4,9 @@ import { MathUtils } from "@thewaver/ss-utils";
 
 import { AudioSwitcherProps } from "./AudioSwitcher.types";
 
-export const DEFAULT_AUDIO_SWITCHER_CROSSFADE_MS = 500;
-export const DEFAULT_AUDIO_SWITCHER_CROSSFADE_STEPS = 25;
-export const DEFAULT_AUDIO_SWITCHER_VOLUME = 0.5;
+const DEFAULT_AUDIO_SWITCHER_CROSSFADE_MS = 500;
+const DEFAULT_AUDIO_SWITCHER_CROSSFADE_STEPS = 25;
+const DEFAULT_AUDIO_SWITCHER_VOLUME = 0.5;
 
 export const AudioSwitcher = (props: AudioSwitcherProps) => {
     const [getAudioA] = createSignal(new Audio());

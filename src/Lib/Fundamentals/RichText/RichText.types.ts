@@ -2,8 +2,8 @@ import { AccessorProps } from "../../Utils/typeUtils";
 
 export type RichTextProps = AccessorProps<{
     content: string;
-    classNames?: Record<string, string>;
     removeOtherTags?: boolean;
+    getClassNames?: (defaultClasses: Record<string, string>) => Record<string, string>;
 }>;
 
 export type RichTextNode =

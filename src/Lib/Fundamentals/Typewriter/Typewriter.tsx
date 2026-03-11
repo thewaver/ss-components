@@ -6,7 +6,7 @@ import { TypewriterProps } from "./Typewriter.types";
 
 import * as styles from "./Typewriter.css";
 
-export const DEFAULT_TYPEWRITER_TRANSITION_DURATION_MS = 100;
+const DEFAULT_TYPEWRITER_TRANSITION_DURATION_MS = 100;
 
 export const Typewriter = (props: ParentProps<TypewriterProps>) => {
     const [getLineCount, setLineCount] = createSignal(0);
@@ -41,8 +41,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
             "mask-image": image.slice(2),
             "mask-position": position.slice(2),
             "mask-size": size.slice(2),
-            "transition-property": currentLine > 0 ? "mask-size" : "none",
-            "transition-duration": `${transitionDurationMs * (containerSize?.width ?? 100) * 0.01}ms`,
+            "transition": `${currentLine > 0 ? "mask-size" : "none"} ${transitionDurationMs * (containerSize?.width ?? 100) * 0.01}ms linear`,
         };
 
         return result;
@@ -57,14 +56,30 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
     };
 
     const updateSize = () => {
-        const lineHeight = getLineHeight();
-
         if (!childrenContainerRef) return;
+
+        const probe = document.createElement("span");
+        probe.textContent = "A\nA";
+        probe.style.whiteSpace = "pre";
+        probe.style.visibility = "hidden";
+        probe.style.position = "absolute";
+        probe.style.top = "0";
+        probe.style.left = "0";
+        probe.style.font = "inherit";
+        probe.style.lineHeight = "inherit";
+        probe.style.pointerEvents = "none";
+
+        childrenContainerRef.appendChild(probe);
+
+        const lineHeight = probe.scrollHeight * 0.5;
+
+        childrenContainerRef.removeChild(probe);
 
         const containerW = childrenContainerRef.scrollWidth;
         const containerH = childrenContainerRef.scrollHeight;
 
         setContainerSize({ width: containerW, height: containerH });
+        setLineHeight(lineHeight);
         setLineCount(Math.round(containerH / lineHeight));
         reset();
     };
@@ -80,8 +95,6 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
 
         childrenContainerObserver = new ResizeObserver(updateSize);
         childrenContainerObserver.observe(childrenContainerRef);
-
-        setLineHeight(parseFloat(getComputedStyle(childrenContainerRef).lineHeight));
     });
 
     return (
