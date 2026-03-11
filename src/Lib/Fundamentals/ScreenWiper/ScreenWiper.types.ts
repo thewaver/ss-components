@@ -6,7 +6,8 @@ import { AccessorProps } from "../../Utils/typeUtils";
 export type ScreenWiperShape = "lozenge" | "circle";
 
 export type ScreenWiperProps = AccessorProps<{
-    fadeDirection: AnimDirection;
+    initialWipeDirection: AnimDirection;
+    wipeDirection: AnimDirection;
     shape?: ScreenWiperShape;
     cellSize?: Size2d;
     transitionDurationMs?: number;

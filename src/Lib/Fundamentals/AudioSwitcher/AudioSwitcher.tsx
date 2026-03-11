@@ -4,9 +4,9 @@ import { MathUtils } from "@thewaver/ss-utils";
 
 import { AudioSwitcherProps } from "./AudioSwitcher.types";
 
-const DEFAULT_CROSSFADE_MS = 500;
-const CROSSFADE_STEPS = 25;
-const MAX_VOLUME = 0.5;
+export const DEFAULT_AUDIO_SWITCHER_CROSSFADE_MS = 500;
+export const DEFAULT_AUDIO_SWITCHER_CROSSFADE_STEPS = 25;
+export const DEFAULT_AUDIO_SWITCHER_VOLUME = 0.5;
 
 export const AudioSwitcher = (props: AudioSwitcherProps) => {
     const [getAudioA] = createSignal(new Audio());
@@ -16,6 +16,8 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
 
     const isEven = createMemo(() => MathUtils.isEven(getVersion()));
 
+    const getVolume = createMemo(() => props.getVolume?.() ?? DEFAULT_AUDIO_SWITCHER_VOLUME);
+
     createEffect(() => {
         let tickHandler: NodeJS.Timeout | undefined;
 
@@ -23,7 +25,8 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
             clearInterval(tickHandler);
         });
 
-        const intervalMs = (props.getCrossfadeMs?.() ?? DEFAULT_CROSSFADE_MS) / CROSSFADE_STEPS;
+        const intervalMs =
+            (props.getCrossfadeMs?.() ?? DEFAULT_AUDIO_SWITCHER_CROSSFADE_MS) / DEFAULT_AUDIO_SWITCHER_CROSSFADE_STEPS;
         const src = props.getSrc();
 
         if (src !== getCurrentSrc()) {
@@ -32,13 +35,13 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
 
             const active = isEven() ? getAudioA() : getAudioB();
             const inactive = !isEven() ? getAudioA() : getAudioB();
-            const step = MAX_VOLUME / CROSSFADE_STEPS;
+            const step = getVolume() / DEFAULT_AUDIO_SWITCHER_CROSSFADE_STEPS;
 
             const crossFadeTick = () => {
                 inactive.volume = Math.max(inactive.volume - step, 0);
-                active.volume = Math.min(active.volume + step, MAX_VOLUME);
+                active.volume = Math.min(active.volume + step, getVolume());
 
-                if (inactive.volume === 0 && active.volume === MAX_VOLUME) {
+                if (inactive.volume === 0 && active.volume === getVolume()) {
                     inactive.pause();
                     inactive.currentTime = 0;
                     clearInterval(tickHandler);

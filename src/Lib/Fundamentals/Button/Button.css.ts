@@ -6,6 +6,8 @@ export const buttonSelected = style({});
 
 export const buttonRoot = style({
     position: "relative",
+    width: "fit-content",
+    height: "fit-content",
     pointerEvents: "none",
     userSelect: "none",
 });
@@ -15,14 +17,14 @@ export const buttonElement = style({
     background: "transparent",
     margin: 0,
     padding: 0,
-    width: "100%",
-    height: "100%",
+    border: "none",
     color: "inherit",
     fontSize: "inherit",
     fontWeight: "inherit",
     fontFamily: "inherit",
     lineHeight: "inherit",
     pointerEvents: "all",
+    cursor: "pointer",
 });
 
 export const buttonCornersWrapper = style({

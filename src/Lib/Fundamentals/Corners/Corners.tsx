@@ -6,9 +6,10 @@ import { CornerKey, CornersProps } from "./Corners.types";
 
 import * as styles from "./Corners.css";
 
-const DEFAULT_STROKE_THICKNESS = 4;
-const DEFAULT_CORNER_LENGTH: Size2d = { width: 20, height: 20 };
-const DEFAULT_VISIBLE_CORNERS: Partial<Record<CornerKey, boolean>> = {
+export const DEFAULT_CORNERS_TRANSITION_DURATION_MS = 200;
+export const DEFAULT_CORNERS_STROKE_THICKNESS = 4;
+export const DEFAULT_CORNERS_CORNER_LENGTH: Size2d = { width: 20, height: 20 };
+export const DEFAULT_CORNERS_VISIBLE_CORNERS: Partial<Record<CornerKey, boolean>> = {
     bottomLeft: true,
     bottomRight: true,
     topLeft: true,
@@ -18,26 +19,36 @@ const DEFAULT_VISIBLE_CORNERS: Partial<Record<CornerKey, boolean>> = {
 export const Corners = (props: ParentProps<CornersProps>) => {
     const getColor = createMemo(() => props.getColor?.() ?? "currentColor");
 
-    const getCornerLength = createMemo(() => props.getCornerLength?.() ?? DEFAULT_CORNER_LENGTH);
+    const getTransitionDurationMs = createMemo(
+        () => props.getTransitionDurationMs?.() ?? DEFAULT_CORNERS_TRANSITION_DURATION_MS,
+    );
 
-    const getStrokeThickness = createMemo(() => props.getStrokeThickness?.() ?? DEFAULT_STROKE_THICKNESS);
+    const getCornerLength = createMemo(() => props.getCornerLength?.() ?? DEFAULT_CORNERS_CORNER_LENGTH);
 
-    const getVisibleCorners = createMemo(() => props.getVisibleCorners?.() ?? DEFAULT_VISIBLE_CORNERS);
+    const getStrokeThickness = createMemo(() => props.getStrokeThickness?.() ?? DEFAULT_CORNERS_STROKE_THICKNESS);
+
+    const getVisibleCorners = createMemo(() => props.getVisibleCorners?.() ?? DEFAULT_CORNERS_VISIBLE_CORNERS);
 
     return (
-        <div class={styles.cornersRoot}>
+        <div
+            class={styles.cornersRoot}
+            style={{
+                color: getColor(),
+                filter: `drop-shadow(0 0 8px ${getColor()}) drop-shadow(0 0 16px ${getColor()})`,
+                transition: `color ${getTransitionDurationMs()}ms, filter ${getTransitionDurationMs()}ms`,
+            }}
+        >
             <For each={Object.keys(getVisibleCorners())}>
                 {(cornerKey) => (
                     <svg
                         class={`${styles.cornerSVG} ${styles.cornerVariant[cornerKey as CornerKey]}`}
                         width={getCornerLength().width}
                         height={getCornerLength().height}
-                        color={getColor()}
                         viewBox={`0 0 ${getCornerLength().width} ${getCornerLength().height}`}
                         overflow="visible"
                     >
                         <polygon
-                            class={styles.cornerPolygon}
+                            fill="currentColor"
                             points={[
                                 `0,0`,
                                 `${getCornerLength().width},0`,

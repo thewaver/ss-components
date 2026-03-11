@@ -8,13 +8,17 @@ export type TooltipHPlacement = "left-in" | "left-out" | "right-in" | "right-out
 
 export type TooltipVPlacement = "top-in" | "top-out" | "bottom-in" | "bottom-out" | "center";
 
+export type TooltipPlacement = {
+    x: TooltipHPlacement;
+    y: TooltipVPlacement;
+};
+
 export type TooltipProps = AccessorProps<{
     anchorRef: HTMLDivElement | undefined;
-    hPlacement: TooltipHPlacement;
-    vPlacement: TooltipVPlacement;
+    placement: TooltipPlacement;
     offset?: Point2d;
     reservedScreenSize?: Size2d;
     transitionDurationMs?: number;
     focusShowDelayMs?: number;
-    renderContent: (isVisible: boolean, hPlacement: TooltipHPlacement, vPlacement: TooltipVPlacement) => JSX.Element;
+    renderContent: (getVisibilityTarget: () => 0 | 1, getPlacement: () => TooltipPlacement) => JSX.Element;
 }>;

@@ -6,7 +6,7 @@ import { ImageSwitcherProps } from "./ImageSwitcher.types";
 
 import * as styles from "./ImageSwitcher.css";
 
-const DEFAULT_TRANSITION_DURATION_MS = 100;
+export const DEFAULT_IMAGE_SWITCHER_TRANSITION_DURATION_MS = 100;
 
 export const ImageSwitcher = (props: ImageSwitcherProps) => {
     const [getPrevImage, setPrevImage] = createSignal<string>();
@@ -14,7 +14,7 @@ export const ImageSwitcher = (props: ImageSwitcherProps) => {
     const [getVersion, setVersion] = createSignal(0);
 
     const getTransitionDurationMs = createMemo(
-        () => props.getTransitionDurationMs?.() ?? DEFAULT_TRANSITION_DURATION_MS,
+        () => props.getTransitionDurationMs?.() ?? DEFAULT_IMAGE_SWITCHER_TRANSITION_DURATION_MS,
     );
 
     const isEven = createMemo(() => MathUtils.isEven(getVersion()));

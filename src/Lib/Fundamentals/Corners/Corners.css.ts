@@ -10,7 +10,6 @@ export const cornerSVG = style({
     position: "absolute",
     zIndex: 1,
     pointerEvents: "none",
-    transitionProperty: "color",
 });
 
 export const cornerVariant = styleVariants({
@@ -34,10 +33,4 @@ export const cornerVariant = styleVariants({
         right: 0,
         transform: "scale(-1, 1)",
     },
-});
-
-export const cornerPolygon = style({
-    filter: `drop-shadow(0 0 8px currentColor) drop-shadow(0 0 16px currentColor)`,
-    fill: "currentcolor",
-    transitionProperty: "fill filter",
 });

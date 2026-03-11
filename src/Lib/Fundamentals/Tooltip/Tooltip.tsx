@@ -8,9 +8,9 @@ import { TooltipUtils } from "./Tooltip.utils";
 
 import * as styles from "./Tooltip.css";
 
-const DEFAULT_TRANSITION_DURATION_MS = 100;
-const DEFAULT_FOCUS_SHOW_DELAY_MS = 500;
-const DEFAULT_RESERVED_SCREEN_SIZE: Size2d = { width: 0, height: 0 };
+export const DEFAULT_TOOLTIP_TRANSITION_DURATION_MS = 2000;
+export const DEFAULT_TOOLTIP_SHOW_ON_FOCUS_DELAY_MS = 500;
+export const DEFAULT_TOOLTIP_RESERVED_SCREEN_SIZE: Size2d = { width: 0, height: 0 };
 
 export const Tooltip = (props: TooltipProps) => {
     const viewportContext = useViewportContext();
@@ -25,14 +25,16 @@ export const Tooltip = (props: TooltipProps) => {
     const [getAnchorRect, setAnchorRect] = createSignal<DOMRect | undefined>(undefined, {
         equals: Rect.isSame,
     });
-    const [getTransitionTarget, setTransitionTarget] = createSignal(0);
+    const [getTransitionTarget, setTransitionTarget] = createSignal<0 | 1>(0);
     const [getHasTransitionFinished, setHasTransitionFinished] = createSignal(true);
 
     const getTransitionDurationMs = createMemo(
-        () => props.getTransitionDurationMs?.() ?? DEFAULT_TRANSITION_DURATION_MS,
+        () => props.getTransitionDurationMs?.() ?? DEFAULT_TOOLTIP_TRANSITION_DURATION_MS,
     );
 
-    const getFocusShowDelayMs = createMemo(() => props.getFocusShowDelayMs?.() ?? DEFAULT_FOCUS_SHOW_DELAY_MS);
+    const getFocusShowDelayMs = createMemo(
+        () => props.getFocusShowDelayMs?.() ?? DEFAULT_TOOLTIP_SHOW_ON_FOCUS_DELAY_MS,
+    );
 
     const getPlacement = createMemo((): { x: TooltipHPlacement; y: TooltipVPlacement } => {
         const viewportRect = viewportContext?.getScaledRect();
@@ -40,14 +42,13 @@ export const Tooltip = (props: TooltipProps) => {
         const anchorRect = DOMUtils.offsetDOMRect(getAnchorRect(), viewportRect);
         const appRect = DOMUtils.offsetDOMRect(viewportRect, viewportRect);
         const offset = props.getOffset?.();
-        const hPlacement = props.getHPlacement();
-        const vPlacement = props.getVPlacement();
-        const reservedScreenSize = props.getReservedScreenSize?.() ?? DEFAULT_RESERVED_SCREEN_SIZE;
+        const placement = props.getPlacement();
+        const reservedScreenSize = props.getReservedScreenSize?.() ?? DEFAULT_TOOLTIP_RESERVED_SCREEN_SIZE;
 
-        if (!contentRect || !anchorRect || !appRect) return { x: hPlacement, y: vPlacement };
+        if (!contentRect || !anchorRect || !appRect) return placement;
 
         const safeHPlacement = TooltipUtils.getSafeHPlacement(
-            hPlacement,
+            placement.x,
             anchorRect,
             contentRect,
             appRect,
@@ -56,7 +57,7 @@ export const Tooltip = (props: TooltipProps) => {
         );
 
         const safeVPlacement = TooltipUtils.getSafeVPlacement(
-            vPlacement,
+            placement.y,
             anchorRect,
             contentRect,
             appRect,
@@ -160,7 +161,7 @@ export const Tooltip = (props: TooltipProps) => {
             }}
         >
             <Show when={getTransitionTarget() === 1 || !getHasTransitionFinished()}>
-                {props.renderContent(getTransitionTarget() === 1, getPlacement().x, getPlacement().y)}
+                {props.renderContent(getTransitionTarget, getPlacement)}
             </Show>
         </div>
     );

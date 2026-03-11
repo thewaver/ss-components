@@ -7,11 +7,8 @@
         "target": "ESNext",
         "strict": true,
         "baseUrl": ".",
-        "paths": {
-            "@ss-components/*": ["src/Lib/*"]
-        },
         "declaration": true,
         "outDir": "dist"
     },
-    "include": ["src/Lib", "src/Playground"]
+    "include": ["src/**/*"]
 }

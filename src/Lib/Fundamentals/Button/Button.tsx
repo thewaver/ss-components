@@ -37,10 +37,10 @@ export const Button = (props: ParentProps<ButtonProps>) => {
             </button>
 
             <Show when={props.renderCorners}>
-                <div class={styles.buttonCornersWrapper}>{props.renderCorners?.(getFlags())}</div>
+                <div class={styles.buttonCornersWrapper}>{props.renderCorners?.(getFlags)}</div>
             </Show>
 
-            <Show when={props.renderTooltip}>{props.renderTooltip?.(anchorRect, getFlags())}</Show>
+            <Show when={props.renderTooltip}>{props.renderTooltip?.(anchorRect, getFlags)}</Show>
         </div>
     );
 };

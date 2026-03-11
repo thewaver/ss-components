@@ -6,7 +6,7 @@ import { TypewriterProps } from "./Typewriter.types";
 
 import * as styles from "./Typewriter.css";
 
-const DEFAULT_TRANSITION_DURATION_MS = 100;
+export const DEFAULT_TYPEWRITER_TRANSITION_DURATION_MS = 100;
 
 export const Typewriter = (props: ParentProps<TypewriterProps>) => {
     const [getLineCount, setLineCount] = createSignal(0);
@@ -21,7 +21,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
         const lineHeight = getLineHeight();
         const lineCount = getLineCount();
         const containerSize = getContainerSize();
-        const transitionDurationMs = props.getTransitionDurationMs?.() ?? DEFAULT_TRANSITION_DURATION_MS;
+        const transitionDurationMs = props.getTransitionDurationMs?.() ?? DEFAULT_TYPEWRITER_TRANSITION_DURATION_MS;
 
         if (!childrenContainerRef) return { opacity: 0 };
 

@@ -19,7 +19,7 @@ export type ButtonProps = AccessorProps<
         ButtonFlags & {
             id?: string;
             className?: string;
-            renderCorners?: (flags: ButtonFlags) => JSX.Element;
-            renderTooltip?: (anchorRect: HTMLDivElement | undefined, flags: ButtonFlags) => JSX.Element;
+            renderCorners?: (getFlags: () => ButtonFlags) => JSX.Element;
+            renderTooltip?: (anchorRect: HTMLDivElement | undefined, getFlags: () => ButtonFlags) => JSX.Element;
         }
 >;
