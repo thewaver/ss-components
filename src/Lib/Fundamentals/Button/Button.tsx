@@ -9,17 +9,19 @@ export const Button = (props: ParentProps<ButtonProps>) => {
     let anchorRef: HTMLDivElement | undefined;
 
     return (
-        <div class={styles.buttonRoot}>
+        <div
+            class={styles.buttonRoot}
+            classList={{
+                [styles.buttonError]: props.getHasError?.(),
+                [styles.buttonSelected]: props.getIsSelected?.(),
+            }}
+        >
             <button
                 ref={(el) => {
                     anchorRef = el as any;
                 }}
                 type="button"
                 class={`${styles.buttonElement} ${props.getClassName?.()}`}
-                classList={{
-                    [styles.buttonError]: props.getHasError?.(),
-                    [styles.buttonSelected]: props.getIsSelected?.(),
-                }}
                 disabled={props.getIsDisabled?.()}
                 aria-selected={props.getIsSelected?.()}
                 onClick={props.onClick}
@@ -29,8 +31,8 @@ export const Button = (props: ParentProps<ButtonProps>) => {
                 {props.children}
             </button>
 
-            <Show when={props.renderCorners}>
-                <div class={styles.buttonCornersWrapper}>{props.renderCorners!()}</div>
+            <Show when={props.renderHighlight}>
+                <div class={styles.buttonCornersWrapper}>{props.renderHighlight!()}</div>
             </Show>
 
             <Show when={props.getTooltipDefs}>

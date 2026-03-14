@@ -21,6 +21,6 @@ export type ButtonProps = AccessorProps<
             id?: string;
             className?: string;
             tooltipDefs?: Omit<TooltipProps, "anchorRef">;
-            renderCorners?: () => JSX.Element;
+            renderHighlight?: () => JSX.Element;
         }
 >;

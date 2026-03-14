@@ -12,10 +12,10 @@ export const buttonRoot = style({
     userSelect: "none",
 
     selectors: {
-        "&:focus-within:not([disabled]), &[aria-selected='true']:not([disabled])": {
+        [`&:not([disabled]).${buttonSelected}`]: {
             zIndex: 1,
         },
-        "&:hover:not([disabled])": {
+        "&:not([disabled]):hover": {
             zIndex: 2,
         },
     },

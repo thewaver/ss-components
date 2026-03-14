@@ -1,8 +1,9 @@
 import { Show, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
-import { DOMUtils, Rect, Size2d } from "@thewaver/ss-utils";
+import { Rect, Size2d } from "@thewaver/ss-utils";
 
 import { useViewportContext } from "../Viewport/Viewpoer.context";
+import { ViewportUtils } from "../Viewport/Viewport.utils";
 import { TooltipHPlacement, TooltipProps, TooltipVPlacement } from "./Tooltip.types";
 import { TooltipUtils } from "./Tooltip.utils";
 
@@ -19,10 +20,10 @@ export const Tooltip = (props: TooltipProps) => {
     let transitionTimeout: NodeJS.Timeout | undefined;
     let focusTimeout: NodeJS.Timeout | undefined;
 
-    const [getContentRect, setContentRect] = createSignal<DOMRect | undefined>(undefined, {
-        equals: Rect.isSame,
+    const [getContentSize, setContentSize] = createSignal<Size2d | undefined>(undefined, {
+        equals: Size2d.isSame,
     });
-    const [getAnchorRect, setAnchorRect] = createSignal<DOMRect | undefined>(undefined, {
+    const [getAnchorRect, setAnchorRect] = createSignal<Rect | undefined>(undefined, {
         equals: Rect.isSame,
     });
     const [getTransitionTarget, setTransitionTarget] = createSignal<0 | 1>(0);
@@ -37,21 +38,23 @@ export const Tooltip = (props: TooltipProps) => {
     );
 
     const getPlacement = createMemo((): { x: TooltipHPlacement; y: TooltipVPlacement } => {
-        const viewportRect = viewportContext?.getScaledRect();
-        const contentRect = DOMUtils.offsetDOMRect(getContentRect(), viewportRect);
-        const anchorRect = DOMUtils.offsetDOMRect(getAnchorRect(), viewportRect);
-        const appRect = DOMUtils.offsetDOMRect(viewportRect, viewportRect);
+        const contentSize = getContentSize();
+        const anchorRect = getAnchorRect();
+        const screenSize: Size2d = {
+            width: viewportContext?.getSize().width ?? 0,
+            height: viewportContext?.getSize().height ?? 0,
+        };
         const offset = props.getOffset?.();
         const placement = props.getPlacement();
         const reservedScreenSize = props.getReservedScreenSize?.() ?? DEFAULT_TOOLTIP_RESERVED_SCREEN_SIZE;
 
-        if (!contentRect || !anchorRect || !appRect) return placement;
+        if (!contentSize || !anchorRect) return placement;
 
         const safeHPlacement = TooltipUtils.getSafeHPlacement(
             placement.x,
             anchorRect,
-            contentRect,
-            appRect,
+            contentSize,
+            screenSize,
             offset,
             reservedScreenSize,
         );
@@ -59,8 +62,8 @@ export const Tooltip = (props: TooltipProps) => {
         const safeVPlacement = TooltipUtils.getSafeVPlacement(
             placement.y,
             anchorRect,
-            contentRect,
-            appRect,
+            contentSize,
+            screenSize,
             offset,
             reservedScreenSize,
         );
@@ -120,6 +123,19 @@ export const Tooltip = (props: TooltipProps) => {
         hide();
     };
 
+    const updateSize = () => {
+        if (!props.anchorRef) return;
+
+        const anchorRect = ViewportUtils.getAdjustedBoundingClientRect(props.anchorRef, viewportContext);
+
+        setAnchorRect({
+            x: anchorRect.x,
+            y: anchorRect.y,
+            width: anchorRect.width,
+            height: anchorRect.height,
+        });
+    };
+
     onMount(() => {
         let contentResizeObserver: ResizeObserver | undefined;
         let anchorResizeObserver: ResizeObserver | undefined;
@@ -138,12 +154,12 @@ export const Tooltip = (props: TooltipProps) => {
         if (!props.anchorRef || !contentContainerRef) return;
 
         contentResizeObserver = new ResizeObserver(() => {
-            setContentRect(contentContainerRef!.getBoundingClientRect());
+            setContentSize({ width: contentContainerRef!.offsetWidth, height: contentContainerRef!.offsetHeight });
         });
         contentResizeObserver.observe(contentContainerRef);
 
         anchorResizeObserver = new ResizeObserver(() => {
-            setAnchorRect(props.anchorRef?.getBoundingClientRect());
+            updateSize();
         });
         anchorResizeObserver.observe(props.anchorRef);
 

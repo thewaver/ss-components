@@ -3,9 +3,10 @@ import { Accessor, createContext, createSignal, onCleanup, onMount, useContext }
 import { Size2d } from "@thewaver/ss-utils";
 
 export type ViewportContextType = {
-    getSize: Accessor<Size2d | undefined>;
-    getScale: Accessor<number | undefined>;
-    getScaledRect: Accessor<DOMRect | undefined>;
+    rootRef: HTMLDivElement | undefined;
+    getSize: Accessor<Size2d>;
+    getScale: Accessor<number>;
+    getScaledRect: Accessor<DOMRect>;
 };
 
 const ViewportContext = createContext<ViewportContextType>();
@@ -37,12 +38,14 @@ export const useViewportContext = () => {
     });
 
     return {
-        getSize: (context?.getSize ??
+        rootRef: context?.rootRef,
+        getSize:
+            context?.getSize ??
             (() => ({
                 width: getViewportFallbackRect().width,
                 height: getViewportFallbackRect().height,
-            }))) as Accessor<Size2d>,
-        getScale: (context?.getScale ?? (() => 1)) as Accessor<number>,
-        getScaledRect: (context?.getScaledRect ?? getViewportFallbackRect) as Accessor<DOMRect>,
+            })),
+        getScale: context?.getScale ?? (() => 1),
+        getScaledRect: context?.getScaledRect ?? getViewportFallbackRect,
     };
 };

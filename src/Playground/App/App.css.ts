@@ -46,3 +46,16 @@ export const textContent = style({
     padding: "20px",
     border: "2px solid #F0E0D0",
 });
+
+export const wrapper = style({
+    width: "fit-content",
+    margin: 40,
+});
+
+export const overlayOn = style({
+    backdropFilter: "blur(4px) grayscale(75%)",
+});
+
+export const overlayOff = style({
+    backdropFilter: "none",
+});

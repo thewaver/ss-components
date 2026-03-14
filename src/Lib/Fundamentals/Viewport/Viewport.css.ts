@@ -1,6 +1,6 @@
 import { style } from "@vanilla-extract/css";
 
-export const root = style({
+export const viewportRoot = style({
     position: "fixed",
     top: 0,
     left: 0,

@@ -1,4 +1,4 @@
-import { Point2d, Size2d } from "@thewaver/ss-utils";
+import { Point2d, Rect, Size2d } from "@thewaver/ss-utils";
 
 import { TooltipHPlacement, TooltipVPlacement } from "./Tooltip.types";
 
@@ -31,7 +31,7 @@ export namespace TooltipUtils {
 
     export const getSafeHPlacement = (
         hPlacement: TooltipHPlacement,
-        anchorRect: DOMRect,
+        anchorRect: Rect,
         contentSize: Size2d,
         screenSize: Size2d,
         offsetSize?: Point2d,
@@ -39,8 +39,8 @@ export namespace TooltipUtils {
     ): TooltipHPlacement => {
         const offset = getHPlacementOffset(hPlacement, offsetSize?.x ?? 0);
         const reservedW = reservedScreenSize?.width ?? 0;
-        const left = anchorRect.left + offset;
-        const right = anchorRect.right + offset;
+        const left = anchorRect.x + offset;
+        const right = anchorRect.x + anchorRect.width + offset;
 
         if (hPlacement.includes("out")) {
             const spaceR = screenSize.width - (right + contentSize.width + reservedW);
@@ -73,7 +73,7 @@ export namespace TooltipUtils {
 
     export const getSafeVPlacement = (
         vPlacement: TooltipVPlacement,
-        anchorRect: DOMRect,
+        anchorRect: Rect,
         contentSize: Size2d,
         screenSize: Size2d,
         offsetSize?: Point2d,
@@ -81,8 +81,8 @@ export namespace TooltipUtils {
     ): TooltipVPlacement => {
         const offset = getVPlacementOffset(vPlacement, offsetSize?.y ?? 0);
         const reservedH = reservedScreenSize?.height ?? 0;
-        const top = anchorRect.top + offset;
-        const bottom = anchorRect.bottom + offset;
+        const top = anchorRect.y + offset;
+        const bottom = anchorRect.y + anchorRect.height + offset;
 
         if (vPlacement.includes("out")) {
             const spaceB = screenSize.height - (bottom + contentSize.height + reservedH);
