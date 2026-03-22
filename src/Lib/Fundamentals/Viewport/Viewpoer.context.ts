@@ -21,8 +21,8 @@ const getWindowRect = () =>
         height: window.innerHeight,
     });
 
-export const useViewportContext = () => {
-    const context = useContext(ViewportContext);
+// do not export hook for now
+const useViewport = (props?: ViewportContextType) => {
     const [getViewportFallbackRect, setViewportFallbackRect] = createSignal<DOMRect>(getWindowRect());
 
     const handleWindowResize = () => {
@@ -38,14 +38,20 @@ export const useViewportContext = () => {
     });
 
     return {
-        rootRef: context?.rootRef,
+        rootRef: props?.rootRef,
         getSize:
-            context?.getSize ??
+            props?.getSize ??
             (() => ({
                 width: getViewportFallbackRect().width,
                 height: getViewportFallbackRect().height,
             })),
-        getScale: context?.getScale ?? (() => 1),
-        getScaledRect: context?.getScaledRect ?? getViewportFallbackRect,
+        getScale: props?.getScale ?? (() => 1),
+        getScaledRect: props?.getScaledRect ?? getViewportFallbackRect,
     };
+};
+
+export const useViewportContext = () => {
+    const context = useContext(ViewportContext);
+
+    return useViewport(context);
 };

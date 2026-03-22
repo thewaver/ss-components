@@ -47,6 +47,12 @@ export const textContent = style({
     border: "2px solid #F0E0D0",
 });
 
+export const imgContent = style({
+    height: "160px",
+    width: "160px",
+    border: "2px solid #F0E0D0",
+});
+
 export const wrapper = style({
     width: "fit-content",
     margin: 40,

@@ -3,16 +3,23 @@ import { createSignal } from "solid-js";
 import { AnimDirection } from "../../Lib//Abstracts/Anim/Anim.types";
 import { ScreenWiper } from "../../Lib//Fundamentals/ScreenWiper/ScreenWiper";
 import { Button } from "../../Lib/Fundamentals/Button/Button";
+import { useColorExtractor } from "../../Lib/Fundamentals/ColorExtractor/ColorExtractor.context";
 import { Corners } from "../../Lib/Fundamentals/Corners/Corners";
 import { ElementHighlight } from "../../Lib/Fundamentals/ElementHighlight/ElementHighlight";
 import { Typewriter } from "../../Lib/Fundamentals/Typewriter/Typewriter";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
+import knight from "./knight.png";
 
 import * as styles from "./App.css";
 
 const INITIAL_WIPE_DIRECTION: AnimDirection = "out";
 
 export function AppContent() {
+    const dominantColor = useColorExtractor({
+        getSrc: () => knight,
+        getColorCount: () => 3,
+    });
+
     let containerRef: HTMLDivElement | undefined;
 
     // WIPE
@@ -137,6 +144,15 @@ export function AppContent() {
                     />
                 )}
             />
+
+            <div
+                class={styles.imgContent}
+                style={{
+                    "background-image": `linear-gradient(45deg, ${dominantColor.getColorData()?.[0]?.css() ?? "transparent"} 50%, ${dominantColor.getColorData()?.[1]?.css() ?? "transparent"} 50%)`,
+                }}
+            >
+                <img src={knight} height="100%" />
+            </div>
         </div>
     );
 }

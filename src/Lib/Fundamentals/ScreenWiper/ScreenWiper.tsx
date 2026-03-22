@@ -9,13 +9,14 @@ import { ScreenWiperProps, ScreenWiperShape } from "./ScreenWiper.types";
 import * as styles from "./ScreenWiper.css";
 
 const DEFAULT_SCREENWIPER_SHAPE: ScreenWiperShape = "lozenge";
-const DEFAULT_SCREENWIPER_TRANSITION_DURATION_MS = 500;
+const DEFAULT_SCREENWIPER_TRANSITION_DURATION_MS = 200;
 const DEFAULT_SCREENWIPER_CELL_SIZE: Size2d = { width: 120, height: 120 };
 
 const getTargetFromDirection = (direction: AnimDirection) => (direction === "in" ? 1 : 0);
 
 export const ScreenWiper = (props: ScreenWiperProps) => {
     const viewportContext = useViewportContext();
+
     const [getTarget, setTarget] = createSignal(getTargetFromDirection(props.getInitialWipeDirection()));
     const [getHasFinished, setHasFinished] = createSignal(true);
 
