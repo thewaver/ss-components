@@ -1,19 +1,27 @@
 import { ParentProps, createMemo } from "solid-js";
 
-import { CssUtils } from "../../../../Abstracts/Css/Css.utils";
-import { ShapeButtonUIConst } from "./ShapeButton.const";
-import { ShapeButtonProps } from "./ShapeButton.types";
+import { assignInlineVars } from "@vanilla-extract/dynamic";
+
+import { ShapeButtonColorDefs, ShapeButtonProps } from "./ShapeButton.types";
 
 import * as buttonStyles from "../../Button.css";
 import * as styles from "./ShapeButton.css";
 
+const DEFAULT_SHAPE_BUTTON_STROKE_WIDTH = 2;
+const DEFAULT_SHAPE_BUTTON_COLORS: ShapeButtonColorDefs = {
+    color: "transparent",
+    strokeColor: "transparent",
+};
+
 export const ShapeButton = (props: ParentProps<ShapeButtonProps>) => {
-    const getColorDefs = createMemo(() => props.getColorDefs?.() ?? ShapeButtonUIConst.COLORS);
+    const getStrokeWidth = createMemo(() => props.getStrokeWidth?.() ?? DEFAULT_SHAPE_BUTTON_STROKE_WIDTH);
+
+    const getColorDefs = createMemo(() => props.getColorDefs?.() ?? DEFAULT_SHAPE_BUTTON_COLORS);
 
     const getTabIndex = createMemo(() => (!props.getIsDisabled?.() ? 0 : -1));
 
     const getPolygonPoints = createMemo(() => {
-        const padding = ShapeButtonUIConst.STROKE_WIDTH * 0.5;
+        const padding = getStrokeWidth() * 0.5;
         const width = props.getWidth();
         const height = props.getHeight();
 
@@ -46,11 +54,11 @@ export const ShapeButton = (props: ParentProps<ShapeButtonProps>) => {
                 [buttonStyles.buttonSelected]: props.getIsSelected?.(),
             }}
             style={{
-                width: CssUtils.getUnit(props.getWidth()),
-                height: CssUtils.getUnit(props.getHeight()),
-                ...CssUtils.assignInlineVars({
-                    [styles.shapeButtonColor]: CssUtils.getColor(getColorDefs().color),
-                    [styles.shapeButtonStrokeColor]: CssUtils.getColor(getColorDefs().strokeColor),
+                width: `${props.getWidth()}px`,
+                height: `${props.getHeight()}px`,
+                ...assignInlineVars({
+                    [styles.shapeButtonColor]: getColorDefs().color,
+                    [styles.shapeButtonStrokeColor]: getColorDefs().strokeColor,
                 }),
             }}
         >
@@ -85,13 +93,13 @@ export const ShapeButton = (props: ParentProps<ShapeButtonProps>) => {
                 <polygon
                     class={`${styles.shapeButtonPolygonStroke} ${props.getClassName?.()}`}
                     points={getPolygonPoints()}
-                    stroke-width={ShapeButtonUIConst.STROKE_WIDTH}
+                    stroke-width={getStrokeWidth()}
                 />
 
                 <polygon
                     class={`${styles.shapeButtonPolygonFill} ${props.getClassName?.()}`}
                     points={getPolygonPoints()}
-                    stroke-width={ShapeButtonUIConst.STROKE_WIDTH}
+                    stroke-width={getStrokeWidth()}
                 />
             </svg>
 

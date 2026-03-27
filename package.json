@@ -20,19 +20,20 @@
     "devDependencies": {
         "@thewaver/ss-utils": "^0.0.4",
         "@trivago/prettier-plugin-sort-imports": "^6.0.2",
-        "@vanilla-extract/css": "^1.18.0",
-        "@vanilla-extract/vite-plugin": "^5.1.4",
+        "@vanilla-extract/css": "^1.20.0",
+        "@vanilla-extract/dynamic": "^2.1.5",
+        "@vanilla-extract/vite-plugin": "^5.2.1",
         "prettier": "^3.8.1",
-        "solid-js": "^1.9.11",
+        "solid-js": "^1.9.12",
         "tsup": "^8.5.1",
         "typescript": "^5.9.3",
         "vite": "^7.3.1",
         "vite-plugin-checker": "^0.12.0",
-        "vite-plugin-solid": "^2.11.10"
+        "vite-plugin-solid": "^2.11.11"
     },
     "peerDependencies": {
         "@thewaver/ss-utils": "^0.0.4",
-        "solid-js": "^1.9.11"
+        "solid-js": "^1.9.12"
     },
     "prettier": {
         "tabWidth": 4,
