@@ -1,66 +1,31 @@
 import { JSX } from "solid-js";
 
-import { Point2d } from "@thewaver/ss-utils";
+import {
+    SVGBrightnessFilterDefs,
+    SVGContrastFilterDefs,
+    SVGDropShadowFilterDefs,
+    SVGGaussianBlurFilterDefs,
+    SVGHueRotationFilterDefs,
+    SVGInversionFilterDefs,
+    SVGLinearGradientDefs,
+    SVGRadialGradientDefs,
+    SVGSaturationFilterDefs,
+} from "./SVGDefsFactory.types";
 
-type ShapeButtonSVGDefs = {
-    id: string;
-};
+export class SVGDefsFactory {
+    private gradient: JSX.Element | undefined;
+    private filterPrimitives: Record<string, JSX.Element> = {};
+    private dropShadowCount = 0;
 
-type ShapeButtonGradientDefs = ShapeButtonSVGDefs & {
-    colors: {
-        value: string;
-        stop: number;
-    }[];
-    spreadMethod?: "pad" | "reflect" | "repeat";
-};
+    public readonly gradientId: string;
+    public readonly filterId: string;
 
-type ShapeButtonLinearGradientDefs = ShapeButtonGradientDefs & {
-    angle: number;
-};
+    constructor(id: string) {
+        this.gradientId = `${id}_gradient`;
+        this.filterId = `${id}_filter`;
+    }
 
-type ShapeButtonRadialGradientDefs = ShapeButtonGradientDefs & {
-    origin: Point2d;
-};
-
-type ShapeButtonDropShadowFilter = ShapeButtonSVGDefs & {
-    dx: number;
-    dy: number;
-    stdDeviation: number;
-    floodColor: string;
-    floodOpacity: number;
-};
-
-type ShapeButtonGaussianBlurFilter = ShapeButtonSVGDefs & {
-    stdDeviation: number;
-};
-
-type ShapeButtonSaturationFilter = ShapeButtonSVGDefs & {
-    amount: number;
-};
-
-type ShapeButtonHueRotationFilter = ShapeButtonSVGDefs & {
-    deg: number;
-};
-
-type ShapeButtonBrightnessFilter = ShapeButtonSVGDefs & {
-    amount: number;
-};
-
-type ShapeButtonContrastFilter = ShapeButtonSVGDefs & {
-    amount: number;
-};
-
-type ShapeButtonInversionFilter = ShapeButtonSVGDefs & {
-    amount: number;
-};
-
-export class ShapeButtonDefs {
-    private readonly gradients: JSX.Element[] = [];
-    private readonly filterPrimitives: Record<string, JSX.Element> = {};
-
-    constructor(private readonly id: string) {}
-
-    private renderGradientStops = (colors: ShapeButtonGradientDefs["colors"]) =>
+    private renderGradientStops = (colors: (SVGLinearGradientDefs | SVGRadialGradientDefs)["colors"]) =>
         colors.map((c) => <stop offset={`${c.stop}%`} stop-color={c.value} />);
 
     private getLinearCoordsFromAngle = (angle: number) => {
@@ -78,12 +43,16 @@ export class ShapeButtonDefs {
     };
 
     private getMergedFilterPrimitives = () => {
+        const keys = Object.keys(this.filterPrimitives);
+
+        if (keys.length < 1) return undefined;
+
         return (
-            <filter id={this.id}>
+            <filter id={this.filterId}>
                 {Object.values(this.filterPrimitives)}
 
                 <feMerge>
-                    {Object.keys(this.filterPrimitives).map((key) => (
+                    {keys.map((key) => (
                         <feMergeNode in={key} />
                     ))}
                     <feMergeNode in="SourceGraphic" />
@@ -92,57 +61,65 @@ export class ShapeButtonDefs {
         );
     };
 
-    public addLinearGradient = (def: ShapeButtonLinearGradientDefs): ShapeButtonDefs => {
+    public setLinearGradient = (def: SVGLinearGradientDefs) => {
         const { angle, colors, ...baseProps } = def;
         const { x1, y1, x2, y2 } = this.getLinearCoordsFromAngle(angle);
 
-        this.gradients.push(
-            <linearGradient {...baseProps} x1={x1} y1={y1} x2={x2} y2={y2}>
+        this.gradient = (
+            <linearGradient {...baseProps} id={this.gradientId} x1={x1} y1={y1} x2={x2} y2={y2}>
                 {this.renderGradientStops(colors)}
-            </linearGradient>,
+            </linearGradient>
         );
 
         return this;
     };
 
-    public addRadialGradient = (def: ShapeButtonRadialGradientDefs): ShapeButtonDefs => {
+    public setRadialGradient = (def: SVGRadialGradientDefs) => {
         const { colors, origin, ...baseProps } = def;
 
-        this.gradients.push(
-            <radialGradient {...baseProps} cx={`${origin.x}%`} cy={`${origin.y}%`} r="50%">
+        this.gradient = (
+            <radialGradient {...baseProps} id={this.gradientId} cx={`${origin.x}%`} cy={`${origin.y}%`} r="50%">
                 {this.renderGradientStops(colors)}
-            </radialGradient>,
+            </radialGradient>
         );
 
         return this;
     };
 
-    public addDropShadowFilter = (def: ShapeButtonDropShadowFilter): ShapeButtonDefs => {
-        const key = `dropShadow_${def.id}`;
+    public addDropShadowFilter = (def: SVGDropShadowFilterDefs) => {
+        const key = `${this.filterId}_dropShadow_${this.dropShadowCount++}`;
+
         this.filterPrimitives[key] = <feDropShadow {...def} result={key} />;
+
         return this;
     };
 
-    public addGaussianBlurFilter = (def: ShapeButtonGaussianBlurFilter): ShapeButtonDefs => {
-        const key = `gaussianBlur_${def.id}`;
+    public setGaussianBlurFilter = (def: SVGGaussianBlurFilterDefs) => {
+        const key = `${this.filterId}_gaussianBlur`;
+
         this.filterPrimitives[key] = <feGaussianBlur {...def} result={key} />;
+
         return this;
     };
 
-    public addSaturationFilter = (def: ShapeButtonSaturationFilter): ShapeButtonDefs => {
-        const key = `saturation_${def.id}`;
+    public setSaturationFilter = (def: SVGSaturationFilterDefs) => {
+        const key = `${this.filterId}_saturation`;
+
         this.filterPrimitives[key] = <feColorMatrix type="saturate" values={`${def.amount}`} result={key} />;
+
         return this;
     };
 
-    public addHueRotationFilter = (def: ShapeButtonHueRotationFilter): ShapeButtonDefs => {
-        const key = `hueRotation_${def.id}`;
+    public setHueRotationFilter = (def: SVGHueRotationFilterDefs) => {
+        const key = `${this.filterId}_hueRotation`;
+
         this.filterPrimitives[key] = <feColorMatrix type="hueRotate" values={`${def.deg}`} result={key} />;
+
         return this;
     };
 
-    public addBrightnessFilter = (def: ShapeButtonBrightnessFilter): ShapeButtonDefs => {
-        const key = `brightness_${def.id}`;
+    public setBrightnessFilter = (def: SVGBrightnessFilterDefs) => {
+        const key = `${this.filterId}_brightness`;
 
         this.filterPrimitives[key] = (
             <feColorMatrix
@@ -158,8 +135,8 @@ export class ShapeButtonDefs {
         return this;
     };
 
-    public addContrastFilter = (def: ShapeButtonContrastFilter): ShapeButtonDefs => {
-        const key = `contrast_${def.id}`;
+    public setContrastFilter = (def: SVGContrastFilterDefs) => {
+        const key = `${this.filterId}_contrast`;
         const intercept = 0.5 * (1 - def.amount);
 
         this.filterPrimitives[key] = (
@@ -176,8 +153,8 @@ export class ShapeButtonDefs {
         return this;
     };
 
-    public addInvertionFilter = (def: ShapeButtonInversionFilter): ShapeButtonDefs => {
-        const key = `invertion_${def.id}`;
+    public setInversionFilter = (def: SVGInversionFilterDefs) => {
+        const key = `${this.filterId}_inversion`;
         const a = 1 - 2 * def.amount;
         const b = def.amount;
 
@@ -198,7 +175,7 @@ export class ShapeButtonDefs {
     public getValue = () => {
         return (
             <>
-                {this.gradients}
+                {this.gradient}
                 {this.getMergedFilterPrimitives()}
             </>
         );

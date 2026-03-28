@@ -9,6 +9,11 @@ export type ButtonFlags = {
     hasError?: boolean;
 };
 
+export type ExtendedButtonFlags = ButtonFlags & {
+    isHovered?: boolean;
+    isFocused?: boolean;
+};
+
 export type ButtonCbs = {
     onClick?: (e: MouseEvent | KeyboardEvent) => Promise<void>;
     onMouseEnter?: (e: MouseEvent) => Promise<void>;

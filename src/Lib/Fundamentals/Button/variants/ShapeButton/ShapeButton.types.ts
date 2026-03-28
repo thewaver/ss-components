@@ -14,10 +14,10 @@ export type ShapeButtonProps = AccessorProps<
     ButtonCbs &
         ButtonFlags &
         Size2d & {
-            id?:  string;
+            id?: string;
             className?: string;
             shape: ButtonShape;
-            strokeWidth?: number; 
+            strokeWidth?: number;
             colorDefs?: ShapeButtonColorDefs;
         }
 >;
