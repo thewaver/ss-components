@@ -1,7 +1,6 @@
 import { style } from "@vanilla-extract/css";
 
 export const buttonError = style({});
-
 export const buttonSelected = style({});
 
 export const buttonRoot = style({

@@ -1,23 +1,42 @@
+import { JSX } from "solid-js";
+
 import { Size2d } from "@thewaver/ss-utils";
 
 import { AccessorProps } from "../../../../Utils/typeUtils";
-import { ButtonCbs, ButtonFlags } from "../../Button.types";
+import { ButtonCbs, ButtonFlags, ExternalButtonFlags } from "../../Button.types";
 
-export type ButtonShape = "hexagon" | "lozenge";
+export type ShapeButtonShape = "hexagon" | "lozenge";
 
-export type ShapeButtonColorDefs = {
-    color: string;
-    strokeColor: string;
-};
+export type ShapeButtonSVGDefs = {
+    filter?: {
+        id: string;
+        defsElement: JSX.Element;
+    };
+} & (
+    | {
+          color?: never;
+          gradient: {
+              defsElement: JSX.Element;
+              id: string;
+          };
+      }
+    | {
+          color: string;
+          gradient?: never;
+      }
+);
 
 export type ShapeButtonProps = AccessorProps<
     ButtonCbs &
-        ButtonFlags &
+        ExternalButtonFlags &
         Size2d & {
             id?: string;
             className?: string;
-            shape: ButtonShape;
-            strokeWidth?: number;
-            colorDefs?: ShapeButtonColorDefs;
+            shape: ShapeButtonShape;
+            transitionDurationMs?: number;
+            getFillDefs: (getFlags: () => ButtonFlags) => ShapeButtonSVGDefs;
+            getStrokeDefs: (getFlags: () => ButtonFlags) => ShapeButtonSVGDefs;
+            getStrokeWidth?: (getFlags: () => ButtonFlags) => number;
+            getStrokeDashArray?: (getFlags: () => ButtonFlags) => string;
         }
 >;
