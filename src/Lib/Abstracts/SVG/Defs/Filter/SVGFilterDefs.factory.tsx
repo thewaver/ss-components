@@ -7,42 +7,16 @@ import {
     SVGGaussianBlurFilterDefs,
     SVGHueRotationFilterDefs,
     SVGInversionFilterDefs,
-    SVGLinearGradientDefs,
-    SVGRadialGradientDefs,
     SVGSaturationFilterDefs,
-} from "./SVGDefsFactory.types";
+} from "./SVGFilterDefs.types";
 
-export class SVGDefsFactory {
-    private gradient: JSX.Element | undefined;
+export class SVGFilterDefsFactory {
     private filterPrimitives: Record<string, JSX.Element> = {};
     private dropShadowCount = 0;
 
-    public readonly gradientId: string;
-    public readonly filterId: string;
+    constructor(private readonly filterId: string) {}
 
-    constructor(id: string) {
-        this.gradientId = `${id}_gradient`;
-        this.filterId = `${id}_filter`;
-    }
-
-    private renderGradientStops = (colors: (SVGLinearGradientDefs | SVGRadialGradientDefs)["colors"]) =>
-        colors.map((c) => <stop offset={`${c.stop}%`} stop-color={c.value} />);
-
-    private getLinearCoordsFromAngle = (angle: number) => {
-        const rad = (angle * Math.PI) / 180;
-
-        const x = Math.cos(rad);
-        const y = Math.sin(rad);
-
-        const x1 = 50 - x * 50;
-        const y1 = 50 - y * 50;
-        const x2 = 50 + x * 50;
-        const y2 = 50 + y * 50;
-
-        return { x1: `${x1}%`, y1: `${y1}%`, x2: `${x2}%`, y2: `${y2}%` };
-    };
-
-    private getMergedFilterPrimitives = () => {
+    public getMergedFilterPrimitives = () => {
         const keys = Object.keys(this.filterPrimitives);
 
         if (keys.length < 1) return undefined;
@@ -59,31 +33,6 @@ export class SVGDefsFactory {
                 </feMerge>
             </filter>
         );
-    };
-
-    public setLinearGradient = (def: SVGLinearGradientDefs) => {
-        const { angle, colors, ...baseProps } = def;
-        const { x1, y1, x2, y2 } = this.getLinearCoordsFromAngle(angle);
-
-        this.gradient = (
-            <linearGradient {...baseProps} id={this.gradientId} x1={x1} y1={y1} x2={x2} y2={y2}>
-                {this.renderGradientStops(colors)}
-            </linearGradient>
-        );
-
-        return this;
-    };
-
-    public setRadialGradient = (def: SVGRadialGradientDefs) => {
-        const { colors, origin, ...baseProps } = def;
-
-        this.gradient = (
-            <radialGradient {...baseProps} id={this.gradientId} cx={`${origin.x}%`} cy={`${origin.y}%`} r="50%">
-                {this.renderGradientStops(colors)}
-            </radialGradient>
-        );
-
-        return this;
     };
 
     public addDropShadowFilter = (def: SVGDropShadowFilterDefs) => {
@@ -170,14 +119,5 @@ export class SVGDefsFactory {
         );
 
         return this;
-    };
-
-    public getValue = () => {
-        return (
-            <>
-                {this.gradient}
-                {this.getMergedFilterPrimitives()}
-            </>
-        );
     };
 }

@@ -65,3 +65,11 @@ export const overlayOn = style({
 export const overlayOff = style({
     backdropFilter: "none",
 });
+
+export const flexRow = style({
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "start",
+    alignItems: "center",
+    gap: 20,
+});

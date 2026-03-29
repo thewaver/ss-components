@@ -35,8 +35,6 @@ export type ShapeButtonProps = AccessorProps<
             shape: ShapeButtonShape;
             transitionDurationMs?: number;
             getFillDefs: (getFlags: () => ButtonFlags) => ShapeButtonSVGDefs;
-            getStrokeDefs: (getFlags: () => ButtonFlags) => ShapeButtonSVGDefs;
-            getStrokeWidth?: (getFlags: () => ButtonFlags) => number;
-            getStrokeDashArray?: (getFlags: () => ButtonFlags) => string;
+            getStrokeDefs: (getFlags: () => ButtonFlags) => ShapeButtonSVGDefs & { width?: number; dashArray?: string };
         }
 >;

@@ -3,6 +3,7 @@ import { createSignal } from "solid-js";
 import { AnimDirection } from "../../Lib//Abstracts/Anim/Anim.types";
 import { ScreenWiper } from "../../Lib//Fundamentals/ScreenWiper/ScreenWiper";
 import { Button } from "../../Lib/Fundamentals/Button/Button";
+import { ShapeButton } from "../../Lib/Fundamentals/Button/variants/ShapeButton/ShapeButton";
 import { useColorExtractor } from "../../Lib/Fundamentals/ColorExtractor/ColorExtractor.context";
 import { Corners } from "../../Lib/Fundamentals/Corners/Corners";
 import { ElementHighlight } from "../../Lib/Fundamentals/ElementHighlight/ElementHighlight";
@@ -152,6 +153,24 @@ export function AppContent() {
                 }}
             >
                 <img src={knight} height="100%" />
+            </div>
+
+            <div class={styles.flexRow}>
+                <ShapeButton
+                    onClick={async () => console.log("click")}
+                    getWidth={() => 320}
+                    getHeight={() => 240}
+                    getShape={() => "lozenge"}
+                    getStrokeDefs={() => ({ color: "#0000FF80", width: 10 })}
+                    getFillDefs={() => ({ color: "#806040" })}
+                />
+                <ShapeButton
+                    getWidth={() => 320}
+                    getHeight={() => 240}
+                    getShape={() => "hexagon"}
+                    getStrokeDefs={() => ({ color: "#00FF0080", width: 20 })}
+                    getFillDefs={() => ({ color: "#806040" })}
+                />
             </div>
         </div>
     );

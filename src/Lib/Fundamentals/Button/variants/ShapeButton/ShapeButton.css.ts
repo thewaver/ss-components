@@ -15,6 +15,7 @@ export const shapeButtonSVG = style({
 });
 
 export const shapeButtonPolygon = style({
+    cursor: "pointer",
     pointerEvents: "visiblePainted",
     transition: `fill ${shapeButtonTransitionDurationMs}, stroke ${shapeButtonTransitionDurationMs}`,
 });
