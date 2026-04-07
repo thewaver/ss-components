@@ -1,0 +1,5 @@
+import { style } from "@vanilla-extract/css";
+
+export const typewriterRoot = style({
+    width: "fit-content",
+});

@@ -1,12 +1,14 @@
-import { createSignal } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 
 import { AnimDirection } from "../../Lib//Abstracts/Anim/Anim.types";
 import { ScreenWiper } from "../../Lib//Fundamentals/ScreenWiper/ScreenWiper";
+import { JSXStyleParser } from "../../Lib/Abstracts/JSX/StyleParser/JSXStyleParser";
 import { Button } from "../../Lib/Fundamentals/Button/Button";
 import { ShapeButton } from "../../Lib/Fundamentals/Button/variants/ShapeButton/ShapeButton";
 import { useColorExtractor } from "../../Lib/Fundamentals/ColorExtractor/ColorExtractor.context";
 import { Corners } from "../../Lib/Fundamentals/Corners/Corners";
 import { ElementHighlight } from "../../Lib/Fundamentals/ElementHighlight/ElementHighlight";
+import { Typewriter2 } from "../../Lib/Fundamentals/Typewriter2/Typewriter";
 import { Typewriter } from "../../Lib/Fundamentals/Typewriter/Typewriter";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
 import knight from "./knight.png";
@@ -21,6 +23,7 @@ export function AppContent() {
         getColorCount: () => 3,
     });
 
+    let typeWriterRef: HTMLDivElement | undefined;
     let containerRef: HTMLDivElement | undefined;
 
     // WIPE
@@ -32,6 +35,12 @@ export function AppContent() {
     const [getTextPrefix, setTextPrefix] = createSignal("");
     // HIGHLIGHTER
     const [getHighlightOn, setHighlightOn] = createSignal(false);
+
+    createEffect(() => {
+        if (!typeWriterRef) return;
+
+        console.log(JSXStyleParser.getTextSegmentTokens(typeWriterRef));
+    });
 
     return (
         <div class={styles.appContent}>
@@ -89,7 +98,7 @@ export function AppContent() {
                             classList={{ [styles.isVisible]: getVisibilityTarget() === 1 }}
                             style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
                         >
-                            Click me change the text content, thus restarting the animation.
+                            Click me to change the text content, thus restarting the animation.
                         </div>
                     ),
                 })}
@@ -100,8 +109,12 @@ export function AppContent() {
                 <div class={styles.buttonContent}>Restart text animation</div>
             </Button>
 
-            <div class={styles.textContent}>
+            <div ref={typeWriterRef} class={styles.textContent}>
                 <Typewriter>{`This is a bit of text that fades in one line at a time. ${getTextPrefix()}`}</Typewriter>
+            </div>
+
+            <div ref={typeWriterRef} class={styles.textContent}>
+                <Typewriter2>{`This is a bit of text that fades in one line at a time. ${getTextPrefix()}`}</Typewriter2>
             </div>
 
             <div
@@ -119,7 +132,7 @@ export function AppContent() {
                                 classList={{ [styles.isVisible]: getVisibilityTarget() === 1 }}
                                 style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
                             >
-                                Click me darken and blur the rest of the screen, thus highlighting my content.
+                                Click me to darken and blur the rest of the screen, thus highlighting my content.
                             </div>
                         ),
                     })}

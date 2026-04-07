@@ -58,7 +58,6 @@ export function insetPolygon(points: Point2d[], shift: number): Point2d[] {
             x: curr.x + n1.x * shift,
             y: curr.y + n1.y * shift,
         };
-
         const p3 = {
             x: curr.x + n2.x * shift,
             y: curr.y + n2.y * shift,

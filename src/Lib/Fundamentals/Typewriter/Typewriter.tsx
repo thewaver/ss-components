@@ -1,5 +1,6 @@
 import { JSX, ParentProps, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
+import { layoutWithLines, prepareWithSegments } from "@chenglou/pretext";
 import { Size2d } from "@thewaver/ss-utils";
 
 import { TypewriterProps } from "./Typewriter.types";
