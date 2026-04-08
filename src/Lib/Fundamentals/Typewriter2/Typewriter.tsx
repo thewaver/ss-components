@@ -1,8 +1,12 @@
-import { ParentProps, createMemo, onCleanup, onMount } from "solid-js";
+import { For, ParentProps, Show, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
 import { layoutNextLine, prepareWithSegments } from "@chenglou/pretext";
 
-import { JSXStyleParser, StyledTextSegmentWithMetrics } from "../../../Lib/Abstracts/JSX/StyleParser/JSXStyleParser";
+import {
+    JSXStyleParser,
+    StyledTextSegmentWithMetrics,
+    applyTextTransform,
+} from "../../../Lib/Abstracts/JSX/StyleParser/JSXStyleParser";
 import { TypewriterProps } from "./Typewriter.types";
 
 import * as styles from "./Typewriter.css";
@@ -10,74 +14,98 @@ import * as styles from "./Typewriter.css";
 const DEFAULT_TYPEWRITER_TRANSITION_DURATION_MS = 100;
 
 export const Typewriter2 = (props: ParentProps<TypewriterProps>) => {
+    const [getLines, setLines] = createSignal<StyledTextSegmentWithMetrics[][]>([[]]);
+
     let childrenContainerRef: HTMLDivElement | undefined;
 
     const getTransitionDurationMs = createMemo(
         () => props.getTransitionDurationMs?.() ?? DEFAULT_TYPEWRITER_TRANSITION_DURATION_MS,
     );
 
-    const reset = () => {};
-
-    const updateSize = () => {
+    const updateLayout = () => {
         if (!childrenContainerRef) return [];
 
         const width = childrenContainerRef.clientWidth;
-        const tokens = JSXStyleParser.getTextSegmentTokens(childrenContainerRef);
-        const runs = JSXStyleParser.getTextSegmentMetricStyleRuns(tokens);
-        const positioned: (StyledTextSegmentWithMetrics & { line: number })[] = [];
+        const segments = JSXStyleParser.getTextSegmentTokens(childrenContainerRef);
+        const mergedSegmentsByMetrics = JSXStyleParser.mergeIdenticalTextSegments(
+            segments,
+            JSXStyleParser.isSameMetricsStyle,
+        );
+        const lines: StyledTextSegmentWithMetrics[][] = [[]];
 
-        let line = 0;
+        let lineIndex = 0;
         let remainingWidth = width;
 
-        for (const run of runs) {
-            let queue = [...run];
+        for (const segment of mergedSegmentsByMetrics) {
+            const metrics = segment[0].metrics;
+            const text = applyTextTransform(segment.map((t) => t.text).join(""), metrics["text-transform"]);
+            const font = [
+                metrics["font-style"],
+                `${metrics["font-weight"]}`,
+                `${metrics["font-size"]}`,
+                metrics["font-family"],
+            ]
+                .filter(Boolean)
+                .join(" ");
 
-            while (queue.length) {
-                const text = queue.map((t) => t.text).join("");
-                const m = queue[0].metrics;
-                const font = [m["font-style"], `${m["font-weight"]}`, `${m["font-size"]}`, m["font-family"]]
-                    .filter(Boolean)
-                    .join(" ");
+            const prepared = prepareWithSegments(text, font, {
+                whiteSpace: "pre-wrap",
+            });
 
-                const prepared = prepareWithSegments(text, font, { whiteSpace: "pre-wrap" });
-                const lineInfo = layoutNextLine(prepared, { segmentIndex: 0, graphemeIndex: 0 }, remainingWidth);
+            let cursor = { segmentIndex: 0, graphemeIndex: 0 };
+            let tokenIndex = 0;
+
+            while (true) {
+                const lineInfo = layoutNextLine(prepared, cursor, remainingWidth);
 
                 if (!lineInfo) break;
 
-                const consumedText = lineInfo.text;
-
-                let consumedLength = consumedText.length;
-                let consumedTokens = 0;
                 let count = 0;
+                let consumedTokens = 0;
 
-                for (const token of queue) {
-                    count += token.text.length;
+                for (let i = tokenIndex; i < segment.length; i++) {
+                    count += segment[i]!.text.length;
                     consumedTokens++;
 
-                    if (count >= consumedLength) break;
+                    if (count >= lineInfo.text.length) break;
                 }
 
                 for (let i = 0; i < consumedTokens; i++) {
-                    const token = queue[i];
-                    positioned.push({ ...token, line });
+                    lines[lineIndex]!.push(segment[tokenIndex + i]!);
                 }
 
-                queue = queue.slice(consumedTokens);
+                tokenIndex += consumedTokens;
 
                 const nextRemainingWidth = remainingWidth - lineInfo.width;
 
-                if (queue.length > 0 || nextRemainingWidth <= 0) {
-                    line++;
+                if (tokenIndex < segment.length || nextRemainingWidth <= 0) {
+                    lineIndex++;
+                    lines[lineIndex] ??= [];
                     remainingWidth = width;
                 } else {
                     remainingWidth = nextRemainingWidth;
                 }
+
+                cursor = lineInfo.end;
             }
         }
 
-        console.log(positioned);
+        const mergedLinesByStyle = lines
+            .filter((line) => line.length > 0)
+            .map((line) =>
+                JSXStyleParser.mergeIdenticalTextSegments(
+                    line.filter((item) => item.text !== "\n"),
+                    JSXStyleParser.isSameNonMetricsStyle,
+                ).map(
+                    (group): StyledTextSegmentWithMetrics => ({
+                        text: group.reduce((res, cur) => (res += cur.text), ""),
+                        metrics: group[0].metrics,
+                        nonMetrics: group[0].nonMetrics,
+                    }),
+                ),
+            );
 
-        return positioned;
+        setLines(mergedLinesByStyle);
     };
 
     onMount(() => {
@@ -89,18 +117,34 @@ export const Typewriter2 = (props: ParentProps<TypewriterProps>) => {
 
         if (!childrenContainerRef) return;
 
-        childrenContainerObserver = new ResizeObserver(updateSize);
+        childrenContainerObserver = new ResizeObserver(updateLayout);
         childrenContainerObserver.observe(childrenContainerRef);
     });
 
     return (
-        <div
-            ref={(el) => {
-                childrenContainerRef = el;
-            }}
-            class={styles.typewriterRoot}
-        >
-            {props.children}
-        </div>
+        <>
+            <div
+                ref={(el) => {
+                    childrenContainerRef = el;
+                }}
+                class={styles.typewriterRoot}
+            >
+                {props.children}
+            </div>
+
+            <Show when={getLines().some((line) => line.length > 0)}>
+                <For each={getLines()}>
+                    {(line) => (
+                        <div>
+                            <For each={line}>
+                                {(segment) => (
+                                    <span style={{ ...segment.nonMetrics, ...segment.metrics }}>{segment.text}</span>
+                                )}
+                            </For>
+                        </div>
+                    )}
+                </For>
+            </Show>
+        </>
     );
 };

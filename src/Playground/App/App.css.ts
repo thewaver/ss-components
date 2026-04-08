@@ -73,3 +73,7 @@ export const flexRow = style({
     alignItems: "center",
     gap: 20,
 });
+
+export const textHighlight = style({
+    textTransform: "uppercase",
+});

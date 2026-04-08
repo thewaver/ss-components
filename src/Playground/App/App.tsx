@@ -114,7 +114,14 @@ export function AppContent() {
             </div>
 
             <div ref={typeWriterRef} class={styles.textContent}>
-                <Typewriter2>{`This is a bit of text that fades in one line at a time. ${getTextPrefix()}`}</Typewriter2>
+                <Typewriter2>
+                    This is a bit of <b>text that fades</b> in
+                    <div class={styles.textHighlight} style={{ color: "red" }}>
+                        one
+                    </div>
+                    line at a<br />
+                    time.
+                </Typewriter2>
             </div>
 
             <div
