@@ -1,88 +1,70 @@
-import { JSX, ParentProps, createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import { For, ParentProps, Show, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
-import { layoutWithLines, prepareWithSegments } from "@chenglou/pretext";
-import { Size2d } from "@thewaver/ss-utils";
-
+import { JSXStyleParser, StyledTextSegmentWithMetrics } from "../../Abstracts/JSX/StyleParser/JSXStyleParser";
 import { TypewriterProps } from "./Typewriter.types";
 
 import * as styles from "./Typewriter.css";
 
-const DEFAULT_TYPEWRITER_TRANSITION_DURATION_MS = 100;
+const DEFAULT_TYPEWRITER_ANIMATION_NAME = styles.typewriterFade;
+const DEFAULT_TYPEWRITER_ANIMATION_DURATION_MS = 200;
+const DEFAULT_TYPEWRITER_ANIMATION_DELAY_MS = 10;
 
 export const Typewriter = (props: ParentProps<TypewriterProps>) => {
-    const [getLineCount, setLineCount] = createSignal(0);
-    const [getLineHeight, setLineHeight] = createSignal(0);
-    const [getCurrentLine, setCurrentLine] = createSignal(-1);
-    const [getContainerSize, setContainerSize] = createSignal<Size2d | undefined>(undefined, { equals: Size2d.isSame });
+    const [getLines, setLines] = createSignal<StyledTextSegmentWithMetrics[][]>([[]]);
+    const [getIsAnimating, setIsAnimating] = createSignal(false);
 
     let childrenContainerRef: HTMLDivElement | undefined;
+    let animationToggleTimeout: NodeJS.Timeout | undefined;
 
-    const getMaskStyle = createMemo(() => {
-        const currentLine = getCurrentLine();
-        const lineHeight = getLineHeight();
-        const lineCount = getLineCount();
-        const containerSize = getContainerSize();
-        const transitionDurationMs = props.getTransitionDurationMs?.() ?? DEFAULT_TYPEWRITER_TRANSITION_DURATION_MS;
+    const getAnimationName = createMemo(() => props.getAnimationName?.() ?? DEFAULT_TYPEWRITER_ANIMATION_NAME);
 
-        if (!childrenContainerRef) return { opacity: 0 };
+    const getAnimationDurationMs = createMemo(
+        () => props.getAnimationDurationMs?.() ?? DEFAULT_TYPEWRITER_ANIMATION_DURATION_MS,
+    );
 
-        const fadeW = lineHeight * 2;
+    const getAnimationDelayMs = createMemo(
+        () => props.getAnimationDelayMs?.() ?? DEFAULT_TYPEWRITER_ANIMATION_DELAY_MS,
+    );
 
-        let image = "";
-        let position = "";
-        let size = "";
+    const updateLayout = () => {
+        if (!childrenContainerRef) return [];
 
-        for (let i = 0; i < lineCount; i++) {
-            image = image + `, linear-gradient(to right, black calc(100% - ${fadeW}px), transparent)`;
-            position = position + `, 0 ${i * lineHeight}px`;
-            size = size + `, ${i < currentLine ? `calc(100% + ${fadeW}px)` : "0"} ${lineHeight}px`;
-        }
+        const width = childrenContainerRef.clientWidth;
+        const segments = JSXStyleParser.getTextSegmentTokens(childrenContainerRef);
+        const groupedSegmentsByMetrics = JSXStyleParser.groupIdenticalTextSegments(
+            segments,
+            JSXStyleParser.isSameMetricsStyle,
+        );
+        const lines = JSXStyleParser.getSegmentsByLine(groupedSegmentsByMetrics, width);
+        const totalChars = lines.reduce(
+            (outterRes, outterCur) =>
+                outterRes + outterCur.reduce((innerRes, innerCur) => innerRes + innerCur.text.length, 0),
+            0,
+        );
+        const mergedLinesByStyle = lines
+            .filter((line) => line.length > 0)
+            .map((line) =>
+                JSXStyleParser.groupIdenticalTextSegments(line, JSXStyleParser.isSameNonMetricsStyle).map(
+                    (group): StyledTextSegmentWithMetrics => ({
+                        text: group.reduce((res, cur) => (res += cur.text), ""),
+                        metrics: group[0].metrics,
+                        nonMetrics: group[0].nonMetrics,
+                    }),
+                ),
+            );
 
-        const result: JSX.CSSProperties = {
-            "mask-image": image.slice(2),
-            "mask-position": position.slice(2),
-            "mask-size": size.slice(2),
-            "transition": `${currentLine > 0 ? "mask-size" : "none"} ${transitionDurationMs * (containerSize?.width ?? 100) * 0.01}ms linear`,
-        };
+        setLines(mergedLinesByStyle);
+        setIsAnimating(true);
+        clearTimeout(animationToggleTimeout);
 
-        return result;
-    });
+        animationToggleTimeout = setTimeout(
+            () => {
+                setIsAnimating(false);
 
-    const reset = () => {
-        setCurrentLine(0);
-
-        setTimeout(() => {
-            setCurrentLine(1);
-        }, 0);
-    };
-
-    const updateSize = () => {
-        if (!childrenContainerRef) return;
-
-        const probe = document.createElement("span");
-        probe.textContent = "A\nA";
-        probe.style.whiteSpace = "pre";
-        probe.style.visibility = "hidden";
-        probe.style.position = "absolute";
-        probe.style.top = "0";
-        probe.style.left = "0";
-        probe.style.font = "inherit";
-        probe.style.lineHeight = "inherit";
-        probe.style.pointerEvents = "none";
-
-        childrenContainerRef.appendChild(probe);
-
-        const lineHeight = probe.scrollHeight * 0.5;
-
-        childrenContainerRef.removeChild(probe);
-
-        const containerW = childrenContainerRef.scrollWidth;
-        const containerH = childrenContainerRef.scrollHeight;
-
-        setContainerSize({ width: containerW, height: containerH });
-        setLineHeight(lineHeight);
-        setLineCount(Math.round(containerH / lineHeight));
-        reset();
+                props.onAnimationEnd?.();
+            },
+            totalChars * getAnimationDelayMs() + getAnimationDurationMs(),
+        );
     };
 
     onMount(() => {
@@ -94,26 +76,62 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
 
         if (!childrenContainerRef) return;
 
-        childrenContainerObserver = new ResizeObserver(updateSize);
+        childrenContainerObserver = new ResizeObserver(updateLayout);
         childrenContainerObserver.observe(childrenContainerRef);
     });
 
     return (
-        <div
-            ref={(el) => {
-                childrenContainerRef = el;
-            }}
-            class={styles.typewriterRoot}
-            style={getMaskStyle()}
-            onTransitionEnd={() => {
-                setCurrentLine((prev) => prev + 1);
+        <div class={styles.typewriterRoot}>
+            <div
+                ref={(el) => {
+                    childrenContainerRef = el;
+                }}
+                class={styles.typewriterChildrenWrap}
+                style={getIsAnimating() ? { "visibility": "hidden", "pointer-events": "none" } : undefined}
+            >
+                {JSXStyleParser.discardTextNodeTabs(props.children)}
+            </div>
 
-                if (getCurrentLine() > getLineCount()) {
-                    props.onTransitionEnd?.();
-                }
-            }}
-        >
-            {props.children}
+            <Show when={getIsAnimating()}>
+                {(() => {
+                    let index = 0;
+
+                    return (
+                        <div class={styles.typewriterTextWrap}>
+                            <For each={getLines()}>
+                                {(line) => (
+                                    <div>
+                                        <For each={line}>
+                                            {(segment) => (
+                                                <span style={{ ...segment.nonMetrics, ...segment.metrics }}>
+                                                    <For each={segment.text.split("")}>
+                                                        {(char) => {
+                                                            index++;
+
+                                                            return (
+                                                                <span
+                                                                    class={styles.typewriterChar}
+                                                                    style={{
+                                                                        "animation-name": getAnimationName(),
+                                                                        "animation-duration": `${getAnimationDurationMs()}ms`,
+                                                                        "animation-delay": `${index * getAnimationDelayMs()}ms`,
+                                                                    }}
+                                                                >
+                                                                    {char}
+                                                                </span>
+                                                            );
+                                                        }}
+                                                    </For>
+                                                </span>
+                                            )}
+                                        </For>
+                                    </div>
+                                )}
+                            </For>
+                        </div>
+                    );
+                })()}
+            </Show>
         </div>
     );
 };

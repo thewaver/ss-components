@@ -1,5 +1,6 @@
-import { JSX } from "solid-js";
+import { JSX, JSXElement } from "solid-js";
 
+import { layoutNextLine, prepareWithSegments } from "@chenglou/pretext";
 import { EMPTY_ARRAY } from "@thewaver/ss-utils";
 
 const METRIC_KEYS = [
@@ -202,6 +203,7 @@ const splitComputedStyle = (style: CSSStyleDeclaration, parentStyle?: CSSStyleDe
     }
 
     nonMetrics.display = "inline";
+    nonMetrics.visibility = "visible";
 
     return {
         metrics,
@@ -209,10 +211,35 @@ const splitComputedStyle = (style: CSSStyleDeclaration, parentStyle?: CSSStyleDe
     };
 };
 
+const isLineBreak = (value: string) => /^[\r\n\f\v\u2028\u2029]+$/.test(value);
+
 const isBlockLike = (display?: string) =>
     display === "block" || display === "flex" || display === "grid" || display === "table" || display === "list-item";
 
+const omitEscapedChars = (value: string) => value.replace(/[\p{Cc}\p{Zl}\p{Zp}]/gu, "");
+
 export namespace JSXStyleParser {
+    export const discardTextNodeTabs = <T extends JSX.Element | { props: { children: JSX.Element } }>(node: T): T => {
+        if (!node) return undefined as T;
+        if (typeof node === "string") {
+            return node
+                .replace(/\v/g, "")
+                .replace(/(?<= )\t|\t(?= )/g, "")
+                .replace(/\t/g, "") as T;
+        } else if (Array.isArray(node)) {
+            return node.map(discardTextNodeTabs) as T;
+        } else if (typeof node === "object" && "props" in node && node.props.children) {
+            return {
+                ...node,
+                props: {
+                    ...node.props,
+                    children: discardTextNodeTabs(node.props.children as T),
+                },
+            } as T;
+        }
+        return node;
+    };
+
     export const getTextSegmentTokens = (
         el: Node,
         granularity: Intl.SegmenterOptions["granularity"] = "word",
@@ -236,7 +263,11 @@ export namespace JSXStyleParser {
                 const { metrics, nonMetrics } = splitComputedStyle(computed, parentComputed);
 
                 for (const part of segmenter.segment(text)) {
-                    tokens.push({ text: part.segment, metrics, nonMetrics });
+                    tokens.push({
+                        text: part.segment.replace(/(?<= )\t|\t(?= )/g, "").replace(/\t/g, " "),
+                        metrics,
+                        nonMetrics,
+                    });
                 }
             } else if (node.nodeType === Node.ELEMENT_NODE) {
                 const { computed, parentComputed } = getComputedStyles(node);
@@ -271,7 +302,7 @@ export namespace JSXStyleParser {
     export const isSameNonMetricsStyle = (a: StyledTextSegmentWithMetrics, b: StyledTextSegmentWithMetrics) =>
         JSON.stringify(a.nonMetrics) === JSON.stringify(b.nonMetrics);
 
-    export const mergeIdenticalTextSegments = (
+    export const groupIdenticalTextSegments = (
         tokens: readonly StyledTextSegmentWithMetrics[],
         compare: (A: StyledTextSegmentWithMetrics, B: StyledTextSegmentWithMetrics) => boolean,
     ) => {
@@ -280,12 +311,16 @@ export namespace JSXStyleParser {
         let current: StyledTextSegmentWithMetrics[] = [];
 
         for (const token of tokens) {
-            if (!current.length) {
-                current.push(token);
+            if (isLineBreak(token.text)) {
+                if (current.length) {
+                    runs.push(current);
+                }
+
+                runs.push([token]);
+                current = [];
                 continue;
             }
-
-            if (compare(current[current.length - 1], token)) {
+            if (!current.length || compare(current[current.length - 1], token)) {
                 current.push(token);
                 continue;
             }
@@ -297,5 +332,80 @@ export namespace JSXStyleParser {
         if (current.length) runs.push(current);
 
         return runs;
+    };
+
+    export const getSegmentsByLine = (segments: StyledTextSegmentWithMetrics[][], width: number) => {
+        const lines: StyledTextSegmentWithMetrics[][] = [[]];
+
+        let lineIndex = 0;
+        let remainingWidth = width;
+
+        const startNewLine = () => {
+            lineIndex++;
+            lines[lineIndex] ??= [];
+            remainingWidth = width;
+        };
+
+        for (const segment of segments) {
+            const metrics = segment[0].metrics;
+            const joinedText = segment.map((t) => t.text).join("");
+
+            if (isLineBreak(joinedText)) {
+                startNewLine();
+                continue;
+            }
+
+            const transformedText = applyTextTransform(joinedText, metrics["text-transform"]);
+            const font = [
+                `${metrics["font-style"]}`,
+                `${metrics["font-weight"]}`,
+                `${metrics["font-size"]}`,
+                `${metrics["font-family"]}`,
+            ]
+                .filter(Boolean)
+                .join(" ");
+
+            const prepared = prepareWithSegments(transformedText, font, {
+                whiteSpace: "pre-wrap",
+            });
+
+            let cursor = { segmentIndex: 0, graphemeIndex: 0 };
+            let tokenIndex = 0;
+
+            while (true) {
+                const lineInfo = layoutNextLine(prepared, cursor, remainingWidth);
+
+                if (!lineInfo) break;
+
+                let count = 0;
+                let consumedTokens = 0;
+
+                for (let i = tokenIndex; i < segment.length; i++) {
+                    const token = segment[i].text;
+                    count += omitEscapedChars(token).length;
+                    consumedTokens++;
+
+                    if (count >= lineInfo.text.length) break;
+                }
+
+                for (let i = 0; i < consumedTokens; i++) {
+                    lines[lineIndex].push(segment[tokenIndex + i]);
+                }
+
+                tokenIndex += consumedTokens;
+
+                const nextRemainingWidth = remainingWidth - lineInfo.width;
+
+                if (tokenIndex < segment.length || nextRemainingWidth <= 0) {
+                    startNewLine();
+                } else {
+                    remainingWidth = nextRemainingWidth;
+                }
+
+                cursor = lineInfo.end;
+            }
+        }
+
+        return lines;
     };
 }

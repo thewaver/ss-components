@@ -1,14 +1,12 @@
-import { createEffect, createSignal } from "solid-js";
+import { createSignal } from "solid-js";
 
 import { AnimDirection } from "../../Lib//Abstracts/Anim/Anim.types";
 import { ScreenWiper } from "../../Lib//Fundamentals/ScreenWiper/ScreenWiper";
-import { JSXStyleParser } from "../../Lib/Abstracts/JSX/StyleParser/JSXStyleParser";
 import { Button } from "../../Lib/Fundamentals/Button/Button";
 import { ShapeButton } from "../../Lib/Fundamentals/Button/variants/ShapeButton/ShapeButton";
 import { useColorExtractor } from "../../Lib/Fundamentals/ColorExtractor/ColorExtractor.context";
 import { Corners } from "../../Lib/Fundamentals/Corners/Corners";
 import { ElementHighlight } from "../../Lib/Fundamentals/ElementHighlight/ElementHighlight";
-import { Typewriter2 } from "../../Lib/Fundamentals/Typewriter2/Typewriter";
 import { Typewriter } from "../../Lib/Fundamentals/Typewriter/Typewriter";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
 import knight from "./knight.png";
@@ -23,7 +21,6 @@ export function AppContent() {
         getColorCount: () => 3,
     });
 
-    let typeWriterRef: HTMLDivElement | undefined;
     let containerRef: HTMLDivElement | undefined;
 
     // WIPE
@@ -35,12 +32,6 @@ export function AppContent() {
     const [getTextPrefix, setTextPrefix] = createSignal("");
     // HIGHLIGHTER
     const [getHighlightOn, setHighlightOn] = createSignal(false);
-
-    createEffect(() => {
-        if (!typeWriterRef) return;
-
-        console.log(JSXStyleParser.getTextSegmentTokens(typeWriterRef));
-    });
 
     return (
         <div class={styles.appContent}>
@@ -109,19 +100,19 @@ export function AppContent() {
                 <div class={styles.buttonContent}>Restart text animation</div>
             </Button>
 
-            <div ref={typeWriterRef} class={styles.textContent}>
-                <Typewriter>{`This is a bit of text that fades in one line at a time. ${getTextPrefix()}`}</Typewriter>
-            </div>
-
-            <div ref={typeWriterRef} class={styles.textContent}>
-                <Typewriter2>
-                    This is a bit of <b>text that fades</b> in
-                    <div class={styles.textHighlight} style={{ color: "red" }}>
-                        one
-                    </div>
-                    line at a<br />
-                    time.
-                </Typewriter2>
+            <div class={styles.textContent}>
+                <Typewriter>
+                    This is a bit of{" "}
+                    <b>
+                        text that appears
+                        <div class={styles.textHighlight} style={{ color: "red" }}>
+                            one
+                        </div>
+                    </b>
+                    <span>single</span> {"text character\tat a time,"}
+                    <br />
+                    {"and has\nescaped"} <a href="www.google.com">characters.</a>
+                </Typewriter>
             </div>
 
             <div
