@@ -76,4 +76,5 @@ export const flexRow = style({
 
 export const textHighlight = style({
     textTransform: "uppercase",
+    lineHeight: 2,
 });

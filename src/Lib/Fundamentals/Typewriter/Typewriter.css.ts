@@ -16,14 +16,16 @@ export const typewriterRoot = style({
 });
 
 export const typewriterChildrenWrap = style({
+    position: "absolute",
+    left: -999999,
+    top: -999999,
+    width: "100%",
+    visibility: "hidden",
+    pointerEvents: "none",
     whiteSpace: "pre-wrap",
-    width: "fit-content",
 });
 
-export const typewriterTextWrap = style({
-    position: "absolute",
-    inset: 0,
-});
+export const typewriterTextWrap = style({});
 
 export const typewriterChar = style({
     display: "inline-block",

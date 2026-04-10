@@ -3,7 +3,7 @@ import { JSX, JSXElement } from "solid-js";
 import { layoutNextLine, prepareWithSegments } from "@chenglou/pretext";
 import { EMPTY_ARRAY } from "@thewaver/ss-utils";
 
-const METRIC_KEYS = [
+const TEXT_METRICS_KEYS = [
     "font-family",
     "font-size",
     "font-style",
@@ -12,6 +12,150 @@ const METRIC_KEYS = [
     "line-height",
     "text-transform",
     // "word-spacing",
+] as const;
+
+const TEXT_RENDERING_KEYS = [
+    "background",
+    "background-attachment",
+    "background-blend-mode",
+    "background-clip",
+    "background-color",
+    "background-image",
+    "background-origin",
+    "background-position",
+    "background-repeat",
+    "background-size",
+    "border",
+    "border-block",
+    "border-block-color",
+    "border-block-end",
+    "border-block-end-color",
+    "border-block-end-style",
+    "border-block-end-width",
+    "border-block-start",
+    "border-block-start-color",
+    "border-block-start-style",
+    "border-block-start-width",
+    "border-block-style",
+    "border-block-width",
+    "border-bottom",
+    "border-bottom-color",
+    "border-bottom-left-radius",
+    "border-bottom-right-radius",
+    "border-bottom-style",
+    "border-bottom-width",
+    "border-color",
+    "border-inline",
+    "border-inline-color",
+    "border-inline-end",
+    "border-inline-end-color",
+    "border-inline-end-style",
+    "border-inline-end-width",
+    "border-inline-start",
+    "border-inline-start-color",
+    "border-inline-start-style",
+    "border-inline-start-width",
+    "border-inline-style",
+    "border-inline-width",
+    "border-left",
+    "border-left-color",
+    "border-left-style",
+    "border-left-width",
+    "border-radius",
+    "border-right",
+    "border-right-color",
+    "border-right-style",
+    "border-right-width",
+    "border-style",
+    "border-top",
+    "border-top-color",
+    "border-top-left-radius",
+    "border-top-right-radius",
+    "border-top-style",
+    "border-top-width",
+    "border-width",
+    "box-decoration-break",
+    "box-shadow",
+    "color",
+    "direction",
+    "filter",
+    "font",
+    "font-feature-settings",
+    "font-kerning",
+    "font-language-override",
+    "font-optical-sizing",
+    "font-palette",
+    "font-size-adjust",
+    "font-stretch",
+    "font-synthesis",
+    "font-synthesis-position",
+    "font-synthesis-small-caps",
+    "font-synthesis-style",
+    "font-synthesis-weight",
+    "font-variant",
+    "font-variant-alternates",
+    "font-variant-caps",
+    "font-variant-east-asian",
+    "font-variant-emoji",
+    "font-variant-ligatures",
+    "font-variant-numeric",
+    "font-variant-position",
+    "hyphenate-character",
+    "hyphenate-limit-chars",
+    "hyphens",
+    "margin",
+    "margin-inline",
+    "margin-inline-end",
+    "margin-inline-start",
+    "mix-blend-mode",
+    "opacity",
+    "outline",
+    "outline-color",
+    "outline-offset",
+    "outline-style",
+    "outline-width",
+    "padding",
+    "padding-inline",
+    "padding-inline-end",
+    "padding-inline-start",
+    "paint-order",
+    "tab-size",
+    "text-align",
+    "text-align-last",
+    "text-combine-upright",
+    "text-decoration",
+    "text-decoration-color",
+    "text-decoration-line",
+    "text-decoration-skip-ink",
+    "text-decoration-style",
+    "text-decoration-thickness",
+    "text-emphasis",
+    "text-emphasis-color",
+    "text-emphasis-position",
+    "text-emphasis-style",
+    "text-indent",
+    "text-justify",
+    "text-orientation",
+    "text-rendering",
+    "text-shadow",
+    "text-size-adjust",
+    "text-underline-offset",
+    "text-underline-position",
+    "text-wrap",
+    "text-wrap-mode",
+    "text-wrap-style",
+    "transform",
+    "transform-box",
+    "transform-origin",
+    "translate",
+    "unicode-bidi",
+    "vertical-align",
+    "visibility",
+    "white-space",
+    "white-space-collapse",
+    "word-break",
+    "word-wrap",
+    "writing-mode",
 ] as const;
 
 const INHERITED_CSS_KEYS = [
@@ -133,14 +277,27 @@ const CANVAS_TEXT_METRICS_EXCLUDED_CSS_KEYS = [
     "writing-mode",
 ] as const;
 
-type TextMetricKey = (typeof METRIC_KEYS)[number];
+type TextMetricKey = (typeof TEXT_METRICS_KEYS)[number];
 type TextMetricsStyle = Pick<JSX.CSSProperties, TextMetricKey>;
 type TextNonMetricStyle = Omit<JSX.CSSProperties, TextMetricKey>;
+
+type TextSegmentMeta = {
+    common: {
+        dataset: DOMStringMap;
+        title: string;
+    };
+    anchor?: {
+        href?: string;
+        target?: string;
+        rel?: string;
+    };
+};
 
 export type StyledTextSegmentWithMetrics = {
     text: string;
     metrics: TextMetricsStyle;
     nonMetrics: TextNonMetricStyle;
+    meta: TextSegmentMeta;
 };
 
 export const applyTextTransform = (text: string, transform?: JSX.CSSProperties["text-transform"]): string => {
@@ -160,12 +317,14 @@ const camelToKebabCase = (key: string) => key.replace(/[A-Z]/g, (m) => `-${m.toL
 
 const kebabToCamelCase = (key: string) => key.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 
-const TEXT_METRIC_KEY_SET = new Set(METRIC_KEYS);
+const TEXT_METRICS_KEY_SET = new Set(TEXT_METRICS_KEYS);
+const TEXT_RENDERING_KEY_SET = new Set(TEXT_RENDERING_KEYS);
 const INHERITED_CSS_KEY_SET = new Set(INHERITED_CSS_KEYS);
 const INLINE_EXCLUDED_CSS_KEY_SET = new Set(INLINE_EXCLUDED_CSS_KEYS);
 const CANVAS_TEXT_METRICS_EXCLUDED_CSS_KEY_SET = new Set(CANVAS_TEXT_METRICS_EXCLUDED_CSS_KEYS);
 
-const isTextMetricKey = (key: any): key is TextMetricKey => TEXT_METRIC_KEY_SET.has(key);
+const isTextMetricsKey = (key: any): key is TextMetricKey => TEXT_METRICS_KEY_SET.has(key);
+const isTextRenderingKey = (key: any): key is TextMetricKey => TEXT_RENDERING_KEY_SET.has(key);
 const isInheritedCssKey = (key: any): key is (typeof INHERITED_CSS_KEYS)[number] => INHERITED_CSS_KEY_SET.has(key);
 const isInlineExcludedCssKey = (key: any): key is (typeof INLINE_EXCLUDED_CSS_KEYS)[number] =>
     INLINE_EXCLUDED_CSS_KEY_SET.has(key);
@@ -191,10 +350,14 @@ const splitComputedStyle = (style: CSSStyleDeclaration, parentStyle?: CSSStyleDe
 
         const cssKey = camelToKebabCase(key);
 
-        if (isTextMetricKey(cssKey)) {
+        if (isTextMetricsKey(cssKey)) {
             metrics[cssKey] = value;
-        } else if (!isInlineExcludedCssKey(cssKey) && !isCanvasTextMetricsExcludedCssKey(cssKey) && parentStyle) {
-            const parentValue = parentStyle[key as keyof CSSStyleDeclaration];
+        } else if (
+            isTextRenderingKey(cssKey) &&
+            !isInlineExcludedCssKey(cssKey) &&
+            !isCanvasTextMetricsExcludedCssKey(cssKey)
+        ) {
+            const parentValue = parentStyle?.[key as keyof CSSStyleDeclaration];
 
             if (parentValue !== value || !isInheritedCssKey(key)) {
                 nonMetrics[cssKey as keyof TextNonMetricStyle] = value;
@@ -218,14 +381,40 @@ const isBlockLike = (display?: string) =>
 
 const omitEscapedChars = (value: string) => value.replace(/[\p{Cc}\p{Zl}\p{Zp}]/gu, "");
 
+const getMmeasuredLineHeight = (lineHeight: CSSStyleDeclaration["lineHeight"]) => {
+    const probe = document.createElement("span");
+    probe.textContent = "M";
+    probe.style.position = "absolute";
+    probe.style.visibility = "hidden";
+    probe.style.pointerEvents = "none";
+    probe.style.whiteSpace = "pre";
+    probe.style.lineHeight = lineHeight;
+
+    document.body.appendChild(probe);
+
+    const height = probe.offsetHeight;
+
+    probe.remove();
+
+    console.log({
+        lineHeight,
+        height,
+    });
+
+    return height;
+};
+
+const replaceTabs = (text: string) =>
+    text
+        .replace(/\v/g, "")
+        .replace(/(?<= )\t|\t(?= )/g, "")
+        .replace(/\t/g, " ");
+
 export namespace JSXStyleParser {
     export const discardTextNodeTabs = <T extends JSX.Element | { props: { children: JSX.Element } }>(node: T): T => {
         if (!node) return undefined as T;
         if (typeof node === "string") {
-            return node
-                .replace(/\v/g, "")
-                .replace(/(?<= )\t|\t(?= )/g, "")
-                .replace(/\t/g, "") as T;
+            return replaceTabs(node) as T;
         } else if (Array.isArray(node)) {
             return node.map(discardTextNodeTabs) as T;
         } else if (typeof node === "object" && "props" in node && node.props.children) {
@@ -249,7 +438,7 @@ export namespace JSXStyleParser {
         const tokens: StyledTextSegmentWithMetrics[] = [];
         const segmenter = new Intl.Segmenter(undefined, { granularity });
 
-        const walk = (node: Node) => {
+        const walk = (node: Node, meta: TextSegmentMeta) => {
             if (node.nodeType === Node.TEXT_NODE) {
                 const text = node.textContent ?? "";
 
@@ -264,34 +453,66 @@ export namespace JSXStyleParser {
 
                 for (const part of segmenter.segment(text)) {
                     tokens.push({
-                        text: part.segment.replace(/(?<= )\t|\t(?= )/g, "").replace(/\t/g, " "),
+                        text: replaceTabs(part.segment),
                         metrics,
                         nonMetrics,
+                        meta,
                     });
                 }
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
-                const { computed, parentComputed } = getComputedStyles(node);
-                const { metrics, nonMetrics } = splitComputedStyle(computed, parentComputed);
-                const isLineBreak = node.nodeName === "BR";
-                const lineBreakToken: StyledTextSegmentWithMetrics = { text: "\n", metrics, nonMetrics };
 
-                if (isLineBreak || (isBlockLike(computed.display) && tokens.length)) {
-                    tokens.push({ ...lineBreakToken });
-                }
+                return;
+            }
 
-                if (isLineBreak) return;
+            if (node.nodeType !== Node.ELEMENT_NODE) return;
 
-                for (const child of Array.from(node.childNodes)) {
-                    walk(child);
-                }
+            const element = node as HTMLElement;
+            const { computed, parentComputed } = getComputedStyles(element);
+            const { metrics, nonMetrics } = splitComputedStyle(computed, parentComputed);
+            const nextMeta = {
+                ...meta,
+                common: {
+                    dataset: element.dataset,
+                    title: element.title,
+                },
+            };
 
-                if (isBlockLike(computed.display)) {
-                    tokens.push({ ...lineBreakToken });
-                }
+            if (element instanceof HTMLAnchorElement) {
+                nextMeta.anchor = {
+                    href: element.href,
+                    target: element.target,
+                    rel: element.rel,
+                };
+            }
+
+            const isLineBreak = element.nodeName === "BR";
+            const lineBreakToken: StyledTextSegmentWithMetrics = {
+                text: "\n",
+                metrics,
+                nonMetrics,
+                meta: nextMeta,
+            };
+
+            if (isLineBreak || (isBlockLike(computed.display) && tokens.length)) {
+                tokens.push({ ...lineBreakToken });
+            }
+
+            if (isLineBreak) return;
+
+            for (const child of Array.from(element.childNodes)) {
+                walk(child, nextMeta);
+            }
+
+            if (isBlockLike(computed.display)) {
+                tokens.push({ ...lineBreakToken });
             }
         };
 
-        walk(el);
+        walk(el, {
+            common: {
+                dataset: {},
+                title: "",
+            },
+        });
 
         return tokens;
     };

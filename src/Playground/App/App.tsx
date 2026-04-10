@@ -105,11 +105,12 @@ export function AppContent() {
                     This is a bit of{" "}
                     <b>
                         text that appears
-                        <div class={styles.textHighlight} style={{ color: "red" }}>
+                        <div class={styles.textHighlight} style={{ color: "red" }} title="ONE MEANS ONE!">
                             one
                         </div>
                     </b>
-                    <span>single</span> {"text character\tat a time,"}
+                    <span>single</span>
+                    {" text character\tat a time,"}
                     <br />
                     {"and has\nescaped"} <a href="www.google.com">characters.</a>
                 </Typewriter>

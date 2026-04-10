@@ -1,5 +1,7 @@
 import { For, ParentProps, Show, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
+import { Size2d } from "@thewaver/ss-utils";
+
 import { JSXStyleParser, StyledTextSegmentWithMetrics } from "../../Abstracts/JSX/StyleParser/JSXStyleParser";
 import { TypewriterProps } from "./Typewriter.types";
 
@@ -10,6 +12,7 @@ const DEFAULT_TYPEWRITER_ANIMATION_DURATION_MS = 200;
 const DEFAULT_TYPEWRITER_ANIMATION_DELAY_MS = 10;
 
 export const Typewriter = (props: ParentProps<TypewriterProps>) => {
+    const [getSize, setSize] = createSignal<Size2d>({ width: 0, height: 0 });
     const [getLines, setLines] = createSignal<StyledTextSegmentWithMetrics[][]>([[]]);
     const [getIsAnimating, setIsAnimating] = createSignal(false);
 
@@ -46,9 +49,8 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
             .map((line) =>
                 JSXStyleParser.groupIdenticalTextSegments(line, JSXStyleParser.isSameNonMetricsStyle).map(
                     (group): StyledTextSegmentWithMetrics => ({
+                        ...group[0],
                         text: group.reduce((res, cur) => (res += cur.text), ""),
-                        metrics: group[0].metrics,
-                        nonMetrics: group[0].nonMetrics,
                     }),
                 ),
             );
@@ -87,43 +89,72 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
                     childrenContainerRef = el;
                 }}
                 class={styles.typewriterChildrenWrap}
-                style={getIsAnimating() ? { "visibility": "hidden", "pointer-events": "none" } : undefined}
+                aria-hidden="true"
+                inert
             >
-                {JSXStyleParser.discardTextNodeTabs(props.children)}
+                {props.children}
             </div>
 
-            <Show when={getIsAnimating()}>
+            <Show when={getLines().some((line) => line.length)}>
                 {(() => {
                     let index = 0;
 
                     return (
-                        <div class={styles.typewriterTextWrap}>
+                        <div
+                            class={styles.typewriterTextWrap}
+                            style={{ width: `${childrenContainerRef?.clientWidth ?? 0}px` }}
+                        >
                             <For each={getLines()}>
                                 {(line) => (
                                     <div>
                                         <For each={line}>
-                                            {(segment) => (
-                                                <span style={{ ...segment.nonMetrics, ...segment.metrics }}>
-                                                    <For each={segment.text.split("")}>
-                                                        {(char) => {
-                                                            index++;
+                                            {(segment) => {
+                                                const style = { ...segment.nonMetrics, ...segment.metrics };
 
-                                                            return (
-                                                                <span
-                                                                    class={styles.typewriterChar}
-                                                                    style={{
-                                                                        "animation-name": getAnimationName(),
-                                                                        "animation-duration": `${getAnimationDurationMs()}ms`,
-                                                                        "animation-delay": `${index * getAnimationDelayMs()}ms`,
-                                                                    }}
-                                                                >
-                                                                    {char}
+                                                return (
+                                                    <>
+                                                        <Show when={!getIsAnimating()}>
+                                                            <Show when={Object.keys(segment.meta).length <= 1}>
+                                                                <span {...segment.meta?.common} style={style}>
+                                                                    {segment.text}
                                                                 </span>
-                                                            );
-                                                        }}
-                                                    </For>
-                                                </span>
-                                            )}
+                                                            </Show>
+                                                            <Show when={segment.meta?.anchor}>
+                                                                <a
+                                                                    {...segment.meta?.common}
+                                                                    {...segment.meta?.anchor}
+                                                                    style={style}
+                                                                >
+                                                                    {segment.text}
+                                                                </a>
+                                                            </Show>
+                                                        </Show>
+                                                        <Show when={getIsAnimating()}>
+                                                            <span style={style}>
+                                                                <For each={segment.text.split("")}>
+                                                                    {(char) => {
+                                                                        index++;
+
+                                                                        return (
+                                                                            <span
+                                                                                class={styles.typewriterChar}
+                                                                                style={{
+                                                                                    "animation-name":
+                                                                                        getAnimationName(),
+                                                                                    "animation-duration": `${getAnimationDurationMs()}ms`,
+                                                                                    "animation-delay": `${index * getAnimationDelayMs()}ms`,
+                                                                                }}
+                                                                            >
+                                                                                {char}
+                                                                            </span>
+                                                                        );
+                                                                    }}
+                                                                </For>
+                                                            </span>
+                                                        </Show>
+                                                    </>
+                                                );
+                                            }}
                                         </For>
                                     </div>
                                 )}
