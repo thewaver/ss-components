@@ -19,7 +19,7 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
     const getVolume = createMemo(() => props.getVolume?.() ?? DEFAULT_AUDIO_SWITCHER_VOLUME);
 
     createEffect(() => {
-        let tickHandler: NodeJS.Timeout | undefined;
+        let tickHandler: ReturnType<typeof setInterval> | undefined;
 
         onCleanup(() => {
             clearInterval(tickHandler);

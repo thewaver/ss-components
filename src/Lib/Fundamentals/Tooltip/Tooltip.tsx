@@ -17,8 +17,8 @@ export const Tooltip = (props: TooltipProps) => {
     const viewportContext = useViewportContext();
 
     let contentContainerRef: HTMLDivElement | undefined;
-    let transitionTimeout: NodeJS.Timeout | undefined;
-    let focusTimeout: NodeJS.Timeout | undefined;
+    let transitionTimeout: ReturnType<typeof setTimeout> | undefined;
+    let focusTimeout: ReturnType<typeof setTimeout> | undefined;
 
     const [getContentSize, setContentSize] = createSignal<Size2d | undefined>(undefined, {
         equals: Size2d.isSame,

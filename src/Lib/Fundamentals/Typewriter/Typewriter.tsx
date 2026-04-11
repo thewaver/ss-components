@@ -1,8 +1,6 @@
 import { For, ParentProps, Show, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
-import { Size2d } from "@thewaver/ss-utils";
-
-import { JSXStyleParser, StyledTextSegmentWithMetrics } from "../../Abstracts/JSX/StyleParser/JSXStyleParser";
+import { JSXStyleParser, StyledTextSegment } from "../../Abstracts/JSX/Style/Parser/JSXStyleParser.utils";
 import { TypewriterProps } from "./Typewriter.types";
 
 import * as styles from "./Typewriter.css";
@@ -12,12 +10,11 @@ const DEFAULT_TYPEWRITER_ANIMATION_DURATION_MS = 200;
 const DEFAULT_TYPEWRITER_ANIMATION_DELAY_MS = 10;
 
 export const Typewriter = (props: ParentProps<TypewriterProps>) => {
-    const [getSize, setSize] = createSignal<Size2d>({ width: 0, height: 0 });
-    const [getLines, setLines] = createSignal<StyledTextSegmentWithMetrics[][]>([[]]);
+    const [getLines, setLines] = createSignal<StyledTextSegment[][]>([[]]);
     const [getIsAnimating, setIsAnimating] = createSignal(false);
 
     let childrenContainerRef: HTMLDivElement | undefined;
-    let animationToggleTimeout: NodeJS.Timeout | undefined;
+    let animationToggleTimeout: ReturnType<typeof setTimeout> | undefined;
 
     const getAnimationName = createMemo(() => props.getAnimationName?.() ?? DEFAULT_TYPEWRITER_ANIMATION_NAME);
 
@@ -48,7 +45,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
             .filter((line) => line.length > 0)
             .map((line) =>
                 JSXStyleParser.groupIdenticalTextSegments(line, JSXStyleParser.isSameNonMetricsStyle).map(
-                    (group): StyledTextSegmentWithMetrics => ({
+                    (group): StyledTextSegment => ({
                         ...group[0],
                         text: group.reduce((res, cur) => (res += cur.text), ""),
                     }),

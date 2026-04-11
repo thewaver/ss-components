@@ -3,11 +3,11 @@
         "jsx": "preserve",
         "jsxImportSource": "solid-js",
         "module": "ESNext",
-        "moduleResolution": "Node",
+        "moduleResolution": "bundler",
         "target": "ESNext",
         "strict": true,
-        "baseUrl": ".",
         "declaration": true,
+        "rootDir": "./src",
         "outDir": "dist"
     },
     "include": ["src/**/*"]

@@ -1,7 +1,7 @@
 import { ParentProps, createMemo } from "solid-js";
 import { createStore } from "solid-js/store";
 
-import { Point2d } from "@thewaver/ss-utils";
+import { PolygonUtils } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { ButtonFlags, InternalButtonFlags } from "../../Button.types";
@@ -12,71 +12,6 @@ import * as styles from "./ShapeButton.css";
 
 const DEFAULT_SHAPE_BUTTON_STROKE_WIDTH = 2;
 const DEFAULT_SHAPE_BUTTON_TRANSITION_DURATION_MS = 100;
-
-export function insetPolygon(points: Point2d[], shift: number): Point2d[] {
-    const count = points.length;
-    const result: Point2d[] = [];
-
-    const getEdgeNormal = (p1: Point2d, p2: Point2d) => {
-        const dx = p2.x - p1.x;
-        const dy = p2.y - p1.y;
-        const len = Math.hypot(dx, dy);
-
-        return {
-            x: -dy / len,
-            y: dx / len,
-        };
-    };
-
-    const intersect = (p: Point2d, r: Point2d, q: Point2d, s: Point2d): Point2d => {
-        const cross = r.x * s.y - r.y * s.x;
-
-        if (Math.abs(cross) < 1e-6) return q;
-
-        const qp = { x: q.x - p.x, y: q.y - p.y };
-        const t = (qp.x * s.y - qp.y * s.x) / cross;
-
-        return {
-            x: p.x + r.x * t,
-            y: p.y + r.y * t,
-        };
-    };
-
-    for (let i = 0; i < count; i++) {
-        const prev = points[(i - 1 + count) % count];
-        const curr = points[i];
-        const next = points[(i + 1) % count];
-
-        const n1 = getEdgeNormal(prev, curr);
-        const n2 = getEdgeNormal(curr, next);
-
-        const p1 = {
-            x: prev.x + n1.x * shift,
-            y: prev.y + n1.y * shift,
-        };
-        const p2 = {
-            x: curr.x + n1.x * shift,
-            y: curr.y + n1.y * shift,
-        };
-        const p3 = {
-            x: curr.x + n2.x * shift,
-            y: curr.y + n2.y * shift,
-        };
-        const p4 = {
-            x: next.x + n2.x * shift,
-            y: next.y + n2.y * shift,
-        };
-
-        const d1 = { x: p2.x - p1.x, y: p2.y - p1.y };
-        const d2 = { x: p4.x - p3.x, y: p4.y - p3.y };
-
-        result.push(intersect(p1, d1, p3, d2));
-    }
-
-    return result;
-}
-
-const toPointsString = (pts: Point2d[]) => pts.map((p) => `${p.x},${p.y}`).join(" ");
 
 export const ShapeButton = (props: ParentProps<ShapeButtonProps>) => {
     const [internalFlags, setInternalFlags] = createStore<InternalButtonFlags>({});
@@ -137,8 +72,8 @@ export const ShapeButton = (props: ParentProps<ShapeButtonProps>) => {
         const points = getPolygonPointsWithPadding();
 
         return {
-            fill: toPointsString(points),
-            stroke: toPointsString(insetPolygon(points, getStrokeWidth() * 0.5)),
+            fill: PolygonUtils.pointsToSVGString(points),
+            stroke: PolygonUtils.pointsToSVGString(PolygonUtils.insetPolygon(points, getStrokeWidth() * 0.5)),
         };
     });
 

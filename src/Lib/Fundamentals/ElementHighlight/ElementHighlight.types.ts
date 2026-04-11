@@ -1,5 +1,6 @@
 import { JSX } from "solid-js";
-import { AccessorProps } from "src/Lib/Utils/typeUtils";
+
+import { AccessorProps } from "../../../Lib/Utils/typeUtils";
 
 export type ElementHighlightProps = AccessorProps<{
     elementRef: HTMLDivElement | undefined;

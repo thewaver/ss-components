@@ -14,7 +14,7 @@ const DEFAULT_ELEMENT_HIGHLIGHT_PADDING = 0;
 export const ElementHighlight = (props: ElementHighlightProps) => {
     const viewportContext = useViewportContext();
 
-    let transitionTimeout: NodeJS.Timeout | undefined;
+    let transitionTimeout: ReturnType<typeof setTimeout> | undefined;
 
     const [getElementRect, setElementRect] = createSignal<Rect>(
         { x: 0, y: 0, width: 0, height: 0 },
