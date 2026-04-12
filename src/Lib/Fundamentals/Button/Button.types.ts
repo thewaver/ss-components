@@ -14,6 +14,11 @@ export type InternalButtonFlags = {
     isFocused?: boolean;
 };
 
+export type ButtonOutlineDefs = {
+    color: string;
+    width: number;
+};
+
 export type ButtonFlags = InternalButtonFlags & ExternalButtonFlags;
 
 export type ButtonCbs = {

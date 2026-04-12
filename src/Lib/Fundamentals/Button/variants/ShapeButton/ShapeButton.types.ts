@@ -3,7 +3,7 @@ import { JSX } from "solid-js";
 import { Size2d } from "@thewaver/ss-utils";
 
 import { AccessorProps } from "../../../../Utils/typeUtils";
-import { ButtonCbs, ButtonFlags, ExternalButtonFlags } from "../../Button.types";
+import { ButtonCbs, ButtonFlags, ButtonOutlineDefs, ExternalButtonFlags } from "../../Button.types";
 
 export type ShapeButtonShape = "hexagon" | "lozenge";
 
@@ -34,6 +34,7 @@ export type ShapeButtonProps = AccessorProps<
             className?: string;
             shape: ShapeButtonShape;
             transitionDurationMs?: number;
+            outlineDefs?: ButtonOutlineDefs;
             getFillDefs: (getFlags: () => ButtonFlags) => ShapeButtonSVGDefs;
             getStrokeDefs: (getFlags: () => ButtonFlags) => ShapeButtonSVGDefs & { width?: number; dashArray?: string };
         }

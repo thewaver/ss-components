@@ -25,4 +25,5 @@ export type TooltipProps = AccessorProps<{
         getTransitionDurationMs: () => number,
         getPlacement: () => TooltipPlacement,
     ) => JSX.Element;
+    getZindex?: (getPlacement: () => TooltipPlacement) => number;
 }>;

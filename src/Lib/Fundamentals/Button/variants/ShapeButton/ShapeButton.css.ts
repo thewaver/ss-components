@@ -6,7 +6,12 @@ export const shapeButtonRoot = style({
     position: "relative",
 });
 
-export const shapeButtonSVG = style({
+export const shapeButtonSVG = style({});
+
+export const shapeButtonGroup = style({
+    cursor: "pointer",
+    pointerEvents: "visiblePainted",
+
     selectors: {
         [`&:focus`]: {
             outline: "none",
@@ -15,9 +20,17 @@ export const shapeButtonSVG = style({
 });
 
 export const shapeButtonPolygon = style({
-    cursor: "pointer",
-    pointerEvents: "visiblePainted",
     transition: `fill ${shapeButtonTransitionDurationMs}, stroke ${shapeButtonTransitionDurationMs}`,
+});
+
+export const shapeButtonPolygonOutline = style({
+    display: "none",
+
+    selectors: {
+        [`${shapeButtonGroup}:focus-visible &`]: {
+            display: "initial",
+        },
+    },
 });
 
 export const shapeButtonChildrenWrapper = style({

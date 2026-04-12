@@ -1,4 +1,4 @@
-import { ParentProps, createMemo } from "solid-js";
+import { ParentProps, createMemo, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 
 import { PolygonUtils } from "@thewaver/ss-utils";
@@ -12,6 +12,10 @@ import * as styles from "./ShapeButton.css";
 
 const DEFAULT_SHAPE_BUTTON_STROKE_WIDTH = 2;
 const DEFAULT_SHAPE_BUTTON_TRANSITION_DURATION_MS = 100;
+const DEFAULT_SHAPE_BUTTON_OUTLINE = {
+    color: "yellow",
+    width: 2,
+};
 
 export const ShapeButton = (props: ParentProps<ShapeButtonProps>) => {
     const [internalFlags, setInternalFlags] = createStore<InternalButtonFlags>({});
@@ -25,17 +29,13 @@ export const ShapeButton = (props: ParentProps<ShapeButtonProps>) => {
         }),
     );
 
-    const getFillDefs = createMemo(() => {
-        return props.getFillDefs(getFlags);
-    });
+    const getFillDefs = createMemo(() => props.getFillDefs(getFlags));
 
-    const getStrokeDefs = createMemo(() => {
-        return props.getStrokeDefs(getFlags);
-    });
+    const getStrokeDefs = createMemo(() => props.getStrokeDefs(getFlags));
 
-    const getStrokeWidth = createMemo(() => {
-        return getStrokeDefs().width ?? DEFAULT_SHAPE_BUTTON_STROKE_WIDTH;
-    });
+    const getStrokeWidth = createMemo(() => getStrokeDefs().width ?? DEFAULT_SHAPE_BUTTON_STROKE_WIDTH);
+
+    const getOutlineDefs = createMemo(() => props.getOutlineDefs?.() ?? DEFAULT_SHAPE_BUTTON_OUTLINE);
 
     const getTransitionDurationMs = createMemo(
         () => props.getTransitionDurationMs?.() ?? DEFAULT_SHAPE_BUTTON_TRANSITION_DURATION_MS,
@@ -74,6 +74,7 @@ export const ShapeButton = (props: ParentProps<ShapeButtonProps>) => {
         return {
             fill: PolygonUtils.pointsToSVGString(points),
             stroke: PolygonUtils.pointsToSVGString(PolygonUtils.insetPolygon(points, getStrokeWidth() * 0.5)),
+            outline: PolygonUtils.pointsToSVGString(PolygonUtils.insetPolygon(points, getOutlineDefs().width * 0.5)),
         };
     });
 
@@ -108,6 +109,7 @@ export const ShapeButton = (props: ParentProps<ShapeButtonProps>) => {
                 </defs>
 
                 <g
+                    class={styles.shapeButtonGroup}
                     role="button"
                     tabIndex={getTabIndex()}
                     aria-disabled={props.getIsDisabled?.()}
@@ -162,6 +164,14 @@ export const ShapeButton = (props: ParentProps<ShapeButtonProps>) => {
                         }
                         stroke-dasharray={getStrokeDefs().dashArray}
                         stroke-width={getStrokeWidth()}
+                        fill="transparent"
+                    />
+
+                    <polygon
+                        class={styles.shapeButtonPolygonOutline}
+                        points={getPolygonPoints().outline}
+                        stroke={getOutlineDefs().color}
+                        stroke-width={getOutlineDefs().width}
                         fill="transparent"
                     />
                 </g>

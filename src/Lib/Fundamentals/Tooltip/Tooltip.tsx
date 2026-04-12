@@ -4,7 +4,7 @@ import { Rect, Size2d } from "@thewaver/ss-utils";
 
 import { useViewportContext } from "../Viewport/Viewpoer.context";
 import { ViewportUtils } from "../Viewport/Viewport.utils";
-import { TooltipHPlacement, TooltipProps, TooltipVPlacement } from "./Tooltip.types";
+import { TooltipHPlacement, TooltipPlacement, TooltipProps, TooltipVPlacement } from "./Tooltip.types";
 import { TooltipUtils } from "./Tooltip.utils";
 
 import * as styles from "./Tooltip.css";
@@ -12,6 +12,14 @@ import * as styles from "./Tooltip.css";
 const DEFAULT_TOOLTIP_TRANSITION_DURATION_MS = 200;
 const DEFAULT_TOOLTIP_SHOW_ON_FOCUS_DELAY_MS = 500;
 const DEFAULT_TOOLTIP_RESERVED_SCREEN_SIZE: Size2d = { width: 0, height: 0 };
+const DEFAULT_TOOLTIP_Z_INDEX_GETTER = (getPlacement: () => TooltipPlacement) => {
+    switch (getPlacement().y) {
+        case "top-out":
+            return -1;
+        default:
+            return 1;
+    }
+};
 
 export const Tooltip = (props: TooltipProps) => {
     const viewportContext = useViewportContext();
@@ -77,6 +85,8 @@ export const Tooltip = (props: TooltipProps) => {
             y: TooltipUtils.getVPlacementOffset(getPlacement().y, props.getOffset?.().y ?? 0),
         };
     });
+
+    const getZIndex = createMemo(() => (props.getZindex ?? DEFAULT_TOOLTIP_Z_INDEX_GETTER)(getPlacement));
 
     const show = () => {
         setHasTransitionFinished(false);
@@ -177,7 +187,8 @@ export const Tooltip = (props: TooltipProps) => {
             }}
             class={`${styles.tooltipRoot} ${styles.tooltipHPlacementVariant[getPlacement().x]} ${styles.tooltipVPlacementVariant[getPlacement().y]}`}
             style={{
-                transform: `translate(${getPlacement().x === "center" ? -50 : 0}%, ${getPlacement().y === "center" ? -50 : 0}%) translate(${getOffset().x ?? 0}px, ${getOffset().y ?? 0}px)`,
+                "z-index": getZIndex(),
+                "transform": `translate(${getPlacement().x === "center" ? -50 : 0}%, ${getPlacement().y === "center" ? -50 : 0}%) translate(${getOffset().x ?? 0}px, ${getOffset().y ?? 0}px)`,
             }}
         >
             <Show when={getTransitionTarget() === 1 || !getHasTransitionFinished()}>

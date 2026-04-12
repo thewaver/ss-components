@@ -11,7 +11,7 @@ export const buttonRoot = style({
     userSelect: "none",
 
     selectors: {
-        [`&:not([disabled]).${buttonSelected}`]: {
+        [`&:not([disabled]).${buttonSelected}, &:not([disabled]):focus-visible`]: {
             zIndex: 1,
         },
         "&:not([disabled]):hover": {
