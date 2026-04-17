@@ -12,14 +12,7 @@ import * as styles from "./Tooltip.css";
 const DEFAULT_TOOLTIP_TRANSITION_DURATION_MS = 200;
 const DEFAULT_TOOLTIP_SHOW_ON_FOCUS_DELAY_MS = 500;
 const DEFAULT_TOOLTIP_RESERVED_SCREEN_SIZE: Size2d = { width: 0, height: 0 };
-const DEFAULT_TOOLTIP_Z_INDEX_GETTER = (getPlacement: () => TooltipPlacement) => {
-    switch (getPlacement().y) {
-        case "top-out":
-            return -1;
-        default:
-            return 1;
-    }
-};
+const DEFAULT_TOOLTIP_Z_INDEX_GETTER = (getPlacement: () => TooltipPlacement) => 1;
 
 export const Tooltip = (props: TooltipProps) => {
     const viewportContext = useViewportContext();

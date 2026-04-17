@@ -70,14 +70,10 @@ const splitComputedStyle = (style: CSSStyleDeclaration, parentStyle?: CSSStyleDe
 };
 
 export namespace JSXStyleParser {
-    export const getTextSegmentTokens = (
-        el: Node,
-        granularity: Intl.SegmenterOptions["granularity"] = "word",
-    ): readonly StyledTextSegment[] => {
+    export const getTextSegmentTokens = (el: Node): readonly StyledTextSegment[] => {
         if (!el) return EMPTY_ARRAY;
 
         const tokens: StyledTextSegment[] = [];
-        const segmenter = new Intl.Segmenter(undefined, { granularity });
 
         const walk = (node: Node, meta: StyledTextSegmentMeta) => {
             if (node.nodeType === Node.TEXT_NODE) {
@@ -92,9 +88,9 @@ export namespace JSXStyleParser {
                 const { computed, parentComputed } = getComputedStyles(parent);
                 const { metrics, nonMetrics } = splitComputedStyle(computed, parentComputed);
 
-                for (const part of segmenter.segment(text)) {
+                for (const part of text.split(/([\r\n\f\v\p{Zl}\p{Zp}]+)/gu)) {
                     tokens.push({
-                        text: StringUtils.replaceTabs(part.segment),
+                        text: StringUtils.replaceTabs(part),
                         metrics,
                         nonMetrics,
                         meta,
