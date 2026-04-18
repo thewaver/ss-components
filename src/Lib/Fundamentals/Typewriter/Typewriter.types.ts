@@ -1,8 +1,9 @@
 import { AccessorProps } from "../../Utils/typeUtils";
 
 export type TypewriterProps = AccessorProps<{
+    animationName?: string;
     animationDurationMs?: number;
     animationDelayMs?: number;
-    animationName?: string;
+    initialAnimationDelayMs?: number;
     onAnimationEnd?: () => void;
 }>;

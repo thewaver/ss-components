@@ -1,6 +1,7 @@
+import { deepEqual } from "fast-equals";
 import { JSX } from "solid-js";
 
-import { layoutNextLine, prepareWithSegments } from "@chenglou/pretext";
+import { prepareWithSegments } from "@chenglou/pretext";
 import { EMPTY_ARRAY, StringUtils } from "@thewaver/ss-utils";
 
 import { JSXStyleUtils } from "../JSXStyle.utils";
@@ -10,7 +11,9 @@ type TextMetricKey = (typeof JSXStyleConst.TEXT_METRICS_KEYS)[number];
 type TextMetricsStyle = Pick<JSX.CSSProperties, TextMetricKey>;
 type TextNonMetricStyle = Omit<JSX.CSSProperties, TextMetricKey>;
 
-export type StyledTextSegmentMeta = {
+type SegmentType = "text" | "linebreak" | "atomic";
+
+type StyledTextSegmentMeta = {
     common: {
         dataset: DOMStringMap;
         title: string;
@@ -23,11 +26,26 @@ export type StyledTextSegmentMeta = {
 };
 
 export type StyledTextSegment = {
+    type: Extract<SegmentType, "text">;
     text: string;
     metrics: TextMetricsStyle;
     nonMetrics: TextNonMetricStyle;
     meta: StyledTextSegmentMeta;
 };
+
+export type LineBreakSegment = {
+    type: Extract<SegmentType, "linebreak">;
+};
+
+export type AtomicElementSegment = {
+    type: Extract<SegmentType, "atomic">;
+    element: HTMLElement;
+    isBlockLike?: boolean;
+};
+
+export type ElementSegment = StyledTextSegment | LineBreakSegment | AtomicElementSegment;
+
+const lineBreakToken: LineBreakSegment = { type: "linebreak" };
 
 const getComputedStyles = (node: Node) => {
     const grandParent = node.parentElement;
@@ -36,6 +54,11 @@ const getComputedStyles = (node: Node) => {
 
     return { computed, parentComputed };
 };
+
+const isUsedStyleKey = (cssKey: string) =>
+    JSXStyleUtils.isTextRenderingKey(cssKey) &&
+    !JSXStyleUtils.isInlineExcludedCssKey(cssKey) &&
+    !JSXStyleUtils.isCanvasTextMetricsExcludedCssKey(cssKey);
 
 const splitComputedStyle = (style: CSSStyleDeclaration, parentStyle?: CSSStyleDeclaration) => {
     const metrics: TextMetricsStyle = {};
@@ -50,11 +73,7 @@ const splitComputedStyle = (style: CSSStyleDeclaration, parentStyle?: CSSStyleDe
 
         if (JSXStyleUtils.isTextMetricsKey(cssKey)) {
             metrics[cssKey] = value;
-        } else if (
-            JSXStyleUtils.isTextRenderingKey(cssKey) &&
-            !JSXStyleUtils.isInlineExcludedCssKey(cssKey) &&
-            !JSXStyleUtils.isCanvasTextMetricsExcludedCssKey(cssKey)
-        ) {
+        } else if (isUsedStyleKey(cssKey)) {
             const parentValue = parentStyle?.[key as keyof CSSStyleDeclaration];
 
             if (parentValue !== value || !JSXStyleUtils.isInheritedCssKey(key)) {
@@ -70,10 +89,17 @@ const splitComputedStyle = (style: CSSStyleDeclaration, parentStyle?: CSSStyleDe
 };
 
 export namespace JSXStyleParser {
-    export const getTextSegmentTokens = (el: Node): readonly StyledTextSegment[] => {
+    export const isSameMetricsStyle = (a: StyledTextSegment, b: StyledTextSegment) => deepEqual(a.metrics, b.metrics);
+
+    export const isSameNonMetricsStyle = (a: StyledTextSegment, b: StyledTextSegment) =>
+        deepEqual(a.nonMetrics, b.nonMetrics);
+
+    export const isSameMeta = (a: StyledTextSegment, b: StyledTextSegment) => deepEqual(a.meta, b.meta);
+
+    export const getSegmentTokens = (el: Node): readonly ElementSegment[] => {
         if (!el) return EMPTY_ARRAY;
 
-        const tokens: StyledTextSegment[] = [];
+        const tokens: ElementSegment[] = [];
 
         const walk = (node: Node, meta: StyledTextSegmentMeta) => {
             if (node.nodeType === Node.TEXT_NODE) {
@@ -89,12 +115,19 @@ export namespace JSXStyleParser {
                 const { metrics, nonMetrics } = splitComputedStyle(computed, parentComputed);
 
                 for (const part of text.split(/([\r\n\f\v\p{Zl}\p{Zp}]+)/gu)) {
-                    tokens.push({
-                        text: StringUtils.replaceTabs(part),
-                        metrics,
-                        nonMetrics,
-                        meta,
-                    });
+                    const parsedPart = StringUtils.replaceTabs(part);
+
+                    if (StringUtils.isLineBreak(parsedPart)) {
+                        tokens.push(lineBreakToken);
+                    } else {
+                        tokens.push({
+                            type: "text",
+                            text: parsedPart,
+                            metrics,
+                            nonMetrics,
+                            meta,
+                        });
+                    }
                 }
 
                 return;
@@ -103,44 +136,50 @@ export namespace JSXStyleParser {
             if (node.nodeType !== Node.ELEMENT_NODE) return;
 
             const element = node as HTMLElement;
-            const { computed, parentComputed } = getComputedStyles(element);
-            const { metrics, nonMetrics } = splitComputedStyle(computed, parentComputed);
-            const nextMeta = {
-                ...meta,
-                common: {
-                    dataset: element.dataset,
-                    title: element.title,
-                },
-            };
 
-            if (element instanceof HTMLAnchorElement) {
-                nextMeta.anchor = {
-                    href: element.href,
-                    target: element.target,
-                    rel: element.rel,
+            if (element.nodeName === "BR") {
+                tokens.push(lineBreakToken);
+
+                return;
+            }
+
+            const computed = getComputedStyle(element);
+            const isBlockLike = JSXStyleUtils.isBlockLike(computed.display);
+
+            if (element.childNodes.length === 0 && computed.display !== "contents") {
+                tokens.push({
+                    type: "atomic",
+                    element: node.cloneNode(true) as HTMLElement,
+                    isBlockLike,
+                });
+            } else {
+                const nextMeta = {
+                    ...meta,
+                    common: {
+                        dataset: element.dataset,
+                        title: element.title,
+                    },
                 };
-            }
 
-            const isLineBreak = element.nodeName === "BR";
-            const lineBreakToken: StyledTextSegment = {
-                text: "\n",
-                metrics,
-                nonMetrics,
-                meta: nextMeta,
-            };
+                if (element instanceof HTMLAnchorElement) {
+                    nextMeta.anchor = {
+                        href: element.href,
+                        target: element.target,
+                        rel: element.rel,
+                    };
+                }
 
-            if (isLineBreak || (JSXStyleUtils.isBlockLike(computed.display) && tokens.length)) {
-                tokens.push({ ...lineBreakToken });
-            }
+                if (isBlockLike && tokens.length > 0) {
+                    tokens.push(lineBreakToken);
+                }
 
-            if (isLineBreak) return;
+                for (const child of Array.from(element.childNodes)) {
+                    walk(child, nextMeta);
+                }
 
-            for (const child of Array.from(element.childNodes)) {
-                walk(child, nextMeta);
-            }
-
-            if (JSXStyleUtils.isBlockLike(computed.display)) {
-                tokens.push({ ...lineBreakToken });
+                if (isBlockLike && tokens.length > 0) {
+                    tokens.push(lineBreakToken);
+                }
             }
         };
 
@@ -154,120 +193,123 @@ export namespace JSXStyleParser {
         return tokens;
     };
 
-    export const isSameMetricsStyle = (a: StyledTextSegment, b: StyledTextSegment) =>
-        JSON.stringify(a.metrics) === JSON.stringify(b.metrics);
-
-    export const isSameNonMetricsStyle = (a: StyledTextSegment, b: StyledTextSegment) =>
-        JSON.stringify(a.nonMetrics) === JSON.stringify(b.nonMetrics);
-
     export const groupIdenticalTextSegments = (
-        tokens: readonly StyledTextSegment[],
+        segments: readonly ElementSegment[],
         compare: (A: StyledTextSegment, B: StyledTextSegment) => boolean,
     ) => {
-        const runs: StyledTextSegment[][] = [];
+        const groups: ElementSegment[][] = [];
 
-        let current: StyledTextSegment[] = [];
+        let current: ElementSegment[] = [];
 
-        for (const token of tokens) {
-            if (StringUtils.isLineBreak(token.text)) {
+        for (const segment of segments) {
+            if (segment.type === "linebreak" || segment.type === "atomic") {
                 if (current.length) {
-                    runs.push(current);
+                    groups.push(current);
                 }
 
-                runs.push([token]);
+                groups.push([segment]);
                 current = [];
+
                 continue;
-            }
-            if (!current.length || compare(current[current.length - 1], token)) {
-                current.push(token);
+            } else if (!current.length || compare(current.at(-1) as StyledTextSegment, segment)) {
+                current.push(segment);
+
                 continue;
             }
 
-            runs.push(current);
-            current = [token];
+            groups.push(current);
+            current = [segment];
         }
 
-        if (current.length) runs.push(current);
+        if (current.length) groups.push(current);
 
-        return runs;
+        return groups;
     };
 
-    export const getSegmentsByLine = (segments: StyledTextSegment[][], width: number) => {
-        const lines: StyledTextSegment[][] = [[]];
+    export const getInlinedSegments = (segments: readonly ElementSegment[], width: number) => {
+        const result: ElementSegment[] = [];
+        const identicalSegmentGroups = groupIdenticalTextSegments(
+            segments,
+            (a, b) => isSameMeta(a, b) && isSameMetricsStyle(a, b) && isSameNonMetricsStyle(a, b),
+        );
 
-        let lineIndex = 0;
         let remainingWidth = width;
+        let segmentId = 0;
+        let lastTextSegmentId = 0;
 
-        const startNewLine = () => {
-            lineIndex++;
-            lines[lineIndex] ??= [];
+        const addLineBreak = () => {
+            result.push(lineBreakToken);
             remainingWidth = width;
         };
 
-        for (const segment of segments) {
-            const metrics = segment[0].metrics;
-            const joinedText = segment.map((t) => t.text).join("");
-
-            if (StringUtils.isLineBreak(joinedText)) {
-                startNewLine();
-                continue;
+        const addToken = (token: ElementSegment, tokenWidth: number) => {
+            if (tokenWidth > remainingWidth) {
+                addLineBreak();
             }
 
-            const transformedText =
-                typeof metrics["text-transform"] === "string"
-                    ? StringUtils.applyTextTransform(joinedText, metrics["text-transform"])
-                    : joinedText;
+            const prevToken = result.at(-1);
 
-            const font = [
-                `${metrics["font-style"]}`,
-                `${metrics["font-weight"]}`,
-                `${metrics["font-size"]}`,
-                `${metrics["font-family"]}`,
-            ]
-                .filter(Boolean)
-                .join(" ");
-
-            const prepared = prepareWithSegments(transformedText, font, {
-                whiteSpace: "pre-wrap",
-            });
-
-            let cursor = { segmentIndex: 0, graphemeIndex: 0 };
-            let tokenIndex = 0;
-
-            while (true) {
-                const lineInfo = layoutNextLine(prepared, cursor, remainingWidth);
-
-                if (!lineInfo) break;
-
-                let count = 0;
-                let consumedTokens = 0;
-
-                for (let i = tokenIndex; i < segment.length; i++) {
-                    const token = segment[i].text;
-                    count += StringUtils.omitControlChars(token).length;
-                    consumedTokens++;
-
-                    if (count >= lineInfo.text.length) break;
-                }
-
-                for (let i = 0; i < consumedTokens; i++) {
-                    lines[lineIndex].push(segment[tokenIndex + i]);
-                }
-
-                tokenIndex += consumedTokens;
-
-                const nextRemainingWidth = remainingWidth - lineInfo.width;
-
-                if (tokenIndex < segment.length || nextRemainingWidth <= 0) {
-                    startNewLine();
-                } else {
-                    remainingWidth = nextRemainingWidth;
-                }
-
-                cursor = lineInfo.end;
+            if (segmentId === lastTextSegmentId && prevToken?.type === "text" && token.type === "text") {
+                prevToken.text += token.text;
+            } else {
+                result.push(token);
             }
+
+            remainingWidth -= tokenWidth;
+
+            if (token.type === "text") {
+                lastTextSegmentId = segmentId;
+            }
+        };
+
+        for (const segment of identicalSegmentGroups) {
+            switch (segment[0].type) {
+                case "atomic": {
+                    for (const token of segment) {
+                        addToken(token, (token as AtomicElementSegment).element.offsetWidth);
+                    }
+
+                    break;
+                }
+                case "linebreak": {
+                    addLineBreak();
+
+                    break;
+                }
+                case "text": {
+                    const metrics = segment[0].metrics;
+                    const joinedText = segment.map((t) => (t as StyledTextSegment).text).join("");
+                    const transformedText =
+                        typeof metrics["text-transform"] === "string"
+                            ? StringUtils.applyTextTransform(joinedText, metrics["text-transform"])
+                            : joinedText;
+
+                    const font = [
+                        `${metrics["font-style"]}`,
+                        `${metrics["font-weight"]}`,
+                        `${metrics["font-size"]}`,
+                        `${metrics["font-family"]}`,
+                    ]
+                        .filter(Boolean)
+                        .join(" ");
+
+                    const prepared = prepareWithSegments(transformedText, font, {
+                        whiteSpace: "pre-wrap",
+                    });
+
+                    let i = 0;
+                    for (const text of prepared.segments) {
+                        addToken({ ...segment[0], text }, prepared.widths[i]);
+                        i++;
+                    }
+
+                    break;
+                }
+            }
+
+            segmentId++;
         }
 
-        return lines;
+        return result;
     };
 }

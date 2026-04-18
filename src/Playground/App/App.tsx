@@ -112,7 +112,11 @@ export function AppContent() {
                     <span>single</span>
                     {" text character\tat a time,"}
                     <br />
-                    {"and has\nescaped"} <a href="www.google.com">characters.</a>
+                    <br />
+                    <div style={{ "width": "100%", "height": "0.5em", "border-bottom": "2px solid currentColor" }} />
+                    {"and has\nescaped "}
+                    <img src={knight} height={24} style={{ "vertical-align": "middle" }} />
+                    <a href="www.google.com">characters.</a>
                 </Typewriter>
             </div>
 

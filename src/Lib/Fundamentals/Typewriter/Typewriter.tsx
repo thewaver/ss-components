@@ -1,6 +1,8 @@
 import { For, ParentProps, Show, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
-import { JSXStyleParser, StyledTextSegment } from "../../Abstracts/JSX/Style/Parser/JSXStyleParser.utils";
+import { EMPTY_ARRAY } from "@thewaver/ss-utils";
+
+import { ElementSegment, JSXStyleParser } from "../../Abstracts/JSX/Style/Parser/JSXStyleParser.utils";
 import { TypewriterProps } from "./Typewriter.types";
 
 import * as styles from "./Typewriter.css";
@@ -10,7 +12,9 @@ const DEFAULT_TYPEWRITER_ANIMATION_DURATION_MS = 200;
 const DEFAULT_TYPEWRITER_ANIMATION_DELAY_MS = 10;
 
 export const Typewriter = (props: ParentProps<TypewriterProps>) => {
-    const [getLines, setLines] = createSignal<StyledTextSegment[][]>([[]]);
+    const [getIndexedSegments, setIndexedSegments] = createSignal<(ElementSegment & { startIndex: number })[]>(
+        EMPTY_ARRAY as any,
+    );
     const [getIsAnimating, setIsAnimating] = createSignal(false);
 
     let childrenContainerRef: HTMLDivElement | undefined;
@@ -26,43 +30,41 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
         () => props.getAnimationDelayMs?.() ?? DEFAULT_TYPEWRITER_ANIMATION_DELAY_MS,
     );
 
+    const getAnimationStyle = (startIndex: number) => ({
+        "animation-name": getAnimationName(),
+        "animation-duration": `${getAnimationDurationMs()}ms`,
+        "animation-delay": `${startIndex * getAnimationDelayMs() + (props.getInitialAnimationDelayMs?.() ?? 0)}ms`,
+    });
+
     const updateLayout = () => {
         if (!childrenContainerRef) return [];
 
-        const width = childrenContainerRef.clientWidth;
-        const segments = JSXStyleParser.getTextSegmentTokens(childrenContainerRef);
-        const groupedSegmentsByMetrics = JSXStyleParser.groupIdenticalTextSegments(
-            segments,
-            JSXStyleParser.isSameMetricsStyle,
-        );
-        const lines = JSXStyleParser.getSegmentsByLine(groupedSegmentsByMetrics, width);
-        const totalChars = lines.reduce(
-            (outterRes, outterCur) =>
-                outterRes + outterCur.reduce((innerRes, innerCur) => innerRes + innerCur.text.length, 0),
-            0,
-        );
-        const mergedLinesByStyle = lines
-            .filter((line) => line.length > 0)
-            .map((line) =>
-                JSXStyleParser.groupIdenticalTextSegments(line, JSXStyleParser.isSameNonMetricsStyle).map(
-                    (group): StyledTextSegment => ({
-                        ...group[0],
-                        text: group.reduce((res, cur) => (res += cur.text), ""),
-                    }),
-                ),
-            );
-
-        setLines(mergedLinesByStyle);
-        setIsAnimating(true);
+        setIndexedSegments(EMPTY_ARRAY as any);
+        setIsAnimating(false);
         clearTimeout(animationToggleTimeout);
 
+        let startIndex = 0;
+
+        const width = childrenContainerRef.clientWidth;
+        const segments = JSXStyleParser.getSegmentTokens(childrenContainerRef);
+        const inlinedSegments = JSXStyleParser.getInlinedSegments(segments, width);
+        const indexedSegments = inlinedSegments.map((segment) => {
+            const result = { ...segment, startIndex };
+
+            startIndex += segment.type === "text" ? segment.text.length : 1;
+
+            return result;
+        });
+
+        setIndexedSegments(indexedSegments);
+        setIsAnimating(true);
         animationToggleTimeout = setTimeout(
             () => {
                 setIsAnimating(false);
 
                 props.onAnimationEnd?.();
             },
-            totalChars * getAnimationDelayMs() + getAnimationDurationMs(),
+            startIndex * getAnimationDelayMs() + (props.getInitialAnimationDelayMs?.() ?? 0) + getAnimationDurationMs(),
         );
     };
 
@@ -92,73 +94,89 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
                 {props.children}
             </div>
 
-            <Show when={getLines().some((line) => line.length)}>
-                {(() => {
-                    let index = 0;
+            <Show when={getIndexedSegments().length}>
+                <div class={styles.typewriterTextWrap} style={{ width: `${childrenContainerRef?.clientWidth ?? 0}px` }}>
+                    <For each={getIndexedSegments()}>
+                        {(segment) => {
+                            switch (segment.type) {
+                                case "atomic": {
+                                    const className = segment.isBlockLike
+                                        ? styles.typewriterBlockLikeAtomic
+                                        : styles.typewriterChar;
 
-                    return (
-                        <div
-                            class={styles.typewriterTextWrap}
-                            style={{ width: `${childrenContainerRef?.clientWidth ?? 0}px` }}
-                        >
-                            <For each={getLines()}>
-                                {(line) => (
-                                    <div>
-                                        <For each={line}>
-                                            {(segment) => {
-                                                const style = { ...segment.nonMetrics, ...segment.metrics };
+                                    return (
+                                        <>
+                                            <Show when={!getIsAnimating()}>
+                                                <span class={className}>{segment.element}</span>
+                                            </Show>
+                                            <Show when={getIsAnimating()}>
+                                                <span class={className} style={getAnimationStyle(segment.startIndex)}>
+                                                    {segment.element}
+                                                </span>
+                                            </Show>
+                                        </>
+                                    );
+                                }
+                                case "linebreak":
+                                    return (
+                                        <>
+                                            <Show when={!getIsAnimating()}>
+                                                <br />
+                                            </Show>
+                                            <Show when={getIsAnimating()}>
+                                                <br style={getAnimationStyle(segment.startIndex)} />
+                                            </Show>
+                                        </>
+                                    );
+                                case "text": {
+                                    const style = { ...segment.nonMetrics, ...segment.metrics };
 
-                                                return (
-                                                    <>
-                                                        <Show when={!getIsAnimating()}>
-                                                            <Show when={Object.keys(segment.meta).length <= 1}>
-                                                                <span {...segment.meta?.common} style={style}>
-                                                                    {segment.text}
-                                                                </span>
-                                                            </Show>
-                                                            <Show when={segment.meta?.anchor}>
-                                                                <a
-                                                                    {...segment.meta?.common}
-                                                                    {...segment.meta?.anchor}
-                                                                    style={style}
-                                                                >
-                                                                    {segment.text}
-                                                                </a>
-                                                            </Show>
-                                                        </Show>
-                                                        <Show when={getIsAnimating()}>
-                                                            <span style={style}>
-                                                                <For each={segment.text.split("")}>
-                                                                    {(char) => {
-                                                                        index++;
-
-                                                                        return (
-                                                                            <span
-                                                                                class={styles.typewriterChar}
-                                                                                style={{
-                                                                                    "animation-name":
-                                                                                        getAnimationName(),
-                                                                                    "animation-duration": `${getAnimationDurationMs()}ms`,
-                                                                                    "animation-delay": `${index * getAnimationDelayMs()}ms`,
-                                                                                }}
-                                                                            >
-                                                                                {char}
-                                                                            </span>
-                                                                        );
-                                                                    }}
-                                                                </For>
+                                    return (
+                                        <>
+                                            <Show when={!getIsAnimating()}>
+                                                <Show when={Object.keys(segment.meta).length <= 1}>
+                                                    <span
+                                                        class={styles.typewriterChar}
+                                                        style={style}
+                                                        {...segment.meta?.common}
+                                                    >
+                                                        {segment.text}
+                                                    </span>
+                                                </Show>
+                                                <Show when={segment.meta?.anchor}>
+                                                    <a
+                                                        class={styles.typewriterChar}
+                                                        style={style}
+                                                        {...segment.meta?.common}
+                                                        {...segment.meta?.anchor}
+                                                    >
+                                                        {segment.text}
+                                                    </a>
+                                                </Show>
+                                            </Show>
+                                            <Show when={getIsAnimating()}>
+                                                <span style={style}>
+                                                    <For each={segment.text.split("")}>
+                                                        {(char, getCharIndex) => (
+                                                            <span
+                                                                class={styles.typewriterChar}
+                                                                style={getAnimationStyle(
+                                                                    segment.startIndex + getCharIndex(),
+                                                                )}
+                                                            >
+                                                                {char}
                                                             </span>
-                                                        </Show>
-                                                    </>
-                                                );
-                                            }}
-                                        </For>
-                                    </div>
-                                )}
-                            </For>
-                        </div>
-                    );
-                })()}
+                                                        )}
+                                                    </For>
+                                                </span>
+                                            </Show>
+                                        </>
+                                    );
+                                }
+                            }
+                        }}
+                    </For>
+                </div>
             </Show>
         </div>
     );

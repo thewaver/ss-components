@@ -31,3 +31,9 @@ export const typewriterChar = style({
     display: "inline-block",
     animationFillMode: "both",
 });
+
+export const typewriterBlockLikeAtomic = style({
+    display: "inline-block",
+    width: "100%",
+    animationFillMode: "both",
+});
