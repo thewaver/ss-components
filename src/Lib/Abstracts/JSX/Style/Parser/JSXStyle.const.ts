@@ -4,10 +4,10 @@ export namespace JSXStyleConst {
         "font-size",
         "font-style",
         "font-weight",
-        // "letter-spacing",
+        "letter-spacing",
         "line-height",
         "text-transform",
-        // "word-spacing",
+        "word-spacing",
     ] as const;
 
     export const TEXT_RENDERING_KEYS = [

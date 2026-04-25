@@ -1,11 +1,132 @@
 import { deepEqual } from "fast-equals";
 import { JSX } from "solid-js";
 
-import { prepareWithSegments } from "@chenglou/pretext";
-import { EMPTY_ARRAY, StringUtils } from "@thewaver/ss-utils";
+import { EMPTY_ARRAY, Size2d, StringUtils } from "@thewaver/ss-utils";
 
 import { JSXStyleUtils } from "../JSXStyle.utils";
 import { JSXStyleConst } from "./JSXStyle.const";
+
+/////
+
+export namespace StringUtils2 {
+    export const splitByLinebreaks = (s: string) => s.split(/([\r\n\f\v\p{Zl}\p{Zp}]+)/gu);
+
+    export const isWhitespace = (s: string) => /^\s+$/.test(s);
+
+    export const isClosingPunctuation = (s: string) => /^[\p{Pe}\p{Pf}\p{Po}\p{S}]*$/u.test(s) && !/^\p{Pi}+$/u.test(s);
+
+    export const intlSegmentsToStrings = (segments: Intl.Segments): string[] => Array.from(segments, (s) => s.segment);
+
+    export const intlSegmentsArrayToStrings = (segmentsArr: Intl.Segments[]): string[] =>
+        segmentsArr.flatMap((segments) => Array.from(segments, (s) => s.segment));
+
+    export const mergePunctuation = (tokens: string[]) => {
+        const result: string[] = [];
+
+        for (let i = 0; i < tokens.length; i++) {
+            const token = tokens[i];
+
+            if (isClosingPunctuation(token)) {
+                if (!result.length) {
+                    result.push(token);
+                } else {
+                    result[result.length - 1] += token;
+                }
+            } else {
+                if (isWhitespace(token)) {
+                    result.push(...token.split(""));
+                } else {
+                    result.push(token);
+                }
+            }
+        }
+
+        return result;
+    };
+
+    export const measureTextWidths = (() => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d", { willReadFrequently: false });
+
+        return (texts: string[], metrics: TextMetricsStyle): number[] => {
+            if (!ctx) return texts.map(() => 0);
+
+            ctx.font = `${metrics["font-style"] ?? "normal"} ${metrics["font-weight"] ?? "normal"} ${metrics["font-size"] ?? "1rem"} ${metrics["font-family"] ?? "sans-serif"}`;
+
+            const results: number[] = new Array(texts.length);
+
+            for (let i = 0; i < texts.length; i++) {
+                const text = texts[i];
+                const letterSpacing =
+                    typeof metrics["letter-spacing"] === "number"
+                        ? metrics["letter-spacing"]
+                        : parseFloat(metrics["letter-spacing"] ?? "0");
+
+                if (StringUtils2.isWhitespace(texts[i])) {
+                    const wordSpacing =
+                        typeof metrics["word-spacing"] === "number"
+                            ? metrics["word-spacing"]
+                            : parseFloat(metrics["word-spacing"] ?? "0");
+
+                    results[i] =
+                        ctx.measureText(text).width + (text.length - 1) * letterSpacing + text.length * wordSpacing;
+                } else {
+                    const transformedText =
+                        typeof metrics["text-transform"] === "string"
+                            ? StringUtils.applyTextTransform(text, metrics["text-transform"])
+                            : text;
+
+                    results[i] = ctx.measureText(transformedText).width + (transformedText.length - 1) * letterSpacing;
+                }
+            }
+
+            return results;
+        };
+    })();
+
+    export const getNormalizedFontSizes = (
+        texts: string[],
+        metrics: TextMetricsStyle,
+        containerSize: Size2d,
+        opts?: {
+            lineHeightRatios: number[];
+        },
+    ): number[] => {
+        const fontSize =
+            typeof metrics["font-size"] === "number" ? metrics["font-size"] : parseFloat(metrics["font-size"] ?? "NaN");
+
+        if (Number.isNaN(fontSize)) return texts.map(() => 0);
+
+        const textWidths = measureTextWidths(texts, metrics).map((w) => (fontSize * containerSize.width) / w);
+        const totalHeight = textWidths.reduce((res, cur, idx) => res + cur * (opts?.lineHeightRatios[idx] ?? 1), 0);
+        const ratio = Math.min(containerSize.height / totalHeight, 1);
+
+        return textWidths.map((size) => Math.floor(size * ratio));
+    };
+}
+
+console.log(
+    StringUtils2.mergePunctuation([
+        "I",
+        " ",
+        "am",
+        " ",
+        "a",
+        " ",
+        "brown",
+        ",",
+        " ",
+        "crispy",
+        " ",
+        "potatoe",
+        "   ",
+        "!",
+        "?",
+        "...",
+    ]),
+);
+
+/////
 
 type TextMetricKey = (typeof JSXStyleConst.TEXT_METRICS_KEYS)[number];
 type TextMetricsStyle = Pick<JSX.CSSProperties, TextMetricKey>;
@@ -46,6 +167,7 @@ export type AtomicElementSegment = {
 export type ElementSegment = StyledTextSegment | LineBreakSegment | AtomicElementSegment;
 
 const lineBreakToken: LineBreakSegment = { type: "linebreak" };
+const wordSegmenter = new Intl.Segmenter(undefined, { granularity: "word" });
 
 const getComputedStyles = (node: Node) => {
     const grandParent = node.parentElement;
@@ -114,7 +236,7 @@ export namespace JSXStyleParser {
                 const { computed, parentComputed } = getComputedStyles(parent);
                 const { metrics, nonMetrics } = splitComputedStyle(computed, parentComputed);
 
-                for (const part of text.split(/([\r\n\f\v\p{Zl}\p{Zp}]+)/gu)) {
+                for (const part of StringUtils2.splitByLinebreaks(text)) {
                     const parsedPart = StringUtils.replaceTabs(part);
 
                     if (StringUtils.isLineBreak(parsedPart)) {
@@ -266,7 +388,12 @@ export namespace JSXStyleParser {
             switch (segment[0].type) {
                 case "atomic": {
                     for (const token of segment) {
-                        addToken(token, (token as AtomicElementSegment).element.offsetWidth);
+                        addToken(
+                            token,
+                            (token as AtomicElementSegment).isBlockLike
+                                ? width
+                                : (token as AtomicElementSegment).element.offsetWidth,
+                        );
                     }
 
                     break;
@@ -278,29 +405,17 @@ export namespace JSXStyleParser {
                 }
                 case "text": {
                     const metrics = segment[0].metrics;
-                    const joinedText = segment.map((t) => (t as StyledTextSegment).text).join("");
-                    const transformedText =
+                    const intlSegments = segment.flatMap((s) => wordSegmenter.segment((s as StyledTextSegment).text));
+                    const texts = StringUtils2.mergePunctuation(StringUtils2.intlSegmentsArrayToStrings(intlSegments));
+                    const transformedTexts =
                         typeof metrics["text-transform"] === "string"
-                            ? StringUtils.applyTextTransform(joinedText, metrics["text-transform"])
-                            : joinedText;
+                            ? texts.map((t) => StringUtils.applyTextTransform(t, metrics["text-transform"]))
+                            : texts;
 
-                    const font = [
-                        `${metrics["font-style"]}`,
-                        `${metrics["font-weight"]}`,
-                        `${metrics["font-size"]}`,
-                        `${metrics["font-family"]}`,
-                    ]
-                        .filter(Boolean)
-                        .join(" ");
+                    const widths = StringUtils2.measureTextWidths(transformedTexts, metrics);
 
-                    const prepared = prepareWithSegments(transformedText, font, {
-                        whiteSpace: "pre-wrap",
-                    });
-
-                    let i = 0;
-                    for (const text of prepared.segments) {
-                        addToken({ ...segment[0], text }, prepared.widths[i]);
-                        i++;
+                    for (let idx = 0; idx < transformedTexts.length; idx++) {
+                        addToken({ ...segment[0], text: texts[idx] }, widths[idx]);
                     }
 
                     break;
