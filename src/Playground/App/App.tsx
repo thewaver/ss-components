@@ -32,6 +32,8 @@ export function AppContent() {
     const [getTextPrefix, setTextPrefix] = createSignal("");
     // HIGHLIGHTER
     const [getHighlightOn, setHighlightOn] = createSignal(false);
+    // TEXT WIDTH
+    const [getTextWidth, setTextWidth] = createSignal(240);
 
     return (
         <div class={styles.appContent}>
@@ -100,7 +102,7 @@ export function AppContent() {
                 <div class={styles.buttonContent}>Restart text animation</div>
             </Button>
 
-            <div class={styles.textContent}>
+            <div class={styles.textContent} style={{ width: `${getTextWidth()}px` }}>
                 <Typewriter>
                     This is a bit of{" "}
                     <b>
@@ -118,6 +120,30 @@ export function AppContent() {
                     <img src={knight} height={24} style={{ "vertical-align": "middle" }} />
                     <a href="www.google.com">characters.</a>
                 </Typewriter>
+            </div>
+
+            <div class={styles.textContent} style={{ width: `${getTextWidth()}px` }}>
+                <Typewriter>{"I am a brown, crispy potatoe!?..."}</Typewriter>
+            </div>
+            <div class={styles.textContent} style={{ width: `${getTextWidth()}px` }}>
+                {"I am a brown, crispy potatoe!?..."}
+            </div>
+            <div class={styles.flexRow}>
+                <Button
+                    onClick={async () => {
+                        setTextWidth((prev) => prev - 4);
+                    }}
+                >
+                    <div class={styles.buttonContent}>-</div>
+                </Button>
+                {getTextWidth()}
+                <Button
+                    onClick={async () => {
+                        setTextWidth((prev) => prev + 4);
+                    }}
+                >
+                    <div class={styles.buttonContent}>+</div>
+                </Button>
             </div>
 
             <div
@@ -162,6 +188,7 @@ export function AppContent() {
                 )}
             />
 
+            {/*
             <div
                 class={styles.imgContent}
                 style={{
@@ -170,6 +197,7 @@ export function AppContent() {
             >
                 <img src={knight} height="100%" />
             </div>
+            */}
 
             <div class={styles.flexRow}>
                 <ShapeButton

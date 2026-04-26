@@ -42,9 +42,9 @@ export const tooltipContent = style([
 ]);
 
 export const textContent = style({
-    width: "240px",
     padding: "20px",
     border: "2px solid #F0E0D0",
+    whiteSpace: "pre-wrap",
 });
 
 export const imgContent = style({

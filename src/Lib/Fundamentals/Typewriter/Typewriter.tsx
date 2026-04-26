@@ -2,7 +2,7 @@ import { For, ParentProps, Show, createMemo, createSignal, onCleanup, onMount } 
 
 import { EMPTY_ARRAY } from "@thewaver/ss-utils";
 
-import { ElementSegment, JSXStyleParser } from "../../Abstracts/JSX/Style/Parser/JSXStyleParser.utils";
+import { ElementSegment, JSXTextParser } from "../../Abstracts/JSX/Text/Parser/JSXTextParser.utils";
 import { TypewriterProps } from "./Typewriter.types";
 
 import * as styles from "./Typewriter.css";
@@ -16,6 +16,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
         EMPTY_ARRAY as any,
     );
     const [getIsAnimating, setIsAnimating] = createSignal(false);
+    const [getHasAnimatedOnce, setHasAnimatedOnce] = createSignal(false);
 
     let childrenContainerRef: HTMLDivElement | undefined;
     let animationToggleTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -37,7 +38,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
     });
 
     const updateLayout = () => {
-        if (!childrenContainerRef) return [];
+        if (!childrenContainerRef) return;
 
         setIndexedSegments(EMPTY_ARRAY as any);
         setIsAnimating(false);
@@ -46,8 +47,8 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
         let startIndex = 0;
 
         const width = childrenContainerRef.clientWidth;
-        const segments = JSXStyleParser.getSegmentTokens(childrenContainerRef);
-        const inlinedSegments = JSXStyleParser.getInlinedSegments(segments, width);
+        const segments = JSXTextParser.getSegmentTokens(childrenContainerRef);
+        const inlinedSegments = JSXTextParser.getInlinedSegments(segments, width);
         const indexedSegments = inlinedSegments.map((segment) => {
             const result = { ...segment, startIndex };
 
@@ -57,15 +58,21 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
         });
 
         setIndexedSegments(indexedSegments);
-        setIsAnimating(true);
-        animationToggleTimeout = setTimeout(
-            () => {
-                setIsAnimating(false);
 
-                props.onAnimationEnd?.();
-            },
-            startIndex * getAnimationDelayMs() + (props.getInitialAnimationDelayMs?.() ?? 0) + getAnimationDurationMs(),
-        );
+        if (!getHasAnimatedOnce() || props.getResetAnimationOnResize?.()) {
+            setIsAnimating(true);
+            setHasAnimatedOnce(true);
+            animationToggleTimeout = setTimeout(
+                () => {
+                    setIsAnimating(false);
+
+                    props.onAnimationEnd?.();
+                },
+                startIndex * getAnimationDelayMs() +
+                    (props.getInitialAnimationDelayMs?.() ?? 0) +
+                    getAnimationDurationMs(),
+            );
+        }
     };
 
     onMount(() => {

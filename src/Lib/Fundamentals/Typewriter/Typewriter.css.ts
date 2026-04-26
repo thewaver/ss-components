@@ -22,7 +22,7 @@ export const typewriterChildrenWrap = style({
     width: "100%",
     visibility: "hidden",
     pointerEvents: "none",
-    whiteSpace: "pre-wrap",
+    whiteSpace: "pre",
 });
 
 export const typewriterTextWrap = style({});

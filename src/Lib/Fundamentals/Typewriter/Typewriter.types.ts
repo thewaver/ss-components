@@ -5,5 +5,6 @@ export type TypewriterProps = AccessorProps<{
     animationDurationMs?: number;
     animationDelayMs?: number;
     initialAnimationDelayMs?: number;
+    resetAnimationOnResize?: boolean;
     onAnimationEnd?: () => void;
 }>;
