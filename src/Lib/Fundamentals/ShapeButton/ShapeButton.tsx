@@ -4,10 +4,10 @@ import { createStore } from "solid-js/store";
 import { PolygonUtils } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
-import { ButtonFlags, InternalButtonFlags } from "../../Button.types";
+import { ButtonFlags, InternalButtonFlags } from "../Button/Button.types";
 import { ShapeButtonProps } from "./ShapeButton.types";
 
-import * as buttonStyles from "../../Button.css";
+import * as buttonStyles from "../Button/Button.css";
 import * as styles from "./ShapeButton.css";
 
 const DEFAULT_SHAPE_BUTTON_STROKE_WIDTH = 2;

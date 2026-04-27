@@ -1,19 +1,134 @@
+:root {
+    --clr-bkg-primary: rgb(48, 40, 32);
+    --clr-bkg-secondary: rgb(12, 10, 8);
+
+    --clr-text: rgb(255, 240, 224);
+    --clr-text-secondary: rgb(224, 208, 192);
+    --clr-text-contrast: rgb(0, 0, 0);
+
+    --clr-primary: rgb(96, 240, 192);
+    --clr-secondary: rgb(96, 192, 240);
+
+    --clr-highlight: rgb(255, 0, 255);
+
+    --shd-tiny: 0 2px 5px 1px rgba(0, 0, 0, 0.5);
+    --shd-soft: 0 5px 20px 10px rgba(0, 0, 0, 0.33);
+    --shd-medium: 0 10px 80px 20px rgba(0, 0, 0, 0.25);
+
+    --anim-duration: 0.2s;
+
+    --scroll-width: 8px; /* FF "thin" */
+}
+
 * {
     box-sizing: border-box;
-    outline: none;
+    scrollbar-color: var(--clr-primary) rgba(0, 0, 0, 0.25);
+    scrollbar-width: thin;
+}
+
+:disabled {
+    opacity: 0.5;
+    filter: saturate(0.5);
+    cursor: not-allowed;
+}
+
+:focus {
+    outline: 0 none;
 }
 
 :focus-visible {
-    outline: 2px solid yellow;
-    outline-offset: -2px;
+    outline: 2px solid var(--clr-highlight);
+}
+
+::-webkit-scrollbar {
+    width: var(--scroll-width);
+    height: var(--scroll-width);
+}
+
+::-webkit-scrollbar-corner {
+    background-color: var(--clr-primary);
+}
+
+::-webkit-scrollbar-track {
+    background-color: var(--clr-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--clr-primary);
+    transition: background-color var(--anim-duration);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    filter: brightness(120%);
+}
+
+label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+input:not([type="range"]),
+select,
+textarea {
+    color: var(--clr-text);
+    background-color: black;
+    box-shadow: var(--shd-tiny);
+    border: 2px solid rgba(from var(--clr-text) r g b / 25%);
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 1rem;
+    line-height: 1.25;
+}
+
+input:not([type="range"])::placeholder,
+select::placeholder,
+textarea::placeholder {
+    color: var(--clr-text);
+    opacity: 0.5;
+}
+
+input:hover:not(:disabled),
+select:hover:not(:disabled),
+textarea:hover:not(:disabled),
+label:hover:not(:disabled) {
+    cursor: pointer;
+}
+
+input:hover:not(:disabled),
+select:hover:not(:disabled),
+textarea:hover:not(:disabled) {
+    filter: brightness(125%);
+}
+
+input[type="range"],
+input[type="select"] {
+    width: 160px;
+}
+
+input[type="number"] {
+    width: 80px;
+}
+
+a,
+a:visited {
+    color: var(--clr-primary);
+    text-decoration: none;
+    outline-offset: 2px;
+}
+
+a:hover:not(:disabled),
+a:active {
+    filter: brightness(125%);
 }
 
 body {
     margin: 0;
     padding: 0;
-    color: white;
+    color: var(--clr-text);
     background-color: black;
-    font-family: "Fira Sans", sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
     font-size: 16px;
 }
 

@@ -1,12 +1,13 @@
-import { createSignal } from "solid-js";
+import { JSX, Show, createMemo, createSignal } from "solid-js";
 
 import { AnimDirection } from "../../Lib//Abstracts/Anim/Anim.types";
 import { ScreenWiper } from "../../Lib//Fundamentals/ScreenWiper/ScreenWiper";
 import { Button } from "../../Lib/Fundamentals/Button/Button";
-import { ShapeButton } from "../../Lib/Fundamentals/Button/variants/ShapeButton/ShapeButton";
 import { useColorExtractor } from "../../Lib/Fundamentals/ColorExtractor/ColorExtractor.context";
 import { Corners } from "../../Lib/Fundamentals/Corners/Corners";
 import { ElementHighlight } from "../../Lib/Fundamentals/ElementHighlight/ElementHighlight";
+import { ShapeButton } from "../../Lib/Fundamentals/ShapeButton/ShapeButton";
+import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
 import { Typewriter } from "../../Lib/Fundamentals/Typewriter/Typewriter";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
 import knight from "./knight.png";
@@ -15,7 +16,7 @@ import * as styles from "./App.css";
 
 const INITIAL_WIPE_DIRECTION: AnimDirection = "out";
 
-export function AppContent() {
+/*
     const dominantColor = useColorExtractor({
         getSrc: () => knight,
         getColorCount: () => 3,
@@ -28,15 +29,11 @@ export function AppContent() {
     const [getIsWiping, setIsWiping] = createSignal(false);
     // TOGGLE
     const [getToggleOn, setToggleOn] = createSignal(false);
-    // TYPEWRITER
-    const [getTextPrefix, setTextPrefix] = createSignal("");
     // HIGHLIGHTER
     const [getHighlightOn, setHighlightOn] = createSignal(false);
     // TEXT WIDTH
     const [getTextWidth, setTextWidth] = createSignal(240);
 
-    return (
-        <div class={styles.appContent}>
             <ScreenWiper
                 getInitialWipeDirection={() => INITIAL_WIPE_DIRECTION}
                 getWipeDirection={getWipeDirection}
@@ -80,26 +77,6 @@ export function AppContent() {
                 }}
             >
                 <div class={styles.buttonContent}>Toggle me</div>
-            </Button>
-
-            <Button
-                getTooltipDefs={() => ({
-                    getPlacement: () => ({ x: "center", y: "top-out" }),
-                    renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                        <div
-                            class={styles.tooltipContent}
-                            classList={{ [styles.isVisible]: getVisibilityTarget() === 1 }}
-                            style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
-                        >
-                            Click me to change the text content, thus restarting the animation.
-                        </div>
-                    ),
-                })}
-                onClick={async () => {
-                    setTextPrefix((prev) => (prev ? "" : "And some more text to make it longer!"));
-                }}
-            >
-                <div class={styles.buttonContent}>Restart text animation</div>
             </Button>
 
             <div class={styles.textContent} style={{ width: `${getTextWidth()}px` }}>
@@ -188,7 +165,6 @@ export function AppContent() {
                 )}
             />
 
-            {/*
             <div
                 class={styles.imgContent}
                 style={{
@@ -197,7 +173,6 @@ export function AppContent() {
             >
                 <img src={knight} height="100%" />
             </div>
-            */}
 
             <div class={styles.flexRow}>
                 <ShapeButton
@@ -216,6 +191,101 @@ export function AppContent() {
                     getFillDefs={() => ({ color: "#806040" })}
                 />
             </div>
+*/
+
+type TabConfig =
+    | {
+          name: string;
+          component: JSX.Element;
+      }
+    | { name: string };
+
+const TAB_CONFIGS: TabConfig[] = [
+    {
+        name: "Fundamentals",
+    },
+    {
+        name: "AudioSwitcher",
+        component: null,
+    },
+    {
+        name: "Button",
+        component: null,
+    },
+    {
+        name: "ImageSwitcher",
+        component: null,
+    },
+    {
+        name: "RichText",
+        component: null,
+    },
+    {
+        name: "ScreenWiper",
+        component: null,
+    },
+    {
+        name: "ShapeButton",
+        component: null,
+    },
+    {
+        name: "TypeWriter",
+        component: null,
+    },
+];
+
+const isCategory = (config: TabConfig): boolean => !("component" in config);
+
+export function AppContent() {
+    const [getTabIndex, setTabIndex] = createSignal(1);
+    const [getSearchTerm, setSearchTerm] = createSignal("");
+
+    const getTabConfig = createMemo(() => {
+        const tabIndex = getTabIndex();
+        const searchTerm = getSearchTerm();
+
+        if (!getSearchTerm()) return TAB_CONFIGS;
+        return TAB_CONFIGS.filter(
+            (item, idx) => isCategory(item) || idx === tabIndex || item.name.toLocaleLowerCase().includes(searchTerm),
+        );
+    });
+
+    return (
+        <div class={styles.appContent}>
+            <div class={styles.leftMenu}>
+                <div class={styles.searchContainer}>
+                    <input
+                        type="text"
+                        class={styles.searchInput}
+                        placeholder="Search"
+                        onInput={(e) => setSearchTerm(e.target.value.toLocaleLowerCase())}
+                    />
+                </div>
+
+                <Tabs
+                    getDir={() => "column"}
+                    getSelectedIndex={getTabIndex}
+                    getTabCount={() => getTabConfig().length}
+                    getIsDisabled={(getIndex) => isCategory(getTabConfig()[getIndex()])}
+                    onSelectionChange={setTabIndex}
+                    renderFloater={() => <div class={styles.tabFloater} />}
+                    renderTab={(getIndex) => (
+                        <div
+                            class={isCategory(getTabConfig()[getIndex()]) ? styles.tabCategory : styles.tabItem}
+                            classList={{ [styles.isSelected]: getIndex() === getTabIndex() }}
+                        >
+                            {getTabConfig()[getIndex()].name}
+                        </div>
+                    )}
+                />
+            </div>
+
+            <Show when={!isCategory(getTabConfig()[getTabIndex()])}>
+                <div class={styles.tabPage}>
+                    <div class={styles.tabPageTitle}>{getTabConfig()[getTabIndex()].name}</div>
+                    {(getTabConfig()[getTabIndex()] as any).component}
+                </div>
+            </Show>
         </div>
     );
 }
