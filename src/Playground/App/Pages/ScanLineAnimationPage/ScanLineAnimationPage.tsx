@@ -6,10 +6,20 @@ import knight from "../../knight.png";
 
 import * as styles from "./ScanlineAnimationPage.css";
 
-const LINE_COUNT = 12;
+const LINE_COUNT = 48;
+const ROOT_KEYFRAMES: Keyframe[] = [
+    { offset: 0, filter: "brightness(1)" },
+    { offset: 0.4, filter: "brightness(1)" },
+    { offset: 0.45, filter: "brightness(1.25)" },
+    { offset: 0.55, filter: "brightness(1.25)" },
+    { offset: 0.6, filter: "brightness(1)" },
+    { offset: 1, filter: "brightness(1)" },
+];
 
 const getRandomKeyframes = () =>
-    Array.from({ length: LINE_COUNT }, () => ScanlineAnimationUtils.getRandomHorizontalShiftKeyframes(40, 40));
+    Array.from({ length: LINE_COUNT }, () =>
+        ScanlineAnimationUtils.getRandomHorizontalShiftKeyframes(20, [0.4, 0.45, 0.55, 0.6]),
+    );
 
 export const ScanlineAnimationPage = () => {
     const [getKeyframes, setKeyframes] = createSignal(getRandomKeyframes());
@@ -19,8 +29,12 @@ export const ScanlineAnimationPage = () => {
             <ScanlineAnimation
                 getSrc={() => knight}
                 getLineCount={() => LINE_COUNT}
+                getAnimationDurationMs={() => 2000}
+                getRootAnimationKeyframes={() => ROOT_KEYFRAMES}
                 getScanlineAnimationKeyframes={(getIndex) => getKeyframes()[getIndex()]}
-                onAnimationEnd={() => setKeyframes(getRandomKeyframes())}
+                onAnimationEnd={() => {
+                    setKeyframes(getRandomKeyframes());
+                }}
             />
         </div>
     );

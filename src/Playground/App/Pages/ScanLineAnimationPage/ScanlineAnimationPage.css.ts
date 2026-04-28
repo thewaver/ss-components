@@ -1,4 +1,4 @@
-import { style } from "@vanilla-extract/css";
+import { keyframes, style } from "@vanilla-extract/css";
 
 const checkerColorA = "rgb(255, 255, 255, 0.1)";
 const checkerColorB = "rgb(0, 0, 0, 0.1)";

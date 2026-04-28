@@ -1,4 +1,4 @@
-import { For, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import { For, createEffect, createMemo, createSignal, createUniqueId, onCleanup, onMount } from "solid-js";
 
 import { Size2d } from "@thewaver/ss-utils";
 
@@ -10,20 +10,24 @@ const DEFAULT_SCANLINE_ANIMATION_DURATION_MS = 200;
 const DEFAULT_SCANLINE_ANIMATION_ITERATION_COUNT = Infinity;
 
 export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
+    let id = createUniqueId();
     let rootRef: HTMLDivElement | undefined;
-
-    const [getRemainingIterations, setRemainingIterations] = createSignal(
-        props.getAnimationIterationCount?.() ?? DEFAULT_SCANLINE_ANIMATION_ITERATION_COUNT,
-    );
-    const [getRottSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
-
-    const getLineHeight = createMemo(() => getRottSize().height / props.getLineCount());
 
     const getAnimationDurationMs = createMemo(
         () => props.getAnimationDurationMs?.() ?? DEFAULT_SCANLINE_ANIMATION_DURATION_MS,
     );
 
-    const attachAnimation = (el: HTMLElement, getKeyframes?: () => Keyframe[], onFinish?: () => void) => {
+    const getAnimationIterationCount = createMemo(
+        () => props.getAnimationIterationCount?.() ?? DEFAULT_SCANLINE_ANIMATION_ITERATION_COUNT,
+    );
+
+    const [getIsVisible, setIsVisible] = createSignal(true);
+    const [getRemainingIterations, setRemainingIterations] = createSignal(getAnimationIterationCount());
+    const [getRottSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
+
+    const getLineHeight = createMemo(() => getRottSize().height / props.getLineCount());
+
+    const attachAnimation = (el: Element, getKeyframes?: () => Keyframe[], onFinish?: () => void) => {
         createEffect(() => {
             let animation: Animation;
 
@@ -35,13 +39,15 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
             const duration = getAnimationDurationMs();
             const remainingIterations = getRemainingIterations();
 
-            if (!keyframes || !remainingIterations) return;
+            if (!getIsVisible() || !keyframes || !remainingIterations) return;
 
-            animation = el.animate(keyframes, { duration, iterations: 1 });
-            animation.onfinish = () => {
-                onFinish?.();
-                setRemainingIterations((prev) => prev - 1);
-            };
+            animation = el.animate(keyframes, { duration, iterations: onFinish ? 1 : remainingIterations });
+            animation.onfinish = onFinish
+                ? () => {
+                      setRemainingIterations((prev) => prev - 1);
+                      onFinish();
+                  }
+                : null;
         });
     };
 
@@ -63,35 +69,59 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
         resizeObserver.observe(rootRef);
     });
 
+    onMount(() => {
+        const handleVisibilityChange = () => {
+            setIsVisible(document.visibilityState === "visible");
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        onCleanup(() => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        });
+    });
+
     return (
         <div
             ref={(el) => {
                 rootRef = el;
-                attachAnimation(el, props.getRootAnimationKeyframes, props.onAnimationEnd);
+                attachAnimation(el, props.getRootAnimationKeyframes);
             }}
             class={styles.scanlineAnimationRoot}
-            onAnimationEnd={props.onAnimationEnd}
         >
-            <For each={Array.from({ length: props.getLineCount() })}>
-                {(_, getIndex) => {
-                    const y = () => getIndex() * getLineHeight();
+            <svg width={getRottSize().width} height={getRottSize().height}>
+                <defs>
+                    <For each={Array.from({ length: props.getLineCount() })}>
+                        {(_, getIndex) => {
+                            const y = () => getIndex() * getLineHeight();
 
-                    return (
-                        <div
+                            return (
+                                <clipPath id={`${id}-slice-${getIndex()}`}>
+                                    <rect x="0" y={y()} width={getRottSize().width} height={getLineHeight() + 1} />
+                                </clipPath>
+                            );
+                        }}
+                    </For>
+                </defs>
+
+                <For each={Array.from({ length: props.getLineCount() })}>
+                    {(_, getIndex) => (
+                        <image
                             ref={(el) => {
-                                attachAnimation(el, () => props.getScanlineAnimationKeyframes(getIndex));
+                                attachAnimation(
+                                    el,
+                                    () => props.getScanlineAnimationKeyframes(getIndex),
+                                    getIndex() === 0 ? props.onAnimationEnd : undefined,
+                                );
                             }}
-                            class={styles.scanlineAnimationLine}
-                            style={{
-                                "height": `${getLineHeight()}px`,
-                                "background-image": `url(${props.getSrc()})`,
-                                "background-size": `${getRottSize().width}px ${getRottSize().height}px`,
-                                "background-position": `0 -${y()}px`,
-                            }}
+                            href={props.getSrc()}
+                            width={getRottSize().width}
+                            height={getRottSize().height}
+                            clip-path={`url(#${id}-slice-${getIndex()})`}
                         />
-                    );
-                }}
-            </For>
+                    )}
+                </For>
+            </svg>
         </div>
     );
 };
