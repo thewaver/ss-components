@@ -10,6 +10,7 @@ import { ShapeButton } from "../../Lib/Fundamentals/ShapeButton/ShapeButton";
 import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
 import { Typewriter } from "../../Lib/Fundamentals/Typewriter/Typewriter";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
+import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
 import knight from "./knight.png";
 
 import * as styles from "./App.css";
@@ -196,7 +197,7 @@ const INITIAL_WIPE_DIRECTION: AnimDirection = "out";
 type TabConfig =
     | {
           name: string;
-          component: JSX.Element;
+          component: () => JSX.Element;
       }
     | { name: string };
 
@@ -206,31 +207,35 @@ const TAB_CONFIGS: TabConfig[] = [
     },
     {
         name: "AudioSwitcher",
-        component: null,
+        component: () => null,
     },
     {
         name: "Button",
-        component: null,
+        component: () => null,
     },
     {
         name: "ImageSwitcher",
-        component: null,
+        component: () => null,
     },
     {
         name: "RichText",
-        component: null,
+        component: () => null,
+    },
+    {
+        name: "ScanlineAnimation",
+        component: () => <ScanlineAnimationPage />,
     },
     {
         name: "ScreenWiper",
-        component: null,
+        component: () => null,
     },
     {
         name: "ShapeButton",
-        component: null,
+        component: () => null,
     },
     {
         name: "TypeWriter",
-        component: null,
+        component: () => null,
     },
 ];
 
@@ -283,7 +288,7 @@ export function AppContent() {
             <Show when={!isCategory(getTabConfig()[getTabIndex()])}>
                 <div class={styles.tabPage}>
                     <div class={styles.tabPageTitle}>{getTabConfig()[getTabIndex()].name}</div>
-                    {(getTabConfig()[getTabIndex()] as any).component}
+                    {(getTabConfig()[getTabIndex()] as any).component()}
                 </div>
             </Show>
         </div>

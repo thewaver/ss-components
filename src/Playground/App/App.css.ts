@@ -75,6 +75,7 @@ export const tabPage = style({
     display: "flex",
     flexDirection: "column",
     height: "100%",
+    gap: 40,
     padding: 40,
 });
 

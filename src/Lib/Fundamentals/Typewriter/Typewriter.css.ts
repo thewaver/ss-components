@@ -3,11 +3,11 @@ import { keyframes, style } from "@vanilla-extract/css";
 export const typewriterFade = keyframes({
     "0%": {
         opacity: 0,
-        transform: "translateY(-200px) scale(3)",
+        transform: "scale(3)",
     },
     "100%": {
         opacity: 1,
-        transform: "translateY(0) scale(1)",
+        transform: "scale(1)",
     },
 });
 
