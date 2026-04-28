@@ -82,9 +82,4 @@ export const imgContent = style({
     width: 160,
     border: "2px solid var(--clr-text)",
 });
-
-export const textHighlight = style({
-    textTransform: "uppercase",
-    lineHeight: 2,
-});
 */

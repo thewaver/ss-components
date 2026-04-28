@@ -6,6 +6,7 @@ import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
 import { ElementHighlightPage } from "./Pages/ElementHighlightPage/ElementHighlightPage";
 import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
 import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
+import { ShapeButtonPage } from "./Pages/ShapeButtonPage/ShapeButtonPage";
 import { TypewriterPage } from "./Pages/TypewriterPage/TypewriterPage";
 
 import * as styles from "./App.css";
@@ -16,26 +17,6 @@ import * as styles from "./App.css";
         getColorCount: () => 3,
     });
 
-            <div class={styles.textContent} style={{ width: `${getTextWidth()}px` }}>
-                <Typewriter>
-                    This is a bit of{" "}
-                    <b>
-                        text that appears
-                        <div class={styles.textHighlight} style={{ color: "red" }} title="ONE MEANS ONE!">
-                            one
-                        </div>
-                    </b>
-                    <span>single</span>
-                    {" text character\tat a time,"}
-                    <br />
-                    <br />
-                    <div style={{ "width": "100%", "height": "0.5em", "border-bottom": "2px solid currentColor" }} />
-                    {"and has\nescaped "}
-                    <img src={knight} height={24} style={{ "vertical-align": "middle" }} />
-                    <a href="www.google.com">characters.</a>
-                </Typewriter>
-            </div>
-
             <div
                 class={styles.imgContent}
                 style={{
@@ -45,23 +26,6 @@ import * as styles from "./App.css";
                 <img src={knight} height="100%" />
             </div>
 
-            <div class={styles.flexRow}>
-                <ShapeButton
-                    onClick={async () => console.log("click")}
-                    getWidth={() => 320}
-                    getHeight={() => 240}
-                    getShape={() => "lozenge"}
-                    getStrokeDefs={() => ({ color: "#0000FF80", width: 10 })}
-                    getFillDefs={() => ({ color: "#806040" })}
-                />
-                <ShapeButton
-                    getWidth={() => 320}
-                    getHeight={() => 240}
-                    getShape={() => "hexagon"}
-                    getStrokeDefs={() => ({ color: "#00FF0080", width: 20 })}
-                    getFillDefs={() => ({ color: "#806040" })}
-                />
-            </div>
 */
 
 type TabConfig =
@@ -105,7 +69,7 @@ const TAB_CONFIGS: TabConfig[] = [
     },
     {
         name: "ShapeButton",
-        component: () => null,
+        component: () => <ShapeButtonPage />,
     },
     {
         name: "TypeWriter",
