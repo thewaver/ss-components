@@ -1,84 +1,20 @@
 import { JSX, Show, createMemo, createSignal } from "solid-js";
 
-import { AnimDirection } from "../../Lib//Abstracts/Anim/Anim.types";
-import { ScreenWiper } from "../../Lib//Fundamentals/ScreenWiper/ScreenWiper";
-import { Button } from "../../Lib/Fundamentals/Button/Button";
-import { useColorExtractor } from "../../Lib/Fundamentals/ColorExtractor/ColorExtractor.context";
-import { Corners } from "../../Lib/Fundamentals/Corners/Corners";
-import { ElementHighlight } from "../../Lib/Fundamentals/ElementHighlight/ElementHighlight";
-import { ShapeButton } from "../../Lib/Fundamentals/ShapeButton/ShapeButton";
 import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
-import { Typewriter } from "../../Lib/Fundamentals/Typewriter/Typewriter";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
+import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
+import { ElementHighlightPage } from "./Pages/ElementHighlightPage/ElementHighlightPage";
 import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
-import knight from "./knight.png";
+import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
+import { TypewriterPage } from "./Pages/TypewriterPage/TypewriterPage";
 
 import * as styles from "./App.css";
-
-const INITIAL_WIPE_DIRECTION: AnimDirection = "out";
 
 /*
     const dominantColor = useColorExtractor({
         getSrc: () => knight,
         getColorCount: () => 3,
     });
-
-    let containerRef: HTMLDivElement | undefined;
-
-    // WIPE
-    const [getWipeDirection, setWipeDirection] = createSignal(INITIAL_WIPE_DIRECTION);
-    const [getIsWiping, setIsWiping] = createSignal(false);
-    // TOGGLE
-    const [getToggleOn, setToggleOn] = createSignal(false);
-    // HIGHLIGHTER
-    const [getHighlightOn, setHighlightOn] = createSignal(false);
-    // TEXT WIDTH
-    const [getTextWidth, setTextWidth] = createSignal(240);
-
-            <ScreenWiper
-                getInitialWipeDirection={() => INITIAL_WIPE_DIRECTION}
-                getWipeDirection={getWipeDirection}
-                onTransitionEnd={() => {
-                    if (getWipeDirection() === "in") {
-                        setWipeDirection("out");
-                    } else {
-                        setIsWiping(false);
-                    }
-                }}
-            />
-
-            <Button
-                getTooltipDefs={() => ({
-                    getPlacement: () => ({ x: "center", y: "top-out" }),
-                    renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                        <div
-                            class={styles.tooltipContent}
-                            classList={{ [styles.isVisible]: getVisibilityTarget() === 1 }}
-                            style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
-                        >
-                            Click me to wipe the screen. You should see a back and forth animation.
-                        </div>
-                    ),
-                })}
-                onClick={async () => {
-                    if (!getIsWiping()) {
-                        setWipeDirection("in");
-                        setIsWiping(true);
-                    }
-                }}
-            >
-                <div class={styles.buttonContent}>Screen Wipe</div>
-            </Button>
-
-            <Button
-                getIsSelected={getToggleOn}
-                renderHighlight={() => <Corners getColor={() => (getToggleOn() ? "lime" : "transparent")} />}
-                onClick={async () => {
-                    setToggleOn((prev) => !prev);
-                }}
-            >
-                <div class={styles.buttonContent}>Toggle me</div>
-            </Button>
 
             <div class={styles.textContent} style={{ width: `${getTextWidth()}px` }}>
                 <Typewriter>
@@ -99,72 +35,6 @@ const INITIAL_WIPE_DIRECTION: AnimDirection = "out";
                     <a href="www.google.com">characters.</a>
                 </Typewriter>
             </div>
-
-            <div class={styles.textContent} style={{ width: `${getTextWidth()}px` }}>
-                <Typewriter>{"I am a brown, crispy potatoe!?..."}</Typewriter>
-            </div>
-            <div class={styles.textContent} style={{ width: `${getTextWidth()}px` }}>
-                {"I am a brown, crispy potatoe!?..."}
-            </div>
-            <div class={styles.flexRow}>
-                <Button
-                    onClick={async () => {
-                        setTextWidth((prev) => prev - 4);
-                    }}
-                >
-                    <div class={styles.buttonContent}>-</div>
-                </Button>
-                {getTextWidth()}
-                <Button
-                    onClick={async () => {
-                        setTextWidth((prev) => prev + 4);
-                    }}
-                >
-                    <div class={styles.buttonContent}>+</div>
-                </Button>
-            </div>
-
-            <div
-                ref={(el) => {
-                    containerRef = el;
-                }}
-                class={styles.wrapper}
-            >
-                <Button
-                    getTooltipDefs={() => ({
-                        getPlacement: () => ({ x: "center", y: "top-out" }),
-                        renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                            <div
-                                class={styles.tooltipContent}
-                                classList={{ [styles.isVisible]: getVisibilityTarget() === 1 }}
-                                style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
-                            >
-                                Click me to darken and blur the rest of the screen, thus highlighting my content.
-                            </div>
-                        ),
-                    })}
-                    onClick={async () => {
-                        setHighlightOn((prev) => !prev);
-                    }}
-                >
-                    <div class={styles.buttonContent}>Highlight me</div>
-                </Button>
-            </div>
-
-            <ElementHighlight
-                elementRef={containerRef}
-                getPadding={() => 20}
-                getIsVisible={getHighlightOn}
-                renderHighlight={() => <Corners getColor={() => (getHighlightOn() ? "yellow" : "transparent")} />}
-                renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
-                    <div
-                        class={getVisibilityTarget() === 1 ? styles.overlayOn : styles.overlayOff}
-                        style={{
-                            transition: `background-color ${getTransitionDurationMs()}ms, backdrop-filter ${getTransitionDurationMs()}ms`,
-                        }}
-                    />
-                )}
-            />
 
             <div
                 class={styles.imgContent}
@@ -211,7 +81,11 @@ const TAB_CONFIGS: TabConfig[] = [
     },
     {
         name: "Button",
-        component: () => null,
+        component: () => <ButtonPage />,
+    },
+    {
+        name: "ElementHighlight",
+        component: () => <ElementHighlightPage />,
     },
     {
         name: "ImageSwitcher",
@@ -227,7 +101,7 @@ const TAB_CONFIGS: TabConfig[] = [
     },
     {
         name: "ScreenWiper",
-        component: () => null,
+        component: () => <ScreenWiperPage />,
     },
     {
         name: "ShapeButton",
@@ -235,7 +109,7 @@ const TAB_CONFIGS: TabConfig[] = [
     },
     {
         name: "TypeWriter",
-        component: () => null,
+        component: () => <TypewriterPage />,
     },
 ];
 

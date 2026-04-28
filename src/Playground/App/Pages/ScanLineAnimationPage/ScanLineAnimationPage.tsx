@@ -4,6 +4,7 @@ import { ScanlineAnimation } from "../../../../Lib/Fundamentals/ScanlineAnimatio
 import { ScanlineAnimationUtils } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import knight from "../../knight.png";
 
+import * as pageStyles from "../Pages.css";
 import * as styles from "./ScanlineAnimationPage.css";
 
 const LINE_COUNT = 48;
@@ -25,7 +26,7 @@ export const ScanlineAnimationPage = () => {
     const [getKeyframes, setKeyframes] = createSignal(getRandomKeyframes());
 
     return (
-        <div class={styles.root}>
+        <div class={[styles.root, pageStyles.measureBox].join(" ")}>
             <ScanlineAnimation
                 getSrc={() => knight}
                 getLineCount={() => LINE_COUNT}
