@@ -7,9 +7,19 @@ export const tabsRoot = style({
     display: "flex",
 });
 
+export const tabsGutter = style({
+    position: "absolute",
+    inset: 0,
+    zIndex: -1,
+
+    display: "grid",
+});
+
 export const tabsFloater = style({
     position: "absolute",
     zIndex: -1,
+
+    display: "grid",
     transition: "width, height, left, top",
 });
 

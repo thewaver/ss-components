@@ -47,6 +47,9 @@ export const Tabs = (props: TabProps) => {
 
     return (
         <div class={styles.tabsRoot} style={{ "flex-direction": getDir(), "gap": `${getTabGap()}px` }}>
+            <Show when={props.renderGutter}>
+                <div class={styles.tabsGutter}>{props.renderGutter?.()}</div>
+            </Show>
             <Show when={props.renderFloater && getFloaterBounds()}>
                 <div
                     class={styles.tabsFloater}

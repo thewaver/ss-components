@@ -15,6 +15,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
     const [getIndexedSegments, setIndexedSegments] = createSignal<(ElementSegment & { startIndex: number })[]>(
         EMPTY_ARRAY as any,
     );
+    const [getAnimatedElementCount, setAnimatedElementCount] = createSignal(0);
     const [getIsAnimating, setIsAnimating] = createSignal(false);
     const [getHasAnimatedOnce, setHasAnimatedOnce] = createSignal(false);
 
@@ -37,45 +38,69 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
         "animation-delay": `${startIndex * getAnimationDelayMs() + (props.getInitialAnimationDelayMs?.() ?? 0)}ms`,
     });
 
+    const clearAnimation = () => {
+        setIsAnimating(false);
+        clearTimeout(animationToggleTimeout);
+    };
+
+    const restartAnimation = () => {
+        const timeoutDuration =
+            getAnimatedElementCount() * getAnimationDelayMs() +
+            (props.getInitialAnimationDelayMs?.() ?? 0) +
+            getAnimationDurationMs();
+
+        if (!getHasAnimatedOnce() || props.getResetAnimationOnResize?.()) {
+            setIsAnimating(true);
+            setHasAnimatedOnce(true);
+
+            animationToggleTimeout = setTimeout(() => {
+                setIsAnimating(false);
+
+                props.onAnimationEnd?.();
+            }, timeoutDuration);
+        }
+    };
+
     const updateLayout = () => {
         if (!childrenContainerRef) return;
 
+        clearAnimation();
         setIndexedSegments(EMPTY_ARRAY as any);
-        setIsAnimating(false);
-        clearTimeout(animationToggleTimeout);
+        setAnimatedElementCount(0);
 
-        let startIndex = 0;
+        let itemCount = 0;
 
         const width = childrenContainerRef.clientWidth;
         const segments = JSXTextParser.getSegmentTokens(childrenContainerRef);
         const inlinedSegments = JSXTextParser.getInlinedSegments(segments, width);
         const indexedSegments = inlinedSegments.map((segment) => {
-            const result = { ...segment, startIndex };
+            const result = { ...segment, startIndex: itemCount };
 
-            startIndex += segment.type === "text" ? segment.text.length : 1;
+            itemCount += segment.type === "text" ? segment.text.length : 1;
 
             return result;
         });
 
         setIndexedSegments(indexedSegments);
-
-        if (!getHasAnimatedOnce() || props.getResetAnimationOnResize?.()) {
-            setIsAnimating(true);
-            setHasAnimatedOnce(true);
-            animationToggleTimeout = setTimeout(
-                () => {
-                    setIsAnimating(false);
-
-                    props.onAnimationEnd?.();
-                },
-                startIndex * getAnimationDelayMs() +
-                    (props.getInitialAnimationDelayMs?.() ?? 0) +
-                    getAnimationDurationMs(),
-            );
-        }
+        setAnimatedElementCount(itemCount);
+        restartAnimation();
     };
 
+    const controller = createMemo(() => ({
+        restartAnimation: () => {
+            if (!getIsAnimating()) {
+                restartAnimation();
+
+                return true;
+            }
+
+            return false;
+        },
+    }));
+
     onMount(() => {
+        props.getController?.(controller());
+
         let childrenContainerObserver: ResizeObserver | undefined;
 
         onCleanup(() => {
@@ -107,33 +132,24 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
                         {(segment) => {
                             switch (segment.type) {
                                 case "atomic": {
-                                    const className = segment.isBlockLike
-                                        ? styles.typewriterBlockLikeAtomic
-                                        : styles.typewriterChar;
-
                                     return (
-                                        <>
-                                            <Show when={!getIsAnimating()}>
-                                                <span class={className}>{segment.element}</span>
-                                            </Show>
-                                            <Show when={getIsAnimating()}>
-                                                <span class={className} style={getAnimationStyle(segment.startIndex)}>
-                                                    {segment.element}
-                                                </span>
-                                            </Show>
-                                        </>
+                                        <span
+                                            class={
+                                                segment.isBlockLike
+                                                    ? styles.typewriterBlockLikeAtomic
+                                                    : styles.typewriterChar
+                                            }
+                                            style={getIsAnimating() ? getAnimationStyle(segment.startIndex) : undefined}
+                                        >
+                                            {segment.element}
+                                        </span>
                                     );
                                 }
                                 case "linebreak":
                                     return (
-                                        <>
-                                            <Show when={!getIsAnimating()}>
-                                                <br />
-                                            </Show>
-                                            <Show when={getIsAnimating()}>
-                                                <br style={getAnimationStyle(segment.startIndex)} />
-                                            </Show>
-                                        </>
+                                        <br
+                                            style={getIsAnimating() ? getAnimationStyle(segment.startIndex) : undefined}
+                                        />
                                     );
                                 case "text": {
                                     const style = { ...segment.nonMetrics, ...segment.metrics };

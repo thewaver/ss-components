@@ -23,9 +23,9 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
 
     const [getIsVisible, setIsVisible] = createSignal(true);
     const [getRemainingIterations, setRemainingIterations] = createSignal(getAnimationIterationCount());
-    const [getRottSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
+    const [getRootSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
 
-    const getLineHeight = createMemo(() => getRottSize().height / props.getLineCount());
+    const getLineHeight = createMemo(() => getRootSize().height / props.getLineCount());
 
     const attachAnimation = (el: Element, getKeyframes?: () => Keyframe[], onFinish?: () => void) => {
         createEffect(() => {
@@ -89,7 +89,7 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
             }}
             class={styles.scanlineAnimationRoot}
         >
-            <svg width={getRottSize().width} height={getRottSize().height}>
+            <svg width={getRootSize().width} height={getRootSize().height}>
                 <defs>
                     <For each={Array.from({ length: props.getLineCount() })}>
                         {(_, getIndex) => {
@@ -97,7 +97,7 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
 
                             return (
                                 <clipPath id={`${id}-slice-${getIndex()}`}>
-                                    <rect x="0" y={y()} width={getRottSize().width} height={getLineHeight() + 1} />
+                                    <rect x="0" y={y()} width={getRootSize().width} height={getLineHeight() + 1} />
                                 </clipPath>
                             );
                         }}
@@ -115,8 +115,8 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
                                 );
                             }}
                             href={props.getSrc()}
-                            width={getRottSize().width}
-                            height={getRottSize().height}
+                            width={getRootSize().width}
+                            height={getRootSize().height}
                             clip-path={`url(#${id}-slice-${getIndex()})`}
                         />
                     )}

@@ -7,6 +7,7 @@ export const container = style({
     backdropFilter: "brightness(75%) grayscale(25%) blur(10px)",
     boxShadow: "var(--shd-tiny), var(--shd-soft)",
     borderRadius: 5,
+    padding: 20,
 });
 
 export const content = style({
@@ -66,6 +67,61 @@ export const measureBox = style({
             inset: 1,
             zIndex: 1,
             border: "2px dashed var(--clr-text)",
+            borderRadius: "inherit",
+            pointerEvents: "none",
         },
     },
+});
+
+export const codeBoxOutter = style({
+    position: "relative",
+    backgroundColor: "var(--clr-bkg-secondary)",
+    borderRadius: 5,
+    padding: 5,
+    maxWidth: "100%",
+
+    selectors: {
+        "&::after": {
+            content: '""',
+            position: "absolute",
+            inset: 1,
+            zIndex: 1,
+            border: "2px solid rgb(from var(--clr-text) r g b / 25%)",
+            borderRadius: "inherit",
+            pointerEvents: "none",
+        },
+    },
+});
+
+export const codeBoxInner = style({
+    padding: 15,
+    fontFamily: "monospace",
+    whiteSpace: "pre",
+    overflowX: "auto",
+    overflowY: "auto",
+});
+
+export const tabItem = style({
+    marginBottom: 10,
+    fontSize: "0.75rem",
+    fontWeight: "bold",
+    textTransform: "uppercase",
+    transition: "color 200ms",
+
+    selectors: {
+        "&:hover": {
+            color: "var(--clr-primary)",
+        },
+        [`&.${isSelected}`]: {
+            color: "var(--clr-primary)",
+        },
+    },
+});
+
+export const tabFloater = style({
+    borderBottom: "2px solid var(--clr-primary)",
+});
+
+export const tabsGutter = style({
+    borderBottom: "2px solid rgb(from var(--clr-text) r g b / 25%)",
 });

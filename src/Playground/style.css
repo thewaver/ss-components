@@ -98,7 +98,8 @@ label:hover:not(:disabled) {
 
 input:hover:not(:disabled),
 select:hover:not(:disabled),
-textarea:hover:not(:disabled) {
+textarea:hover:not(:disabled),
+button:hover:not(:disabled) {
     filter: brightness(125%);
 }
 
@@ -123,6 +124,10 @@ a:active {
     filter: brightness(125%);
 }
 
+a:focus-visible {
+    outline: 2px solid var(--clr-highlight);
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -137,4 +142,9 @@ body {
     width: 100%;
     height: 100vh;
     overflow: hidden;
+}
+
+.shiki {
+    margin: 0;
+    padding: 0;
 }
