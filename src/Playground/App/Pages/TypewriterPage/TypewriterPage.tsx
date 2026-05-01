@@ -1,10 +1,10 @@
 import { Show, createSignal } from "solid-js";
 
 import { Tabs } from "../../../../Lib/Fundamentals/Tabs/Tabs";
-import { highlighter, highlighterTheme } from "../../../shiki";
+import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { Sizer } from "../../Components/Sizer/Sizer";
-import { ComplexExample } from "./Examples/Comple";
-import ComplexExampleRaw from "./Examples/Comple.tsx?raw";
+import { ComplexExample } from "./Examples/Complex";
+import ComplexExampleRaw from "./Examples/Complex.tsx?raw";
 
 import * as pageStyles from "../Pages.css";
 import * as styles from "./TypewriterPage.css";
@@ -12,17 +12,7 @@ import * as styles from "./TypewriterPage.css";
 const STARTING_WIDTH = 240;
 const STARTING_TEXT = "I am a brown, crispy potatoe!?...";
 const COMPLEX_TAB_NAMES = ["Render", "Source"];
-const COMPLEX_SOURCE = highlighter.codeToHtml(ComplexExampleRaw, {
-    lang: "tsx",
-    theme: highlighterTheme,
-    transformers: [
-        {
-            pre(node) {
-                delete node.properties.style; // removes background-color
-            },
-        },
-    ],
-});
+const COMPLEX_SOURCE = highlighter.codeToHtml(ComplexExampleRaw, getDefaultHighlighterConfig());
 
 export const TypewriterPage = () => {
     const [getTabIndex, setTabIndex] = createSignal(0);

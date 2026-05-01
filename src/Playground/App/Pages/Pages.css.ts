@@ -10,6 +10,14 @@ export const container = style({
     padding: 20,
 });
 
+export const examplesContainer = style({
+    display: "flex",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "stretch",
+    gap: 20,
+});
+
 export const content = style({
     backgroundImage: "linear-gradient(45deg, var(--clr-primary), var(--clr-secondary))",
     color: "var(--clr-text-contrast)",

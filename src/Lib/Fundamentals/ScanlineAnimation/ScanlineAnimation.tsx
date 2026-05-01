@@ -114,6 +114,7 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
                                     getIndex() === 0 ? props.onAnimationEnd : undefined,
                                 );
                             }}
+                            class={styles.scanlineAnimationLine}
                             href={props.getSrc()}
                             width={getRootSize().width}
                             height={getRootSize().height}

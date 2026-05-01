@@ -70,6 +70,7 @@ export const tabPage = style({
     height: "100%",
     gap: 40,
     padding: 40,
+    overflowY: "auto",
 });
 
 export const tabPageTitle = style({

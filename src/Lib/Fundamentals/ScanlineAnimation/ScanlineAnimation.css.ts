@@ -5,4 +5,6 @@ export const scanlineAnimationRoot = style({
     height: "100%",
 });
 
-export const scanlineAnimationLine = style({});
+export const scanlineAnimationLine = style({
+    transformOrigin: "center center",
+});
