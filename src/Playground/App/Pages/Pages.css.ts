@@ -15,7 +15,7 @@ export const examplesContainer = style({
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "stretch",
-    gap: 20,
+    gap: 40,
 });
 
 export const content = style({

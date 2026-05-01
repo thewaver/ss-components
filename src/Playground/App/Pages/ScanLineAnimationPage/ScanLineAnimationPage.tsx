@@ -32,7 +32,7 @@ export const ScanlineAnimationPage = () => {
 
                             <Tabs
                                 getDir={() => "row"}
-                                getTabGap={() => 20}
+                                getTabGap={() => 10}
                                 getSelectedIndex={() => getTabIndex()[getExampleIndex()]}
                                 getTabCount={() => 2}
                                 onSelectionChange={(value) =>

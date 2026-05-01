@@ -25,7 +25,7 @@ export const TypewriterPage = () => {
 
                 <Tabs
                     getDir={() => "row"}
-                    getTabGap={() => 20}
+                    getTabGap={() => 10}
                     getSelectedIndex={getTabIndex}
                     getTabCount={() => 2}
                     onSelectionChange={setTabIndex}
