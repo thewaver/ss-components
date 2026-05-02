@@ -1,4 +1,4 @@
-import { For, Show, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import { For, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
 import { Rect } from "@thewaver/ss-utils";
 
@@ -15,6 +15,10 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
     const viewportContext = useViewportContext();
 
     let transitionTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    onCleanup(() => {
+        clearTimeout(transitionTimeout);
+    });
 
     const [getElementRect, setElementRect] = createSignal<Rect>(
         { x: 0, y: 0, width: 0, height: 0 },
@@ -86,6 +90,13 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
         };
     });
 
+    const getIsVisible = createMemo(() => {
+        const transitionTarget = getTransitionTarget();
+        const hasTransitionFinished = getHasTransitionFinished();
+
+        return transitionTarget === 1 || !hasTransitionFinished;
+    });
+
     const show = () => {
         setHasTransitionFinished(false);
         setTimeout(() => {
@@ -131,23 +142,30 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
         }
     });
 
-    onMount(() => {
-        let elementResizeObserver: ResizeObserver | undefined;
+    createEffect(() => {
+        let frameId: ReturnType<typeof requestAnimationFrame>;
+        let isCancelled = false;
 
         onCleanup(() => {
-            elementResizeObserver?.disconnect();
+            isCancelled = true;
+            cancelAnimationFrame(frameId);
         });
 
-        if (!props.elementRef) return;
+        if (!getIsVisible()) return;
 
-        elementResizeObserver = new ResizeObserver(() => {
+        const tick = () => {
+            if (isCancelled) return;
+
             updateSize();
-        });
-        elementResizeObserver.observe(props.elementRef);
+
+            frameId = requestAnimationFrame(tick);
+        };
+
+        frameId = requestAnimationFrame(tick);
     });
 
     return (
-        <Show when={getTransitionTarget() === 1 || !getHasTransitionFinished()}>
+        <Show when={getIsVisible()}>
             <div class={styles.elementHighlightOverlay}>
                 <For each={Object.values(getSegmentRects())}>
                     {(rect) => (

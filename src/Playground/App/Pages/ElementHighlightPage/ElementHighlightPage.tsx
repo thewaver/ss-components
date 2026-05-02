@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { For, createSignal } from "solid-js";
 
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Corners } from "../../../../Lib/Fundamentals/Corners/Corners";
@@ -8,42 +8,50 @@ import * as pageStyles from "../Pages.css";
 import * as styles from "./ElementHighlightPage.css";
 
 export const ElementHighlightPage = () => {
-    let containerRef: HTMLDivElement | undefined;
+    let containerRefs: HTMLDivElement[] = [];
 
+    const [getActiveIndex, setActiveIndex] = createSignal(0);
     const [getHighlightOn, setHighlightOn] = createSignal(false);
 
     return (
         <div class={styles.root}>
-            <div
-                ref={(el) => {
-                    containerRef = el;
-                }}
-                class={styles.anchorWrapper}
-            >
-                <Button
-                    getTooltipDefs={() => ({
-                        getPlacement: () => ({ x: "center", y: "top-out" }),
-                        getOffset: () => ({ x: 0, y: 5 }),
-                        renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                            <div
-                                class={pageStyles.tooltipContent}
-                                classList={{ [pageStyles.isVisible]: getVisibilityTarget() === 1 }}
-                                style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
-                            >
-                                Click me to darken and blur the rest of the screen, thus highlighting my content.
-                            </div>
-                        ),
-                    })}
-                    onClick={async () => {
-                        setHighlightOn((prev) => !prev);
-                    }}
-                >
-                    <div class={pageStyles.buttonContent}>Highlight Me</div>
-                </Button>
-            </div>
+            <For each={Array.from({ length: 2 })}>
+                {(_, getIndex) => (
+                    <div
+                        ref={(el) => {
+                            containerRefs[getIndex()] = el;
+                        }}
+                        class={styles.anchorWrapper}
+                        style={{ "animation-name": getIndex() === 0 ? styles.slideH : styles.slideV }}
+                    >
+                        <Button
+                            getTooltipDefs={() => ({
+                                getPlacement: () => ({ x: "center", y: "top-out" }),
+                                getOffset: () => ({ x: 0, y: 5 }),
+                                renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
+                                    <div
+                                        class={pageStyles.tooltipContent}
+                                        classList={{ [pageStyles.isVisible]: getVisibilityTarget() === 1 }}
+                                        style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
+                                    >
+                                        Click me to darken and blur the rest of the screen, thus highlighting my
+                                        content.
+                                    </div>
+                                ),
+                            })}
+                            onClick={async () => {
+                                setActiveIndex(getIndex());
+                                setHighlightOn((prev) => !prev);
+                            }}
+                        >
+                            <div class={pageStyles.buttonContent}>Highlight Me</div>
+                        </Button>
+                    </div>
+                )}
+            </For>
 
             <ElementHighlight
-                elementRef={containerRef}
+                elementRef={containerRefs[getActiveIndex()]}
                 getPadding={() => 20}
                 getIsVisible={getHighlightOn}
                 renderHighlight={() => <Corners getColor={() => (getHighlightOn() ? "yellow" : "transparent")} />}

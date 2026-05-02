@@ -22,6 +22,10 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
     let childrenContainerRef: HTMLDivElement | undefined;
     let animationToggleTimeout: ReturnType<typeof setTimeout> | undefined;
 
+    onCleanup(() => {
+        clearTimeout(animationToggleTimeout);
+    });
+
     const getAnimationName = createMemo(() => props.getAnimationName?.() ?? DEFAULT_TYPEWRITER_ANIMATION_NAME);
 
     const getAnimationDurationMs = createMemo(

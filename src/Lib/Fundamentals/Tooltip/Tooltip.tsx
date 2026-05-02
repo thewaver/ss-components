@@ -21,6 +21,11 @@ export const Tooltip = (props: TooltipProps) => {
     let transitionTimeout: ReturnType<typeof setTimeout> | undefined;
     let focusTimeout: ReturnType<typeof setTimeout> | undefined;
 
+    onCleanup(() => {
+        clearTimeout(transitionTimeout);
+        clearTimeout(focusTimeout);
+    });
+
     const [getContentSize, setContentSize] = createSignal<Size2d | undefined>(undefined, {
         equals: Size2d.isSame,
     });
@@ -80,6 +85,13 @@ export const Tooltip = (props: TooltipProps) => {
     });
 
     const getZIndex = createMemo(() => (props.getZindex ?? DEFAULT_TOOLTIP_Z_INDEX_GETTER)(getPlacement));
+
+    const getIsVisible = createMemo(() => {
+        const transitionTarget = getTransitionTarget();
+        const hasTransitionFinished = getHasTransitionFinished();
+
+        return transitionTarget === 1 || !hasTransitionFinished;
+    });
 
     const show = () => {
         setHasTransitionFinished(false);
@@ -184,7 +196,7 @@ export const Tooltip = (props: TooltipProps) => {
                 "transform": `translate(${getPlacement().x === "center" ? -50 : 0}%, ${getPlacement().y === "center" ? -50 : 0}%) translate(${getOffset().x ?? 0}px, ${getOffset().y ?? 0}px)`,
             }}
         >
-            <Show when={getTransitionTarget() === 1 || !getHasTransitionFinished()}>
+            <Show when={getIsVisible()}>
                 {props.renderContent(getTransitionTarget, getTransitionDurationMs, getPlacement)}
             </Show>
         </div>

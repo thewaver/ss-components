@@ -1,17 +1,22 @@
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
 import { ScanlineAnimationUtils } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
+import { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import knight from "../../../knight.png";
 
-const LINE_COUNT = 48;
+type Props = AccessorProps<{
+    lineCount: number;
+    animationDurationMs: number;
+    opts: ScanlineAnimationUtils.HorizontalPulseOpts;
+}>;
 
-export const SurgeExample = () => {
+export const SurgeExample = (props: Props) => {
     return (
         <ScanlineAnimation
             getSrc={() => knight}
-            getLineCount={() => LINE_COUNT}
-            getAnimationDurationMs={() => 2000}
+            getLineCount={props.getLineCount}
+            getAnimationDurationMs={props.getAnimationDurationMs}
             getScanlineAnimationKeyframes={(getIndex) =>
-                ScanlineAnimationUtils.getHorizontalPulseKeyframes(getIndex(), LINE_COUNT)
+                ScanlineAnimationUtils.getHorizontalPulseKeyframes(getIndex(), props.getLineCount(), props.getOpts())
             }
         />
     );

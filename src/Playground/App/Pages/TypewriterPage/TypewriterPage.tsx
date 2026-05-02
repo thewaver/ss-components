@@ -2,7 +2,6 @@ import { Show, createSignal } from "solid-js";
 
 import { Tabs } from "../../../../Lib/Fundamentals/Tabs/Tabs";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
-import { Sizer } from "../../Components/Sizer/Sizer";
 import { ComplexExample } from "./Examples/Complex";
 import ComplexExampleRaw from "./Examples/Complex.tsx?raw";
 
@@ -16,7 +15,7 @@ const COMPLEX_SOURCE = highlighter.codeToHtml(ComplexExampleRaw, getDefaultHighl
 
 export const TypewriterPage = () => {
     const [getTabIndex, setTabIndex] = createSignal(0);
-    const [getTextWidth, setTextWidth] = createSignal(STARTING_WIDTH);
+    const [getTextContainerWidth, setTextContainerWidth] = createSignal(STARTING_WIDTH);
 
     return (
         <div class={styles.root}>
@@ -44,18 +43,28 @@ export const TypewriterPage = () => {
                 <Show when={getTabIndex() === 0}>
                     <div
                         class={[styles.textContent, pageStyles.measureBox].join(" ")}
-                        style={{ width: `${getTextWidth()}px` }}
+                        style={{ width: `${getTextContainerWidth()}px` }}
                     >
                         <ComplexExample />
                     </div>
 
-                    <Sizer
-                        getValue={getTextWidth}
-                        getMin={() => 40}
-                        getMax={() => 560}
-                        getStep={() => 4}
-                        onChange={setTextWidth}
-                    />
+                    <div class={pageStyles.props}>
+                        <div class={pageStyles.propPanel}>
+                            <div>{"Container width"}</div>
+                            <input
+                                type="number"
+                                min={40}
+                                max={560}
+                                step={4}
+                                value={getTextContainerWidth()}
+                                onInput={(e) =>
+                                    setTextContainerWidth((prev) =>
+                                        Math.min(Math.max(Number(e.target.value) ?? prev, 40), 560),
+                                    )
+                                }
+                            />
+                        </div>
+                    </div>
                 </Show>
                 <Show when={getTabIndex() === 1}>
                     <div class={pageStyles.codeBoxOutter}>

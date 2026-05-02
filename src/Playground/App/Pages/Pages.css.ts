@@ -1,4 +1,4 @@
-import { style } from "@vanilla-extract/css";
+import { globalStyle, style } from "@vanilla-extract/css";
 
 export const isVisible = style({});
 export const isSelected = style({});
@@ -83,7 +83,8 @@ export const measureBox = style({
 
 export const codeBoxOutter = style({
     position: "relative",
-    backgroundColor: "var(--clr-bkg-secondary)",
+    backgroundColor: "rgb(from var(--clr-bkg-secondary) r g b / 50%)",
+    boxShadow: "var(--shd-tiny)",
     borderRadius: 5,
     padding: 5,
     maxWidth: "100%",
@@ -133,3 +134,24 @@ export const tabFloater = style({
 export const tabsGutter = style({
     borderBottom: "2px solid rgb(from var(--clr-text) r g b / 25%)",
 });
+
+export const props = style({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: 10,
+    width: "100%",
+});
+
+export const propPanel = style({
+    display: "grid",
+    gridTemplateColumns: "1fr auto",
+    gap: 20,
+    borderRadius: 5,
+    padding: 20,
+    width: "100%",
+    backgroundColor: "rgb(from var(--clr-bkg-secondary) r g b / 50%)",
+    boxShadow: "var(--shd-tiny)",
+});
+
+globalStyle(`${propPanel} > :first-child`, { alignSelf: "center" });

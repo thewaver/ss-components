@@ -6,7 +6,6 @@ export const isSelected = style({});
 export const appContent = style({
     display: "grid",
     gridTemplateColumns: "auto 1fr",
-    gap: 40,
     width: "100%",
     height: "100%",
     backgroundImage: "linear-gradient(215deg, var(--clr-bkg-primary), var(--clr-bkg-secondary))",
@@ -71,6 +70,7 @@ export const tabPage = style({
     height: "100%",
     gap: 40,
     padding: 40,
+    paddingLeft: 80,
     overflowY: "auto",
 });
 
