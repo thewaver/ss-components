@@ -6,6 +6,8 @@ import { Tabs } from "../../../../Lib/Fundamentals/Tabs/Tabs";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { GlitchExample } from "./Examples/Glitch";
 import GlitchExampleRaw from "./Examples/Glitch.tsx?raw";
+import { SnakeExample } from "./Examples/Snake";
+import SnakeExampleRaw from "./Examples/Snake.tsx?raw";
 import { SurgeExample } from "./Examples/Surge";
 import SurgeExampleRaw from "./Examples/Surge.tsx?raw";
 
@@ -17,6 +19,7 @@ const ANIM_DURATION = 2000;
 const TAB_NAMES = ["Render", "Source"];
 const GLITCH_SOURCE = highlighter.codeToHtml(GlitchExampleRaw, getDefaultHighlighterConfig());
 const SURGE_SOURCE = highlighter.codeToHtml(SurgeExampleRaw, getDefaultHighlighterConfig());
+const SNAKE_SOURCE = highlighter.codeToHtml(SnakeExampleRaw, getDefaultHighlighterConfig());
 
 export const GlitchExampleWrapper = () => {
     const [getLineCount, setLineCount] = createSignal(LINE_COUNT);
@@ -85,7 +88,7 @@ export const GlitchExampleWrapper = () => {
 export const SurgeExampleWrapper = () => {
     const [getLineCount, setLineCount] = createSignal(LINE_COUNT);
     const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(ANIM_DURATION);
-    const [opts, setOpts] = createStore<ScanlineAnimationUtils.HorizontalPulseOpts>({
+    const [opts, setOpts] = createStore<ScanlineAnimationUtils.HorizontalStretchOpts>({
         dir: "top",
         peakScalePercent: 150,
         smoothness: 0.1,
@@ -166,10 +169,93 @@ export const SurgeExampleWrapper = () => {
     );
 };
 
+export const SnakeExampleWrapper = () => {
+    const [getLineCount, setLineCount] = createSignal(LINE_COUNT);
+    const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(ANIM_DURATION);
+    const [opts, setOpts] = createStore<ScanlineAnimationUtils.HorizontalSwingOpts>({
+        dir: "top",
+        shiftPercent: 20,
+        smoothness: 0.1,
+    });
+
+    return (
+        <>
+            <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
+                <SnakeExample
+                    getLineCount={getLineCount}
+                    getAnimationDurationMs={getAnimationDurationMs}
+                    getOpts={() => opts}
+                />
+            </div>
+
+            <div class={pageStyles.props}>
+                <div class={pageStyles.propPanel}>
+                    <div>{"Line count"}</div>
+                    <input
+                        type="number"
+                        min={12}
+                        max={96}
+                        step={4}
+                        value={getLineCount()}
+                        onInput={(e) =>
+                            setLineCount((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 12), 96))
+                        }
+                    />
+                </div>
+
+                <div class={pageStyles.propPanel}>
+                    <div>{"Animation duration (ms)"}</div>
+                    <input
+                        type="number"
+                        min={100}
+                        max={5000}
+                        step={100}
+                        value={getAnimationDurationMs()}
+                        onInput={(e) =>
+                            setAnimationDurationMs((prev) =>
+                                Math.min(Math.max(Number(e.target.value) ?? prev, 100), 5000),
+                            )
+                        }
+                    />
+                </div>
+
+                <div class={pageStyles.propPanel}>
+                    <div>{"Shift (%)"}</div>
+                    <input
+                        type="number"
+                        min={5}
+                        max={50}
+                        step={5}
+                        value={opts.shiftPercent}
+                        onInput={(e) =>
+                            setOpts("shiftPercent", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 5), 50))
+                        }
+                    />
+                </div>
+
+                <div class={pageStyles.propPanel}>
+                    <div>{"Smoothness (0-1)"}</div>
+                    <input
+                        type="number"
+                        min={0.1}
+                        max={1}
+                        step={0.1}
+                        value={opts.smoothness}
+                        onInput={(e) =>
+                            setOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
+                        }
+                    />
+                </div>
+            </div>
+        </>
+    );
+};
+
 export const ScanlineAnimationPage = () => {
     const getExamples = createMemo(() => [
         { name: "Glitch", component: () => <GlitchExampleWrapper />, src: GLITCH_SOURCE },
         { name: "Surge", component: () => <SurgeExampleWrapper />, src: SURGE_SOURCE },
+        { name: "Snake", component: () => <SnakeExampleWrapper />, src: SNAKE_SOURCE },
     ]);
 
     const [getTabIndex, setTabIndex] = createSignal(getExamples().map(() => 0));

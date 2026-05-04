@@ -6,17 +6,17 @@ import knight from "../../../knight.png";
 type Props = AccessorProps<{
     lineCount: number;
     animationDurationMs: number;
-    opts: ScanlineAnimationUtils.HorizontalStretchOpts;
+    opts: ScanlineAnimationUtils.HorizontalSwingOpts;
 }>;
 
-export const SurgeExample = (props: Props) => {
+export const SnakeExample = (props: Props) => {
     return (
         <ScanlineAnimation
             getSrc={() => knight}
             getLineCount={props.getLineCount}
             getAnimationDurationMs={props.getAnimationDurationMs}
             getScanlineAnimationKeyframes={(getIndex) =>
-                ScanlineAnimationUtils.getHorizontalStretchKeyframes(getIndex(), props.getLineCount(), props.getOpts())
+                ScanlineAnimationUtils.getHorizontalSwingKeyframes(getIndex(), props.getLineCount(), props.getOpts())
             }
         />
     );

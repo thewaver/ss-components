@@ -8,10 +8,11 @@ import * as styles from "./ScanlineAnimation.css";
 
 const DEFAULT_SCANLINE_ANIMATION_DURATION_MS = 200;
 const DEFAULT_SCANLINE_ANIMATION_ITERATION_COUNT = Infinity;
+const DEFAULT_SCANLINE_ANIMATION_SIZE_ANCHOR = "width";
 
 export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
     let id = createUniqueId();
-    let rootRef: HTMLDivElement | undefined;
+    let rootRef: HTMLImageElement | undefined;
 
     const getAnimationDurationMs = createMemo(
         () => props.getAnimationDurationMs?.() ?? DEFAULT_SCANLINE_ANIMATION_DURATION_MS,
@@ -20,6 +21,8 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
     const getAnimationIterationCount = createMemo(
         () => props.getAnimationIterationCount?.() ?? DEFAULT_SCANLINE_ANIMATION_ITERATION_COUNT,
     );
+
+    const getSizeAnchor = createMemo(() => props.getSizeAnchor?.() ?? DEFAULT_SCANLINE_ANIMATION_SIZE_ANCHOR);
 
     const [getIsVisible, setIsVisible] = createSignal(true);
     const [getRemainingIterations, setRemainingIterations] = createSignal(getAnimationIterationCount());
@@ -39,11 +42,15 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
             const duration = getAnimationDurationMs();
             const remainingIterations = getRemainingIterations();
 
-            if (!getIsVisible() || !keyframes || !remainingIterations) return;
+            if (!getIsVisible() || !remainingIterations) return;
 
-            animation = el.animate(keyframes, { duration, iterations: onFinish ? 1 : remainingIterations });
+            animation = el.animate(keyframes ?? [], {
+                duration,
+                iterations: onFinish ? 1 : remainingIterations,
+            });
             animation.onfinish = onFinish
                 ? () => {
+                      animation.currentTime = 0;
                       setRemainingIterations((prev) => prev - 1);
                       onFinish();
                   }
@@ -84,12 +91,22 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
     return (
         <div
             ref={(el) => {
-                rootRef = el;
                 attachAnimation(el, props.getRootAnimationKeyframes);
             }}
             class={styles.scanlineAnimationRoot}
         >
-            <svg width={getRootSize().width} height={getRootSize().height}>
+            <img
+                ref={(el) => {
+                    rootRef = el;
+                    attachAnimation(el, undefined, props.onAnimationEnd);
+                }}
+                src={props.getSrc()}
+                class={styles.scanlineAnimationAnchor}
+                width={getSizeAnchor() === "width" ? "100%" : "auto"}
+                height={getSizeAnchor() === "height" ? "100%" : "auto"}
+            />
+
+            <svg width={getRootSize().width} height={getRootSize().height} aria-hidden>
                 <defs>
                     <For each={Array.from({ length: props.getLineCount() })}>
                         {(_, getIndex) => {
@@ -108,11 +125,7 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
                     {(_, getIndex) => (
                         <image
                             ref={(el) => {
-                                attachAnimation(
-                                    el,
-                                    () => props.getScanlineAnimationKeyframes(getIndex),
-                                    getIndex() === 0 ? props.onAnimationEnd : undefined,
-                                );
+                                attachAnimation(el, () => props.getScanlineAnimationKeyframes(getIndex));
                             }}
                             class={styles.scanlineAnimationLine}
                             href={props.getSrc()}
