@@ -11,7 +11,7 @@
     "scripts": {
         "build": "tsup src/Lib/index.ts --format esm --dts --clean",
         "dev": "tsup --watch",
-        "start": "vite --config ./vite.config.ts",
+        "start": "vite --config ./vite.config.ts --host",
         "format": "prettier --write ."
     },
     "dependencies": {

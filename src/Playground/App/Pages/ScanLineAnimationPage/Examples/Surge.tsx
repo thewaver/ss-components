@@ -1,9 +1,9 @@
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
 import { ScanlineAnimationUtils } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
-import knight from "../../../knight.png";
 
 type Props = AccessorProps<{
+    src: string;
     lineCount: number;
     animationDurationMs: number;
     opts: ScanlineAnimationUtils.HorizontalStretchOpts;
@@ -12,7 +12,7 @@ type Props = AccessorProps<{
 export const SurgeExample = (props: Props) => {
     return (
         <ScanlineAnimation
-            getSrc={() => knight}
+            getSrc={props.getSrc}
             getLineCount={props.getLineCount}
             getAnimationDurationMs={props.getAnimationDurationMs}
             getScanlineAnimationKeyframes={(getIndex) =>

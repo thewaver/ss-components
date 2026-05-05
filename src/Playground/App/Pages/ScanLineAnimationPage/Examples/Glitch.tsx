@@ -3,42 +3,48 @@ import { createSignal } from "solid-js";
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
 import { ScanlineAnimationUtils } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
-import knight from "../../../knight.png";
 
-const BREAKPOINTS = [0.4, 0.45, 0.55, 0.6] as [number, number, number, number];
+const BREAKPOINTS = [
+    [0.35, 0.35, 0.45, 0.45],
+    [0.45, 0.45, 0.55, 0.55],
+    [0.55, 0.55, 0.65, 0.65],
+] as [number, number, number, number][];
 
 const ROOT_KEYFRAMES: Keyframe[] = [
     { offset: 0, filter: "brightness(1)" },
-    { offset: BREAKPOINTS[0], filter: "brightness(1)" },
-    { offset: BREAKPOINTS[1], filter: "brightness(1.25)" },
-    { offset: BREAKPOINTS[2], filter: "brightness(1.25)" },
-    { offset: BREAKPOINTS[3], filter: "brightness(1)" },
+    ...BREAKPOINTS.flatMap((breakpoint) => [
+        { offset: breakpoint[0], filter: "brightness(1)" },
+        { offset: breakpoint[1], filter: "brightness(1.25)" },
+        { offset: breakpoint[2], filter: "brightness(1.25)" },
+        { offset: breakpoint[3], filter: "brightness(1)" },
+    ]),
     { offset: 1, filter: "brightness(1)" },
 ];
 
-const getRandomKeyframes = (lineCount: number, maxShift: number) =>
+const getRandomKeyframes = (lineCount: number, opts: ScanlineAnimationUtils.HorizontalShiftOpts) =>
     Array.from({ length: lineCount }, () =>
-        ScanlineAnimationUtils.getHorizontalShiftKeyframes(Math.random() * maxShift * 2 - maxShift, BREAKPOINTS),
+        ScanlineAnimationUtils.getRandomHorizontalShiftKeyframes(BREAKPOINTS, opts),
     );
 
 type Props = AccessorProps<{
+    src: string;
     lineCount: number;
     animationDurationMs: number;
-    maxShift: number;
+    opts: ScanlineAnimationUtils.HorizontalShiftOpts;
 }>;
 
 export const GlitchExample = (props: Props) => {
-    const [getKeyframes, setKeyframes] = createSignal(getRandomKeyframes(props.getLineCount(), props.getMaxShift()));
+    const [getKeyframes, setKeyframes] = createSignal(getRandomKeyframes(props.getLineCount(), props.getOpts()));
 
     return (
         <ScanlineAnimation
-            getSrc={() => knight}
+            getSrc={props.getSrc}
             getLineCount={props.getLineCount}
             getAnimationDurationMs={props.getAnimationDurationMs}
             getRootAnimationKeyframes={() => ROOT_KEYFRAMES}
             getScanlineAnimationKeyframes={(getIndex) => getKeyframes()[getIndex()]}
             onAnimationEnd={() => {
-                setKeyframes(getRandomKeyframes(props.getLineCount(), props.getMaxShift()));
+                setKeyframes(getRandomKeyframes(props.getLineCount(), props.getOpts()));
             }}
         />
     );

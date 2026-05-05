@@ -1,6 +1,12 @@
 import { style } from "@vanilla-extract/css";
 
-export const root = style({});
+export const root = style({
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "start",
+    alignItems: "start",
+    gap: 40,
+});
 
 export const container = style({
     display: "flex",
@@ -12,6 +18,6 @@ export const container = style({
 });
 
 export const imageContainer = style({
-    width: 240,
+    width: 320,
     padding: 20,
 });
