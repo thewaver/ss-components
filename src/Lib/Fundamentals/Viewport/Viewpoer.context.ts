@@ -1,4 +1,5 @@
-import { Accessor, createContext, createSignal, onCleanup, onMount, useContext } from "solid-js";
+import type { Accessor } from "solid-js";
+import { createContext, createSignal, onCleanup, onMount, useContext } from "solid-js";
 
 import { Size2d } from "@thewaver/ss-utils";
 

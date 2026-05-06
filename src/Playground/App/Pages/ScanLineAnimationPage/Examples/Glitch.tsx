@@ -2,7 +2,7 @@ import { createSignal } from "solid-js";
 
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
 import { ScanlineAnimationUtils } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
-import { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
+import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 
 const BREAKPOINTS = [
     [0.35, 0.35, 0.45, 0.45],

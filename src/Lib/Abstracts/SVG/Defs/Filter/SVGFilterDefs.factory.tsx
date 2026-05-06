@@ -1,6 +1,6 @@
-import { JSX } from "solid-js";
+import type { JSX } from "solid-js";
 
-import {
+import type {
     SVGBrightnessFilterDefs,
     SVGContrastFilterDefs,
     SVGDropShadowFilterDefs,

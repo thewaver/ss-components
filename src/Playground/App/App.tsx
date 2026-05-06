@@ -1,4 +1,5 @@
-import { JSX, Show, createMemo, createSignal } from "solid-js";
+import type { JSX } from "solid-js";
+import { Show, createMemo, createSignal } from "solid-js";
 
 import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";

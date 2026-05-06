@@ -2,7 +2,7 @@ import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
 import { MathUtils } from "@thewaver/ss-utils";
 
-import { AudioSwitcherProps } from "./AudioSwitcher.types";
+import type { AudioSwitcherProps } from "./AudioSwitcher.types";
 
 const DEFAULT_AUDIO_SWITCHER_CROSSFADE_MS = 500;
 const DEFAULT_AUDIO_SWITCHER_CROSSFADE_STEPS = 25;

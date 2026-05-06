@@ -1,6 +1,6 @@
 import { Size2d } from "@thewaver/ss-utils";
 
-import { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps } from "../../Utils/typeUtils";
 
 export type CornerKey = "topLeft" | "topRight" | "bottomLeft" | "bottomRight";
 

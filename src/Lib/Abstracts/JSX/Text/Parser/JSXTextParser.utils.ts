@@ -2,7 +2,7 @@ import { deepEqual } from "fast-equals";
 
 import { CssStyleUtils, EMPTY_ARRAY, StringUtils } from "@thewaver/ss-utils";
 
-import { TextMetricsStyle, TextNonMetricStyle } from "../Metrics/JSXTextMetrics.types";
+import type { TextMetricsStyle, TextNonMetricStyle } from "../Metrics/JSXTextMetrics.types";
 import { TextUtils } from "../Metrics/JSXTextMetrics.utils";
 
 type SegmentType = "text" | "linebreak" | "atomic";

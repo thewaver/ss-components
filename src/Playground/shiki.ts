@@ -1,18 +1,21 @@
-import { CodeToHastOptions, createHighlighter } from "shiki";
+import type { CodeToHastOptions } from "shiki";
+import { createHighlighterCore } from "shiki/core";
+import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
+import css from "shiki/langs/css.mjs";
+import json from "shiki/langs/json.mjs";
+import tsx from "shiki/langs/tsx.mjs";
+import ts from "shiki/langs/typescript.mjs";
+import houston from "shiki/themes/houston.mjs";
 
-const highlighterTheme = "houston";
-const highlighterLangs = ["tsx", "ts", "jsx", "js", "css", "html"] as const;
-
-type HighlighterLang = (typeof highlighterLangs)[number];
-
-export const highlighter = await createHighlighter({
-    themes: [highlighterTheme],
-    langs: [...highlighterLangs], // should not be mutable in original, but whatever
+export const highlighter = await createHighlighterCore({
+    themes: [houston],
+    langs: [ts, tsx, css, json],
+    engine: createJavaScriptRegexEngine(),
 });
 
-export const getDefaultHighlighterConfig = (lang: HighlighterLang = "tsx"): CodeToHastOptions => ({
+export const getDefaultHighlighterConfig = (lang: "ts" | "tsx" | "css" | "json" = "tsx"): CodeToHastOptions => ({
     lang,
-    theme: highlighterTheme,
+    theme: houston,
     transformers: [
         {
             pre(node) {

@@ -1,4 +1,4 @@
-import { RichTextNode } from "./RichText.types";
+import type { RichTextNode } from "./RichText.types";
 
 export namespace RichTextUtils {
     export const parseContent = (input: string): RichTextNode[] => {

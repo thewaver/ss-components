@@ -1,8 +1,9 @@
-import { For, ParentProps, createMemo } from "solid-js";
+import { For, createMemo } from "solid-js";
+import type { ParentProps } from "solid-js";
 
 import { Size2d } from "@thewaver/ss-utils";
 
-import { CornerKey, CornersProps } from "./Corners.types";
+import type { CornerKey, CornersProps } from "./Corners.types";
 
 import * as styles from "./Corners.css";
 

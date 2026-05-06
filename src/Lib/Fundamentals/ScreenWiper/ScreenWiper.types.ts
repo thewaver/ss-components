@@ -1,7 +1,7 @@
 import { Size2d } from "@thewaver/ss-utils";
 
-import { AnimDirection } from "../../Abstracts/Anim/Anim.types";
-import { AccessorProps } from "../../Utils/typeUtils";
+import type { AnimDirection } from "../../Abstracts/Anim/Anim.types";
+import type { AccessorProps } from "../../Utils/typeUtils";
 
 export type ScreenWiperShape = "lozenge" | "circle";
 

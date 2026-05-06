@@ -6,9 +6,9 @@
         "moduleResolution": "bundler",
         "target": "ESNext",
         "strict": true,
-        "declaration": true,
-        "rootDir": "./src",
-        "outDir": "dist"
+        "verbatimModuleSyntax": true,
+
+        "noEmit": true
     },
-    "include": ["src/**/*"]
+    "include": ["src"]
 }

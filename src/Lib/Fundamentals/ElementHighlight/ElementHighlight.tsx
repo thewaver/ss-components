@@ -4,7 +4,7 @@ import { Rect } from "@thewaver/ss-utils";
 
 import { useViewportContext } from "../Viewport/Viewpoer.context";
 import { ViewportUtils } from "../Viewport/Viewport.utils";
-import { ElementHighlightProps } from "./ElementHighlight.types";
+import type { ElementHighlightProps } from "./ElementHighlight.types";
 
 import * as styles from "./ElementHighlight.css";
 

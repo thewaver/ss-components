@@ -1,7 +1,8 @@
-import { ParentProps, Show } from "solid-js";
+import { Show } from "solid-js";
+import type { ParentProps } from "solid-js";
 
 import { Tooltip } from "../Tooltip/Tooltip";
-import { ButtonProps } from "./Button.types";
+import type { ButtonProps } from "./Button.types";
 
 import * as styles from "./Button.css";
 

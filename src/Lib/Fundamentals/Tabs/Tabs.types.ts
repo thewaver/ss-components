@@ -1,6 +1,6 @@
-import { JSX } from "solid-js";
+import type { JSX } from "solid-js";
 
-import { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps } from "../../Utils/typeUtils";
 
 export type TabProps = AccessorProps<{
     dir?: "column" | "row";

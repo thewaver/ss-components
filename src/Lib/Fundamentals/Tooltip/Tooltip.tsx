@@ -4,7 +4,7 @@ import { Rect, Size2d } from "@thewaver/ss-utils";
 
 import { useViewportContext } from "../Viewport/Viewpoer.context";
 import { ViewportUtils } from "../Viewport/Viewport.utils";
-import { TooltipHPlacement, TooltipPlacement, TooltipProps, TooltipVPlacement } from "./Tooltip.types";
+import type { TooltipHPlacement, TooltipPlacement, TooltipProps, TooltipVPlacement } from "./Tooltip.types";
 import { TooltipUtils } from "./Tooltip.utils";
 
 import * as styles from "./Tooltip.css";

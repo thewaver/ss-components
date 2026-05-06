@@ -9,8 +9,11 @@
     ],
     "license": "MIT",
     "scripts": {
-        "build": "tsup src/Lib/index.ts --format esm --dts --clean",
-        "dev": "tsup --watch",
+        "build:lib": "tsup src/Lib/index.ts --format esm --dts --clean",
+        "build:playground": "vite build --config ./vite.config.ts",
+        "build:all": "npm run build:lib && npm run build:playground",
+        "dev": "tsup src/Lib/index.ts --format esm --dts --watch",
+        "preview": "vite preview --config ./vite.config.ts",
         "start": "vite --config ./vite.config.ts --host",
         "format": "prettier --write ."
     },

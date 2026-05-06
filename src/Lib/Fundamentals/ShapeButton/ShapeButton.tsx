@@ -1,11 +1,12 @@
-import { ParentProps, createMemo, createSignal } from "solid-js";
+import type { ParentProps } from "solid-js";
+import { createMemo } from "solid-js";
 import { createStore } from "solid-js/store";
 
 import { PolygonUtils } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
-import { ButtonFlags, InternalButtonFlags } from "../Button/Button.types";
-import { ShapeButtonProps } from "./ShapeButton.types";
+import type { ButtonFlags, InternalButtonFlags } from "../Button/Button.types";
+import type { ShapeButtonProps } from "./ShapeButton.types";
 
 import * as buttonStyles from "../Button/Button.css";
 import * as styles from "./ShapeButton.css";

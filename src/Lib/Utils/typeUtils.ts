@@ -1,4 +1,4 @@
-import { Accessor, JSX } from "solid-js";
+import type { Accessor, JSX } from "solid-js";
 
 type NonNullish<T> = T extends undefined | null ? never : T;
 

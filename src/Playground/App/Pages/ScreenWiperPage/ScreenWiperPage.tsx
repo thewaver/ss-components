@@ -1,6 +1,6 @@
 import { createSignal } from "solid-js";
 
-import { AnimDirection } from "../../../../Lib/Abstracts/Anim/Anim.types";
+import type { AnimDirection } from "../../../../Lib/Abstracts/Anim/Anim.types";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { ScreenWiper } from "../../../../Lib/Fundamentals/ScreenWiper/ScreenWiper";
 

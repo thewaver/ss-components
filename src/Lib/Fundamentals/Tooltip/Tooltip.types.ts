@@ -1,8 +1,8 @@
-import { JSX } from "solid-js";
+import type { JSX } from "solid-js";
 
 import { Point2d, Size2d } from "@thewaver/ss-utils";
 
-import { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps } from "../../Utils/typeUtils";
 
 export type TooltipHPlacement = "left-in" | "left-out" | "right-in" | "right-out" | "center";
 

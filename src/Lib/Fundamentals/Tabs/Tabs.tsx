@@ -1,6 +1,6 @@
 import { For, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
-import { TabProps } from "./Tabs.types";
+import type { TabProps } from "./Tabs.types";
 
 import * as styles from "./Tabs.css";
 

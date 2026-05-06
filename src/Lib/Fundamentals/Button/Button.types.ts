@@ -1,7 +1,7 @@
-import { JSX } from "solid-js";
+import type { JSX } from "solid-js";
 
-import { AccessorProps } from "../../Utils/typeUtils";
-import { TooltipProps } from "../Tooltip/Tooltip.types";
+import type { AccessorProps } from "../../Utils/typeUtils";
+import type { TooltipProps } from "../Tooltip/Tooltip.types";
 
 export type ExternalButtonFlags = {
     isDisabled?: boolean;

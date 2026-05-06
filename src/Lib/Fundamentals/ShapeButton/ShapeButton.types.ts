@@ -1,9 +1,9 @@
-import { JSX } from "solid-js";
+import type { JSX } from "solid-js";
 
 import { Size2d } from "@thewaver/ss-utils";
 
-import { AccessorProps } from "../../Utils/typeUtils";
-import { ButtonCbs, ButtonFlags, ButtonOutlineDefs, ExternalButtonFlags } from "../Button/Button.types";
+import type { AccessorProps } from "../../Utils/typeUtils";
+import type { ButtonCbs, ButtonFlags, ButtonOutlineDefs, ExternalButtonFlags } from "../Button/Button.types";
 
 export type ShapeButtonShape = "hexagon" | "lozenge";
 

@@ -1,9 +1,10 @@
-import { ParentProps, Show, createSignal, onCleanup, onMount } from "solid-js";
+import type { ParentProps } from "solid-js";
+import { Show, createSignal, onCleanup, onMount } from "solid-js";
 
 import { Rect, Size2d } from "@thewaver/ss-utils";
 
 import { ViewportContextProvider } from "./Viewpoer.context";
-import { ViewportProps } from "./Viewport.types";
+import type { ViewportProps } from "./Viewport.types";
 
 import * as styles from "./Viewport.css";
 

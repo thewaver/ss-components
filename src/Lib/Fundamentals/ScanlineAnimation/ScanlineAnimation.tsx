@@ -2,7 +2,7 @@ import { For, createEffect, createMemo, createSignal, createUniqueId, onCleanup,
 
 import { Size2d } from "@thewaver/ss-utils";
 
-import { ScanlineAnimationProps } from "./ScanlineAnimation.types";
+import type { ScanlineAnimationProps } from "./ScanlineAnimation.types";
 
 import * as styles from "./ScanlineAnimation.css";
 

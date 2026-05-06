@@ -1,4 +1,4 @@
-import { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps } from "../../Utils/typeUtils";
 
 export type ImageSwitcherProps = AccessorProps<{
     src: string | undefined;

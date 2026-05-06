@@ -1,6 +1,6 @@
 import { Size2d, StringUtils } from "@thewaver/ss-utils";
 
-import { TextMetricValue, TextMetricsStyle } from "./JSXTextMetrics.types";
+import type { TextMetricValue, TextMetricsStyle } from "./JSXTextMetrics.types";
 
 export namespace TextUtils {
     export const parseTextMetric = (value: TextMetricValue | undefined, fallback: number = 0) => {

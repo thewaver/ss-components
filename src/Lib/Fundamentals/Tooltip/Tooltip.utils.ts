@@ -1,6 +1,6 @@
 import { Point2d, Rect, Size2d } from "@thewaver/ss-utils";
 
-import { TooltipHPlacement, TooltipVPlacement } from "./Tooltip.types";
+import type { TooltipHPlacement, TooltipVPlacement } from "./Tooltip.types";
 
 export namespace TooltipUtils {
     export const getHPlacementOffset = (hPlacement: TooltipHPlacement, offsetX: number) => {

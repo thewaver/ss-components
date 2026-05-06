@@ -3,7 +3,7 @@ import { createStore } from "solid-js/store";
 
 import { ScanlineAnimationUtils } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import { Tabs } from "../../../../Lib/Fundamentals/Tabs/Tabs";
-import { AccessorProps } from "../../../../Lib/Utils/typeUtils";
+import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import knight from "../../knight.png";
 import { GlitchExample } from "./Examples/Glitch";

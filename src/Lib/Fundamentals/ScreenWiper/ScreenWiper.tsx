@@ -2,9 +2,9 @@ import { For, Show, createEffect, createMemo, createSignal, untrack } from "soli
 
 import { MathUtils, Size2d } from "@thewaver/ss-utils";
 
-import { AnimDirection } from "../../Abstracts/Anim/Anim.types";
+import type { AnimDirection } from "../../Abstracts/Anim/Anim.types";
 import { useViewportContext } from "../Viewport/Viewpoer.context";
-import { ScreenWiperProps, ScreenWiperShape } from "./ScreenWiper.types";
+import type { ScreenWiperProps, ScreenWiperShape } from "./ScreenWiper.types";
 
 import * as styles from "./ScreenWiper.css";
 

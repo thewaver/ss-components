@@ -1,6 +1,7 @@
-import { JSX, createMemo } from "solid-js";
+import { createMemo } from "solid-js";
+import type { JSX } from "solid-js";
 
-import { RichTextNode, RichTextProps } from "./RichText.types";
+import type { RichTextNode, RichTextProps } from "./RichText.types";
 import { RichTextUtils } from "./RichText.utils";
 
 import * as styles from "./RichText.css";

@@ -2,7 +2,7 @@ import { createEffect, createMemo, createSignal } from "solid-js";
 
 import { MathUtils } from "@thewaver/ss-utils";
 
-import { ImageSwitcherProps } from "./ImageSwitcher.types";
+import type { ImageSwitcherProps } from "./ImageSwitcher.types";
 
 import * as styles from "./ImageSwitcher.css";
 

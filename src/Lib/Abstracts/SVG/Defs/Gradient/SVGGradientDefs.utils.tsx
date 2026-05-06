@@ -1,4 +1,4 @@
-import { SVGLinearGradientDefs, SVGRadialGradientDefs } from "./SVGGradientDefs.types";
+import type { SVGLinearGradientDefs, SVGRadialGradientDefs } from "./SVGGradientDefs.types";
 
 export namespace SVGGradientDefsUtils {
     const renderGradientStops = (colors: (SVGLinearGradientDefs | SVGRadialGradientDefs)["colors"]) =>

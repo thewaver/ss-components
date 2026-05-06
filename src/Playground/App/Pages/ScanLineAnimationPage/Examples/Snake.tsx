@@ -1,6 +1,6 @@
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
 import { ScanlineAnimationUtils } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
-import { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
+import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 
 type Props = AccessorProps<{
     src: string;

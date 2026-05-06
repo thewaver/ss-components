@@ -1,4 +1,4 @@
-import { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps } from "../../Utils/typeUtils";
 
 export type ScanlineAnimationProps = AccessorProps<{
     src: string;
