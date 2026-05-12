@@ -28,7 +28,9 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
     const [getRemainingIterations, setRemainingIterations] = createSignal(getAnimationIterationCount());
     const [getRootSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
 
-    const getLineHeight = createMemo(() => getRootSize().height / props.getLineCount());
+    const getLineCount = createMemo(() => Math.min(props.getLineCount(), getRootSize().height));
+
+    const getLineHeight = createMemo(() => getRootSize().height / getLineCount());
 
     const attachAnimation = (el: Element, getKeyframes?: () => Keyframe[], onFinish?: () => void) => {
         createEffect(() => {
@@ -108,7 +110,7 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
 
             <svg width={getRootSize().width} height={getRootSize().height} aria-hidden>
                 <defs>
-                    <For each={Array.from({ length: props.getLineCount() })}>
+                    <For each={Array.from({ length: getLineCount() })}>
                         {(_, getIndex) => {
                             const y = () => getIndex() * getLineHeight();
 
@@ -121,7 +123,7 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
                     </For>
                 </defs>
 
-                <For each={Array.from({ length: props.getLineCount() })}>
+                <For each={Array.from({ length: getLineCount() })}>
                     {(_, getIndex) => (
                         <image
                             ref={(el) => {

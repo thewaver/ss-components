@@ -3,6 +3,7 @@ import { Show, createMemo, createSignal } from "solid-js";
 
 import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
+import { BorderPage } from "./Pages/BorderPage/BorderPage";
 import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
 import { ElementHighlightPage } from "./Pages/ElementHighlightPage/ElementHighlightPage";
 import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
@@ -43,6 +44,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "AudioSwitcher",
         component: () => null,
+    },
+    {
+        name: "Border",
+        component: () => <BorderPage />,
     },
     {
         name: "Button",

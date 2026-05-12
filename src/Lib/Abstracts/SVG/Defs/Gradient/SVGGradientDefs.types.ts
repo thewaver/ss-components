@@ -7,13 +7,13 @@ type SVGBaseGradientDefs = {
 type SVGGradientDefs = SVGBaseGradientDefs & {
     colors: {
         value: string;
-        stop: number;
+        stop?: number;
     }[];
     spreadMethod?: "pad" | "reflect" | "repeat";
 };
 
 export type SVGLinearGradientDefs = SVGGradientDefs & {
-    angle: number;
+    angle?: number;
 };
 
 export type SVGRadialGradientDefs = SVGGradientDefs & {
