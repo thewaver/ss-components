@@ -16,11 +16,8 @@ export const container = style({
     maxWidth: 600,
 });
 
-export const borderedElement = style({
+export const borderedContainer = style({
     position: "relative",
-    width: 240,
-    height: 240,
-    padding: 20,
 
     selectors: {
         "&::before": {
@@ -36,4 +33,10 @@ export const borderedElement = style({
             animationTimingFunction: "linear",
         },
     },
+});
+
+export const borderedContent = style({
+    width: 240,
+    height: 240,
+    padding: 20,
 });

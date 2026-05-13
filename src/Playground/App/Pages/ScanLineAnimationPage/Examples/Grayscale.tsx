@@ -3,26 +3,23 @@ import { createSignal } from "solid-js";
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
 import { ScanlineAnimationUtils } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
+import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.types";
 
-type Props = AccessorProps<{
-    src: string;
-    lineCount: number;
-    animationDurationMs: number;
-    opts: ScanlineAnimationUtils.ScanlineAnimationOpts;
-}>;
+type Props = ScanlineAnimationExampleProps &
+    AccessorProps<{
+        opts: ScanlineAnimationUtils.ScanlineAnimationOpts;
+    }>;
 
-export const GrayscaleExample = (props: Props) => {
+export const GrayscaleExample = ({ getOpts, ...otherProps }: Props) => {
     const [getColorDir, setColorDir] =
         createSignal<ScanlineAnimationUtils.HorizontalGrayscaleOpts["filterDir"]>("gray");
 
     return (
         <ScanlineAnimation
-            getSrc={props.getSrc}
-            getLineCount={props.getLineCount}
-            getAnimationDurationMs={props.getAnimationDurationMs}
+            {...otherProps}
             getScanlineAnimationKeyframes={(getIndex) =>
-                ScanlineAnimationUtils.getHorizontalGrayscaleKeyframes(getIndex(), props.getLineCount(), {
-                    ...props.getOpts(),
+                ScanlineAnimationUtils.getHorizontalGrayscaleKeyframes(getIndex(), otherProps.getLineCount(), {
+                    ...getOpts(),
                     filterDir: getColorDir(),
                 })
             }

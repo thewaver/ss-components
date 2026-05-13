@@ -3,6 +3,7 @@ import { createSignal } from "solid-js";
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
 import { ScanlineAnimationUtils } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
+import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.types";
 
 const BREAKPOINTS = [
     [0.35, 0.35, 0.45, 0.45],
@@ -26,25 +27,21 @@ const getRandomKeyframes = (lineCount: number, opts: ScanlineAnimationUtils.Hori
         ScanlineAnimationUtils.getRandomHorizontalShiftKeyframes(BREAKPOINTS, opts),
     );
 
-type Props = AccessorProps<{
-    src: string;
-    lineCount: number;
-    animationDurationMs: number;
-    opts: ScanlineAnimationUtils.HorizontalShiftOpts;
-}>;
+type Props = ScanlineAnimationExampleProps &
+    AccessorProps<{
+        opts: ScanlineAnimationUtils.HorizontalShiftOpts;
+    }>;
 
-export const GlitchExample = (props: Props) => {
-    const [getKeyframes, setKeyframes] = createSignal(getRandomKeyframes(props.getLineCount(), props.getOpts()));
+export const GlitchExample = ({ getOpts, ...otherProps }: Props) => {
+    const [getKeyframes, setKeyframes] = createSignal(getRandomKeyframes(otherProps.getLineCount(), getOpts()));
 
     return (
         <ScanlineAnimation
-            getSrc={props.getSrc}
-            getLineCount={props.getLineCount}
-            getAnimationDurationMs={props.getAnimationDurationMs}
+            {...otherProps}
             getRootAnimationKeyframes={() => ROOT_KEYFRAMES}
             getScanlineAnimationKeyframes={(getIndex) => getKeyframes()[getIndex()]}
             onAnimationEnd={() => {
-                setKeyframes(getRandomKeyframes(props.getLineCount(), props.getOpts()));
+                setKeyframes(getRandomKeyframes(otherProps.getLineCount(), getOpts()));
             }}
         />
     );

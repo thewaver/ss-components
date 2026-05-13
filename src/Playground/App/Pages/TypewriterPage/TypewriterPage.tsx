@@ -10,7 +10,7 @@ import * as styles from "./TypewriterPage.css";
 
 const STARTING_WIDTH = 240;
 const STARTING_TEXT = "I am a brown, crispy potatoe!?...";
-const COMPLEX_TAB_NAMES = ["Render", "Source"];
+const TAB_NAMES = ["Render", "Source"];
 const COMPLEX_SOURCE = highlighter.codeToHtml(ComplexExampleRaw, getDefaultHighlighterConfig());
 
 export const TypewriterPage = () => {
@@ -35,7 +35,7 @@ export const TypewriterPage = () => {
                             class={pageStyles.tabItem}
                             classList={{ [pageStyles.isSelected]: getIndex() === getTabIndex() }}
                         >
-                            {COMPLEX_TAB_NAMES[getIndex()]}
+                            {TAB_NAMES[getIndex()]}
                         </div>
                     )}
                 />

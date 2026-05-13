@@ -14,6 +14,7 @@ export type BorderRadiusDefs = {
 };
 
 export type BorderProps = AccessorProps<{
+    class?: string;
     borderWidths: BorderWidthDefs;
     borderRadii: BorderRadiusDefs;
     fillDefs: SVGDefs;

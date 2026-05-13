@@ -5,15 +5,15 @@ import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.typ
 
 type Props = ScanlineAnimationExampleProps &
     AccessorProps<{
-        opts: ScanlineAnimationUtils.HorizontalStretchOpts;
+        opts: ScanlineAnimationUtils.HorizontalSplitOpts;
     }>;
 
-export const SurgeExample = ({ getOpts, ...otherProps }: Props) => {
+export const SplitExample = ({ getOpts, ...otherProps }: Props) => {
     return (
         <ScanlineAnimation
             {...otherProps}
             getScanlineAnimationKeyframes={(getIndex) =>
-                ScanlineAnimationUtils.getHorizontalStretchKeyframes(getIndex(), otherProps.getLineCount(), getOpts())
+                ScanlineAnimationUtils.getHorizontalSplitKeyframes(getIndex(), otherProps.getLineCount(), getOpts())
             }
         />
     );

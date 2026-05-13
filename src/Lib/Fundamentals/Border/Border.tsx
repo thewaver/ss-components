@@ -42,7 +42,7 @@ export const Border = (props: ParentProps<BorderProps>) => {
             ref={(el) => {
                 rootRef = el;
             }}
-            class={styles.borderRoot}
+            class={[styles.borderRoot, props.getClass?.()].join(" ")}
             style={{
                 ...Object.fromEntries(
                     Object.entries(props.getBorderRadii()).map(([key, value]) => [

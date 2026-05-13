@@ -23,6 +23,8 @@ export const Tabs = (props: TabProps) => {
 
     const getTabGap = createMemo(() => props.getTabGap?.() ?? DEFAULT_TABS_GAP);
 
+    const getTabArray = createMemo(() => Array.from({ length: props.getTabCount() }, (_, i) => i));
+
     createEffect(() => {
         let selectedItemObserver: ResizeObserver | undefined;
 
@@ -59,7 +61,7 @@ export const Tabs = (props: TabProps) => {
                 </div>
             </Show>
 
-            <For each={Array.from({ length: props.getTabCount() })}>
+            <For each={getTabArray()}>
                 {(_, getIndex) => (
                     <button
                         ref={(el) => {

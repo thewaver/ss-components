@@ -1,3 +1,5 @@
+import { MathUtils } from "@thewaver/ss-utils";
+
 export namespace ScanlineAnimationUtils {
     export const getBreakpoints = (idx: number, lineCount: number, opts: Required<ScanlineAnimationOpts>) => {
         const step = 1 / (lineCount + 1); // 2 more steps than total
@@ -84,21 +86,21 @@ export namespace ScanlineAnimationUtils {
         ];
     };
 
-    export type HorizontalSwingOpts = ScanlineAnimationOpts & {
+    export type HorizontalSnakeOpts = ScanlineAnimationOpts & {
         shiftPercent?: number;
     };
 
-    const DEFAULT_HORIZONTAL_SWING_OPTS: Required<HorizontalSwingOpts> = {
+    const DEFAULT_HORIZONTAL_SNAKE_OPTS: Required<HorizontalSnakeOpts> = {
         ...DEFAULT_SCANLINE_ANIMATION_OPTS,
-        shiftPercent: 20,
+        shiftPercent: 5,
     };
 
-    export const getHorizontalSwingKeyframes = (
+    export const getHorizontalSnakeKeyframes = (
         idx: number,
         lineCount: number,
-        opts?: HorizontalSwingOpts,
+        opts?: HorizontalSnakeOpts,
     ): Keyframe[] => {
-        const mergedOpts = { ...DEFAULT_HORIZONTAL_SWING_OPTS, ...opts };
+        const mergedOpts = { ...DEFAULT_HORIZONTAL_SNAKE_OPTS, ...opts };
         const { end, middle, start } = getBreakpoints(idx, lineCount, mergedOpts);
 
         return [
@@ -109,6 +111,30 @@ export namespace ScanlineAnimationUtils {
             { offset: (end + middle) / 2, transform: `translateX(${+mergedOpts.shiftPercent}%)` },
             { offset: end, transform: "translateX(0)" },
             { offset: 1, transform: "translateX(0)" },
+        ];
+    };
+
+    export type HorizontalHueOpts = ScanlineAnimationOpts & {
+        filterDir?: "color" | "hue";
+    };
+
+    const DEFAULT_HORIZONTAL_HUE_OPTS: Required<HorizontalHueOpts> = {
+        ...DEFAULT_SCANLINE_ANIMATION_OPTS,
+        filterDir: "hue",
+    };
+
+    export const getHorizontalHueKeyframes = (idx: number, lineCount: number, opts?: HorizontalHueOpts): Keyframe[] => {
+        const mergedOpts = { ...DEFAULT_HORIZONTAL_HUE_OPTS, ...opts };
+        const { end, middle, start } = getBreakpoints(idx, lineCount, mergedOpts);
+        const startValue = opts?.filterDir === "color" ? 0 : 180;
+        const endValue = opts?.filterDir === "color" ? 180 : 0;
+
+        return [
+            { offset: 0, filter: `hue-rotate(${startValue}deg)` },
+            { offset: start, filter: `hue-rotate(${startValue}deg)` },
+            { offset: middle, filter: `hue-rotate(${endValue}deg)` },
+            { offset: end, filter: `hue-rotate(${endValue}deg)` },
+            { offset: 1, filter: `hue-rotate(${endValue}deg)` },
         ];
     };
 
@@ -128,44 +154,41 @@ export namespace ScanlineAnimationUtils {
     ): Keyframe[] => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_GRAYSCALE_OPTS, ...opts };
         const { end, middle, start } = getBreakpoints(idx, lineCount, mergedOpts);
-        const startScale = opts?.filterDir === "color" ? 0 : 1;
-        const endScale = opts?.filterDir === "color" ? 1 : 0;
+        const startValue = opts?.filterDir === "color" ? 0 : 1;
+        const endValue = opts?.filterDir === "color" ? 1 : 0;
 
         return [
-            { offset: 0, filter: `grayscale(${startScale})` },
-            { offset: start, filter: `grayscale(${startScale})` },
-            { offset: middle, filter: `grayscale(${endScale})` },
-            { offset: end, filter: `grayscale(${endScale})` },
-            { offset: 1, filter: `grayscale(${endScale})` },
+            { offset: 0, filter: `grayscale(${startValue})` },
+            { offset: start, filter: `grayscale(${startValue})` },
+            { offset: middle, filter: `grayscale(${endValue})` },
+            { offset: end, filter: `grayscale(${endValue})` },
+            { offset: 1, filter: `grayscale(${endValue})` },
         ];
     };
 
-    export type HorizontalStackOpts = ScanlineAnimationOpts & {
-        stackDir?: "in" | "out";
+    export type HorizontalSplitOpts = ScanlineAnimationOpts & {
+        shiftPercent?: number;
     };
 
-    const DEFAULT_HORIZONTAL_STACK_OPTS: Required<HorizontalStackOpts> = {
+    const DEFAULT_HORIZONTAL_SPLIT_OPTS: Required<HorizontalSplitOpts> = {
         ...DEFAULT_SCANLINE_ANIMATION_OPTS,
-        stackDir: "in",
+        shiftPercent: 10,
     };
 
-    export const getHorizontalStackKeyframes = (
+    export const getHorizontalSplitKeyframes = (
         idx: number,
         lineCount: number,
-        opts?: HorizontalStackOpts,
+        opts?: HorizontalSplitOpts,
     ): Keyframe[] => {
-        const mergedOpts = { ...DEFAULT_HORIZONTAL_STACK_OPTS, ...opts };
+        const mergedOpts = { ...DEFAULT_HORIZONTAL_SPLIT_OPTS, ...opts };
         const { end, middle, start } = getBreakpoints(idx, lineCount, mergedOpts);
-        const startOpacity = opts?.stackDir === "in" ? 0 : 1;
-        const endOpacity = opts?.stackDir === "in" ? 1 : 0;
-        const dirMult = (opts?.dir === "top" ? 1 : -1) * (opts?.stackDir === "in" ? 1 : -1);
 
         return [
-            { offset: 0, transform: `translateY(${(1 - startOpacity) * dirMult * 100}%)`, opacity: startOpacity },
-            { offset: start, transform: `translateY(${(1 - startOpacity) * dirMult * 100}%)`, opacity: startOpacity },
-            { offset: middle, transform: `translateY(${(1 - endOpacity) * dirMult * 100}%)`, opacity: endOpacity },
-            { offset: end, transform: `translateY(${(1 - endOpacity) * dirMult * 100}%)`, opacity: endOpacity },
-            { offset: 1, transform: `translateY(${(1 - endOpacity) * dirMult * 100}%)`, opacity: endOpacity },
+            { offset: 0, transform: "translateX(0)" },
+            { offset: start, transform: "translateX(0)" },
+            { offset: middle, transform: `translateX(${mergedOpts.shiftPercent * (MathUtils.isEven(idx) ? -1 : 1)}%)` },
+            { offset: end, transform: "translateX(0)" },
+            { offset: 1, transform: "translateX(0)" },
         ];
     };
 }

@@ -15,7 +15,7 @@ export const ElementHighlightPage = () => {
 
     return (
         <div class={styles.root}>
-            <For each={Array.from({ length: 2 })}>
+            <For each={Array.from({ length: 2 }, (_, i) => i)}>
                 {(_, getIndex) => (
                     <div
                         ref={(el) => {
