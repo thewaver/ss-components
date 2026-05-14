@@ -2,6 +2,7 @@ import type { JSX } from "solid-js";
 
 import type {
     SVGBrightnessFilterDefs,
+    SVGColorFilterDefs,
     SVGContrastFilterDefs,
     SVGDropShadowFilterDefs,
     SVGGaussianBlurFilterDefs,
@@ -10,113 +11,187 @@ import type {
     SVGSaturationFilterDefs,
 } from "./SVGFilterDefs.types";
 
+type SVGPrimitiveDefs = {
+    method?: "chain" | "isolate";
+};
+
+const SVG_PRIMITIVE_DEFS: SVGPrimitiveDefs = {
+    method: "isolate",
+};
+
 export class SVGFilterDefsFactory {
-    private filterPrimitives: Record<string, JSX.Element> = {};
+    private filterPrimitives: Record<string, (srcIn: string) => { element: JSX.Element; resultGraphic: string }> = {};
     private dropShadowCount = 0;
+    private gaussianBlurCount = 0;
+    private hueRotationCount = 0;
+    private saturationCount = 0;
+    private brightnessCount = 0;
+    private contrastCount = 0;
+    private inversionCount = 0;
+    private colorCount = 0;
 
     constructor(private readonly filterId: string) {}
 
-    public getMergedFilterPrimitives = () => {
-        const keys = Object.keys(this.filterPrimitives);
+    public getFilterPrimitives = (defs?: SVGPrimitiveDefs) => {
+        const entries = Object.entries(this.filterPrimitives);
 
-        if (keys.length < 1) return undefined;
+        if (entries.length < 1) return undefined;
+
+        const mergedDefs = { ...SVG_PRIMITIVE_DEFS, ...defs };
+
+        let currentSourceGraphic = "SourceGraphic";
 
         return (
             <filter id={this.filterId}>
-                {Object.values(this.filterPrimitives)}
+                {entries.map(([, createPrimitive]) => {
+                    const result = createPrimitive(currentSourceGraphic);
 
-                <feMerge>
-                    {keys.map((key) => (
-                        <feMergeNode in={key} />
-                    ))}
-                    <feMergeNode in="SourceGraphic" />
-                </feMerge>
+                    if (mergedDefs.method === "chain") {
+                        currentSourceGraphic = result.resultGraphic;
+                    }
+
+                    return result.element;
+                })}
+
+                {mergedDefs.method === "isolate" && (
+                    <feMerge>
+                        <feMergeNode in="SourceGraphic" />
+                        {entries.map(([key]) => (
+                            <feMergeNode in={key} />
+                        ))}
+                    </feMerge>
+                )}
             </filter>
         );
     };
 
-    public addDropShadowFilter = (def: SVGDropShadowFilterDefs) => {
+    public addDropShadowFilter = (defs: SVGDropShadowFilterDefs) => {
         const key = `${this.filterId}_dropShadow_${this.dropShadowCount++}`;
 
-        this.filterPrimitives[key] = <feDropShadow {...def} result={key} />;
+        this.filterPrimitives[key] = () => ({
+            element: <feDropShadow {...defs} result={key} />,
+            resultGraphic: key,
+        });
 
         return this;
     };
 
-    public setGaussianBlurFilter = (def: SVGGaussianBlurFilterDefs) => {
-        const key = `${this.filterId}_gaussianBlur`;
+    public addGaussianBlurFilter = (defs: SVGGaussianBlurFilterDefs) => {
+        const key = `${this.filterId}_gaussianBlur_${this.gaussianBlurCount++}`;
 
-        this.filterPrimitives[key] = <feGaussianBlur {...def} result={key} />;
-
-        return this;
-    };
-
-    public setSaturationFilter = (def: SVGSaturationFilterDefs) => {
-        const key = `${this.filterId}_saturation`;
-
-        this.filterPrimitives[key] = <feColorMatrix type="saturate" values={`${def.amount}`} result={key} />;
+        this.filterPrimitives[key] = (srcIn: string) => ({
+            element: <feGaussianBlur in={srcIn} {...defs} result={key} />,
+            resultGraphic: key,
+        });
 
         return this;
     };
 
-    public setHueRotationFilter = (def: SVGHueRotationFilterDefs) => {
-        const key = `${this.filterId}_hueRotation`;
+    public addHueRotationFilter = (defs: SVGHueRotationFilterDefs) => {
+        const key = `${this.filterId}_hueRotation_${this.hueRotationCount++}`;
 
-        this.filterPrimitives[key] = <feColorMatrix type="hueRotate" values={`${def.deg}`} result={key} />;
+        this.filterPrimitives[key] = (srcIn: string) => ({
+            element: <feColorMatrix in={srcIn} type="hueRotate" values={`${defs.deg}`} result={key} />,
+            resultGraphic: key,
+        });
 
         return this;
     };
 
-    public setBrightnessFilter = (def: SVGBrightnessFilterDefs) => {
-        const key = `${this.filterId}_brightness`;
+    public addSaturationFilter = (defs: SVGSaturationFilterDefs) => {
+        const key = `${this.filterId}_saturation_${this.saturationCount++}`;
 
-        this.filterPrimitives[key] = (
-            <feColorMatrix
-                type="matrix"
-                values={`${def.amount} 0 0 0 0
-                        0 ${def.amount} 0 0 0
-                        0 0 ${def.amount} 0 0
+        this.filterPrimitives[key] = (srcIn: string) => ({
+            element: <feColorMatrix in={srcIn} type="saturate" values={`${defs.amount}`} result={key} />,
+            resultGraphic: key,
+        });
+
+        return this;
+    };
+
+    public addBrightnessFilter = (defs: SVGBrightnessFilterDefs) => {
+        const key = `${this.filterId}_brightness_${this.brightnessCount++}`;
+
+        this.filterPrimitives[key] = (srcIn: string) => ({
+            element: (
+                <feColorMatrix
+                    in={srcIn}
+                    type="matrix"
+                    values={`${defs.amount} 0 0 0 0
+                        0 ${defs.amount} 0 0 0
+                        0 0 ${defs.amount} 0 0
                         0 0 0 1 0`}
-                result={key}
-            />
-        );
+                    result={key}
+                />
+            ),
+            resultGraphic: key,
+        });
 
         return this;
     };
 
-    public setContrastFilter = (def: SVGContrastFilterDefs) => {
-        const key = `${this.filterId}_contrast`;
-        const intercept = 0.5 * (1 - def.amount);
+    public addContrastFilter = (defs: SVGContrastFilterDefs) => {
+        const key = `${this.filterId}_contrast_${this.contrastCount++}`;
+        const intercept = 0.5 * (1 - defs.amount);
 
-        this.filterPrimitives[key] = (
-            <feColorMatrix
-                type="matrix"
-                values={`${def.amount} 0 0 0 ${intercept}
-                        0 ${def.amount} 0 0 ${intercept}
-                        0 0 ${def.amount} 0 ${intercept}
+        this.filterPrimitives[key] = (srcIn: string) => ({
+            element: (
+                <feColorMatrix
+                    in={srcIn}
+                    type="matrix"
+                    values={`${defs.amount} 0 0 0 ${intercept}
+                        0 ${defs.amount} 0 0 ${intercept}
+                        0 0 ${defs.amount} 0 ${intercept}
                         0 0 0 1 0`}
-                result={key}
-            />
-        );
+                    result={key}
+                />
+            ),
+            resultGraphic: key,
+        });
 
         return this;
     };
 
-    public setInversionFilter = (def: SVGInversionFilterDefs) => {
-        const key = `${this.filterId}_inversion`;
-        const a = 1 - 2 * def.amount;
-        const b = def.amount;
+    public addInversionFilter = (defs: SVGInversionFilterDefs) => {
+        const key = `${this.filterId}_inversion_${this.inversionCount++}`;
+        const a = 1 - 2 * defs.amount;
+        const b = defs.amount;
 
-        this.filterPrimitives[key] = (
-            <feColorMatrix
-                type="matrix"
-                values={`${a} 0 0 0 ${b}
+        this.filterPrimitives[key] = (srcIn: string) => ({
+            element: (
+                <feColorMatrix
+                    in={srcIn}
+                    type="matrix"
+                    values={`${a} 0 0 0 ${b}
                         0 ${a} 0 0 ${b}
                         0 0 ${a} 0 ${b}
                         0 0 0 1 0`}
-                result={key}
-            />
-        );
+                    result={key}
+                />
+            ),
+            resultGraphic: key,
+        });
+
+        return this;
+    };
+
+    public addColorChannelFilter = (defs: SVGColorFilterDefs) => {
+        const key = `${this.filterId}_color_${this.colorCount++}`;
+
+        this.filterPrimitives[key] = (srcIn: string) => ({
+            element: (
+                <feColorMatrix
+                    in={srcIn}
+                    type="matrix"
+                    values={`${defs.r} 0 0 0 0
+                        0 ${defs.g} 0 0 0
+                        0 0 ${defs.b} 0 0
+                        0 0 0 1 0`}
+                    result={key}
+                />
+            ),
+            resultGraphic: key,
+        });
 
         return this;
     };

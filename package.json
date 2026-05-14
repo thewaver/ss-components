@@ -22,7 +22,8 @@
         "shiki": "^4.0.2"
     },
     "devDependencies": {
-        "@thewaver/ss-utils": "^0.0.9",
+        "@solidjs/router": "^0.16.1",
+        "@thewaver/ss-utils": "^0.0.10",
         "@trivago/prettier-plugin-sort-imports": "^6.0.2",
         "@vanilla-extract/css": "^1.20.1",
         "@vanilla-extract/dynamic": "^2.1.5",
@@ -37,7 +38,8 @@
         "vite-plugin-solid": "^2.11.12"
     },
     "peerDependencies": {
-        "@thewaver/ss-utils": "^0.0.9",
+        "@solidjs/router": "^0.16.1",
+        "@thewaver/ss-utils": "^0.0.10",
         "fast-equals": "^6.0.0",
         "solid-js": "^1.9.12"
     },

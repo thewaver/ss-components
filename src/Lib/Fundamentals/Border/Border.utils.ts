@@ -3,6 +3,20 @@ import type { Point2d, Size2d } from "@thewaver/ss-utils";
 import type { BorderRadiusDefs, BorderWidthDefs } from "./Border.types";
 
 export namespace BorderUtils {
+    export const spreadRadius = (radius: number) => ({
+        borderBottomLeftRadius: radius,
+        borderBottomRightRadius: radius,
+        borderTopLeftRadius: radius,
+        borderTopRightRadius: radius,
+    });
+
+    export const spreadWidth = (width: number) => ({
+        borderTopWidth: width,
+        borderRightWidth: width,
+        borderBottomWidth: width,
+        borderLeftWidth: width,
+    });
+
     export const normalizeCornerRadii = (width: number, height: number, radii: BorderRadiusDefs): BorderRadiusDefs => {
         const safeWidth = Math.max(0, width);
         const safeHeight = Math.max(0, height);

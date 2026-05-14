@@ -4,9 +4,10 @@ import type { AccessorProps } from "../../Utils/typeUtils";
 
 export type TabProps = AccessorProps<{
     dir?: "column" | "row";
-    selectedIndex: number;
+    selectedIndex: number | undefined;
     tabCount: number;
     tabGap?: number;
+    hrefs?: string[];
     transitionDurationMs?: number;
     getIsDisabled?: (getIndex: () => number) => boolean;
     renderGutter?: () => JSX.Element;

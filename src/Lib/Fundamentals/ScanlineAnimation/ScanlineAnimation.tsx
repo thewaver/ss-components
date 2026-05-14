@@ -1,6 +1,6 @@
 import { For, createEffect, createMemo, createSignal, createUniqueId, onCleanup, onMount } from "solid-js";
 
-import { FunctioUtils, Size2d } from "@thewaver/ss-utils";
+import { FunctionUtils, Size2d } from "@thewaver/ss-utils";
 
 import type { ScanlineAnimationProps } from "./ScanlineAnimation.types";
 
@@ -109,7 +109,7 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
             <img
                 ref={(el) => {
                     rootRef = el;
-                    attachAnimation(el, undefined, props.onAnimationEnd ?? FunctioUtils.noop);
+                    attachAnimation(el, undefined, props.onAnimationEnd ?? FunctionUtils.noop);
                 }}
                 src={props.getSrc()}
                 class={styles.scanlineAnimationAnchor}

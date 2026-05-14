@@ -1,5 +1,7 @@
 import { For, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
+import { A } from "@solidjs/router";
+
 import type { TabProps } from "./Tabs.types";
 
 import * as styles from "./Tabs.css";
@@ -9,7 +11,7 @@ const DEFAULT_TABS_GAP = 0;
 const DEFAULT_TABS_DIR = "row";
 
 export const Tabs = (props: TabProps) => {
-    let itemRefs: HTMLButtonElement[] = [];
+    let itemRefs: HTMLElement[] = [];
 
     const [getFloaterBounds, setFloaterBounds] = createSignal<
         { [k in "top" | "left" | "width" | "height"]: string } | undefined
@@ -32,7 +34,8 @@ export const Tabs = (props: TabProps) => {
             selectedItemObserver?.disconnect();
         });
 
-        const selectedItemRef = itemRefs[props.getSelectedIndex()];
+        const selectedIndex = props.getSelectedIndex?.();
+        const selectedItemRef = selectedIndex ? itemRefs[selectedIndex] : undefined;
 
         if (!selectedItemRef) return;
 
@@ -62,21 +65,28 @@ export const Tabs = (props: TabProps) => {
             </Show>
 
             <For each={getTabArray()}>
-                {(_, getIndex) => (
-                    <button
-                        ref={(el) => {
+                {(_, getIndex) => {
+                    const commonProps = {
+                        ref: (el: HTMLElement) => {
                             itemRefs[getIndex()] = el;
-                        }}
-                        type="button"
-                        class={styles.tabsItem}
-                        disabled={props.getIsDisabled?.(getIndex)}
-                        onClick={() => {
+                        },
+                        class: styles.tabsItem,
+                        disabled: props.getIsDisabled?.(getIndex),
+                        onClick: () => {
                             props.onSelectionChange?.(getIndex());
-                        }}
-                    >
-                        {props.renderTab(getIndex)}
-                    </button>
-                )}
+                        },
+                    };
+
+                    return props.hrefs?.[getIndex()] ? (
+                        <A href={props.hrefs![getIndex()]} {...commonProps}>
+                            {props.renderTab(getIndex)}
+                        </A>
+                    ) : (
+                        <button type="button" {...commonProps}>
+                            {props.renderTab(getIndex)}
+                        </button>
+                    );
+                }}
             </For>
         </div>
     );

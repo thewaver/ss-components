@@ -31,3 +31,9 @@ export type SVGContrastFilterDefs = SVGBaseFilterDefs & {
 export type SVGInversionFilterDefs = SVGBaseFilterDefs & {
     amount: number;
 };
+
+export type SVGColorFilterDefs = SVGBaseFilterDefs & {
+    r: number;
+    g: number;
+    b: number;
+};

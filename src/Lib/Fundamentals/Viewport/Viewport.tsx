@@ -1,7 +1,7 @@
 import type { ParentProps } from "solid-js";
 import { Show, createSignal, onCleanup, onMount } from "solid-js";
 
-import { Rect, Size2d } from "@thewaver/ss-utils";
+import { Rect, RectUtils, Size2d } from "@thewaver/ss-utils";
 
 import { ViewportContextProvider } from "./Viewpoer.context";
 import type { ViewportProps } from "./Viewport.types";
@@ -9,7 +9,7 @@ import type { ViewportProps } from "./Viewport.types";
 import * as styles from "./Viewport.css";
 
 const getFit = (viewportSize: Size2d) =>
-    Rect.fit(viewportSize, { width: window.innerWidth, height: window.innerHeight });
+    RectUtils.fit(viewportSize, { width: window.innerWidth, height: window.innerHeight });
 
 export const Viewport = (props: ParentProps<ViewportProps>) => {
     let rootRef: HTMLDivElement | undefined;

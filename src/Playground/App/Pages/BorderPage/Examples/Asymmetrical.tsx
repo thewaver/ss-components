@@ -1,5 +1,6 @@
 import { createUniqueId } from "solid-js";
 
+import { SVGFilterDefsFactory } from "../../../../../Lib/Abstracts/SVG/Defs/Filter/SVGFilterDefs.factory";
 import { SVGGradientDefsUtils } from "../../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
 import type { SVGDefs } from "../../../../../Lib/Abstracts/SVG/Defs/SVGDefs.types";
 import { Border } from "../../../../../Lib/Fundamentals/Border/Border";
@@ -9,10 +10,10 @@ import * as styles from "../BorderPage.css";
 
 const getFillDefs = (id: string): SVGDefs => ({
     gradient: {
-        id,
+        id: `gradient-${id}`,
         defsElement: SVGGradientDefsUtils.setLinearGradient(
             {
-                id,
+                id: `gradient-${id}`,
                 colors: [{ value: "#FF00FF" }, { value: "#FFFF00" }],
                 angle: 45,
             },
@@ -26,6 +27,12 @@ const getFillDefs = (id: string): SVGDefs => ({
             />,
         ),
     },
+    filter: {
+        id: `filter-${id}`,
+        defsElement: new SVGFilterDefsFactory(`filter-${id}`)
+            .addGaussianBlurFilter({ stdDeviation: 10 })
+            .getFilterPrimitives(),
+    },
 });
 
 type Props = AccessorProps<{
@@ -33,21 +40,21 @@ type Props = AccessorProps<{
     borderWidth: number;
 }>;
 
-export const AsymetricExample = (props: Props) => {
+export const AsymmetricalExample = (props: Props) => {
     const id = createUniqueId();
 
     return (
         <Border
-            getClass={() => styles.borderedContainer}
+            getClass={() => styles.borderedContainerRotate}
             getBorderRadii={() => ({
-                borderBottomLeftRadius: props.getBorderRadius(),
+                borderBottomLeftRadius: props.getBorderRadius() * 2,
                 borderBottomRightRadius: props.getBorderRadius(),
                 borderTopLeftRadius: props.getBorderRadius(),
                 borderTopRightRadius: props.getBorderRadius() * 2,
             })}
             getBorderWidths={() => ({
                 borderTopWidth: props.getBorderWidth(),
-                borderRightWidth: props.getBorderWidth(),
+                borderRightWidth: props.getBorderWidth() * 2,
                 borderBottomWidth: props.getBorderWidth() * 2,
                 borderLeftWidth: props.getBorderWidth(),
             })}

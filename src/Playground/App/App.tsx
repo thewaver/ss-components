@@ -1,5 +1,8 @@
 import type { JSX } from "solid-js";
-import { Show, createMemo, createSignal } from "solid-js";
+import { Show, createEffect, createMemo, createSignal } from "solid-js";
+
+import { Route, type RouteSectionProps, Router } from "@solidjs/router";
+import { StringUtils } from "@thewaver/ss-utils";
 
 import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
@@ -13,29 +16,20 @@ import { TypewriterPage } from "./Pages/TypewriterPage/TypewriterPage";
 
 import * as styles from "./App.css";
 
-/*
-    const dominantColor = useColorExtractor({
-        getSrc: () => knight,
-        getColorCount: () => 3,
-    });
+type CategoryTabConfig = {
+    name: string;
+};
 
-            <div
-                class={styles.imgContent}
-                style={{
-                    "background-image": `linear-gradient(45deg, ${dominantColor.getColorData()?.[0]?.css() ?? "transparent"} 50%, ${dominantColor.getColorData()?.[1]?.css() ?? "transparent"} 50%)`,
-                }}
-            >
-                <img src={knight} height="100%" />
-            </div>
+type ComponentTabConfig = {
+    name: string;
+    component: () => JSX.Element;
+};
 
-*/
+type TabConfig = CategoryTabConfig | ComponentTabConfig;
 
-type TabConfig =
-    | {
-          name: string;
-          component: () => JSX.Element;
-      }
-    | { name: string };
+const isComponentConfig = (config: TabConfig): config is ComponentTabConfig => "component" in config;
+
+const componentToRouteName = (name: string) => `/${StringUtils.camelToKebabCase(name)}`;
 
 const TAB_CONFIGS: TabConfig[] = [
     {
@@ -83,10 +77,10 @@ const TAB_CONFIGS: TabConfig[] = [
     },
 ];
 
-const isCategory = (config: TabConfig): boolean => !("component" in config);
+const TAB_CONFIG_INDEXES = Object.fromEntries(TAB_CONFIGS.map((c, idx) => [componentToRouteName(c.name), idx]));
 
-export function AppContent() {
-    const [getTabIndex, setTabIndex] = createSignal(1);
+export function AppContent(props: RouteSectionProps) {
+    const [getTabIndex, setTabIndex] = createSignal<number>();
     const [getSearchTerm, setSearchTerm] = createSignal("");
 
     const getTabConfig = createMemo(() => {
@@ -95,8 +89,22 @@ export function AppContent() {
 
         if (!getSearchTerm()) return TAB_CONFIGS;
         return TAB_CONFIGS.filter(
-            (item, idx) => isCategory(item) || idx === tabIndex || item.name.toLocaleLowerCase().includes(searchTerm),
+            (item, idx) =>
+                !isComponentConfig(item) || idx === tabIndex || item.name.toLocaleLowerCase().includes(searchTerm),
         );
+    });
+
+    const getHrefs = createMemo(() => {
+        const tabConfig = getTabConfig();
+
+        return tabConfig.map((c) => (isComponentConfig(c) ? componentToRouteName(c.name) : ""));
+    });
+
+    createEffect(() => {
+        const pathName = props.location.pathname;
+        const index = TAB_CONFIG_INDEXES[pathName];
+
+        setTabIndex(index);
     });
 
     return (
@@ -115,12 +123,13 @@ export function AppContent() {
                     getDir={() => "column"}
                     getSelectedIndex={getTabIndex}
                     getTabCount={() => getTabConfig().length}
-                    getIsDisabled={(getIndex) => isCategory(getTabConfig()[getIndex()])}
+                    getIsDisabled={(getIndex) => !isComponentConfig(getTabConfig()[getIndex()])}
                     onSelectionChange={setTabIndex}
+                    hrefs={getHrefs()}
                     renderFloater={() => <div class={styles.tabFloater} />}
                     renderTab={(getIndex) => (
                         <div
-                            class={isCategory(getTabConfig()[getIndex()]) ? styles.tabCategory : styles.tabItem}
+                            class={isComponentConfig(getTabConfig()[getIndex()]) ? styles.tabItem : styles.tabCategory}
                             classList={{ [styles.isSelected]: getIndex() === getTabIndex() }}
                         >
                             {getTabConfig()[getIndex()].name}
@@ -129,12 +138,12 @@ export function AppContent() {
                 />
             </div>
 
-            <Show when={!isCategory(getTabConfig()[getTabIndex()])}>
-                <div class={styles.tabPage}>
-                    <div class={styles.tabPageTitle}>{getTabConfig()[getTabIndex()].name}</div>
-                    {(getTabConfig()[getTabIndex()] as any).component()}
-                </div>
-            </Show>
+            <div class={styles.tabPage}>
+                <Show when={getTabIndex()}>
+                    <div class={styles.tabPageTitle}>{getTabConfig()[getTabIndex()!].name}</div>
+                </Show>
+                {props.children}
+            </div>
         </div>
     );
 }
@@ -142,9 +151,21 @@ export function AppContent() {
 export function App() {
     return (
         <div id="app">
-            <Viewport getSize={() => ({ width: 1920, height: 1080 })}>
-                <AppContent />
-            </Viewport>
+            <Router>
+                <Route
+                    path="/"
+                    component={(props) => (
+                        <Viewport getSize={() => ({ width: 1920, height: 1080 })}>
+                            <AppContent {...props} />
+                        </Viewport>
+                    )}
+                >
+                    <Route path="/" component={() => <>{null}</>} />
+                    {TAB_CONFIGS.filter((c) => isComponentConfig(c)).map((c) => (
+                        <Route path={componentToRouteName(c.name)} component={c.component} />
+                    ))}
+                </Route>
+            </Router>
         </div>
     );
 }

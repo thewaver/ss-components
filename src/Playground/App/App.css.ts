@@ -77,11 +77,3 @@ export const tabPage = style({
 export const tabPageTitle = style({
     fontSize: "1.5rem",
 });
-
-/*
-export const imgContent = style({
-    height: 160,
-    width: 160,
-    border: "2px solid var(--clr-text)",
-});
-*/
