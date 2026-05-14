@@ -7,6 +7,12 @@ import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 
 import * as styles from "../BorderPage.css";
 
+const getFillDefsPlain = (): SVGDefs[] => [
+    {
+        color: "#FF00FF",
+    },
+];
+
 const getFillDefs = (id: string): SVGDefs[] => [
     {
         gradient: {
@@ -53,6 +59,7 @@ const getFillDefs = (id: string): SVGDefs[] => [
 type Props = AccessorProps<{
     borderRadius: number;
     borderWidth: number;
+    isPlain?: boolean;
 }>;
 
 export const AsymmetricalExample = (props: Props) => {
@@ -60,7 +67,7 @@ export const AsymmetricalExample = (props: Props) => {
 
     return (
         <Border
-            getClass={() => styles.borderedContainerRotate}
+            getClass={() => (props.getIsPlain?.() ? styles.borderedContainerPlain : styles.borderedContainerRotate)}
             getBorderRadii={() => ({
                 borderBottomLeftRadius: props.getBorderRadius() * 2,
                 borderBottomRightRadius: props.getBorderRadius(),
@@ -73,7 +80,7 @@ export const AsymmetricalExample = (props: Props) => {
                 borderBottomWidth: props.getBorderWidth() * 2,
                 borderLeftWidth: props.getBorderWidth(),
             })}
-            getFillDefs={() => getFillDefs(id)}
+            getFillDefs={() => (props.getIsPlain?.() ? getFillDefsPlain() : getFillDefs(id))}
         >
             <div class={styles.borderedContent}>I have a border</div>
         </Border>

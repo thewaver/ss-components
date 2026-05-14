@@ -1,6 +1,6 @@
 import { createUniqueId } from "solid-js";
 
-import { SVGFilterDefsFactory } from "../../../../../Lib/Abstracts/SVG/Defs/Filter/SVGFilterDefs.factory";
+// import { SVGFilterDefsFactory } from "../../../../../Lib/Abstracts/SVG/Defs/Filter/SVGFilterDefs.factory";
 import { SVGGradientDefsUtils } from "../../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
 import type { SVGDefs } from "../../../../../Lib/Abstracts/SVG/Defs/SVGDefs.types";
 import { Border } from "../../../../../Lib/Fundamentals/Border/Border";
@@ -9,10 +9,16 @@ import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 
 import * as styles from "../BorderPage.css";
 
+const getFillDefsPlain = (): SVGDefs[] => [
+    {
+        color: "#FF00FF",
+    },
+];
+
 const getFillDefs = (id: string): SVGDefs[] => [
     {
         color: "#FF00FF",
-        filter: {
+        /* filter: {
             id: `filter1-${id}`,
             defsElement: new SVGFilterDefsFactory(`filter1-${id}`)
                 .addHueRotationFilter(
@@ -26,7 +32,7 @@ const getFillDefs = (id: string): SVGDefs[] => [
                     />,
                 )
                 .getFilterPrimitives(),
-        },
+        }, */
     },
     {
         gradient: {
@@ -51,6 +57,7 @@ const getFillDefs = (id: string): SVGDefs[] => [
 type Props = AccessorProps<{
     borderRadius: number;
     borderWidth: number;
+    isPlain?: boolean;
 }>;
 
 export const SymmetricalExample = (props: Props) => {
@@ -58,10 +65,10 @@ export const SymmetricalExample = (props: Props) => {
 
     return (
         <Border
-            getClass={() => styles.borderedContainerSwipe}
+            getClass={() => (props.getIsPlain?.() ? styles.borderedContainerPlain : styles.borderedContainerSwipe)}
             getBorderRadii={() => BorderUtils.spreadRadius(props.getBorderRadius())}
             getBorderWidths={() => BorderUtils.spreadWidth(props.getBorderWidth())}
-            getFillDefs={() => getFillDefs(id)}
+            getFillDefs={() => (props.getIsPlain?.() ? getFillDefsPlain() : getFillDefs(id))}
         >
             <div class={styles.borderedContent}>I have a border</div>
         </Border>

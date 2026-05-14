@@ -2,6 +2,7 @@ import { For, Show, createMemo, createSignal } from "solid-js";
 
 import { Tabs } from "../../../../Lib/Fundamentals/Tabs/Tabs";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
+import type { BorderExampleProps } from "./BorderPage.types";
 import { AsymmetricalExample } from "./Examples/Asymmetrical";
 import AsymmetricalExampleRaw from "./Examples/Asymmetrical.tsx?raw";
 import { SymmetricalExample } from "./Examples/Symmetrical";
@@ -14,13 +15,13 @@ const TAB_NAMES = ["Render", "Source"];
 const ASYMMETRICAL_SOURCE = highlighter.codeToHtml(AsymmetricalExampleRaw, getDefaultHighlighterConfig());
 const SYMMETRICAL_SOURCE = highlighter.codeToHtml(SymmetricalExampleRaw, getDefaultHighlighterConfig());
 
-export const AsymmetricalWrapper = () => {
+export const AsymmetricalWrapper = (props: BorderExampleProps) => {
     const [getBorderWidth, setBorderWidth] = createSignal(4);
     const [getBorderRadius, setBorderRadius] = createSignal(20);
 
     return (
         <>
-            <AsymmetricalExample getBorderRadius={getBorderRadius} getBorderWidth={getBorderWidth} />
+            <AsymmetricalExample {...props} getBorderRadius={getBorderRadius} getBorderWidth={getBorderWidth} />
 
             <div class={pageStyles.props}>
                 <div class={pageStyles.propPanel}>
@@ -55,13 +56,13 @@ export const AsymmetricalWrapper = () => {
     );
 };
 
-export const SymmetricalWrapper = () => {
+export const SymmetricalWrapper = (props: BorderExampleProps) => {
     const [getBorderWidth, setBorderWidth] = createSignal(4);
     const [getBorderRadius, setBorderRadius] = createSignal(20);
 
     return (
         <>
-            <SymmetricalExample getBorderRadius={getBorderRadius} getBorderWidth={getBorderWidth} />
+            <SymmetricalExample {...props} getBorderRadius={getBorderRadius} getBorderWidth={getBorderWidth} />
 
             <div class={pageStyles.props}>
                 <div class={pageStyles.propPanel}>
@@ -97,16 +98,22 @@ export const SymmetricalWrapper = () => {
 };
 
 export const BorderPage = () => {
+    const [getIsPlain, setIsPlain] = createSignal(false);
+
     const getExamples = createMemo(() => {
+        const commonProps = {
+            getIsPlain,
+        };
+
         return [
             {
                 name: "Symmetrical",
-                component: () => <SymmetricalWrapper />,
+                component: () => <SymmetricalWrapper {...commonProps} />,
                 src: SYMMETRICAL_SOURCE,
             },
             {
                 name: "Asymmetrical",
-                component: () => <AsymmetricalWrapper />,
+                component: () => <AsymmetricalWrapper {...commonProps} />,
                 src: ASYMMETRICAL_SOURCE,
             },
         ];
@@ -115,49 +122,60 @@ export const BorderPage = () => {
     const [getTabIndex, setTabIndex] = createSignal(getExamples().map(() => 0));
 
     return (
-        <div class={pageStyles.examplesContainer}>
-            <For each={getExamples()}>
-                {(example, getExampleIndex) => (
-                    <div class={[styles.container, pageStyles.container].join(" ")}>
-                        {`${example.name}:`}
-
-                        <Tabs
-                            getDir={() => "row"}
-                            getTabGap={() => 10}
-                            getSelectedIndex={() => getTabIndex()[getExampleIndex()]}
-                            getTabCount={() => 2}
-                            onSelectionChange={(value) =>
-                                setTabIndex((prev) => {
-                                    const next = [...prev];
-
-                                    next[getExampleIndex()] = value;
-
-                                    return next;
-                                })
-                            }
-                            renderGutter={() => <div class={pageStyles.tabsGutter} />}
-                            renderFloater={() => <div class={pageStyles.tabFloater} />}
-                            renderTab={(getIndex) => (
-                                <div
-                                    class={pageStyles.tabItem}
-                                    classList={{
-                                        [pageStyles.isSelected]: getIndex() === getTabIndex()[getExampleIndex()],
-                                    }}
-                                >
-                                    {TAB_NAMES[getIndex()]}
-                                </div>
-                            )}
-                        />
-
-                        <Show when={getTabIndex()[getExampleIndex()] === 0}>{example.component()}</Show>
-                        <Show when={getTabIndex()[getExampleIndex()] === 1}>
-                            <div class={pageStyles.codeBoxOutter}>
-                                <div class={pageStyles.codeBoxInner} innerHTML={example.src} />
-                            </div>
-                        </Show>
+        <div class={styles.root}>
+            <div class={[styles.container, pageStyles.container].join(" ")}>
+                <div class={pageStyles.props}>
+                    <div class={pageStyles.propPanel}>
+                        <div>{"Disable effects"}</div>
+                        <input type="checkbox" checked={getIsPlain()} onChange={(e) => setIsPlain((prev) => !prev)} />
                     </div>
-                )}
-            </For>
+                </div>
+            </div>
+
+            <div class={pageStyles.examplesContainer}>
+                <For each={getExamples()}>
+                    {(example, getExampleIndex) => (
+                        <div class={[styles.container, pageStyles.container].join(" ")}>
+                            {`${example.name}:`}
+
+                            <Tabs
+                                getDir={() => "row"}
+                                getTabGap={() => 10}
+                                getSelectedIndex={() => getTabIndex()[getExampleIndex()]}
+                                getTabCount={() => 2}
+                                onSelectionChange={(value) =>
+                                    setTabIndex((prev) => {
+                                        const next = [...prev];
+
+                                        next[getExampleIndex()] = value;
+
+                                        return next;
+                                    })
+                                }
+                                renderGutter={() => <div class={pageStyles.tabsGutter} />}
+                                renderFloater={() => <div class={pageStyles.tabFloater} />}
+                                renderTab={(getIndex) => (
+                                    <div
+                                        class={pageStyles.tabItem}
+                                        classList={{
+                                            [pageStyles.isSelected]: getIndex() === getTabIndex()[getExampleIndex()],
+                                        }}
+                                    >
+                                        {TAB_NAMES[getIndex()]}
+                                    </div>
+                                )}
+                            />
+
+                            <Show when={getTabIndex()[getExampleIndex()] === 0}>{example.component()}</Show>
+                            <Show when={getTabIndex()[getExampleIndex()] === 1}>
+                                <div class={pageStyles.codeBoxOutter}>
+                                    <div class={pageStyles.codeBoxInner} innerHTML={example.src} />
+                                </div>
+                            </Show>
+                        </div>
+                    )}
+                </For>
+            </div>
         </div>
     );
 };
