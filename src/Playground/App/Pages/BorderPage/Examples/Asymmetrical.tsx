@@ -1,6 +1,5 @@
 import { createUniqueId } from "solid-js";
 
-import { SVGFilterDefsFactory } from "../../../../../Lib/Abstracts/SVG/Defs/Filter/SVGFilterDefs.factory";
 import { SVGGradientDefsUtils } from "../../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
 import type { SVGDefs } from "../../../../../Lib/Abstracts/SVG/Defs/SVGDefs.types";
 import { Border } from "../../../../../Lib/Fundamentals/Border/Border";
@@ -8,32 +7,48 @@ import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 
 import * as styles from "../BorderPage.css";
 
-const getFillDefs = (id: string): SVGDefs => ({
-    gradient: {
-        id: `gradient-${id}`,
-        defsElement: SVGGradientDefsUtils.setLinearGradient(
-            {
-                id: `gradient-${id}`,
-                colors: [{ value: "#FF00FF" }, { value: "#FFFF00" }],
-                angle: 45,
-            },
-            <animateTransform
-                attributeName="gradientTransform"
-                type="rotate"
-                from="0 0.5 0.5"
-                to="360 0.5 0.5"
-                dur="5s"
-                repeatCount="indefinite"
-            />,
-        ),
+const getFillDefs = (id: string): SVGDefs[] => [
+    {
+        gradient: {
+            id: `gradient1-${id}`,
+            defsElement: SVGGradientDefsUtils.getLinearGradient(
+                {
+                    id: `gradient1-${id}`,
+                    colors: [{ value: "#FF00FF" }, { value: "#00FFFF" }],
+                    angle: 45,
+                },
+                <animateTransform
+                    attributeName="gradientTransform"
+                    type="rotate"
+                    from="0 0.5 0.5"
+                    to="360 0.5 0.5"
+                    dur="5s"
+                    repeatCount="indefinite"
+                />,
+            ),
+        },
     },
-    filter: {
-        id: `filter-${id}`,
-        defsElement: new SVGFilterDefsFactory(`filter-${id}`)
-            .addGaussianBlurFilter({ stdDeviation: 10 })
-            .getFilterPrimitives(),
+    {
+        gradient: {
+            id: `gradient2-${id}`,
+            defsElement: SVGGradientDefsUtils.getLinearGradient(
+                {
+                    id: `gradient2-${id}`,
+                    colors: [{ value: "transparent" }, { value: "#FFFF00" }],
+                    angle: 45,
+                },
+                <animateTransform
+                    attributeName="gradientTransform"
+                    type="rotate"
+                    from="360 0.5 0.5"
+                    to="0 0.5 0.5"
+                    dur="2.5s"
+                    repeatCount="indefinite"
+                />,
+            ),
+        },
     },
-});
+];
 
 type Props = AccessorProps<{
     borderRadius: number;

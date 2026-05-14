@@ -7,7 +7,8 @@ const rotate = keyframes({
 
 const swipe = keyframes({
     "0%": { transform: "translateX(-100%)" },
-    "100%": { transform: "translateX(100%)" },
+    "50%": { transform: "translateX(100%)" },
+    "100%": { transform: "translateX(-100%)" },
 });
 
 export const root = style({});
@@ -31,7 +32,7 @@ export const borderedContainerRotate = style({
             position: "absolute",
             inset: "-41.5%", // approx SQRT2
             zIndex: -1,
-            backgroundImage: "linear-gradient(135deg, #FF800000, #FF8000C0)",
+            backgroundImage: "linear-gradient(135deg, #0080FF00, #0080FF80)",
             animationName: rotate,
             animationDuration: "5s",
             animationFillMode: "both",
@@ -53,7 +54,7 @@ export const borderedContainerSwipe = style({
             zIndex: -1,
             backgroundImage: "linear-gradient(90deg, #FF800000, #FF800040, #FF800000)",
             animationName: swipe,
-            animationDuration: "2s",
+            animationDuration: "5s",
             animationFillMode: "both",
             animationIterationCount: "infinite",
             animationTimingFunction: "linear",

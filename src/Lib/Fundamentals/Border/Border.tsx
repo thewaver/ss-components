@@ -1,4 +1,4 @@
-import { type ParentProps, createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import { For, type ParentProps, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
 import { type Size2d, StringUtils } from "@thewaver/ss-utils";
 
@@ -59,20 +59,24 @@ export const Border = (props: ParentProps<BorderProps>) => {
                 viewBox={`0 0 ${getRootSize().width} ${getRootSize().height}`}
             >
                 <defs>
-                    {props.getFillDefs().gradient?.defsElement}
-                    {props.getFillDefs().filter?.defsElement}
+                    {props.getFillDefs().map((def) => (
+                        <>
+                            {def.gradient?.defsElement}
+                            {def.filter?.defsElement}
+                        </>
+                    ))}
                 </defs>
 
-                <path
-                    d={`${getPaths().outerPath} ${getPaths().innerPath}`}
-                    fill-rule="evenodd"
-                    fill={
-                        props.getFillDefs().gradient
-                            ? `url(#${props.getFillDefs().gradient?.id})`
-                            : props.getFillDefs().color
-                    }
-                    filter={props.getFillDefs().filter ? `url(#${props.getFillDefs().filter?.id})` : undefined}
-                />
+                <For each={props.getFillDefs()}>
+                    {(def) => (
+                        <path
+                            d={`${getPaths().outerPath} ${getPaths().innerPath}`}
+                            fill-rule="evenodd"
+                            fill={def.gradient ? `url(#${def.gradient?.id})` : def.color}
+                            filter={def.filter ? `url(#${def.filter?.id})` : undefined}
+                        />
+                    )}
+                </For>
             </svg>
             {props.children}
         </div>

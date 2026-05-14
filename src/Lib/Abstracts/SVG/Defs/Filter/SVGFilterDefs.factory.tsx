@@ -65,51 +65,67 @@ export class SVGFilterDefsFactory {
         );
     };
 
-    public addDropShadowFilter = (defs: SVGDropShadowFilterDefs) => {
+    public addDropShadowFilter = (defs: SVGDropShadowFilterDefs, custom?: JSX.Element) => {
         const key = `${this.filterId}_dropShadow_${this.dropShadowCount++}`;
 
         this.filterPrimitives[key] = () => ({
-            element: <feDropShadow {...defs} result={key} />,
+            element: (
+                <feDropShadow {...defs} result={key}>
+                    {custom}
+                </feDropShadow>
+            ),
             resultGraphic: key,
         });
 
         return this;
     };
 
-    public addGaussianBlurFilter = (defs: SVGGaussianBlurFilterDefs) => {
+    public addGaussianBlurFilter = (defs: SVGGaussianBlurFilterDefs, custom?: JSX.Element) => {
         const key = `${this.filterId}_gaussianBlur_${this.gaussianBlurCount++}`;
 
         this.filterPrimitives[key] = (srcIn: string) => ({
-            element: <feGaussianBlur in={srcIn} {...defs} result={key} />,
+            element: (
+                <feGaussianBlur in={srcIn} {...defs} result={key}>
+                    {custom}
+                </feGaussianBlur>
+            ),
             resultGraphic: key,
         });
 
         return this;
     };
 
-    public addHueRotationFilter = (defs: SVGHueRotationFilterDefs) => {
+    public addHueRotationFilter = (defs: SVGHueRotationFilterDefs, custom?: JSX.Element) => {
         const key = `${this.filterId}_hueRotation_${this.hueRotationCount++}`;
 
         this.filterPrimitives[key] = (srcIn: string) => ({
-            element: <feColorMatrix in={srcIn} type="hueRotate" values={`${defs.deg}`} result={key} />,
+            element: (
+                <feColorMatrix in={srcIn} type="hueRotate" values={`${defs.deg}`} result={key}>
+                    {custom}
+                </feColorMatrix>
+            ),
             resultGraphic: key,
         });
 
         return this;
     };
 
-    public addSaturationFilter = (defs: SVGSaturationFilterDefs) => {
+    public addSaturationFilter = (defs: SVGSaturationFilterDefs, custom?: JSX.Element) => {
         const key = `${this.filterId}_saturation_${this.saturationCount++}`;
 
         this.filterPrimitives[key] = (srcIn: string) => ({
-            element: <feColorMatrix in={srcIn} type="saturate" values={`${defs.amount}`} result={key} />,
+            element: (
+                <feColorMatrix in={srcIn} type="saturate" values={`${defs.amount}`} result={key}>
+                    {custom}
+                </feColorMatrix>
+            ),
             resultGraphic: key,
         });
 
         return this;
     };
 
-    public addBrightnessFilter = (defs: SVGBrightnessFilterDefs) => {
+    public addBrightnessFilter = (defs: SVGBrightnessFilterDefs, custom?: JSX.Element) => {
         const key = `${this.filterId}_brightness_${this.brightnessCount++}`;
 
         this.filterPrimitives[key] = (srcIn: string) => ({
@@ -122,7 +138,9 @@ export class SVGFilterDefsFactory {
                         0 0 ${defs.amount} 0 0
                         0 0 0 1 0`}
                     result={key}
-                />
+                >
+                    {custom}
+                </feColorMatrix>
             ),
             resultGraphic: key,
         });
@@ -130,7 +148,7 @@ export class SVGFilterDefsFactory {
         return this;
     };
 
-    public addContrastFilter = (defs: SVGContrastFilterDefs) => {
+    public addContrastFilter = (defs: SVGContrastFilterDefs, custom?: JSX.Element) => {
         const key = `${this.filterId}_contrast_${this.contrastCount++}`;
         const intercept = 0.5 * (1 - defs.amount);
 
@@ -144,7 +162,9 @@ export class SVGFilterDefsFactory {
                         0 0 ${defs.amount} 0 ${intercept}
                         0 0 0 1 0`}
                     result={key}
-                />
+                >
+                    {custom}
+                </feColorMatrix>
             ),
             resultGraphic: key,
         });
@@ -152,7 +172,7 @@ export class SVGFilterDefsFactory {
         return this;
     };
 
-    public addInversionFilter = (defs: SVGInversionFilterDefs) => {
+    public addInversionFilter = (defs: SVGInversionFilterDefs, custom?: JSX.Element) => {
         const key = `${this.filterId}_inversion_${this.inversionCount++}`;
         const a = 1 - 2 * defs.amount;
         const b = defs.amount;
@@ -167,7 +187,9 @@ export class SVGFilterDefsFactory {
                         0 0 ${a} 0 ${b}
                         0 0 0 1 0`}
                     result={key}
-                />
+                >
+                    {custom}
+                </feColorMatrix>
             ),
             resultGraphic: key,
         });
@@ -175,7 +197,7 @@ export class SVGFilterDefsFactory {
         return this;
     };
 
-    public addColorChannelFilter = (defs: SVGColorFilterDefs) => {
+    public addColorChannelFilter = (defs: SVGColorFilterDefs, custom?: JSX.Element) => {
         const key = `${this.filterId}_color_${this.colorCount++}`;
 
         this.filterPrimitives[key] = (srcIn: string) => ({
@@ -188,7 +210,9 @@ export class SVGFilterDefsFactory {
                         0 0 ${defs.b} 0 0
                         0 0 0 1 0`}
                     result={key}
-                />
+                >
+                    {custom}
+                </feColorMatrix>
             ),
             resultGraphic: key,
         });

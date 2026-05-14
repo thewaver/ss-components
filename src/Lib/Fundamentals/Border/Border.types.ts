@@ -17,5 +17,5 @@ export type BorderProps = AccessorProps<{
     class?: string;
     borderWidths: BorderWidthDefs;
     borderRadii: BorderRadiusDefs;
-    fillDefs: SVGDefs;
+    fillDefs: SVGDefs[];
 }>;

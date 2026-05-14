@@ -34,7 +34,7 @@ export namespace SVGGradientDefsUtils {
         return { x1: `${x1}%`, y1: `${y1}%`, x2: `${x2}%`, y2: `${y2}%` };
     };
 
-    export const setLinearGradient = (defs: SVGLinearGradientDefs, custom?: JSX.Element) => {
+    export const getLinearGradient = (defs: SVGLinearGradientDefs, custom?: JSX.Element) => {
         const { id, angle, colors, ...baseProps } = defs;
         const { x1, y1, x2, y2 } = getLinearCoordsFromAngle(angle);
 
@@ -46,7 +46,7 @@ export namespace SVGGradientDefsUtils {
         );
     };
 
-    export const setRadialGradient = (defs: SVGRadialGradientDefs, custom?: JSX.Element) => {
+    export const getRadialGradient = (defs: SVGRadialGradientDefs, custom?: JSX.Element) => {
         const { id, colors, origin, ...baseProps } = defs;
 
         return (
