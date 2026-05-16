@@ -1,11 +1,13 @@
-import { For, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import { For, Show, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { Portal } from "solid-js/web";
 
 import { Rect } from "@thewaver/ss-utils";
 
+import { observeElement } from "../../Abstracts/ElementObserver/ElementObserver";
+import { FocusUtils } from "../../Abstracts/Focus/Focus.utils";
 import { useViewportContext } from "../Viewport/Viewpoer.context";
-import { ViewportUtils } from "../Viewport/Viewport.utils";
 import type { ElementHighlightProps } from "./ElementHighlight.types";
+import { ElementHighlightUtils } from "./ElementHighlight.utils";
 
 import * as styles from "./ElementHighlight.css";
 
@@ -21,12 +23,9 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
         clearTimeout(transitionTimeout);
     });
 
-    const [getElementRect, setElementRect] = createSignal<Rect>(
-        { x: 0, y: 0, width: 0, height: 0 },
-        {
-            equals: Rect.isSame,
-        },
-    );
+    const [getElementRect, setElementRect] = createSignal<Rect | undefined>(undefined, {
+        equals: Rect.isSame,
+    });
     const [getTransitionTarget, setTransitionTarget] = createSignal<0 | 1>(0);
     const [getHasTransitionFinished, setHasTransitionFinished] = createSignal(true);
 
@@ -39,56 +38,9 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
     const getSegmentRects = createMemo(() => {
         const rect = getElementRect();
 
-        return {
-            topLeft: {
-                top: `0`,
-                left: `0`,
-                width: `${rect.x}px`,
-                height: `${rect.y}px`,
-            },
-            topCenter: {
-                top: `0`,
-                left: `${rect.x}px`,
-                width: `${rect.width}px`,
-                height: `${rect.y}px`,
-            },
-            topRight: {
-                top: `0`,
-                left: `${rect.x + rect.width}px`,
-                width: `calc(100% - ${rect.x + rect.width}px)`,
-                height: `${rect.y}px`,
-            },
-            centerLeft: {
-                top: `${rect.y}px`,
-                left: `0`,
-                width: `${rect.x}px`,
-                height: `${rect.height}px`,
-            },
-            centerRight: {
-                top: `${rect.y}px`,
-                left: `${rect.x + rect.width}px`,
-                width: `calc(100% - ${rect.x + rect.width}px)`,
-                height: `${rect.height}px`,
-            },
-            bottomLeft: {
-                top: `${rect.y + rect.height}px`,
-                left: `0`,
-                width: `${rect.x}px`,
-                height: `calc(100% - ${rect.y + rect.height}px)`,
-            },
-            bottomCenter: {
-                top: `${rect.y + rect.height}px`,
-                left: `${rect.x}px`,
-                width: `${rect.width}px`,
-                height: `calc(100% - ${rect.y + rect.height}px)`,
-            },
-            bottomRight: {
-                top: `${rect.y + rect.height}px`,
-                left: `${rect.x + rect.width}px`,
-                width: `calc(100% - ${rect.x + rect.width}px)`,
-                height: `calc(100% - ${rect.y + rect.height}px)`,
-            },
-        };
+        if (!rect) return;
+
+        return ElementHighlightUtils.getSegmentRects(rect);
     });
 
     const getIsVisible = createMemo(() => {
@@ -105,6 +57,8 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
             clearTimeout(transitionTimeout);
             transitionTimeout = setTimeout(() => setHasTransitionFinished(true), getTransitionDurationMs());
         }, 0);
+
+        props.onOpen?.();
     };
 
     const hide = () => {
@@ -114,24 +68,29 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
             clearTimeout(transitionTimeout);
             transitionTimeout = setTimeout(() => setHasTransitionFinished(true), getTransitionDurationMs());
         }, 0);
+
+        props.onClose?.();
     };
 
-    const updateSize = () => {
-        if (!props.elementRef) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (!getIsVisible()) return;
 
-        const elementRect = ViewportUtils.getAdjustedBoundingClientRect(props.elementRef, viewportContext);
-
-        setElementRect({
-            x: elementRect.x - getPadding(),
-            y: elementRect.y - getPadding(),
-            width: elementRect.width + getPadding() * 2,
-            height: elementRect.height + getPadding() * 2,
-        });
+        if (e.key === "Tab") {
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (e.key === "Escape") {
+            hide();
+        }
     };
 
-    createEffect(() => {
-        updateSize();
-    });
+    const handleBlur = (e: FocusEvent) => {
+        if (!getIsVisible()) return;
+
+        e.stopPropagation();
+        e.preventDefault();
+
+        (e.target as HTMLElement).focus();
+    };
 
     createEffect(() => {
         const isVisible = props.getIsVisible();
@@ -144,32 +103,31 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
     });
 
     createEffect(() => {
-        let frameId: ReturnType<typeof requestAnimationFrame>;
-        let isCancelled = false;
+        const elementRef = props.getElementRef();
+        const anchor = FocusUtils.getFirstFocusableChild(elementRef);
 
         onCleanup(() => {
-            isCancelled = true;
-            cancelAnimationFrame(frameId);
+            elementRef?.removeEventListener("keydown", handleKeyDown);
+            anchor?.removeEventListener("blur", handleBlur);
         });
 
-        if (!getIsVisible()) return;
+        if (!elementRef) return;
 
-        const tick = () => {
-            if (isCancelled) return;
+        elementRef.addEventListener("keydown", handleKeyDown);
 
-            updateSize();
+        if (!anchor) return;
 
-            frameId = requestAnimationFrame(tick);
-        };
-
-        frameId = requestAnimationFrame(tick);
+        anchor.addEventListener("blur", handleBlur);
+        anchor.focus();
     });
 
+    observeElement(props.getElementRef, setElementRect, getIsVisible, { getPadding });
+
     return (
-        <Show when={getIsVisible()}>
+        <Show when={getIsVisible() && getSegmentRects()}>
             <Portal mount={viewportContext.getPortalRef()}>
                 <div class={styles.elementHighlightOverlay}>
-                    <For each={Object.values(getSegmentRects())}>
+                    <For each={Object.values(getSegmentRects()!)}>
                         {(rect) => (
                             <div class={styles.elementHighlightOverlaySegment} style={rect}>
                                 {props.renderOverlay(getTransitionTarget, getTransitionDurationMs)}
@@ -182,13 +140,13 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
                     <div
                         class={styles.elementHighlightDecoration}
                         style={{
-                            top: `${getElementRect().y}px`,
-                            left: `${getElementRect().x}px`,
-                            width: `${getElementRect().width}px`,
-                            height: `${getElementRect().height}px`,
+                            top: `${getElementRect()!.y}px`,
+                            left: `${getElementRect()!.x}px`,
+                            width: `${getElementRect()!.width}px`,
+                            height: `${getElementRect()!.height}px`,
                         }}
                     >
-                        {props.renderHighlight!()}
+                        {props.renderHighlight!(getTransitionTarget, getTransitionDurationMs)}
                     </div>
                 </Show>
             </Portal>

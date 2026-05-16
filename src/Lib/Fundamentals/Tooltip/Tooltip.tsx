@@ -1,9 +1,10 @@
 import { Show, createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import { Portal } from "solid-js/web";
 
 import { Rect, Size2d } from "@thewaver/ss-utils";
 
+import { observeElement } from "../../Abstracts/ElementObserver/ElementObserver";
 import { useViewportContext } from "../Viewport/Viewpoer.context";
-import { ViewportUtils } from "../Viewport/Viewport.utils";
 import type { TooltipHPlacement, TooltipPlacement, TooltipProps, TooltipVPlacement } from "./Tooltip.types";
 import { TooltipUtils } from "./Tooltip.utils";
 
@@ -84,6 +85,23 @@ export const Tooltip = (props: TooltipProps) => {
         };
     });
 
+    const getContentPos = createMemo(() => {
+        const anchorRect = getAnchorRect();
+        const contentSize = getContentSize();
+        const offset = getOffset();
+        const placement = getPlacement();
+
+        if (!anchorRect || !contentSize) return;
+
+        let shiftX = TooltipUtils.getHPlacementShift(placement.x, anchorRect, contentSize);
+        let shiftY = TooltipUtils.getVPlacementShift(placement.y, anchorRect, contentSize);
+
+        return {
+            x: shiftX + offset.x,
+            y: shiftY + offset.y,
+        };
+    });
+
     const getZIndex = createMemo(() => (props.getZindex ?? DEFAULT_TOOLTIP_Z_INDEX_GETTER)(getPlacement));
 
     const getIsVisible = createMemo(() => {
@@ -122,10 +140,12 @@ export const Tooltip = (props: TooltipProps) => {
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key !== "Escape") return;
+        if (!getIsVisible()) return;
 
-        clearTimeout(focusTimeout);
-        hide();
+        if (e.key === "Escape") {
+            clearTimeout(focusTimeout);
+            hide();
+        }
     };
 
     const handleFocus = () => {
@@ -138,67 +158,60 @@ export const Tooltip = (props: TooltipProps) => {
         hide();
     };
 
-    const updateSize = () => {
-        if (!props.anchorRef) return;
+    onMount(() => {
+        const anchorRef = props.getAnchorRef();
 
-        const anchorRect = ViewportUtils.getAdjustedBoundingClientRect(props.anchorRef, viewportContext);
-
-        setAnchorRect({
-            x: anchorRect.x,
-            y: anchorRect.y,
-            width: anchorRect.width,
-            height: anchorRect.height,
+        onCleanup(() => {
+            anchorRef?.removeEventListener("mouseenter", handleMouseEnter);
+            anchorRef?.removeEventListener("mouseleave", handleMouseLeave);
+            anchorRef?.removeEventListener("keydown", handleKeyDown);
+            anchorRef?.removeEventListener("focus", handleFocus);
+            anchorRef?.removeEventListener("blur", handleBlur);
         });
-    };
+
+        if (!anchorRef) return;
+
+        anchorRef.addEventListener("mouseenter", handleMouseEnter);
+        anchorRef.addEventListener("mouseleave", handleMouseLeave);
+        anchorRef.addEventListener("keydown", handleKeyDown);
+        anchorRef.addEventListener("focus", handleFocus);
+        anchorRef.addEventListener("blur", handleBlur);
+    });
 
     onMount(() => {
         let contentResizeObserver: ResizeObserver | undefined;
-        let anchorResizeObserver: ResizeObserver | undefined;
 
         onCleanup(() => {
             contentResizeObserver?.disconnect();
-            anchorResizeObserver?.disconnect();
-
-            props.anchorRef?.removeEventListener("mouseenter", handleMouseEnter);
-            props.anchorRef?.removeEventListener("mouseleave", handleMouseLeave);
-            props.anchorRef?.removeEventListener("keydown", handleKeyDown);
-            props.anchorRef?.removeEventListener("focus", handleFocus);
-            props.anchorRef?.removeEventListener("blur", handleBlur);
         });
 
-        if (!props.anchorRef || !contentContainerRef) return;
+        if (!contentContainerRef) return;
 
         contentResizeObserver = new ResizeObserver(() => {
             setContentSize({ width: contentContainerRef!.offsetWidth, height: contentContainerRef!.offsetHeight });
         });
         contentResizeObserver.observe(contentContainerRef);
-
-        anchorResizeObserver = new ResizeObserver(() => {
-            updateSize();
-        });
-        anchorResizeObserver.observe(props.anchorRef);
-
-        props.anchorRef.addEventListener("mouseenter", handleMouseEnter);
-        props.anchorRef.addEventListener("mouseleave", handleMouseLeave);
-        props.anchorRef.addEventListener("keydown", handleKeyDown);
-        props.anchorRef.addEventListener("focus", handleFocus);
-        props.anchorRef.addEventListener("blur", handleBlur);
     });
 
+    observeElement(props.getAnchorRef, setAnchorRect, getIsVisible);
+
     return (
-        <div
-            ref={(el) => {
-                contentContainerRef = el;
-            }}
-            class={`${styles.tooltipRoot} ${styles.tooltipHPlacementVariant[getPlacement().x]} ${styles.tooltipVPlacementVariant[getPlacement().y]}`}
-            style={{
-                "z-index": getZIndex(),
-                "transform": `translate(${getPlacement().x === "center" ? -50 : 0}%, ${getPlacement().y === "center" ? -50 : 0}%) translate(${getOffset().x ?? 0}px, ${getOffset().y ?? 0}px)`,
-            }}
-        >
-            <Show when={getIsVisible()}>
-                {props.renderContent(getTransitionTarget, getTransitionDurationMs, getPlacement)}
-            </Show>
-        </div>
+        <Portal mount={viewportContext.getPortalRef()}>
+            <div
+                ref={(el) => {
+                    contentContainerRef = el;
+                }}
+                class={styles.tooltipRoot}
+                style={{
+                    "top": `${getContentPos()?.y}px`,
+                    "left": `${getContentPos()?.x}px`,
+                    "z-index": getZIndex(),
+                }}
+            >
+                <Show when={getIsVisible() && getContentPos()}>
+                    {props.renderContent(getTransitionTarget, getTransitionDurationMs, getPlacement)}
+                </Show>
+            </div>
+        </Portal>
     );
 };

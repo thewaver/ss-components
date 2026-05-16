@@ -3,6 +3,46 @@ import { Point2d, Rect, Size2d } from "@thewaver/ss-utils";
 import type { TooltipHPlacement, TooltipVPlacement } from "./Tooltip.types";
 
 export namespace TooltipUtils {
+    export const getHPlacementShift = (hPlacement: TooltipHPlacement, anchorRect: Rect, contentSize: Size2d) => {
+        switch (hPlacement) {
+            case "left-in": {
+                return anchorRect.x;
+            }
+            case "left-out": {
+                return anchorRect.x - contentSize.width;
+            }
+            case "right-in": {
+                return anchorRect.x + anchorRect.width - contentSize.width;
+            }
+            case "right-out": {
+                return anchorRect.x + anchorRect.width;
+            }
+            case "center": {
+                return anchorRect.x + (anchorRect.width - contentSize.width) * 0.5;
+            }
+        }
+    };
+
+    export const getVPlacementShift = (vPlacement: TooltipVPlacement, anchorRect: Rect, contentSize: Size2d) => {
+        switch (vPlacement) {
+            case "top-in": {
+                return anchorRect.y;
+            }
+            case "top-out": {
+                return anchorRect.y - contentSize.height;
+            }
+            case "bottom-in": {
+                return anchorRect.y + anchorRect.height - contentSize.height;
+            }
+            case "bottom-out": {
+                return anchorRect.y + anchorRect.height;
+            }
+            case "center": {
+                return anchorRect.y + (anchorRect.height - contentSize.height) * 0.5;
+            }
+        }
+    };
+
     export const getHPlacementOffset = (hPlacement: TooltipHPlacement, offsetX: number) => {
         switch (hPlacement) {
             case "left-in":

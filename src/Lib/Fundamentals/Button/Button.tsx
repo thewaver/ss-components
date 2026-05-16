@@ -37,7 +37,7 @@ export const Button = (props: ParentProps<ButtonProps>) => {
             </Show>
 
             <Show when={props.getTooltipDefs}>
-                <Tooltip {...props.getTooltipDefs!()} anchorRef={anchorRef} />
+                <Tooltip {...props.getTooltipDefs!()} getAnchorRef={() => anchorRef} />
             </Show>
         </div>
     );

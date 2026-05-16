@@ -14,12 +14,12 @@ export type TooltipPlacement = {
 };
 
 export type TooltipProps = AccessorProps<{
-    anchorRef: HTMLDivElement | undefined;
     placement: TooltipPlacement;
     offset?: Point2d;
     reservedScreenSize?: Size2d;
     transitionDurationMs?: number;
     focusShowDelayMs?: number;
+    getAnchorRef: () => HTMLDivElement | undefined;
     renderContent: (
         getVisibilityTarget: () => 0 | 1,
         getTransitionDurationMs: () => number,

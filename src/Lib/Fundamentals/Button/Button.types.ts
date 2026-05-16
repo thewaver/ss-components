@@ -32,7 +32,7 @@ export type ButtonProps = AccessorProps<
         ExternalButtonFlags & {
             id?: string;
             className?: string;
-            tooltipDefs?: Omit<TooltipProps, "anchorRef">;
+            tooltipDefs?: Omit<TooltipProps, "getAnchorRef">;
             renderHighlight?: () => JSX.Element;
         }
 >;

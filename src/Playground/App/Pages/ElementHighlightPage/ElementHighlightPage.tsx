@@ -51,10 +51,14 @@ export const ElementHighlightPage = () => {
             </For>
 
             <ElementHighlight
-                elementRef={containerRefs[getActiveIndex()]}
+                getElementRef={() => containerRefs[getActiveIndex()]}
                 getPadding={() => 20}
                 getIsVisible={getHighlightOn}
-                renderHighlight={() => <Corners getColor={() => (getHighlightOn() ? "yellow" : "transparent")} />}
+                onClose={() => setHighlightOn(false)}
+                onOpen={() => setHighlightOn(true)}
+                renderHighlight={(getVisibilityTarget) => (
+                    <Corners getColor={() => (getVisibilityTarget() === 1 ? "yellow" : "transparent")} />
+                )}
                 renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
                     <div
                         class={getVisibilityTarget() === 1 ? styles.overlayOn : styles.overlayOff}

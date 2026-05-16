@@ -3,7 +3,7 @@ import { DOMUtils } from "@thewaver/ss-utils";
 import type { ViewportContextType } from "./Viewpoer.context";
 
 export namespace ViewportUtils {
-    export const getAdjustedBoundingClientRect = (child: HTMLDivElement, viewportContext: ViewportContextType) => {
+    export const getAdjustedBoundingClientRect = (child: Element, viewportContext: ViewportContextType) => {
         const viewportRect = viewportContext?.getScaledRect();
         const viewportScale = 1 / (viewportContext?.getScale() ?? 1);
 

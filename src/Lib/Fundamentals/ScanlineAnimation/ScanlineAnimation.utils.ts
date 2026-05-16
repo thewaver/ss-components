@@ -106,9 +106,9 @@ export namespace ScanlineAnimationUtils {
         return [
             { offset: 0, transform: "translateX(0)" },
             { offset: start, transform: "translateX(0)" },
-            { offset: (start + middle) / 2, transform: `translateX(${-mergedOpts.shiftPercent}%)` },
+            { offset: (start + middle) * 0.5, transform: `translateX(${-mergedOpts.shiftPercent}%)` },
             { offset: middle, transform: "translateX(0)" },
-            { offset: (end + middle) / 2, transform: `translateX(${+mergedOpts.shiftPercent}%)` },
+            { offset: (end + middle) * 0.5, transform: `translateX(${+mergedOpts.shiftPercent}%)` },
             { offset: end, transform: "translateX(0)" },
             { offset: 1, transform: "translateX(0)" },
         ];
