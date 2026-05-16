@@ -4,7 +4,7 @@ import { createContext, createSignal, onCleanup, onMount, useContext } from "sol
 import { Size2d } from "@thewaver/ss-utils";
 
 export type ViewportContextType = {
-    rootRef: HTMLDivElement | undefined;
+    getPortalRef: Accessor<HTMLDivElement | undefined>;
     getSize: Accessor<Size2d>;
     getScale: Accessor<number>;
     getScaledRect: Accessor<DOMRect>;
@@ -23,7 +23,7 @@ const getWindowRect = () =>
     });
 
 // do not export hook for now
-const useViewport = (props?: ViewportContextType) => {
+const useViewportWithFallback = (props?: ViewportContextType) => {
     const [getViewportFallbackRect, setViewportFallbackRect] = createSignal<DOMRect>(getWindowRect());
 
     const handleWindowResize = () => {
@@ -35,11 +35,13 @@ const useViewport = (props?: ViewportContextType) => {
             window.removeEventListener("resize", handleWindowResize);
         });
 
-        window.addEventListener("resize", handleWindowResize);
+        if (!props?.getScaledRect) {
+            window.addEventListener("resize", handleWindowResize);
+        }
     });
 
     return {
-        rootRef: props?.rootRef,
+        getPortalRef: props?.getPortalRef ?? (() => undefined),
         getSize:
             props?.getSize ??
             (() => ({
@@ -54,5 +56,5 @@ const useViewport = (props?: ViewportContextType) => {
 export const useViewportContext = () => {
     const context = useContext(ViewportContext);
 
-    return useViewport(context);
+    return useViewportWithFallback(context);
 };

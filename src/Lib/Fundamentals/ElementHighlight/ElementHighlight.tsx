@@ -1,4 +1,5 @@
 import { For, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import { Portal } from "solid-js/web";
 
 import { Rect } from "@thewaver/ss-utils";
 
@@ -166,29 +167,31 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
 
     return (
         <Show when={getIsVisible()}>
-            <div class={styles.elementHighlightOverlay}>
-                <For each={Object.values(getSegmentRects())}>
-                    {(rect) => (
-                        <div class={styles.elementHighlightOverlaySegment} style={rect}>
-                            {props.renderOverlay(getTransitionTarget, getTransitionDurationMs)}
-                        </div>
-                    )}
-                </For>
-            </div>
-
-            <Show when={props.renderHighlight}>
-                <div
-                    class={styles.elementHighlightDecoration}
-                    style={{
-                        top: `${getElementRect().y}px`,
-                        left: `${getElementRect().x}px`,
-                        width: `${getElementRect().width}px`,
-                        height: `${getElementRect().height}px`,
-                    }}
-                >
-                    {props.renderHighlight!()}
+            <Portal mount={viewportContext.getPortalRef()}>
+                <div class={styles.elementHighlightOverlay}>
+                    <For each={Object.values(getSegmentRects())}>
+                        {(rect) => (
+                            <div class={styles.elementHighlightOverlaySegment} style={rect}>
+                                {props.renderOverlay(getTransitionTarget, getTransitionDurationMs)}
+                            </div>
+                        )}
+                    </For>
                 </div>
-            </Show>
+
+                <Show when={props.renderHighlight}>
+                    <div
+                        class={styles.elementHighlightDecoration}
+                        style={{
+                            top: `${getElementRect().y}px`,
+                            left: `${getElementRect().x}px`,
+                            width: `${getElementRect().width}px`,
+                            height: `${getElementRect().height}px`,
+                        }}
+                    >
+                        {props.renderHighlight!()}
+                    </div>
+                </Show>
+            </Portal>
         </Show>
     );
 };

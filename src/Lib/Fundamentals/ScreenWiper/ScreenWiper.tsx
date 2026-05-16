@@ -1,4 +1,5 @@
 import { For, Show, createEffect, createMemo, createSignal, untrack } from "solid-js";
+import { Portal } from "solid-js/web";
 
 import { MathUtils, Size2d } from "@thewaver/ss-utils";
 
@@ -81,51 +82,53 @@ export const ScreenWiper = (props: ScreenWiperProps) => {
 
     return (
         <Show when={getTarget() === 1 || !getHasFinished()}>
-            <div class={styles.screenWiperRoot}>
-                <For each={getRows()}>
-                    {(row) => {
-                        const isRowEven = MathUtils.isEven(row);
-                        const getRowCols = () => (isRowEven ? getCols().even : getCols().odd);
+            <Portal mount={viewportContext.getPortalRef()}>
+                <div class={styles.screenWiperRoot}>
+                    <For each={getRows()}>
+                        {(row) => {
+                            const isRowEven = MathUtils.isEven(row);
+                            const getRowCols = () => (isRowEven ? getCols().even : getCols().odd);
 
-                        return (
-                            <div
-                                class={styles.screenWiperRow}
-                                style={{
-                                    transform: `translate(${isRowEven ? getCellSize().width * -0.5 : 0}px, ${(row + 1) * getCellSize().height * -0.5}px)`,
-                                }}
-                            >
-                                <For each={getRowCols()}>
-                                    {(col) => (
-                                        <div
-                                            class={styles.screenWiperCell}
-                                            style={{
-                                                width: `${getCellSize().width}px`,
-                                                height: `${getCellSize().height}px`,
-                                                transition: `transform ${getTransitionDurationMs()}ms ease ${getTransitionDurationMs() * 0.05 * (col + row)}ms`,
-                                                transform: `scale(${getTarget()})`,
-                                            }}
-                                            onTransitionEnd={
-                                                row === getRows().length - 1 && col === getRowCols().length - 1
-                                                    ? () => {
-                                                          const direction = props.getWipeDirection();
+                            return (
+                                <div
+                                    class={styles.screenWiperRow}
+                                    style={{
+                                        transform: `translate(${isRowEven ? getCellSize().width * -0.5 : 0}px, ${(row + 1) * getCellSize().height * -0.5}px)`,
+                                    }}
+                                >
+                                    <For each={getRowCols()}>
+                                        {(col) => (
+                                            <div
+                                                class={styles.screenWiperCell}
+                                                style={{
+                                                    width: `${getCellSize().width}px`,
+                                                    height: `${getCellSize().height}px`,
+                                                    transition: `transform ${getTransitionDurationMs()}ms ease ${getTransitionDurationMs() * 0.05 * (col + row)}ms`,
+                                                    transform: `scale(${getTarget()})`,
+                                                }}
+                                                onTransitionEnd={
+                                                    row === getRows().length - 1 && col === getRowCols().length - 1
+                                                        ? () => {
+                                                              const direction = props.getWipeDirection();
 
-                                                          setHasFinished(true);
-                                                          setTimeout(() => {
-                                                              props.onTransitionEnd?.(direction);
-                                                          }, 0);
-                                                      }
-                                                    : undefined
-                                            }
-                                        >
-                                            {renderCell(props.getShape?.() ?? DEFAULT_SCREENWIPER_SHAPE, row, col)}
-                                        </div>
-                                    )}
-                                </For>
-                            </div>
-                        );
-                    }}
-                </For>
-            </div>
+                                                              setHasFinished(true);
+                                                              setTimeout(() => {
+                                                                  props.onTransitionEnd?.(direction);
+                                                              }, 0);
+                                                          }
+                                                        : undefined
+                                                }
+                                            >
+                                                {renderCell(props.getShape?.() ?? DEFAULT_SCREENWIPER_SHAPE, row, col)}
+                                            </div>
+                                        )}
+                                    </For>
+                                </div>
+                            );
+                        }}
+                    </For>
+                </div>
+            </Portal>
         </Show>
     );
 };

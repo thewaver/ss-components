@@ -12,10 +12,9 @@ const getFit = (viewportSize: Size2d) =>
     RectUtils.fit(viewportSize, { width: window.innerWidth, height: window.innerHeight });
 
 export const Viewport = (props: ParentProps<ViewportProps>) => {
-    let rootRef: HTMLDivElement | undefined;
-
     const startingRect = getFit(props.getSize());
 
+    const [getPortalRef, setPortalRef] = createSignal<HTMLDivElement>();
     const [getScale, setScale] = createSignal<number>(startingRect.scale);
     const [getScaledRect, setScaledRect] = createSignal<DOMRect>(
         new DOMRect(startingRect.x, startingRect.y, startingRect.width, startingRect.height),
@@ -41,9 +40,6 @@ export const Viewport = (props: ParentProps<ViewportProps>) => {
 
     return (
         <div
-            ref={(el) => {
-                rootRef = el;
-            }}
             class={styles.viewportRoot}
             style={{
                 width: `${props.getSize().width}px`,
@@ -51,11 +47,12 @@ export const Viewport = (props: ParentProps<ViewportProps>) => {
                 transform: `translate(${getScaledRect()?.left ?? 0}px, ${getScaledRect()?.top ?? 0}px) scale(${getScale() ?? 1}, ${getScale() ?? 1})`,
             }}
         >
-            <Show when={!!rootRef}>
-                <ViewportContextProvider value={{ rootRef: rootRef!, getSize: props.getSize, getScale, getScaledRect }}>
+            <ViewportContextProvider value={{ getPortalRef, getSize: props.getSize, getScale, getScaledRect }}>
+                <div class={styles.viewportContent}>
+                    <div ref={setPortalRef} class={styles.viewportPortal} />
                     {props.children}
-                </ViewportContextProvider>
-            </Show>
+                </div>
+            </ViewportContextProvider>
         </div>
     );
 };
