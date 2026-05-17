@@ -8,7 +8,7 @@ import * as pageStyles from "../Pages.css";
 import * as styles from "./ElementHighlightPage.css";
 
 export const ElementHighlightPage = () => {
-    let containerRefs: HTMLDivElement[] = [];
+    let containerRefs: HTMLElement[] = [];
 
     const [getActiveIndex, setActiveIndex] = createSignal(0);
     const [getHighlightOn, setHighlightOn] = createSignal(false);
@@ -54,8 +54,8 @@ export const ElementHighlightPage = () => {
                 getElementRef={() => containerRefs[getActiveIndex()]}
                 getPadding={() => 20}
                 getIsVisible={getHighlightOn}
-                onClose={() => setHighlightOn(false)}
-                onOpen={() => setHighlightOn(true)}
+                onHide={() => setHighlightOn(false)}
+                onShow={() => setHighlightOn(true)}
                 renderHighlight={(getVisibilityTarget) => (
                     <Corners getColor={() => (getVisibilityTarget() === 1 ? "yellow" : "transparent")} />
                 )}

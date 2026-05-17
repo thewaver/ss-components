@@ -7,7 +7,7 @@ import type { ButtonProps } from "./Button.types";
 import * as styles from "./Button.css";
 
 export const Button = (props: ParentProps<ButtonProps>) => {
-    let anchorRef: HTMLDivElement | undefined;
+    let anchorRef: HTMLElement | undefined;
 
     return (
         <div

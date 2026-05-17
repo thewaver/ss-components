@@ -1,5 +1,5 @@
 import type { JSX } from "solid-js";
-import { Show, createEffect, createMemo, createSignal } from "solid-js";
+import { Show, createEffect, createMemo, createSignal, onMount } from "solid-js";
 
 import { Route, type RouteSectionProps, Router } from "@solidjs/router";
 import { StringUtils } from "@thewaver/ss-utils";
@@ -9,6 +9,7 @@ import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
 import { BorderPage } from "./Pages/BorderPage/BorderPage";
 import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
 import { ElementHighlightPage } from "./Pages/ElementHighlightPage/ElementHighlightPage";
+import { ModalPage } from "./Pages/ModalPage/ModalPage";
 import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
 import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
 import { ShapeButtonPage } from "./Pages/ShapeButtonPage/ShapeButtonPage";
@@ -35,10 +36,12 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "Fundamentals",
     },
+    /*
     {
         name: "AudioSwitcher",
         component: () => null,
     },
+    */
     {
         name: "Border",
         component: () => <BorderPage />,
@@ -51,14 +54,22 @@ const TAB_CONFIGS: TabConfig[] = [
         name: "ElementHighlight",
         component: () => <ElementHighlightPage />,
     },
+    /*
     {
         name: "ImageSwitcher",
         component: () => null,
     },
+    */
+    {
+        name: "Modal",
+        component: () => <ModalPage />,
+    },
+    /*
     {
         name: "RichText",
         component: () => null,
     },
+    */
     {
         name: "ScanlineAnimation",
         component: () => <ScanlineAnimationPage />,

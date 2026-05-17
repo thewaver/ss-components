@@ -13,7 +13,7 @@ const DEFAULT_SCANLINE_ANIMATION_SIZE_ANCHOR = "width";
 
 export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
     let id = createUniqueId();
-    let rootRef: HTMLImageElement | undefined;
+    let rootRef: HTMLElement | undefined;
 
     const getAnimationDurationMs = createMemo(
         () => props.getAnimationDurationMs?.() ?? DEFAULT_SCANLINE_ANIMATION_DURATION_MS,

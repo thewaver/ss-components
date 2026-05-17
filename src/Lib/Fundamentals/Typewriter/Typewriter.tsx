@@ -21,7 +21,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
     const [getIsAnimating, setIsAnimating] = createSignal(false);
     const [getHasAnimatedOnce, setHasAnimatedOnce] = createSignal(false);
 
-    let childrenContainerRef: HTMLDivElement | undefined;
+    let childrenContainerRef: HTMLElement | undefined;
     let animationToggleTimeout: ReturnType<typeof setTimeout> | undefined;
 
     onCleanup(() => {

@@ -14,7 +14,7 @@ const getFit = (viewportSize: Size2d) =>
 export const Viewport = (props: ParentProps<ViewportProps>) => {
     const startingRect = getFit(props.getSize());
 
-    const [getPortalRef, setPortalRef] = createSignal<HTMLDivElement>();
+    const [getPortalRef, setPortalRef] = createSignal<HTMLElement>();
     const [getScale, setScale] = createSignal<number>(startingRect.scale);
     const [getScaledRect, setScaledRect] = createSignal<DOMRect>(
         new DOMRect(startingRect.x, startingRect.y, startingRect.width, startingRect.height),

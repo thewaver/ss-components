@@ -1,9 +1,10 @@
-import { Show, createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import { Show, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { Portal } from "solid-js/web";
 
 import { Rect, Size2d } from "@thewaver/ss-utils";
 
-import { observeElement } from "../../Abstracts/ElementObserver/ElementObserver";
+import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
+import { ElementObserver } from "../../Abstracts/ElementObserver/ElementObserver";
 import { useViewportContext } from "../Viewport/Viewpoer.context";
 import type { TooltipHPlacement, TooltipPlacement, TooltipProps, TooltipVPlacement } from "./Tooltip.types";
 import { TooltipUtils } from "./Tooltip.utils";
@@ -18,23 +19,20 @@ const DEFAULT_TOOLTIP_Z_INDEX_GETTER = (getPlacement: () => TooltipPlacement) =>
 export const Tooltip = (props: TooltipProps) => {
     const viewportContext = useViewportContext();
 
-    let contentContainerRef: HTMLDivElement | undefined;
-    let transitionTimeout: ReturnType<typeof setTimeout> | undefined;
+    let contentContainerRef: HTMLElement | undefined;
     let focusTimeout: ReturnType<typeof setTimeout> | undefined;
 
     onCleanup(() => {
-        clearTimeout(transitionTimeout);
         clearTimeout(focusTimeout);
     });
 
+    const [getShouldShow, setShouldShow] = createSignal(false);
     const [getContentSize, setContentSize] = createSignal<Size2d | undefined>(undefined, {
         equals: Size2d.isSame,
     });
     const [getAnchorRect, setAnchorRect] = createSignal<Rect | undefined>(undefined, {
         equals: Rect.isSame,
     });
-    const [getTransitionTarget, setTransitionTarget] = createSignal<0 | 1>(0);
-    const [getHasTransitionFinished, setHasTransitionFinished] = createSignal(true);
 
     const getTransitionDurationMs = createMemo(
         () => props.getTransitionDurationMs?.() ?? DEFAULT_TOOLTIP_TRANSITION_DURATION_MS,
@@ -104,39 +102,18 @@ export const Tooltip = (props: TooltipProps) => {
 
     const getZIndex = createMemo(() => (props.getZindex ?? DEFAULT_TOOLTIP_Z_INDEX_GETTER)(getPlacement));
 
-    const getIsVisible = createMemo(() => {
-        const transitionTarget = getTransitionTarget();
-        const hasTransitionFinished = getHasTransitionFinished();
+    const { getIsVisible, getTransitionTarget } = ElementFader.createFader(getShouldShow, getTransitionDurationMs);
 
-        return transitionTarget === 1 || !hasTransitionFinished;
-    });
-
-    const show = () => {
-        setHasTransitionFinished(false);
-        setTimeout(() => {
-            setTransitionTarget(1);
-            clearTimeout(transitionTimeout);
-            transitionTimeout = setTimeout(() => setHasTransitionFinished(true), getTransitionDurationMs());
-        }, 0);
-    };
-
-    const hide = () => {
-        setHasTransitionFinished(false);
-        setTimeout(() => {
-            setTransitionTarget(0);
-            clearTimeout(transitionTimeout);
-            transitionTimeout = setTimeout(() => setHasTransitionFinished(true), getTransitionDurationMs());
-        }, 0);
-    };
+    ElementObserver.createObserver(props.getAnchorRef, setAnchorRect, getIsVisible);
 
     const handleMouseEnter = () => {
         clearTimeout(focusTimeout);
-        show();
+        setShouldShow(true);
     };
 
     const handleMouseLeave = () => {
         clearTimeout(focusTimeout);
-        hide();
+        setShouldShow(false);
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -144,18 +121,20 @@ export const Tooltip = (props: TooltipProps) => {
 
         if (e.key === "Escape") {
             clearTimeout(focusTimeout);
-            hide();
+            setShouldShow(false);
         }
     };
 
     const handleFocus = () => {
         clearTimeout(focusTimeout);
-        focusTimeout = setTimeout(show, getFocusShowDelayMs());
+        focusTimeout = setTimeout(() => {
+            setShouldShow(true);
+        }, getFocusShowDelayMs());
     };
 
     const handleBlur = () => {
         clearTimeout(focusTimeout);
-        hide();
+        setShouldShow(false);
     };
 
     onMount(() => {
@@ -178,14 +157,16 @@ export const Tooltip = (props: TooltipProps) => {
         anchorRef.addEventListener("blur", handleBlur);
     });
 
-    onMount(() => {
+    createEffect(() => {
         let contentResizeObserver: ResizeObserver | undefined;
 
         onCleanup(() => {
             contentResizeObserver?.disconnect();
         });
 
-        if (!contentContainerRef) return;
+        const isVisible = getIsVisible();
+
+        if (!contentContainerRef || !isVisible) return;
 
         contentResizeObserver = new ResizeObserver(() => {
             setContentSize({ width: contentContainerRef!.offsetWidth, height: contentContainerRef!.offsetHeight });
@@ -193,25 +174,24 @@ export const Tooltip = (props: TooltipProps) => {
         contentResizeObserver.observe(contentContainerRef);
     });
 
-    observeElement(props.getAnchorRef, setAnchorRect, getIsVisible);
-
     return (
-        <Portal mount={viewportContext.getPortalRef()}>
-            <div
-                ref={(el) => {
-                    contentContainerRef = el;
-                }}
-                class={styles.tooltipRoot}
-                style={{
-                    "top": `${getContentPos()?.y}px`,
-                    "left": `${getContentPos()?.x}px`,
-                    "z-index": getZIndex(),
-                }}
-            >
-                <Show when={getIsVisible() && getContentPos()}>
+        <Show when={getIsVisible()}>
+            <Portal mount={viewportContext.getPortalRef()}>
+                <div
+                    ref={(el) => {
+                        contentContainerRef = el;
+                    }}
+                    class={styles.tooltipRoot}
+                    style={{
+                        "visibility": getContentPos() ? "visible" : "hidden",
+                        "top": `${getContentPos()?.y}px`,
+                        "left": `${getContentPos()?.x}px`,
+                        "z-index": getZIndex(),
+                    }}
+                >
                     {props.renderContent(getTransitionTarget, getTransitionDurationMs, getPlacement)}
-                </Show>
-            </div>
-        </Portal>
+                </div>
+            </Portal>
+        </Show>
     );
 };

@@ -8,7 +8,7 @@ import { BorderUtils } from "./Border.utils";
 import * as styles from "./Border.css";
 
 export const Border = (props: ParentProps<BorderProps>) => {
-    let rootRef: HTMLDivElement | undefined;
+    let rootRef: HTMLElement | undefined;
 
     const [getRootSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
 

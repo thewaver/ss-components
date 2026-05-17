@@ -19,7 +19,7 @@ export type TooltipProps = AccessorProps<{
     reservedScreenSize?: Size2d;
     transitionDurationMs?: number;
     focusShowDelayMs?: number;
-    getAnchorRef: () => HTMLDivElement | undefined;
+    getAnchorRef: () => HTMLElement | undefined;
     renderContent: (
         getVisibilityTarget: () => 0 | 1,
         getTransitionDurationMs: () => number,

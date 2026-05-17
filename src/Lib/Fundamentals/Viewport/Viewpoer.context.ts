@@ -4,7 +4,7 @@ import { createContext, createSignal, onCleanup, onMount, useContext } from "sol
 import { Size2d } from "@thewaver/ss-utils";
 
 export type ViewportContextType = {
-    getPortalRef: Accessor<HTMLDivElement | undefined>;
+    getPortalRef: Accessor<HTMLElement | undefined>;
     getSize: Accessor<Size2d>;
     getScale: Accessor<number>;
     getScaledRect: Accessor<DOMRect>;
