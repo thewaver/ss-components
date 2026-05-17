@@ -105,6 +105,7 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
                 attachAnimation(el, props.getRootAnimationKeyframes);
             }}
             class={styles.scanlineAnimationRoot}
+            role="img"
         >
             <img
                 ref={(el) => {
@@ -115,9 +116,10 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
                 class={styles.scanlineAnimationAnchor}
                 width={getSizeAnchor() === "width" ? "100%" : "auto"}
                 height={getSizeAnchor() === "height" ? "100%" : "auto"}
+                aria-hidden="true"
             />
 
-            <svg width={getRootSize().width} height={getRootSize().height} aria-hidden>
+            <svg width={getRootSize().width} height={getRootSize().height} aria-hidden="true">
                 <defs>
                     <For each={getLineArray()}>
                         {(_, getIndex) => {

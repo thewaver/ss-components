@@ -19,13 +19,13 @@ const DEFAULT_TOOLTIP_Z_INDEX_GETTER = (getPlacement: () => TooltipPlacement) =>
 export const Tooltip = (props: TooltipProps) => {
     const viewportContext = useViewportContext();
 
-    let contentContainerRef: HTMLElement | undefined;
     let focusTimeout: ReturnType<typeof setTimeout> | undefined;
 
     onCleanup(() => {
         clearTimeout(focusTimeout);
     });
 
+    const [getContainerRef, setContainerRef] = createSignal<HTMLElement>();
     const [getShouldShow, setShouldShow] = createSignal(false);
     const [getContentSize, setContentSize] = createSignal<Size2d | undefined>(undefined, {
         equals: Size2d.isSame,
@@ -158,29 +158,28 @@ export const Tooltip = (props: TooltipProps) => {
     });
 
     createEffect(() => {
-        let contentResizeObserver: ResizeObserver | undefined;
+        let containerResizeObserver: ResizeObserver | undefined;
 
         onCleanup(() => {
-            contentResizeObserver?.disconnect();
+            containerResizeObserver?.disconnect();
         });
 
+        const containerRef = getContainerRef();
         const isVisible = getIsVisible();
 
-        if (!contentContainerRef || !isVisible) return;
+        if (!containerRef || !isVisible) return;
 
-        contentResizeObserver = new ResizeObserver(() => {
-            setContentSize({ width: contentContainerRef!.offsetWidth, height: contentContainerRef!.offsetHeight });
+        containerResizeObserver = new ResizeObserver(() => {
+            setContentSize({ width: containerRef!.offsetWidth, height: containerRef!.offsetHeight });
         });
-        contentResizeObserver.observe(contentContainerRef);
+        containerResizeObserver.observe(containerRef);
     });
 
     return (
         <Show when={getIsVisible()}>
             <Portal mount={viewportContext.getPortalRef()}>
                 <div
-                    ref={(el) => {
-                        contentContainerRef = el;
-                    }}
+                    ref={setContainerRef}
                     class={styles.tooltipRoot}
                     style={{
                         "visibility": getContentPos() ? "visible" : "hidden",
@@ -188,6 +187,7 @@ export const Tooltip = (props: TooltipProps) => {
                         "left": `${getContentPos()?.x}px`,
                         "z-index": getZIndex(),
                     }}
+                    role="tooltip"
                 >
                     {props.renderContent(getTransitionTarget, getTransitionDurationMs, getPlacement)}
                 </div>

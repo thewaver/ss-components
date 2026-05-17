@@ -48,6 +48,7 @@ export const ScreenWiper = (props: ScreenWiperProps) => {
             height={getCellSize().height}
             viewBox={`0 0 ${getCellSize().width} ${getCellSize().height}`}
             overflow="visible"
+            aria-hidden="true"
         >
             {shape === "lozenge" ? (
                 <polygon

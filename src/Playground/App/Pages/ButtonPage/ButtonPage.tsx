@@ -12,7 +12,7 @@ export const ButtonPage = () => {
     return (
         <div class={styles.root}>
             <Button
-                getIsSelected={getToggleOn}
+                getIsPressed={getToggleOn}
                 renderHighlight={() => <Corners getColor={() => (getToggleOn() ? "yellow" : "transparent")} />}
                 getTooltipDefs={() => ({
                     getPlacement: () => ({ x: "center", y: "top-out" }),

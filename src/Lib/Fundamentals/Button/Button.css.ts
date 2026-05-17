@@ -1,7 +1,7 @@
 import { style } from "@vanilla-extract/css";
 
 export const buttonError = style({});
-export const buttonSelected = style({});
+export const buttonPressed = style({});
 
 export const buttonRoot = style({
     position: "relative",
@@ -11,7 +11,7 @@ export const buttonRoot = style({
     userSelect: "none",
 
     selectors: {
-        [`&:not([disabled]).${buttonSelected}, &:not([disabled]):focus-visible`]: {
+        [`&:not([disabled]).${buttonPressed}, &:not([disabled]):focus-visible`]: {
             zIndex: 1,
         },
         "&:not([disabled]):hover": {

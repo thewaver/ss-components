@@ -13,7 +13,7 @@ const DEFAULT_MODAL_TRANSITION_DURATION_MS = 200;
 export const Modal = (props: ModalProps) => {
     const viewportContext = useViewportContext();
 
-    let containerRef: HTMLElement | undefined;
+    const [getContainerRef, setContainerRef] = createSignal<HTMLElement>();
 
     const getTransitionDurationMs = createMemo(
         () => props.getTransitionDurationMs?.() ?? DEFAULT_MODAL_TRANSITION_DURATION_MS,
@@ -25,7 +25,7 @@ export const Modal = (props: ModalProps) => {
         { onShow: props.onShow, onHide: props.onHide },
     );
 
-    FocusUtils.autoFocus(getIsVisible, containerRef);
+    FocusUtils.autoFocus(getIsVisible, getContainerRef);
 
     const handleKeyDown = (e: KeyboardEvent) => {
         if (!getIsVisible()) return;
@@ -53,16 +53,11 @@ export const Modal = (props: ModalProps) => {
                     el.style.display = "contents";
                 }}
             >
-                <div class={styles.modalRoot} onKeyDown={(e) => FocusUtils.focusTrapKeyDown(e, containerRef)}>
+                <div class={styles.modalRoot} onKeyDown={(e) => FocusUtils.focusTrapKeyDown(e, getContainerRef())}>
                     <div class={styles.modalOverlay} onClick={hide}>
                         {props.renderOverlay(getTransitionTarget, getTransitionDurationMs)}
                     </div>
-                    <div
-                        ref={(el) => {
-                            containerRef = el;
-                        }}
-                        class={styles.modalContainer}
-                    >
+                    <div ref={setContainerRef} class={styles.modalContainer} role="dialog" aria-modal="true">
                         {props.renderContent(getTransitionTarget, getTransitionDurationMs)}
                     </div>
                 </div>

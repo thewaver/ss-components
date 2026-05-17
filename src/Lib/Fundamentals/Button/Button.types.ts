@@ -5,7 +5,7 @@ import type { TooltipProps } from "../Tooltip/Tooltip.types";
 
 export type ExternalButtonFlags = {
     isDisabled?: boolean;
-    isSelected?: boolean;
+    isPressed?: boolean;
     hasError?: boolean;
 };
 

@@ -15,6 +15,7 @@ export const ColorExtractorContextProvider = ColorExtractorContext.Provider;
 
 export const useColorExtractor = (props?: ColorExtractorContextType) => {
     const [getColorData, setColorData] = createSignal<Color[]>([]);
+
     createEffect(() => {
         let isMounted = true;
 

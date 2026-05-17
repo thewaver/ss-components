@@ -1,4 +1,4 @@
-import { Show } from "solid-js";
+import { Show, createSignal } from "solid-js";
 import type { ParentProps } from "solid-js";
 
 import { Tooltip } from "../Tooltip/Tooltip";
@@ -7,24 +7,22 @@ import type { ButtonProps } from "./Button.types";
 import * as styles from "./Button.css";
 
 export const Button = (props: ParentProps<ButtonProps>) => {
-    let anchorRef: HTMLElement | undefined;
+    const [getAnchorRef, setAnchorRef] = createSignal<HTMLElement>();
 
     return (
         <div
             class={styles.buttonRoot}
             classList={{
                 [styles.buttonError]: props.getHasError?.(),
-                [styles.buttonSelected]: props.getIsSelected?.(),
+                [styles.buttonPressed]: props.getIsPressed?.(),
             }}
         >
             <button
-                ref={(el) => {
-                    anchorRef = el as any;
-                }}
+                ref={setAnchorRef}
                 type="button"
                 class={`${styles.buttonElement} ${props.getClassName?.()}`}
                 disabled={props.getIsDisabled?.()}
-                aria-selected={props.getIsSelected?.()}
+                aria-pressed={props.getIsPressed?.()}
                 onClick={props.onClick}
                 onMouseEnter={props.onMouseEnter}
                 onMouseLeave={props.onMouseLeave}
@@ -37,7 +35,7 @@ export const Button = (props: ParentProps<ButtonProps>) => {
             </Show>
 
             <Show when={props.getTooltipDefs}>
-                <Tooltip {...props.getTooltipDefs!()} getAnchorRef={() => anchorRef} />
+                <Tooltip {...props.getTooltipDefs!()} getAnchorRef={getAnchorRef} />
             </Show>
         </div>
     );

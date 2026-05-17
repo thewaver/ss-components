@@ -25,7 +25,7 @@ export const ShapeButton = (props: ParentProps<ShapeButtonProps>) => {
         (): ButtonFlags => ({
             ...internalFlags,
             isDisabled: props.getIsDisabled?.(),
-            isSelected: props.getIsSelected?.(),
+            isPressed: props.getIsPressed?.(),
             hasError: props.getHasError?.(),
         }),
     );
@@ -84,7 +84,7 @@ export const ShapeButton = (props: ParentProps<ShapeButtonProps>) => {
             class={styles.shapeButtonRoot}
             classList={{
                 [buttonStyles.buttonError]: props.getHasError?.(),
-                [buttonStyles.buttonSelected]: props.getIsSelected?.(),
+                [buttonStyles.buttonPressed]: props.getIsPressed?.(),
             }}
             style={{
                 width: `${props.getWidth()}px`,
@@ -114,7 +114,7 @@ export const ShapeButton = (props: ParentProps<ShapeButtonProps>) => {
                     role="button"
                     tabIndex={getTabIndex()}
                     aria-disabled={props.getIsDisabled?.()}
-                    aria-selected={props.getIsSelected?.()}
+                    aria-pressed={props.getIsPressed?.()}
                     onClick={!props.getIsDisabled?.() ? props.onClick : undefined}
                     onFocus={() => {
                         setInternalFlags("isFocused", true);

@@ -38,6 +38,7 @@ export const Corners = (props: ParentProps<CornersProps>) => {
                 filter: `drop-shadow(0 0 8px ${getColor()}) drop-shadow(0 0 16px ${getColor()})`,
                 transition: `color ${getTransitionDurationMs()}ms, filter ${getTransitionDurationMs()}ms`,
             }}
+            aria-hidden="true"
         >
             <For each={Object.keys(getVisibleCorners())}>
                 {(cornerKey) => (

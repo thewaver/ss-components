@@ -74,14 +74,14 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
                     </For>
                 </div>
 
-                <Show when={props.renderHighlight}>
+                <Show when={props.renderHighlight && getElementRect()}>
                     <div
                         class={styles.elementHighlightDecoration}
                         style={{
-                            top: `${getElementRect()!.y}px`,
-                            left: `${getElementRect()!.x}px`,
-                            width: `${getElementRect()!.width}px`,
-                            height: `${getElementRect()!.height}px`,
+                            top: `${getElementRect()?.y}px`,
+                            left: `${getElementRect()?.x}px`,
+                            width: `${getElementRect()?.width}px`,
+                            height: `${getElementRect()?.height}px`,
                         }}
                     >
                         {props.renderHighlight!(getTransitionTarget, getTransitionDurationMs)}

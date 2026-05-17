@@ -1,7 +1,11 @@
 {
-    "connector": {},
-    "formatters": {},
+    "extends": [
+        "development"
+    ],
     "hints": {
-        "no-inline-styles": "off",
-    },
+        "axe/aria": "warning",
+        "axe/forms": "warning",
+        "axe/text-alternatives": "warning",
+        "no-inline-styles": "off"
+    }
 }

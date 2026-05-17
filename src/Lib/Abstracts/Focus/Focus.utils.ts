@@ -46,14 +46,15 @@ export namespace FocusUtils {
         }
     };
 
-    export const autoFocus = (getIsVisible: () => boolean, ref: HTMLElement | undefined) =>
+    export const autoFocus = (getIsVisible: () => boolean, getRef: () => HTMLElement | undefined) =>
         createEffect(() => {
             let activeElement = document.activeElement;
 
             onCleanup(() => {
-                (activeElement as HTMLElement).focus?.();
+                (activeElement as HTMLElement).focus();
             });
 
+            const ref = getRef();
             const isVisible = getIsVisible();
 
             if (!ref || !isVisible) return;
