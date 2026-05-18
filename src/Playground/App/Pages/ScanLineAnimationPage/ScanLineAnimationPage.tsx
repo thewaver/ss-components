@@ -1,7 +1,7 @@
 import { For, Show, createMemo, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 
-import { ScanlineAnimationUtils } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
+import { ScanlineAnimationBreakpoints, ScanlineAnimationKeyframes } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import { Tabs } from "../../../../Lib/Fundamentals/Tabs/Tabs";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import knight from "../../knight.png";
@@ -31,7 +31,7 @@ const GRAYSCALE_SOURCE = highlighter.codeToHtml(GrayscaleExampleRaw, getDefaultH
 const HUE_SOURCE = highlighter.codeToHtml(HueExampleRaw, getDefaultHighlighterConfig());
 
 export const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [opts, setOpts] = createStore<ScanlineAnimationUtils.HorizontalShiftOpts>({
+    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalShiftOpts>({
         maxShift: 10,
         chunkyness: 0.5,
     });
@@ -39,7 +39,7 @@ export const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
     return (
         <>
             <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
-                <GlitchExample {...props} getOpts={() => opts} />
+                <GlitchExample {...props} getKeyframeOpts={() => keyframeOpts} />
             </div>
 
             <div class={pageStyles.props}>
@@ -50,9 +50,9 @@ export const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                         min={5}
                         max={25}
                         step={5}
-                        value={opts.maxShift}
+                        value={keyframeOpts.maxShift}
                         onInput={(e) =>
-                            setOpts("maxShift", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 5), 25))
+                            setKeyframeOpts("maxShift", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 5), 25))
                         }
                     />
                 </div>
@@ -64,9 +64,9 @@ export const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                         min={0.1}
                         max={1}
                         step={0.1}
-                        value={opts.chunkyness}
+                        value={keyframeOpts.chunkyness}
                         onInput={(e) =>
-                            setOpts("chunkyness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
+                            setKeyframeOpts("chunkyness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
                         }
                     />
                 </div>
@@ -76,16 +76,17 @@ export const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 };
 
 export const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [opts, setOpts] = createStore<ScanlineAnimationUtils.HorizontalStretchOpts>({
-        dir: "top",
+    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalStretchOpts>({
         peakScalePercent: 150,
+    });
+    const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
         smoothness: 0.1,
     });
 
     return (
         <>
             <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
-                <SurgeExample {...props} getOpts={() => opts} />
+                <SurgeExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} />
             </div>
 
             <div class={pageStyles.props}>
@@ -96,9 +97,9 @@ export const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                         min={120}
                         max={200}
                         step={10}
-                        value={opts.peakScalePercent}
+                        value={keyframeOpts.peakScalePercent}
                         onInput={(e) =>
-                            setOpts("peakScalePercent", (prev) =>
+                            setKeyframeOpts("peakScalePercent", (prev) =>
                                 Math.min(Math.max(Number(e.target.value) ?? prev, 120), 200),
                             )
                         }
@@ -112,9 +113,9 @@ export const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                         min={0.1}
                         max={1}
                         step={0.1}
-                        value={opts.smoothness}
+                        value={breakpointOpts.smoothness}
                         onInput={(e) =>
-                            setOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
+                            setBreakpointOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
                         }
                     />
                 </div>
@@ -124,16 +125,17 @@ export const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 };
 
 export const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [opts, setOpts] = createStore<ScanlineAnimationUtils.HorizontalSnakeOpts>({
-        dir: "top",
+    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalSnakeOpts>({
         shiftPercent: 5,
+    });
+    const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
         smoothness: 0.2,
     });
 
     return (
         <>
             <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
-                <SnakeExample {...props} getOpts={() => opts} />
+                <SnakeExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} />
             </div>
 
             <div class={pageStyles.props}>
@@ -144,9 +146,9 @@ export const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                         min={5}
                         max={25}
                         step={5}
-                        value={opts.shiftPercent}
+                        value={keyframeOpts.shiftPercent}
                         onInput={(e) =>
-                            setOpts("shiftPercent", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 5), 25))
+                            setKeyframeOpts("shiftPercent", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 5), 25))
                         }
                     />
                 </div>
@@ -158,9 +160,9 @@ export const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                         min={0.1}
                         max={1}
                         step={0.1}
-                        value={opts.smoothness}
+                        value={breakpointOpts.smoothness}
                         onInput={(e) =>
-                            setOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
+                            setBreakpointOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
                         }
                     />
                 </div>
@@ -170,16 +172,17 @@ export const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 };
 
 export const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [opts, setOpts] = createStore<ScanlineAnimationUtils.HorizontalSplitOpts>({
-        dir: "top",
+    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalSplitOpts>({
         shiftPercent: 10,
+    });
+    const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
         smoothness: 1,
     });
 
     return (
         <>
             <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
-                <SplitExample {...props} getOpts={() => opts} />
+                <SplitExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} />
             </div>
 
             <div class={pageStyles.props}>
@@ -190,9 +193,9 @@ export const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                         min={5}
                         max={25}
                         step={5}
-                        value={opts.shiftPercent}
+                        value={keyframeOpts.shiftPercent}
                         onInput={(e) =>
-                            setOpts("shiftPercent", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 5), 25))
+                            setKeyframeOpts("shiftPercent", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 5), 25))
                         }
                     />
                 </div>
@@ -204,9 +207,9 @@ export const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                         min={0.1}
                         max={1}
                         step={0.1}
-                        value={opts.smoothness}
+                        value={breakpointOpts.smoothness}
                         onInput={(e) =>
-                            setOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
+                            setBreakpointOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
                         }
                     />
                 </div>
@@ -216,15 +219,15 @@ export const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 };
 
 export const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [opts, setOpts] = createStore<ScanlineAnimationUtils.HorizontalGrayscaleOpts>({
-        dir: "top",
+    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalGrayscaleOpts>({});
+    const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
         smoothness: 0.5,
     });
 
     return (
         <>
             <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
-                <GrayscaleExample {...props} getOpts={() => opts} />
+                <GrayscaleExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} />
             </div>
 
             <div class={pageStyles.props}>
@@ -235,9 +238,9 @@ export const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) =>
                         min={0.1}
                         max={1}
                         step={0.1}
-                        value={opts.smoothness}
+                        value={breakpointOpts.smoothness}
                         onInput={(e) =>
-                            setOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
+                            setBreakpointOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
                         }
                     />
                 </div>
@@ -247,15 +250,15 @@ export const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) =>
 };
 
 export const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [opts, setOpts] = createStore<ScanlineAnimationUtils.HorizontalHueOpts>({
-        dir: "top",
+    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalHueOpts>({});
+    const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
         smoothness: 0.5,
     });
 
     return (
         <>
             <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
-                <HueExample {...props} getOpts={() => opts} />
+                <HueExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} />
             </div>
 
             <div class={pageStyles.props}>
@@ -266,9 +269,9 @@ export const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                         min={0.1}
                         max={1}
                         step={0.1}
-                        value={opts.smoothness}
+                        value={breakpointOpts.smoothness}
                         onInput={(e) =>
-                            setOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
+                            setBreakpointOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
                         }
                     />
                 </div>

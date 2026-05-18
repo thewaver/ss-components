@@ -1,7 +1,7 @@
 import { createSignal } from "solid-js";
 
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
-import { ScanlineAnimationUtils } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
+import { ScanlineAnimationKeyframes } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.types";
 
@@ -22,18 +22,18 @@ const ROOT_KEYFRAMES: Keyframe[] = [
     { offset: 1, filter: "brightness(1)" },
 ];
 
-const getRandomKeyframes = (lineCount: number, opts: ScanlineAnimationUtils.HorizontalShiftOpts) =>
+const getRandomKeyframes = (lineCount: number, opts: ScanlineAnimationKeyframes.HorizontalShiftOpts) =>
     Array.from({ length: lineCount }, () =>
-        ScanlineAnimationUtils.getRandomHorizontalShiftKeyframes(BREAKPOINTS, opts),
+        ScanlineAnimationKeyframes.getRandomHorizontalShiftKeyframes(BREAKPOINTS, opts),
     );
 
 type Props = ScanlineAnimationExampleProps &
     AccessorProps<{
-        opts: ScanlineAnimationUtils.HorizontalShiftOpts;
+        keyframeOpts: ScanlineAnimationKeyframes.HorizontalShiftOpts;
     }>;
 
-export const GlitchExample = ({ getOpts, ...otherProps }: Props) => {
-    const [getKeyframes, setKeyframes] = createSignal(getRandomKeyframes(otherProps.getLineCount(), getOpts()));
+export const GlitchExample = ({ getKeyframeOpts, ...otherProps }: Props) => {
+    const [getKeyframes, setKeyframes] = createSignal(getRandomKeyframes(otherProps.getLineCount(), getKeyframeOpts()));
 
     return (
         <ScanlineAnimation
@@ -41,7 +41,7 @@ export const GlitchExample = ({ getOpts, ...otherProps }: Props) => {
             getRootAnimationKeyframes={() => ROOT_KEYFRAMES}
             getScanlineAnimationKeyframes={(getIndex) => getKeyframes()[getIndex()]}
             onAnimationEnd={() => {
-                setKeyframes(getRandomKeyframes(otherProps.getLineCount(), getOpts()));
+                setKeyframes(getRandomKeyframes(otherProps.getLineCount(), getKeyframeOpts()));
             }}
         />
     );

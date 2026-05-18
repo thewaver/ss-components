@@ -1,19 +1,20 @@
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
-import { ScanlineAnimationUtils } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
+import { ScanlineAnimationBreakpoints, ScanlineAnimationKeyframes } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.types";
 
 type Props = ScanlineAnimationExampleProps &
     AccessorProps<{
-        opts: ScanlineAnimationUtils.HorizontalSplitOpts;
+        breakpointOpts: ScanlineAnimationBreakpoints.BreakpointOpts;
+        keyframeOpts: ScanlineAnimationKeyframes.HorizontalSplitOpts;
     }>;
 
-export const SplitExample = ({ getOpts, ...otherProps }: Props) => {
+export const SplitExample = ({ getKeyframeOpts, getBreakpointOpts, ...otherProps }: Props) => {
     return (
         <ScanlineAnimation
             {...otherProps}
             getScanlineAnimationKeyframes={(getIndex) =>
-                ScanlineAnimationUtils.getHorizontalSplitKeyframes(getIndex(), otherProps.getLineCount(), getOpts())
+                ScanlineAnimationKeyframes.getHorizontalSplitKeyframes(ScanlineAnimationBreakpoints.getBreakpoints("linear", getIndex(), otherProps.getLineCount(), {}, getBreakpointOpts()), getIndex(), getKeyframeOpts())
             }
         />
     );
