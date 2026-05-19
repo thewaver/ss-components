@@ -12,50 +12,46 @@ const reverseBits = (n: number, bits: number) => {
 
 export namespace ScanlineAnimationBreakpoints {
     export const DIRECTIONS = ["asc", "desc"] as const;
-    export type Direction = typeof DIRECTIONS[number];
+    export type Direction = (typeof DIRECTIONS)[number];
 
     export const ORDER_TYPES = ["linear", "converge", "evenOdd", "interleaved", "reverseBinary"] as const;
-    export type OrderingType = typeof ORDER_TYPES[number];
+    export type OrderingType = (typeof ORDER_TYPES)[number];
 
-    export type OrderingDefs<T extends OrderingType> = /* T extends "custom-order-type" ? { custom-props } : */ Record<string, never>;
+    export type OrderingDefs<T extends OrderingType> = /* T extends "custom-order-type" ? { custom-props } : */ Record<
+        string,
+        never
+    >;
 
     export type OrderingFn<T extends OrderingType> = (idx: number, lineCount: number, defs: OrderingDefs<T>) => number;
 
     export type BreakpointOpts = {
         dir?: Direction;
         smoothness?: number;
-    }
+    };
 
-    const applyDirection = (
-        idx: number,
-        lineCount: number,
-        dir: Direction = "asc",
-    ) => dir === "desc" ? lineCount - 1 - idx : idx;
+    const applyDirection = (idx: number, lineCount: number, dir: Direction = "asc") =>
+        dir === "desc" ? lineCount - 1 - idx : idx;
 
-    const orderingRegistry: { [K in OrderingType]: OrderingFn<K>} = {
+    const orderingRegistry: { [K in OrderingType]: OrderingFn<K> } = {
         linear: (idx) => idx,
-        
+
         converge: (idx, lineCount) => {
             const t = lineCount <= 1 ? 0.5 : idx / (lineCount - 1);
             const edgeDistance = Math.abs(t - 0.5) * 2;
-        
+
             return Math.round((1 - edgeDistance) * (lineCount - 1));
         },
 
         evenOdd: (idx, lineCount) => {
             const evenCount = Math.ceil(lineCount / 2);
-        
-            return MathUtils.isEven(idx)
-                ? idx / 2
-                : evenCount + Math.floor(idx / 2);
+
+            return MathUtils.isEven(idx) ? idx / 2 : evenCount + Math.floor(idx / 2);
         },
 
         interleaved: (idx, lineCount) => {
             const pair = Math.floor(idx * 0.5);
-        
-            return MathUtils.isEven(idx)
-                ? pair
-                : lineCount - 1 - pair;
+
+            return MathUtils.isEven(idx) ? pair : lineCount - 1 - pair;
         },
 
         reverseBinary: (idx, lineCount) => {
@@ -73,16 +69,12 @@ export namespace ScanlineAnimationBreakpoints {
         opts?: BreakpointOpts,
     ) => {
         const orderedIdx = orderingRegistry[type](idx, lineCount, defs);
-        const directedIdx = applyDirection(orderedIdx, lineCount, opts?.dir ?? "asc" );
+        const directedIdx = applyDirection(orderedIdx, lineCount, opts?.dir ?? "asc");
         const smoothness = (opts?.smoothness ?? 0.5) * 0.5;
         const step = 1 / (lineCount + 1);
         const middle = step * directedIdx + step;
-        
-        return [
-            Math.max(0, middle - smoothness),
-            middle,
-            Math.min(1, middle + smoothness),
-        ] as [number, number, number];
+
+        return [Math.max(0, middle - smoothness), middle, Math.min(1, middle + smoothness)] as [number, number, number];
     };
 }
 
@@ -227,7 +219,10 @@ export namespace ScanlineAnimationKeyframes {
         return [
             { offset: 0, transform: "translateX(0)" },
             { offset: breakpoints[0], transform: "translateX(0)" },
-            { offset: breakpoints[1], transform: `translateX(${mergedOpts.shiftPercent * (MathUtils.isEven(idx) ? -1 : 1)}%)` },
+            {
+                offset: breakpoints[1],
+                transform: `translateX(${mergedOpts.shiftPercent * (MathUtils.isEven(idx) ? -1 : 1)}%)`,
+            },
             { offset: breakpoints[2], transform: "translateX(0)" },
             { offset: 1, transform: "translateX(0)" },
         ];

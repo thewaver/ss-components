@@ -1,5 +1,8 @@
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
-import { ScanlineAnimationBreakpoints, ScanlineAnimationKeyframes } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
+import {
+    ScanlineAnimationBreakpoints,
+    ScanlineAnimationKeyframes,
+} from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.types";
 
@@ -15,7 +18,13 @@ export const SnakeExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...
             {...otherProps}
             getScanlineAnimationKeyframes={(getIndex, getLineCount) =>
                 ScanlineAnimationKeyframes.getHorizontalSnakeKeyframes(
-                    ScanlineAnimationBreakpoints.getBreakpoints(getOrder(), getIndex(), getLineCount(), {}, getBreakpointOpts()), 
+                    ScanlineAnimationBreakpoints.getBreakpoints(
+                        getOrder(),
+                        getIndex(),
+                        getLineCount(),
+                        {},
+                        getBreakpointOpts(),
+                    ),
                     getKeyframeOpts(),
                 )
             }
