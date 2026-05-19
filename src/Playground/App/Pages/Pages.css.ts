@@ -148,7 +148,7 @@ export const propPanel = style({
     gridTemplateColumns: "1fr auto",
     gap: 20,
     borderRadius: 5,
-    padding: 20,
+    padding: 10,
     width: "100%",
     backgroundColor: "rgb(from var(--clr-bkg-secondary) r g b / 50%)",
     boxShadow: "var(--shd-tiny)",

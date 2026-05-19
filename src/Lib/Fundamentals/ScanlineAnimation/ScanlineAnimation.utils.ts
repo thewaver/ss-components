@@ -11,18 +11,13 @@ const reverseBits = (n: number, bits: number) => {
 };
 
 export namespace ScanlineAnimationBreakpoints {
-    export type Direction = "asc" | "desc";
+    export const DIRECTIONS = ["asc", "desc"] as const;
+    export type Direction = typeof DIRECTIONS[number];
 
-    export type OrderingType =
-        | "linear"
-        | "converge"
-        | "evenOdd"
-        | "interleaved"
-        | "reverseBinary"
-        | "strided"
-        | "wave";
+    export const ORDER_TYPES = ["linear", "converge", "evenOdd", "interleaved", "reverseBinary"] as const;
+    export type OrderingType = typeof ORDER_TYPES[number];
 
-    export type OrderingDefs<T extends OrderingType> = (T extends "strided" ? { stride: number; } : Record<string, never>);
+    export type OrderingDefs<T extends OrderingType> = /* T extends "custom-order-type" ? { custom-props } : */ Record<string, never>;
 
     export type OrderingFn<T extends OrderingType> = (idx: number, lineCount: number, defs: OrderingDefs<T>) => number;
 
@@ -67,21 +62,6 @@ export namespace ScanlineAnimationBreakpoints {
             const bits = Math.ceil(Math.log2(lineCount));
 
             return reverseBits(idx, bits) % lineCount;
-        },
-
-        strided: (idx, lineCount, defs) => {
-            const groupSize = Math.ceil(lineCount / defs.stride);
-            const group = idx % defs.stride;
-            const pos = Math.floor(idx / defs.stride);
-        
-            return pos + group * groupSize;
-        },
-
-        wave: (idx, lineCount) => {
-            const t = lineCount <= 1 ? 0.5 : idx / (lineCount - 1);
-            const v = 0.5 - 0.5 * Math.cos(t * Math.PI * 2);
-        
-            return Math.floor(v * (lineCount - 1));
         },
     };
 
@@ -191,53 +171,41 @@ export namespace ScanlineAnimationKeyframes {
         ];
     };
 
-    export type HorizontalHueOpts = {
-        filterDir?: "color" | "hue";
-    };
+    export type HorizontalHueOpts = {};
 
-    const DEFAULT_HORIZONTAL_HUE_OPTS: Required<HorizontalHueOpts> = {
-        filterDir: "hue",
-    };
+    const DEFAULT_HORIZONTAL_HUE_OPTS: Required<HorizontalHueOpts> = {};
 
     export const getHorizontalHueKeyframes = (
         breakpoints: [number, number, number],
         opts?: HorizontalHueOpts,
     ): Keyframe[] => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_HUE_OPTS, ...opts };
-        const startValue = mergedOpts?.filterDir === "color" ? 0 : 180;
-        const endValue = mergedOpts?.filterDir === "color" ? 180 : 0;
 
         return [
-            { offset: 0, filter: `hue-rotate(${startValue}deg)` },
-            { offset: breakpoints[0], filter: `hue-rotate(${startValue}deg)` },
-            { offset: breakpoints[1], filter: `hue-rotate(${endValue}deg)` },
-            { offset: breakpoints[2], filter: `hue-rotate(${endValue}deg)` },
-            { offset: 1, filter: `hue-rotate(${endValue}deg)` },
+            { offset: 0, filter: `hue-rotate(0deg)` },
+            { offset: breakpoints[0], filter: `hue-rotate(0deg)` },
+            { offset: breakpoints[1], filter: `hue-rotate(180deg)` },
+            { offset: breakpoints[2], filter: `hue-rotate(0deg)` },
+            { offset: 1, filter: `hue-rotate(0deg)` },
         ];
     };
 
-    export type HorizontalGrayscaleOpts = {
-        filterDir?: "color" | "gray";
-    };
+    export type HorizontalGrayscaleOpts = {};
 
-    const DEFAULT_HORIZONTAL_GRAYSCALE_OPTS: Required<HorizontalGrayscaleOpts> = {
-        filterDir: "gray",
-    };
+    const DEFAULT_HORIZONTAL_GRAYSCALE_OPTS: Required<HorizontalGrayscaleOpts> = {};
 
     export const getHorizontalGrayscaleKeyframes = (
         breakpoints: [number, number, number],
         opts?: HorizontalGrayscaleOpts,
     ): Keyframe[] => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_GRAYSCALE_OPTS, ...opts };
-        const startValue = mergedOpts?.filterDir === "color" ? 0 : 1;
-        const endValue = mergedOpts?.filterDir === "color" ? 1 : 0;
 
         return [
-            { offset: 0, filter: `grayscale(${startValue})` },
-            { offset: breakpoints[0], filter: `grayscale(${startValue})` },
-            { offset: breakpoints[1], filter: `grayscale(${endValue})` },
-            { offset: breakpoints[2], filter: `grayscale(${endValue})` },
-            { offset: 1, filter: `grayscale(${endValue})` },
+            { offset: 0, filter: `grayscale(0)` },
+            { offset: breakpoints[0], filter: `grayscale(0)` },
+            { offset: breakpoints[1], filter: `grayscale(1)` },
+            { offset: breakpoints[2], filter: `grayscale(0)` },
+            { offset: 1, filter: `grayscale(0)` },
         ];
     };
 

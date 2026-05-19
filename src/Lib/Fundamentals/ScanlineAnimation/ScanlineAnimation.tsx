@@ -138,7 +138,7 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
                     {(_, getIndex) => (
                         <image
                             ref={(el) => {
-                                attachAnimation(el, () => props.getScanlineAnimationKeyframes(getIndex));
+                                attachAnimation(el, () => props.getScanlineAnimationKeyframes(getIndex, getLineCount));
                             }}
                             class={styles.scanlineAnimationLine}
                             href={props.getSrc()}

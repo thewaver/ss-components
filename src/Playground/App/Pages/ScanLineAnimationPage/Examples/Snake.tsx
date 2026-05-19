@@ -9,12 +9,15 @@ type Props = ScanlineAnimationExampleProps &
         keyframeOpts: ScanlineAnimationKeyframes.HorizontalSnakeOpts;
     }>;
 
-export const SnakeExample = ({ getKeyframeOpts, getBreakpointOpts, ...otherProps }: Props) => {
+export const SnakeExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...otherProps }: Props) => {
     return (
         <ScanlineAnimation
             {...otherProps}
-            getScanlineAnimationKeyframes={(getIndex) =>
-                ScanlineAnimationKeyframes.getHorizontalSnakeKeyframes(ScanlineAnimationBreakpoints.getBreakpoints("linear", getIndex(), otherProps.getLineCount(), {}, getBreakpointOpts()), getKeyframeOpts())
+            getScanlineAnimationKeyframes={(getIndex, getLineCount) =>
+                ScanlineAnimationKeyframes.getHorizontalSnakeKeyframes(
+                    ScanlineAnimationBreakpoints.getBreakpoints(getOrder(), getIndex(), getLineCount(), {}, getBreakpointOpts()), 
+                    getKeyframeOpts(),
+                )
             }
         />
     );

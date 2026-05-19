@@ -30,7 +30,57 @@ const SPLIT_SOURCE = highlighter.codeToHtml(SplitExampleRaw, getDefaultHighlight
 const GRAYSCALE_SOURCE = highlighter.codeToHtml(GrayscaleExampleRaw, getDefaultHighlighterConfig());
 const HUE_SOURCE = highlighter.codeToHtml(HueExampleRaw, getDefaultHighlighterConfig());
 
-export const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
+const SmoothnessInput = (props: {getter: () => number, setter: (value: number) => void}) => {
+    return (
+        <div class={pageStyles.propPanel}>
+            <div>{"Smoothness (0-1)"}</div>
+            <input
+                type="number"
+                min={0.1}
+                max={1}
+                step={0.1}
+                value={props.getter()}
+                onInput={(e) =>
+                    props.setter(Math.min(Math.max(Number(e.target.value), 0.1), 1))
+                }
+            />
+        </div>
+    );
+}
+
+const DirInput = (props: {getter: () => ScanlineAnimationBreakpoints.Direction, setter: (value: ScanlineAnimationBreakpoints.Direction) => void}) => {
+    return (
+        <div class={pageStyles.propPanel}>
+            <div>{"Direction"}</div>
+            <select
+                value={props.getter()}
+                onChange={(e) => props.setter(e.target.value as ScanlineAnimationBreakpoints.Direction)}
+            >
+                <For each={ScanlineAnimationBreakpoints.DIRECTIONS}>
+                    {(order) => <option value={order}>{order}</option>}
+                </For>
+            </select>
+        </div>
+    );
+}
+
+const OrdererInput = (props: {getter: () => ScanlineAnimationBreakpoints.OrderingType, setter: (value: ScanlineAnimationBreakpoints.OrderingType) => void}) => {
+    return (
+        <div class={pageStyles.propPanel}>
+            <div>{"Ordering"}</div>
+            <select
+                value={props.getter()}
+                onChange={(e) => props.setter(e.target.value as ScanlineAnimationBreakpoints.OrderingType)}
+            >
+                <For each={ScanlineAnimationBreakpoints.ORDER_TYPES}>
+                    {(order) => <option value={order}>{order}</option>}
+                </For>
+            </select>
+        </div>
+    );
+}
+
+const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
     const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalShiftOpts>({
         maxShift: 10,
         chunkyness: 0.5,
@@ -75,18 +125,20 @@ export const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
     );
 };
 
-export const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
+const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
+    const [getOrder, setOrder] = createSignal(props.getOrder());
     const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalStretchOpts>({
         peakScalePercent: 150,
     });
     const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
-        smoothness: 0.1,
+        dir: "asc",
+        smoothness: 0.2,
     });
-
+    
     return (
         <>
             <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
-                <SurgeExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} />
+                <SurgeExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} getOrder={getOrder} />
             </div>
 
             <div class={pageStyles.props}>
@@ -106,36 +158,28 @@ export const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     />
                 </div>
 
-                <div class={pageStyles.propPanel}>
-                    <div>{"Smoothness (0-1)"}</div>
-                    <input
-                        type="number"
-                        min={0.1}
-                        max={1}
-                        step={0.1}
-                        value={breakpointOpts.smoothness}
-                        onInput={(e) =>
-                            setBreakpointOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
-                        }
-                    />
-                </div>
+                <SmoothnessInput getter={() => breakpointOpts.smoothness!} setter={(value) => setBreakpointOpts("smoothness", value)} />
+                <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
+                <OrdererInput getter={getOrder} setter={setOrder}/>
             </div>
         </>
     );
 };
 
-export const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
+const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
+    const [getOrder, setOrder] = createSignal(props.getOrder());
     const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalSnakeOpts>({
         shiftPercent: 5,
     });
     const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
+        dir: "asc",
         smoothness: 0.2,
     });
 
     return (
         <>
             <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
-                <SnakeExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} />
+                <SnakeExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} getOrder={getOrder} />
             </div>
 
             <div class={pageStyles.props}>
@@ -153,36 +197,28 @@ export const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     />
                 </div>
 
-                <div class={pageStyles.propPanel}>
-                    <div>{"Smoothness (0-1)"}</div>
-                    <input
-                        type="number"
-                        min={0.1}
-                        max={1}
-                        step={0.1}
-                        value={breakpointOpts.smoothness}
-                        onInput={(e) =>
-                            setBreakpointOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
-                        }
-                    />
-                </div>
+                <SmoothnessInput getter={() => breakpointOpts.smoothness!} setter={(value) => setBreakpointOpts("smoothness", value)} />
+                <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
+                <OrdererInput getter={getOrder} setter={setOrder}/>
             </div>
         </>
     );
 };
 
-export const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
+const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
+    const [getOrder, setOrder] = createSignal(props.getOrder());
     const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalSplitOpts>({
         shiftPercent: 10,
     });
     const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
+        dir: "asc",
         smoothness: 1,
     });
 
     return (
         <>
             <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
-                <SplitExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} />
+                <SplitExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} getOrder={getOrder} />
             </div>
 
             <div class={pageStyles.props}>
@@ -200,81 +236,55 @@ export const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     />
                 </div>
 
-                <div class={pageStyles.propPanel}>
-                    <div>{"Smoothness (0-1)"}</div>
-                    <input
-                        type="number"
-                        min={0.1}
-                        max={1}
-                        step={0.1}
-                        value={breakpointOpts.smoothness}
-                        onInput={(e) =>
-                            setBreakpointOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
-                        }
-                    />
-                </div>
+                <SmoothnessInput getter={() => breakpointOpts.smoothness!} setter={(value) => setBreakpointOpts("smoothness", value)} />
+                <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
+                <OrdererInput getter={getOrder} setter={setOrder}/>
             </div>
         </>
     );
 };
 
-export const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) => {
+const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) => {
+    const [getOrder, setOrder] = createSignal(props.getOrder());
     const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalGrayscaleOpts>({});
     const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
+        dir: "asc",
         smoothness: 0.5,
     });
 
     return (
         <>
             <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
-                <GrayscaleExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} />
+                <GrayscaleExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} getOrder={getOrder} />
             </div>
 
             <div class={pageStyles.props}>
-                <div class={pageStyles.propPanel}>
-                    <div>{"Smoothness (0-1)"}</div>
-                    <input
-                        type="number"
-                        min={0.1}
-                        max={1}
-                        step={0.1}
-                        value={breakpointOpts.smoothness}
-                        onInput={(e) =>
-                            setBreakpointOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
-                        }
-                    />
-                </div>
+                <SmoothnessInput getter={() => breakpointOpts.smoothness!} setter={(value) => setBreakpointOpts("smoothness", value)} />
+                <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
+                <OrdererInput getter={getOrder} setter={setOrder}/>
             </div>
         </>
     );
 };
 
-export const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
+const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
+    const [getOrder, setOrder] = createSignal(props.getOrder());
     const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalHueOpts>({});
     const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
+        dir: "asc",
         smoothness: 0.5,
     });
 
     return (
         <>
             <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
-                <HueExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} />
+                <HueExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} getOrder={getOrder} />
             </div>
 
             <div class={pageStyles.props}>
-                <div class={pageStyles.propPanel}>
-                    <div>{"Smoothness (0-1)"}</div>
-                    <input
-                        type="number"
-                        min={0.1}
-                        max={1}
-                        step={0.1}
-                        value={breakpointOpts.smoothness}
-                        onInput={(e) =>
-                            setBreakpointOpts("smoothness", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1))
-                        }
-                    />
-                </div>
+                <SmoothnessInput getter={() => breakpointOpts.smoothness!} setter={(value) => setBreakpointOpts("smoothness", value)} />
+                <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
+                <OrdererInput getter={getOrder} setter={setOrder}/>
             </div>
         </>
     );
@@ -295,11 +305,12 @@ export const ScanlineAnimationPage = () => {
     };
 
     const getExamples = createMemo(() => {
-        const commonProps = {
+        const commonProps: ScanlineAnimationExampleProps = {
             getSrc,
             getLineCount,
             getAnimationDurationMs,
             getAnimationIterationDelayMs,
+            getOrder: () => "linear",
         };
 
         return [

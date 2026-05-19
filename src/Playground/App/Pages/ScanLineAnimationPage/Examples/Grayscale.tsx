@@ -1,5 +1,3 @@
-import { createMemo, createSignal } from "solid-js";
-
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
 import { ScanlineAnimationBreakpoints, ScanlineAnimationKeyframes } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
@@ -11,25 +9,16 @@ type Props = ScanlineAnimationExampleProps &
         keyframeOpts: ScanlineAnimationKeyframes.HorizontalGrayscaleOpts;
     }>;
 
-export const GrayscaleExample = ({ getKeyframeOpts, getBreakpointOpts, ...otherProps }: Props) => {
-    const [getColorDir, setColorDir] =
-        createSignal<ScanlineAnimationKeyframes.HorizontalGrayscaleOpts["filterDir"]>("gray");
-
+export const GrayscaleExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...otherProps }: Props) => {
     return (
         <ScanlineAnimation
             {...otherProps}
-            getScanlineAnimationKeyframes={(getIndex) =>
+            getScanlineAnimationKeyframes={(getIndex, getLineCount) =>
                 ScanlineAnimationKeyframes.getHorizontalGrayscaleKeyframes(
-                    ScanlineAnimationBreakpoints.getBreakpoints("linear", getIndex(), otherProps.getLineCount(), {}, getBreakpointOpts()),
-                    {
-                        ...getKeyframeOpts(),
-                        filterDir: getColorDir(),
-                    },
+                    ScanlineAnimationBreakpoints.getBreakpoints(getOrder(), getIndex(), getLineCount(), {}, getBreakpointOpts()),
+                    getKeyframeOpts(),
                 )
             }
-            onAnimationEnd={() => {
-                setColorDir((prev) => (prev === "color" ? "gray" : "color"));
-            }}
         />
     );
 };

@@ -9,12 +9,15 @@ type Props = ScanlineAnimationExampleProps &
         keyframeOpts: ScanlineAnimationKeyframes.HorizontalSplitOpts;
     }>;
 
-export const SplitExample = ({ getKeyframeOpts, getBreakpointOpts, ...otherProps }: Props) => {
+export const SplitExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...otherProps }: Props) => {
     return (
         <ScanlineAnimation
             {...otherProps}
-            getScanlineAnimationKeyframes={(getIndex) =>
-                ScanlineAnimationKeyframes.getHorizontalSplitKeyframes(ScanlineAnimationBreakpoints.getBreakpoints("linear", getIndex(), otherProps.getLineCount(), {}, getBreakpointOpts()), getIndex(), getKeyframeOpts())
+            getScanlineAnimationKeyframes={(getIndex, getLineCount) =>
+                ScanlineAnimationKeyframes.getHorizontalSplitKeyframes(
+                    ScanlineAnimationBreakpoints.getBreakpoints(getOrder(), getIndex(), getLineCount(), {}, getBreakpointOpts()), getIndex(), 
+                    getKeyframeOpts(),
+                )
             }
         />
     );

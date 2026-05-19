@@ -9,12 +9,15 @@ type Props = ScanlineAnimationExampleProps &
         keyframeOpts: ScanlineAnimationKeyframes.HorizontalStretchOpts;
     }>;
 
-export const SurgeExample = ({ getKeyframeOpts, getBreakpointOpts, ...otherProps }: Props) => {
+export const SurgeExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...otherProps }: Props) => {
     return (
         <ScanlineAnimation
             {...otherProps}
-            getScanlineAnimationKeyframes={(getIndex) =>
-                ScanlineAnimationKeyframes.getHorizontalStretchKeyframes(ScanlineAnimationBreakpoints.getBreakpoints("linear", getIndex(), otherProps.getLineCount(), {}, getBreakpointOpts()), getKeyframeOpts())
+            getScanlineAnimationKeyframes={(getIndex, getLineCount) =>
+                ScanlineAnimationKeyframes.getHorizontalStretchKeyframes(
+                    ScanlineAnimationBreakpoints.getBreakpoints(getOrder(),  getIndex(), getLineCount(), {}, getBreakpointOpts()), 
+                    getKeyframeOpts(),
+                )
             }
         />
     );

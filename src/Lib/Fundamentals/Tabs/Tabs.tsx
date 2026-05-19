@@ -35,7 +35,7 @@ export const Tabs = (props: TabProps) => {
         });
 
         const selectedIndex = props.getSelectedIndex();
-        const selectedItemRef = selectedIndex ? itemRefs[selectedIndex] : undefined;
+        const selectedItemRef = selectedIndex !== undefined ? itemRefs[selectedIndex] : undefined;
 
         if (!selectedItemRef) return;
 

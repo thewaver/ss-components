@@ -8,6 +8,6 @@ export type ScanlineAnimationProps = AccessorProps<{
     animationIterationCount?: number;
     animationIterationDelayMs?: number;
     rootAnimationKeyframes?: Keyframe[];
-    getScanlineAnimationKeyframes: (getIndex: () => number) => Keyframe[];
+    getScanlineAnimationKeyframes: (getIndex: () => number, getLineCount: () => number) => Keyframe[];
     onAnimationEnd?: () => void;
 }>;
