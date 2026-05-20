@@ -1,3 +1,5 @@
+import type { Size2d } from "@thewaver/ss-utils";
+
 import type { SVGDefs } from "../../Abstracts/SVG/Defs/SVGDefs.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
 
@@ -14,8 +16,12 @@ export type BorderRadiusDefs = {
 };
 
 export type BorderProps = AccessorProps<{
-    class?: string;
     borderWidths: BorderWidthDefs;
     borderRadii: BorderRadiusDefs;
-    fillDefs: SVGDefs[];
+    isSolid?: boolean;
+    getFillDefs: (
+        getSize: () => Size2d,
+        getBorderWidths: () => BorderWidthDefs,
+        getBorderRadii: () => BorderRadiusDefs,
+    ) => SVGDefs[];
 }>;

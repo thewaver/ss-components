@@ -1,5 +1,7 @@
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
+import type { BorderDefs } from "./BorderPage.config";
 
 export type BorderExampleProps = AccessorProps<{
-    isPlain?: boolean;
+    isSolid?: boolean;
+    config: BorderDefs;
 }>;

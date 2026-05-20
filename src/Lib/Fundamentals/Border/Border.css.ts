@@ -8,6 +8,5 @@ export const borderRoot = style({
 
 export const borderSVG = style({
     position: "absolute",
-    zIndex: 1,
     pointerEvents: "none",
 });

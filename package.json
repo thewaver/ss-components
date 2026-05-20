@@ -19,7 +19,7 @@
     },
     "dependencies": {
         "colorthief": "^3.3.1",
-        "shiki": "^4.0.2"
+        "shiki": "^4.1.0"
     },
     "devDependencies": {
         "@solidjs/router": "^0.16.1",
@@ -30,10 +30,10 @@
         "@vanilla-extract/vite-plugin": "^5.2.2",
         "fast-equals": "^6.0.0",
         "prettier": "^3.8.3",
-        "solid-js": "^1.9.12",
+        "solid-js": "^1.9.13",
         "tsup": "^8.5.1",
-        "typescript": "^5.9.3",
-        "vite": "^7.3.2",
+        "typescript": "^6.0.3",
+        "vite": "^8.0.13",
         "vite-plugin-checker": "^0.13.0",
         "vite-plugin-solid": "^2.11.12"
     },
@@ -41,7 +41,7 @@
         "@solidjs/router": "^0.16.1",
         "@thewaver/ss-utils": "^0.0.11",
         "fast-equals": "^6.0.0",
-        "solid-js": "^1.9.12"
+        "solid-js": "^1.9.13"
     },
     "prettier": {
         "tabWidth": 4,

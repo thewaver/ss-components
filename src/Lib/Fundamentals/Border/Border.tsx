@@ -12,6 +12,10 @@ export const Border = (props: ParentProps<BorderProps>) => {
 
     const [getRootSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
 
+    const getFillDefs = createMemo(() => {
+        return props.getFillDefs(getRootSize, props.getBorderWidths, props.getBorderRadii);
+    });
+
     const getPaths = createMemo(() => {
         return BorderUtils.getRoundedRectPaths({
             x: 0,
@@ -42,7 +46,7 @@ export const Border = (props: ParentProps<BorderProps>) => {
             ref={(el) => {
                 rootRef = el;
             }}
-            class={[styles.borderRoot, props.getClass?.()].join(" ")}
+            class={styles.borderRoot}
             style={{
                 ...Object.fromEntries(
                     Object.entries(props.getBorderRadii()).map(([key, value]) => [
@@ -57,23 +61,31 @@ export const Border = (props: ParentProps<BorderProps>) => {
                 width={getRootSize().width}
                 height={getRootSize().height}
                 viewBox={`0 0 ${getRootSize().width} ${getRootSize().height}`}
+                style={{ "z-index": props.getIsSolid?.() ? -1 : 1 }}
             >
                 <defs>
-                    {props.getFillDefs().map((def) => (
+                    {getFillDefs().map((def) => (
                         <>
                             {def.gradient?.defsElement}
                             {def.filter?.defsElement}
+                            {def.clipPath?.defsElement}
                         </>
                     ))}
                 </defs>
 
-                <For each={props.getFillDefs()}>
-                    {(def) => (
+                <For each={getFillDefs()}>
+                    {(def, getIndex) => (
                         <path
-                            d={`${getPaths().outerPath} ${getPaths().innerPath}`}
-                            fill-rule="evenodd"
+                            d={
+                                props.getIsSolid?.()
+                                    ? getPaths().outerPath
+                                    : `${getPaths().outerPath} ${getPaths().innerPath}`
+                            }
+                            fill-rule={props.getIsSolid?.() ? undefined : "evenodd"}
                             fill={def.gradient ? `url(#${def.gradient?.id})` : def.color}
                             filter={def.filter ? `url(#${def.filter?.id})` : undefined}
+                            clip-path={def.clipPath ? `url(#${def.clipPath?.id})` : undefined}
+                            style={getFillDefs()[getIndex()].blend ? { "mix-blend-mode": "screen" } : undefined}
                         />
                     )}
                 </For>

@@ -2,6 +2,7 @@ import { For, Show, createMemo, createSignal } from "solid-js";
 
 import { Tabs } from "../../../../Lib/Fundamentals/Tabs/Tabs";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
+import { BORDER_CONFIGS } from "./BorderPage.config";
 import type { BorderExampleProps } from "./BorderPage.types";
 import { AsymmetricalExample } from "./Examples/Asymmetrical";
 import AsymmetricalExampleRaw from "./Examples/Asymmetrical.tsx?raw";
@@ -98,11 +99,13 @@ export const SymmetricalWrapper = (props: BorderExampleProps) => {
 };
 
 export const BorderPage = () => {
-    const [getIsPlain, setIsPlain] = createSignal(false);
+    const [getIsSolid, setIsSolid] = createSignal(false);
+    const [getConfigKey, setConfigKey] = createSignal<keyof typeof BORDER_CONFIGS>("counterOrbit");
 
     const getExamples = createMemo(() => {
-        const commonProps = {
-            getIsPlain,
+        const commonProps: BorderExampleProps = {
+            getIsSolid,
+            getConfig: () => BORDER_CONFIGS[getConfigKey()],
         };
 
         return [
@@ -126,8 +129,19 @@ export const BorderPage = () => {
             <div class={[styles.container, pageStyles.container].join(" ")}>
                 <div class={pageStyles.props}>
                     <div class={pageStyles.propPanel}>
-                        <div>{"Disable effects"}</div>
-                        <input type="checkbox" checked={getIsPlain()} onChange={(e) => setIsPlain((prev) => !prev)} />
+                        <div>{"Solid"}</div>
+                        <input type="checkbox" checked={getIsSolid()} onChange={(e) => setIsSolid((prev) => !prev)} />
+                    </div>
+                    <div class={pageStyles.propPanel}>
+                        <div>{"Direction"}</div>
+                        <select
+                            value={getConfigKey()}
+                            onChange={(e) => setConfigKey(e.target.value as keyof typeof BORDER_CONFIGS)}
+                        >
+                            <For each={Object.keys(BORDER_CONFIGS)}>
+                                {(order) => <option value={order}>{order}</option>}
+                            </For>
+                        </select>
                     </div>
                 </div>
             </div>
