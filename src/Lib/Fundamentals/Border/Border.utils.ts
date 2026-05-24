@@ -130,4 +130,139 @@ export namespace BorderUtils {
                     : "",
         };
     };
+
+    const BORDER_TRAVERSAL_LOOP = [
+        "topCenterRight",
+        "topRight",
+        "rightCenterTop",
+        "rightCenterBottom",
+        "bottomRight",
+        "bottomCenterRight",
+        "bottomCenterLeft",
+        "bottomLeft",
+        "leftCenterBottom",
+        "leftCenterTop",
+        "topLeft",
+        "topCenterLeft",
+    ] as const;
+
+    export type BorderTraversalKey = (typeof BORDER_TRAVERSAL_LOOP)[number];
+
+    export type BorderTraversalLengths = { [K in BorderTraversalKey]: number };
+
+    export type BorderTraversalDirection = "clockwise" | "counterclockwise";
+
+    export type BorderTraversalVisibilityMode = "persistent" | "transient";
+
+    export type BorderTraversalPathDefs = {
+        from: BorderTraversalKey;
+        to: BorderTraversalKey;
+        dir: BorderTraversalDirection;
+    };
+
+    export const getBorderTraversalPath = (defs: BorderTraversalPathDefs): BorderTraversalKey[] => {
+        const fromIdx = BORDER_TRAVERSAL_LOOP.indexOf(defs.from);
+        const toIdx = BORDER_TRAVERSAL_LOOP.indexOf(defs.to);
+
+        if (fromIdx === -1 || toIdx === -1) return [];
+
+        const path: BorderTraversalKey[] = [];
+        const step = defs.dir === "clockwise" ? 1 : -1;
+
+        for (let idx = fromIdx; ; idx = (idx + step + BORDER_TRAVERSAL_LOOP.length) % BORDER_TRAVERSAL_LOOP.length) {
+            path.push(BORDER_TRAVERSAL_LOOP[idx]);
+
+            if (idx === toIdx) break;
+        }
+
+        return path;
+    };
+
+    export const getBorderTraversalLengths = (
+        size: Size2d,
+        radii: BorderRadiusDefs,
+    ): Partial<BorderTraversalLengths> => {
+        const getPositiveLengthOrUndefined = (length: number) => (length > 0 ? length : undefined);
+
+        const getQuarterCircleLength = (radius: number) => (radius > 0 ? (Math.PI * radius) / 2 : undefined);
+
+        const halfWidth = size.width * 0.5;
+        const halfHeight = size.height * 0.5;
+
+        const topLeftRadius = radii.borderTopLeftRadius;
+        const topRightRadius = radii.borderTopRightRadius;
+        const bottomRightRadius = radii.borderBottomRightRadius;
+        const bottomLeftRadius = radii.borderBottomLeftRadius;
+
+        return {
+            topLeft: getQuarterCircleLength(topLeftRadius),
+            topRight: getQuarterCircleLength(topRightRadius),
+            bottomRight: getQuarterCircleLength(bottomRightRadius),
+            bottomLeft: getQuarterCircleLength(bottomLeftRadius),
+
+            topCenterLeft: getPositiveLengthOrUndefined(halfWidth - topLeftRadius),
+            topCenterRight: getPositiveLengthOrUndefined(halfWidth - topRightRadius),
+            rightCenterTop: getPositiveLengthOrUndefined(halfHeight - topRightRadius),
+            rightCenterBottom: getPositiveLengthOrUndefined(halfHeight - bottomRightRadius),
+            bottomCenterRight: getPositiveLengthOrUndefined(halfWidth - bottomRightRadius),
+            bottomCenterLeft: getPositiveLengthOrUndefined(halfWidth - bottomLeftRadius),
+            leftCenterBottom: getPositiveLengthOrUndefined(halfHeight - bottomLeftRadius),
+            leftCenterTop: getPositiveLengthOrUndefined(halfHeight - topLeftRadius),
+        };
+    };
+
+    export const getBorderTraversalKeyTimes = (
+        fullPath: BorderTraversalKey[],
+        traversalLengths: Partial<BorderTraversalLengths>,
+        visibilityMode: BorderTraversalVisibilityMode,
+    ): number[] => {
+        const lengths = fullPath.map((key) => traversalLengths[key]);
+
+        if (lengths.some((length) => length === undefined)) return [];
+
+        const tailLengths = visibilityMode === "persistent" ? [lengths.at(-1) ?? 0, lengths.at(-1) ?? 0] : [];
+        const allLengths = [...lengths, ...tailLengths] as number[];
+        const total = allLengths.reduce((sum, length) => sum + length, 0);
+
+        if (total <= 0) return [];
+
+        let acc = 0;
+
+        return [
+            0,
+            ...allLengths.map((length) => {
+                acc += length;
+                return acc / total;
+            }),
+        ];
+    };
+
+    export const getBorderTraversalVisibilityMask = (
+        segmentIdx: number,
+        keyTimes: number[],
+        visibilityMode: BorderTraversalVisibilityMode,
+    ): { keyTimes: number[]; values: number[] } => {
+        const showStart = keyTimes[segmentIdx];
+        const showEnd = keyTimes[segmentIdx + 1];
+
+        if (showStart === undefined || showEnd === undefined)
+            return {
+                keyTimes: [],
+                values: [],
+            };
+
+        if (visibilityMode === "persistent")
+            return {
+                keyTimes: [0, showStart, showEnd, 1],
+                values: [0, 0, 1, 1],
+            };
+
+        const holdEnd = keyTimes[segmentIdx + 2] ?? showEnd;
+        const hideEnd = keyTimes[segmentIdx + 3] ?? 1;
+
+        return {
+            keyTimes: [0, showStart, showEnd, holdEnd, hideEnd, 1],
+            values: [0, 0, 1, 1, -1, -1],
+        };
+    };
 }

@@ -39,7 +39,7 @@ export const ModalPage = () => {
                 }}
                 renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
                     <div
-                        class={getVisibilityTarget() === 1 ? styles.overlayOn : styles.overlayOff}
+                        class={getVisibilityTarget() === 1 ? pageStyles.overlayOn : pageStyles.overlayOff}
                         style={{
                             transition: `background-color ${getTransitionDurationMs()}ms, backdrop-filter ${getTransitionDurationMs()}ms`,
                         }}
@@ -48,8 +48,8 @@ export const ModalPage = () => {
                 renderContent={(getVisibilityTarget, getTransitionDurationMs) => (
                     <div
                         class={[
-                            getVisibilityTarget() === 1 ? styles.modalOn : styles.modalOff,
-                            pageStyles.container,
+                            getVisibilityTarget() === 1 ? pageStyles.modalOn : pageStyles.modalOff,
+                            pageStyles.exampleContainer,
                         ].join(" ")}
                         style={{
                             transition: `transform ${getTransitionDurationMs()}ms`,

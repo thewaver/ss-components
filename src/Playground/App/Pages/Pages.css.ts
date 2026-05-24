@@ -3,19 +3,28 @@ import { globalStyle, style } from "@vanilla-extract/css";
 export const isVisible = style({});
 export const isSelected = style({});
 
-export const container = style({
-    backdropFilter: "brightness(75%) grayscale(25%) blur(10px)",
-    boxShadow: "var(--shd-tiny), var(--shd-soft)",
-    borderRadius: 5,
-    padding: 20,
-});
-
 export const examplesContainer = style({
     display: "flex",
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "stretch",
     gap: 40,
+});
+
+export const exampleContainer = style({
+    backdropFilter: "brightness(75%) grayscale(25%) blur(10px)",
+    boxShadow: "var(--shd-tiny), var(--shd-soft)",
+    borderRadius: 5,
+    padding: 20,
+});
+
+export const exampleTitle = style({
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "start",
+    gap: 20,
+    width: "100%",
 });
 
 export const content = style({
@@ -67,6 +76,7 @@ export const measureBox = style({
     backgroundColor: checkerColorB,
     backgroundSize: `${checkerSize}px ${checkerSize}px`,
     backgroundPosition: `0 0, 0 ${checkerSize * 0.5}px, ${checkerSize * 0.5}px -${checkerSize * 0.5}px, -${checkerSize * 0.5}px 0`,
+    padding: checkerSize * 0.5,
 
     selectors: {
         "&::after": {
@@ -83,7 +93,7 @@ export const measureBox = style({
 
 export const codeBoxOutter = style({
     position: "relative",
-    backgroundColor: "rgb(from var(--clr-bkg-secondary) r g b / 50%)",
+    backgroundColor: "var(--clr-bkg-secondary)",
     boxShadow: "var(--shd-tiny)",
     borderRadius: 5,
     padding: 5,
@@ -133,6 +143,41 @@ export const tabFloater = style({
 
 export const tabsGutter = style({
     borderBottom: "2px solid rgb(from var(--clr-text) r g b / 25%)",
+});
+
+const modal = style({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 20,
+});
+
+export const modalOn = style([
+    modal,
+    {
+        transform: "scale(1)",
+    },
+]);
+
+export const modalOff = style([
+    modal,
+    {
+        transform: "scale(0)",
+    },
+]);
+
+export const modalHint = style({
+    pointerEvents: "none",
+    userSelect: "none",
+    textTransform: "uppercase",
+});
+
+export const overlayOn = style({
+    backdropFilter: "blur(10px) grayscale(75%)",
+});
+
+export const overlayOff = style({
+    backdropFilter: "none",
 });
 
 export const props = style({

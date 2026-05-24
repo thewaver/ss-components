@@ -19,5 +19,4 @@ export const container = style({
 
 export const imageContainer = style({
     width: 320,
-    padding: 20,
 });

@@ -1,7 +1,7 @@
-import { For, Show, createMemo, createSignal } from "solid-js";
+import { For, createMemo, createSignal } from "solid-js";
 
-import { Tabs } from "../../../../Lib/Fundamentals/Tabs/Tabs";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { BORDER_CONFIGS } from "./BorderPage.config";
 import type { BorderExampleProps } from "./BorderPage.types";
 import { AsymmetricalExample } from "./Examples/Asymmetrical";
@@ -12,7 +12,6 @@ import SymmetricalExampleRaw from "./Examples/Symmetrical.tsx?raw";
 import * as pageStyles from "../Pages.css";
 import * as styles from "./BorderPage.css";
 
-const TAB_NAMES = ["Render", "Source"];
 const ASYMMETRICAL_SOURCE = highlighter.codeToHtml(AsymmetricalExampleRaw, getDefaultHighlighterConfig());
 const SYMMETRICAL_SOURCE = highlighter.codeToHtml(SymmetricalExampleRaw, getDefaultHighlighterConfig());
 
@@ -122,16 +121,15 @@ export const BorderPage = () => {
         ];
     });
 
-    const [getTabIndex, setTabIndex] = createSignal(getExamples().map(() => 0));
-
     return (
         <div class={styles.root}>
-            <div class={[styles.container, pageStyles.container].join(" ")}>
+            <div class={[styles.container, pageStyles.exampleContainer].join(" ")}>
                 <div class={pageStyles.props}>
                     <div class={pageStyles.propPanel}>
                         <div>{"Solid"}</div>
                         <input type="checkbox" checked={getIsSolid()} onChange={(e) => setIsSolid((prev) => !prev)} />
                     </div>
+
                     <div class={pageStyles.propPanel}>
                         <div>{"Direction"}</div>
                         <select
@@ -146,50 +144,7 @@ export const BorderPage = () => {
                 </div>
             </div>
 
-            <div class={pageStyles.examplesContainer}>
-                <For each={getExamples()}>
-                    {(example, getExampleIndex) => (
-                        <div class={[styles.container, pageStyles.container].join(" ")}>
-                            {`${example.name}:`}
-
-                            <Tabs
-                                getDir={() => "row"}
-                                getTabGap={() => 10}
-                                getSelectedIndex={() => getTabIndex()[getExampleIndex()]}
-                                getTabCount={() => 2}
-                                onSelectionChange={(value) =>
-                                    setTabIndex((prev) => {
-                                        const next = [...prev];
-
-                                        next[getExampleIndex()] = value;
-
-                                        return next;
-                                    })
-                                }
-                                renderGutter={() => <div class={pageStyles.tabsGutter} />}
-                                renderFloater={() => <div class={pageStyles.tabFloater} />}
-                                renderTab={(getIndex) => (
-                                    <div
-                                        class={pageStyles.tabItem}
-                                        classList={{
-                                            [pageStyles.isSelected]: getIndex() === getTabIndex()[getExampleIndex()],
-                                        }}
-                                    >
-                                        {TAB_NAMES[getIndex()]}
-                                    </div>
-                                )}
-                            />
-
-                            <Show when={getTabIndex()[getExampleIndex()] === 0}>{example.component()}</Show>
-                            <Show when={getTabIndex()[getExampleIndex()] === 1}>
-                                <div class={pageStyles.codeBoxOutter}>
-                                    <div class={pageStyles.codeBoxInner} innerHTML={example.src} />
-                                </div>
-                            </Show>
-                        </div>
-                    )}
-                </For>
-            </div>
+            <PageExamples getItems={getExamples} />
         </div>
     );
 };
