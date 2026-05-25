@@ -1,6 +1,7 @@
 import { createUniqueId } from "solid-js";
 
 import { Border } from "../../../../../Lib/Fundamentals/Border/Border";
+import { BorderUtils } from "../../../../../Lib/Fundamentals/Border/Border.utils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import type { BorderExampleProps } from "../BorderPage.types";
 
@@ -12,23 +13,13 @@ type Props = BorderExampleProps &
         borderWidth: number;
     }>;
 
-export const AsymmetricalExample = (props: Props) => {
+export const WideExample = (props: Props) => {
     const id = createUniqueId();
 
     return (
         <Border
-            getBorderRadii={() => ({
-                borderBottomLeftRadius: props.getBorderRadius() * 2,
-                borderBottomRightRadius: props.getBorderRadius(),
-                borderTopLeftRadius: props.getBorderRadius(),
-                borderTopRightRadius: props.getBorderRadius() * 2,
-            })}
-            getBorderWidths={() => ({
-                borderTopWidth: props.getBorderWidth(),
-                borderRightWidth: props.getBorderWidth() * 2,
-                borderBottomWidth: props.getBorderWidth() * 2,
-                borderLeftWidth: props.getBorderWidth(),
-            })}
+            getBorderRadii={() => BorderUtils.spreadRadius(props.getBorderRadius())}
+            getBorderWidths={() => BorderUtils.spreadWidth(props.getBorderWidth())}
             getFillDefs={(getSize, getBorderWidths, getBorderRadii) =>
                 props.getConfig().getFillDefs(id, {
                     getSize,
@@ -39,7 +30,7 @@ export const AsymmetricalExample = (props: Props) => {
             }
             getIsSolid={props.getIsSolid}
         >
-            <div class={[styles.borderedContent, props.getConfig().class].join(" ")}>I have a border</div>
+            <div class={[styles.borderedContentWide, props.getConfig().class].join(" ")}>I have a border</div>
         </Border>
     );
 };

@@ -20,7 +20,14 @@ export const SymmetricalExample = (props: Props) => {
         <Border
             getBorderRadii={() => BorderUtils.spreadRadius(props.getBorderRadius())}
             getBorderWidths={() => BorderUtils.spreadWidth(props.getBorderWidth())}
-            getFillDefs={(...fillProps) => props.getConfig().getFillDefs(id, ...fillProps)}
+            getFillDefs={(getSize, getBorderWidths, getBorderRadii) =>
+                props.getConfig().getFillDefs(id, {
+                    getSize,
+                    getBorderWidths,
+                    getBorderRadii,
+                    getAnimationDurationMs: props.getAnimationDurationMs,
+                })
+            }
             getIsSolid={props.getIsSolid}
         >
             <div class={[styles.borderedContent, props.getConfig().class].join(" ")}>I have a border</div>

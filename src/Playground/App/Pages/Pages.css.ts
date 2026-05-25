@@ -18,15 +18,6 @@ export const exampleContainer = style({
     padding: 20,
 });
 
-export const exampleTitle = style({
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "start",
-    gap: 20,
-    width: "100%",
-});
-
 export const content = style({
     backgroundImage: "linear-gradient(45deg, var(--clr-primary), var(--clr-secondary))",
     color: "var(--clr-text-contrast)",
@@ -49,7 +40,7 @@ export const buttonContent = style([
 export const tooltipContent = style([
     content,
     {
-        width: 240,
+        maxWidth: 240,
         padding: 10,
         opacity: 0,
 

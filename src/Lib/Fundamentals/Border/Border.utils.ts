@@ -236,33 +236,4 @@ export namespace BorderUtils {
             }),
         ];
     };
-
-    export const getBorderTraversalVisibilityMask = (
-        segmentIdx: number,
-        keyTimes: number[],
-        visibilityMode: BorderTraversalVisibilityMode,
-    ): { keyTimes: number[]; values: number[] } => {
-        const showStart = keyTimes[segmentIdx];
-        const showEnd = keyTimes[segmentIdx + 1];
-
-        if (showStart === undefined || showEnd === undefined)
-            return {
-                keyTimes: [],
-                values: [],
-            };
-
-        if (visibilityMode === "persistent")
-            return {
-                keyTimes: [0, showStart, showEnd, 1],
-                values: [0, 0, 1, 1],
-            };
-
-        const holdEnd = keyTimes[segmentIdx + 2] ?? showEnd;
-        const hideEnd = keyTimes[segmentIdx + 3] ?? 1;
-
-        return {
-            keyTimes: [0, showStart, showEnd, holdEnd, hideEnd, 1],
-            values: [0, 0, 1, 1, -1, -1],
-        };
-    };
 }

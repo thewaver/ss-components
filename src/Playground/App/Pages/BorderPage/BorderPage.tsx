@@ -8,14 +8,17 @@ import { AsymmetricalExample } from "./Examples/Asymmetrical";
 import AsymmetricalExampleRaw from "./Examples/Asymmetrical.tsx?raw";
 import { SymmetricalExample } from "./Examples/Symmetrical";
 import SymmetricalExampleRaw from "./Examples/Symmetrical.tsx?raw";
+import { WideExample } from "./Examples/Wide";
+import WideExampleRaw from "./Examples/Wide.tsx?raw";
 
 import * as pageStyles from "../Pages.css";
 import * as styles from "./BorderPage.css";
 
 const ASYMMETRICAL_SOURCE = highlighter.codeToHtml(AsymmetricalExampleRaw, getDefaultHighlighterConfig());
 const SYMMETRICAL_SOURCE = highlighter.codeToHtml(SymmetricalExampleRaw, getDefaultHighlighterConfig());
+const WIDE_SOURCE = highlighter.codeToHtml(WideExampleRaw, getDefaultHighlighterConfig());
 
-export const AsymmetricalWrapper = (props: BorderExampleProps) => {
+const AsymmetricalWrapper = (props: BorderExampleProps) => {
     const [getBorderWidth, setBorderWidth] = createSignal(4);
     const [getBorderRadius, setBorderRadius] = createSignal(20);
 
@@ -56,7 +59,7 @@ export const AsymmetricalWrapper = (props: BorderExampleProps) => {
     );
 };
 
-export const SymmetricalWrapper = (props: BorderExampleProps) => {
+const SymmetricalWrapper = (props: BorderExampleProps) => {
     const [getBorderWidth, setBorderWidth] = createSignal(4);
     const [getBorderRadius, setBorderRadius] = createSignal(20);
 
@@ -97,13 +100,56 @@ export const SymmetricalWrapper = (props: BorderExampleProps) => {
     );
 };
 
+const WideWrapper = (props: BorderExampleProps) => {
+    const [getBorderWidth, setBorderWidth] = createSignal(4);
+    const [getBorderRadius, setBorderRadius] = createSignal(20);
+
+    return (
+        <>
+            <WideExample {...props} getBorderRadius={getBorderRadius} getBorderWidth={getBorderWidth} />
+
+            <div class={pageStyles.props}>
+                <div class={pageStyles.propPanel}>
+                    <div>{"Border width (px)"}</div>
+                    <input
+                        type="number"
+                        min={0}
+                        max={20}
+                        step={1}
+                        value={getBorderWidth()}
+                        onInput={(e) =>
+                            setBorderWidth((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0), 20))
+                        }
+                    />
+                </div>
+
+                <div class={pageStyles.propPanel}>
+                    <div>{"Border radius (px)"}</div>
+                    <input
+                        type="number"
+                        min={0}
+                        max={80}
+                        step={5}
+                        value={getBorderRadius()}
+                        onInput={(e) =>
+                            setBorderRadius((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0), 80))
+                        }
+                    />
+                </div>
+            </div>
+        </>
+    );
+};
+
 export const BorderPage = () => {
     const [getIsSolid, setIsSolid] = createSignal(false);
-    const [getConfigKey, setConfigKey] = createSignal<keyof typeof BORDER_CONFIGS>("counterOrbit");
+    const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
+    const [getConfigKey, setConfigKey] = createSignal<keyof typeof BORDER_CONFIGS>("sweepDiagonal1");
 
     const getExamples = createMemo(() => {
         const commonProps: BorderExampleProps = {
             getIsSolid,
+            getAnimationDurationMs,
             getConfig: () => BORDER_CONFIGS[getConfigKey()],
         };
 
@@ -118,6 +164,11 @@ export const BorderPage = () => {
                 component: () => <AsymmetricalWrapper {...commonProps} />,
                 src: ASYMMETRICAL_SOURCE,
             },
+            {
+                name: "Wide",
+                component: () => <WideWrapper {...commonProps} />,
+                src: WIDE_SOURCE,
+            },
         ];
     });
 
@@ -128,6 +179,22 @@ export const BorderPage = () => {
                     <div class={pageStyles.propPanel}>
                         <div>{"Solid"}</div>
                         <input type="checkbox" checked={getIsSolid()} onChange={(e) => setIsSolid((prev) => !prev)} />
+                    </div>
+
+                    <div class={pageStyles.propPanel}>
+                        <div>{"Animation duration (ms)"}</div>
+                        <input
+                            type="number"
+                            min={1000}
+                            max={5000}
+                            step={100}
+                            value={getAnimationDurationMs()}
+                            onInput={(e) =>
+                                setAnimationDurationMs((prev) =>
+                                    Math.min(Math.max(Number(e.target.value) ?? prev, 1000), 5000),
+                                )
+                            }
+                        />
                     </div>
 
                     <div class={pageStyles.propPanel}>

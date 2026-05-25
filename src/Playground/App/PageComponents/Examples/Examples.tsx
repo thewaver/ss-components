@@ -20,6 +20,19 @@ export const PageExamples = (props: ExamplesProps) => {
                             <div class={styles.exampleTitle}>
                                 {`${example.name}:`}
                                 <Button
+                                    getTooltipDefs={() => ({
+                                        getPlacement: () => ({ x: "center", y: "top-out" }),
+                                        getOffset: () => ({ x: 0, y: 5 }),
+                                        renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
+                                            <div
+                                                class={pageStyles.tooltipContent}
+                                                classList={{ [pageStyles.isVisible]: getVisibilityTarget() === 1 }}
+                                                style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
+                                            >
+                                                View source code
+                                            </div>
+                                        ),
+                                    })}
                                     onClick={async () => {
                                         setActiveIndex(getExampleIndex());
                                         setIsModalOpen(true);

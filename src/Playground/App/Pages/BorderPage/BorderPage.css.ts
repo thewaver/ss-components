@@ -26,3 +26,9 @@ export const borderedContent = style({
     height: 240,
     padding: 20,
 });
+
+export const borderedContentWide = style({
+    width: 480,
+    height: 240,
+    padding: 20,
+});
