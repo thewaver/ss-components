@@ -29,6 +29,54 @@ export const BORDER_CONFIGS = {
         ],
     },
 
+    flow1: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: "#FF0000" },
+                                { value: "#FFFF00" },
+                                { value: "#00FF00" },
+                                { value: "#00FFFF" },
+                                { value: "#0000FF" },
+                                { value: "#FF00FF" },
+                                { value: "#FF0000" },
+                                { value: "#FFFF00" },
+                                { value: "#00FF00" },
+                                { value: "#00FFFF" },
+                                { value: "#0000FF" },
+                                { value: "#FF00FF" },
+                            ],
+                        },
+                        <>
+                            <animateTransform
+                                attributeName="gradientTransform"
+                                type="scale"
+                                values="2 2;2 2"
+                                dur={`${defs.getAnimationDurationMs()}ms`}
+                                additive="sum"
+                                repeatCount="indefinite"
+                            />
+                            <animateTransform
+                                attributeName="gradientTransform"
+                                type="translate"
+                                values="0 0;-0.5 0"
+                                dur={`${defs.getAnimationDurationMs()}ms`}
+                                additive="sum"
+                                repeatCount="indefinite"
+                            />
+                        </>,
+                    ),
+                },
+            },
+        ],
+    },
+
     clam1v1: {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
@@ -295,6 +343,135 @@ export const BORDER_CONFIGS = {
         ],
     },
 
+    corny4: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: "#FF80FF40",
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getRadialGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [{ value: "#FFFF00" }, { value: "#FFFF0000" }],
+                            origin: { x: 0, y: 0 },
+                        },
+                        <>
+                            <animateTransform
+                                attributeName="gradientTransform"
+                                type="translate"
+                                values="0 0;0 0;0 0"
+                                dur={`${defs.getAnimationDurationMs()}ms`}
+                                additive="sum"
+                                repeatCount="indefinite"
+                            />
+                            <animateTransform
+                                attributeName="gradientTransform"
+                                type="scale"
+                                values="0 0;2 2;0 0"
+                                dur={`${defs.getAnimationDurationMs()}ms`}
+                                additive="sum"
+                                repeatCount="indefinite"
+                            />
+                        </>,
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getRadialGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [{ value: "#FFCC44" }, { value: "#FFCC4400" }],
+                            origin: { x: 100, y: 0 },
+                        },
+                        <>
+                            <animateTransform
+                                attributeName="gradientTransform"
+                                type="translate"
+                                values="1 0;-1 0;1 0"
+                                dur={`${defs.getAnimationDurationMs()}ms`}
+                                additive="sum"
+                                repeatCount="indefinite"
+                            />
+                            <animateTransform
+                                attributeName="gradientTransform"
+                                type="scale"
+                                values="0 0;2 2;0 0"
+                                dur={`${defs.getAnimationDurationMs()}ms`}
+                                additive="sum"
+                                repeatCount="indefinite"
+                            />
+                        </>,
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient3-${id}`,
+                    defsElement: SVGGradientDefsUtils.getRadialGradient(
+                        {
+                            id: `gradient3-${id}`,
+                            colors: [{ value: "#FF8888" }, { value: "#FF888800" }],
+                            origin: { x: 100, y: 100 },
+                        },
+                        <>
+                            <animateTransform
+                                attributeName="gradientTransform"
+                                type="translate"
+                                values="1 1;-1 -1;1 1"
+                                dur={`${defs.getAnimationDurationMs()}ms`}
+                                additive="sum"
+                                repeatCount="indefinite"
+                            />
+                            <animateTransform
+                                attributeName="gradientTransform"
+                                type="scale"
+                                values="0 0;2 2;0 0"
+                                dur={`${defs.getAnimationDurationMs()}ms`}
+                                additive="sum"
+                                repeatCount="indefinite"
+                            />
+                        </>,
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient4-${id}`,
+                    defsElement: SVGGradientDefsUtils.getRadialGradient(
+                        {
+                            id: `gradient4-${id}`,
+                            colors: [{ value: "#FF44CC" }, { value: "#FF44CC00" }],
+                            origin: { x: 0, y: 100 },
+                        },
+                        <>
+                            <animateTransform
+                                attributeName="gradientTransform"
+                                type="translate"
+                                values="0 1;0 -1;0 1"
+                                dur={`${defs.getAnimationDurationMs()}ms`}
+                                additive="sum"
+                                repeatCount="indefinite"
+                            />
+                            <animateTransform
+                                attributeName="gradientTransform"
+                                type="scale"
+                                values="0 0;2 2;0 0"
+                                dur={`${defs.getAnimationDurationMs()}ms`}
+                                additive="sum"
+                                repeatCount="indefinite"
+                            />
+                        </>,
+                    ),
+                },
+            },
+        ],
+    },
+
     flood1: {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
@@ -474,7 +651,6 @@ export const BORDER_CONFIGS = {
                                     dur={`${defs.getAnimationDurationMs()}ms`}
                                     repeatCount="indefinite"
                                 />
-                                ,
                             </path>
                         </clipPath>
                     ),
@@ -520,7 +696,6 @@ export const BORDER_CONFIGS = {
                                     dur={`${defs.getAnimationDurationMs()}ms`}
                                     repeatCount="indefinite"
                                 />
-                                ,
                             </path>
                         </clipPath>
                     ),
@@ -557,7 +732,6 @@ export const BORDER_CONFIGS = {
                                     dur={`${defs.getAnimationDurationMs()}ms`}
                                     repeatCount="indefinite"
                                 />
-                                ,
                             </path>
                         </clipPath>
                     ),
@@ -798,7 +972,6 @@ export const BORDER_CONFIGS = {
                                     dur={`${defs.getAnimationDurationMs()}ms`}
                                     repeatCount="indefinite"
                                 />
-                                ,
                             </path>
                         </clipPath>
                     ),
@@ -839,7 +1012,6 @@ export const BORDER_CONFIGS = {
                                     dur={`${defs.getAnimationDurationMs()}ms`}
                                     repeatCount="indefinite"
                                 />
-                                ,
                             </path>
                         </clipPath>
                     ),
@@ -880,7 +1052,6 @@ export const BORDER_CONFIGS = {
                                     dur={`${defs.getAnimationDurationMs()}ms`}
                                     repeatCount="indefinite"
                                 />
-                                ,
                             </path>
                         </clipPath>
                     ),
@@ -921,7 +1092,6 @@ export const BORDER_CONFIGS = {
                                     dur={`${defs.getAnimationDurationMs()}ms`}
                                     repeatCount="indefinite"
                                 />
-                                ,
                             </path>
                         </clipPath>
                     ),
