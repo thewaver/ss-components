@@ -3,10 +3,11 @@ import type { Size2d } from "@thewaver/ss-utils";
 import { SVGGradientDefsUtils } from "../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
 import type { SVGDefs } from "../../../../Lib/Abstracts/SVG/Defs/SVGDefs.types";
 import type { BorderRadiusDefs, BorderWidthDefs } from "../../../../Lib/Fundamentals/Border/Border.types";
+import type { BorderConfigColors } from "./BorderPage.types";
 
 import * as styles from "./BorderPage.css";
 
-export type BorderDefs = {
+export type BorderConfigDefs = {
     class: string;
     getFillDefs: (
         id: string,
@@ -15,16 +16,19 @@ export type BorderDefs = {
             getBorderWidths: () => BorderWidthDefs;
             getBorderRadii: () => BorderRadiusDefs;
             getAnimationDurationMs: () => number;
+            getColors: () => BorderConfigColors;
         },
     ) => SVGDefs[];
 };
 
+const getBaseBorderColor = (color: string) => `hsl(from ${color} h s calc(l * 2))`;
+
 export const BORDER_CONFIGS = {
     plain: {
         class: styles.borderedContainer,
-        getFillDefs: () => [
+        getFillDefs: (_, defs) => [
             {
-                color: "#FF00FF",
+                color: getBaseBorderColor(defs.getColors().background),
             },
         ],
     },
@@ -39,21 +43,17 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient1-${id}`,
                             colors: [
-                                { value: "#FF0000" },
-                                { value: "#FFFF00" },
-                                { value: "#00FF00" },
-                                { value: "#00FFFF" },
-                                { value: "#0000FF" },
-                                { value: "#FF00FF" },
-                                { value: "#FF0000" },
-                                { value: "#FFFF00" },
-                                { value: "#00FF00" },
-                                { value: "#00FFFF" },
-                                { value: "#0000FF" },
-                                { value: "#FF00FF" },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().tertiary },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().tertiary },
+                                { value: defs.getColors().primary },
                             ],
                         },
                         <>
+                            {" "}
                             <animateTransform
                                 attributeName="gradientTransform"
                                 type="scale"
@@ -77,11 +77,58 @@ export const BORDER_CONFIGS = {
         ],
     },
 
+    flowDiagonal1: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().tertiary },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().tertiary },
+                                { value: defs.getColors().primary },
+                            ],
+                            angle: 45,
+                        },
+                        <>
+                            <animateTransform
+                                attributeName="gradientTransform"
+                                type="scale"
+                                values="3 3;3 3"
+                                dur={`${defs.getAnimationDurationMs()}ms`}
+                                additive="sum"
+                                repeatCount="indefinite"
+                            />
+                            <animateTransform
+                                attributeName="gradientTransform"
+                                type="translate"
+                                values={((rad) =>
+                                    `${-0.166 * Math.cos(rad)} ${-0.166 * Math.sin(rad)};${-0.666 * Math.cos(rad)} ${-0.666 * Math.sin(rad)}`)(
+                                    (45 * Math.PI) / 180,
+                                )}
+                                dur={`${defs.getAnimationDurationMs()}ms`}
+                                additive="sum"
+                                repeatCount="indefinite"
+                            />
+                        </>,
+                    ),
+                },
+            },
+        ],
+    },
+
     clam1v1: {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: "#FF80FF40",
+                color: getBaseBorderColor(defs.getColors().background),
             },
             {
                 gradient: {
@@ -89,7 +136,10 @@ export const BORDER_CONFIGS = {
                     defsElement: SVGGradientDefsUtils.getLinearGradient(
                         {
                             id: `gradient1-${id}`,
-                            colors: [{ value: "#FFFF0000" }, { value: "#FFFF00" }],
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                            ],
                         },
                         <animateTransform
                             attributeName="gradientTransform"
@@ -108,7 +158,11 @@ export const BORDER_CONFIGS = {
                     defsElement: SVGGradientDefsUtils.getLinearGradient(
                         {
                             id: `gradient2-${id}`,
-                            colors: [{ value: "#00FFFF" }, { value: "#00FFFF00" }],
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary },
+                            ],
+                            angle: 180,
                         },
                         <animateTransform
                             attributeName="gradientTransform"
@@ -128,7 +182,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: "#FF80FF40",
+                color: getBaseBorderColor(defs.getColors().background),
             },
             {
                 gradient: {
@@ -136,7 +190,11 @@ export const BORDER_CONFIGS = {
                     defsElement: SVGGradientDefsUtils.getLinearGradient(
                         {
                             id: `gradient1-${id}`,
-                            colors: [{ value: "#FFFF0000" }, { value: "#FFFF00" }, { value: "#FFFF0000" }],
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                            ],
                         },
                         <animateTransform
                             attributeName="gradientTransform"
@@ -155,7 +213,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: "#FF00FF40",
+                color: getBaseBorderColor(defs.getColors().background),
             },
             {
                 gradient: {
@@ -164,9 +222,9 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient1-${id}`,
                             colors: [
-                                { value: "#FFFF0000" },
-                                { value: "#FFFF00", stop: 50 },
-                                { value: "#FFFF0000", stop: 50 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
                             ],
                             angle: 45,
                         },
@@ -187,7 +245,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: "#FF00FF40",
+                color: getBaseBorderColor(defs.getColors().background),
             },
             {
                 gradient: {
@@ -196,9 +254,9 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient1-${id}`,
                             colors: [
-                                { value: "#FFFF0000" },
-                                { value: "#FFFF00", stop: 50 },
-                                { value: "#FFFF0000", stop: 50 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
                             ],
                             angle: 45,
                         },
@@ -219,9 +277,9 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient2-${id}`,
                             colors: [
-                                { value: "#00FFFF00" },
-                                { value: "#00FFFF", stop: 50 },
-                                { value: "#00FFFF00", stop: 50 },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 50 },
                             ],
                             angle: 225,
                         },
@@ -242,7 +300,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: "#FF00FF40",
+                color: getBaseBorderColor(defs.getColors().background),
             },
             {
                 gradient: {
@@ -251,9 +309,9 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient1-${id}`,
                             colors: [
-                                { value: "#FFFF0000" },
-                                { value: "#FFFF00", stop: 50 },
-                                { value: "#FFFF0000", stop: 50 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
                             ],
                             angle: 45,
                         },
@@ -275,9 +333,9 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient2-${id}`,
                             colors: [
-                                { value: "#FFCC4400" },
-                                { value: "#FFCC44", stop: 50 },
-                                { value: "#FFCC4400", stop: 50 },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 50 },
                             ],
                             angle: 225,
                         },
@@ -299,9 +357,9 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient3-${id}`,
                             colors: [
-                                { value: "#FF888800" },
-                                { value: "#FF8888", stop: 50 },
-                                { value: "#FF888800", stop: 50 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
                             ],
                             angle: 135,
                         },
@@ -323,9 +381,9 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient4-${id}`,
                             colors: [
-                                { value: "#FF44CC00" },
-                                { value: "#FF44CC", stop: 50 },
-                                { value: "#FF44CC00", stop: 50 },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 50 },
                             ],
                             angle: 315,
                         },
@@ -347,7 +405,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: "#FF80FF40",
+                color: getBaseBorderColor(defs.getColors().background),
             },
             {
                 gradient: {
@@ -355,7 +413,10 @@ export const BORDER_CONFIGS = {
                     defsElement: SVGGradientDefsUtils.getRadialGradient(
                         {
                             id: `gradient1-${id}`,
-                            colors: [{ value: "#FFFF00" }, { value: "#FFFF0000" }],
+                            colors: [
+                                { value: defs.getColors().primary },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                            ],
                             origin: { x: 0, y: 0 },
                         },
                         <>
@@ -385,7 +446,10 @@ export const BORDER_CONFIGS = {
                     defsElement: SVGGradientDefsUtils.getRadialGradient(
                         {
                             id: `gradient2-${id}`,
-                            colors: [{ value: "#FFCC44" }, { value: "#FFCC4400" }],
+                            colors: [
+                                { value: defs.getColors().secondary },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                            ],
                             origin: { x: 100, y: 0 },
                         },
                         <>
@@ -415,7 +479,10 @@ export const BORDER_CONFIGS = {
                     defsElement: SVGGradientDefsUtils.getRadialGradient(
                         {
                             id: `gradient3-${id}`,
-                            colors: [{ value: "#FF8888" }, { value: "#FF888800" }],
+                            colors: [
+                                { value: defs.getColors().primary },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                            ],
                             origin: { x: 100, y: 100 },
                         },
                         <>
@@ -445,7 +512,10 @@ export const BORDER_CONFIGS = {
                     defsElement: SVGGradientDefsUtils.getRadialGradient(
                         {
                             id: `gradient4-${id}`,
-                            colors: [{ value: "#FF44CC" }, { value: "#FF44CC00" }],
+                            colors: [
+                                { value: defs.getColors().secondary },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                            ],
                             origin: { x: 0, y: 100 },
                         },
                         <>
@@ -476,7 +546,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: "#FF80FF40",
+                color: getBaseBorderColor(defs.getColors().background),
             },
             {
                 gradient: {
@@ -485,10 +555,10 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient1-${id}`,
                             colors: [
-                                { value: "#FFFF0000" },
-                                { value: "#FFFF00" },
-                                { value: "#00FFFF" },
-                                { value: "#00FFFF00" },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                         },
                         <>
@@ -519,7 +589,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: "#FF80FF40",
+                color: getBaseBorderColor(defs.getColors().background),
             },
             {
                 gradient: {
@@ -528,10 +598,10 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient1-${id}`,
                             colors: [
-                                { value: "#FFFF0000" },
-                                { value: "#FFFF00" },
-                                { value: "#00FFFF" },
-                                { value: "#00FFFF00" },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                             angle: 45,
                         },
@@ -573,10 +643,10 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient2-${id}`,
                             colors: [
-                                { value: "#FFFF0000" },
-                                { value: "#FFFF00" },
-                                { value: "#00FFFF" },
-                                { value: "#00FFFF00" },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                             angle: 135,
                         },
@@ -618,7 +688,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: "#FF00FF40",
+                color: getBaseBorderColor(defs.getColors().background),
             },
             {
                 gradient: {
@@ -626,7 +696,10 @@ export const BORDER_CONFIGS = {
                     defsElement: SVGGradientDefsUtils.getLinearGradient(
                         {
                             id: `gradient1-${id}`,
-                            colors: [{ value: "#FFFF0000" }, { value: "#FFFF00" }],
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                            ],
                         },
                         <animateTransform
                             attributeName="gradientTransform"
@@ -663,279 +736,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: "#FF00FF40",
-            },
-            {
-                gradient: {
-                    id: `gradient1-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient1-${id}`,
-                            colors: [{ value: "#FFFF0000" }, { value: "#FFFF00" }],
-                        },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
-                    ),
-                },
-                clipPath: {
-                    id: `clip1-${id}`,
-                    defsElement: (
-                        <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            <path d={`M -0.5 0.5 A 1 1 0 0 1 1.5 0.5`}>
-                                <animateTransform
-                                    attributeName="transform"
-                                    type="rotate"
-                                    from="0 0.5 0.5"
-                                    to="360 0.5 0.5"
-                                    dur={`${defs.getAnimationDurationMs()}ms`}
-                                    repeatCount="indefinite"
-                                />
-                            </path>
-                        </clipPath>
-                    ),
-                },
-            },
-            {
-                gradient: {
-                    id: `gradient2-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient2-${id}`,
-                            colors: [{ value: "#00FFFF" }, { value: "#00FFFF00" }],
-                        },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="360 0.5 0.5"
-                            to="0 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
-                    ),
-                },
-                clipPath: {
-                    id: `clip2-${id}`,
-                    defsElement: (
-                        <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                            <path d={`M -0.5 0.5 A 1 1 0 0 1 1.5 0.5`}>
-                                <animateTransform
-                                    attributeName="transform"
-                                    type="rotate"
-                                    from="360 0.5 0.5"
-                                    to="0 0.5 0.5"
-                                    dur={`${defs.getAnimationDurationMs()}ms`}
-                                    repeatCount="indefinite"
-                                />
-                            </path>
-                        </clipPath>
-                    ),
-                },
-            },
-        ],
-    },
-
-    orbit2: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
-            {
-                color: "#FF00FF40",
-            },
-            {
-                gradient: {
-                    id: `gradient1-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient1-${id}`,
-                            colors: [{ value: "#FFFF0000" }, { value: "#FFFF00" }, { value: "#FFFF0000" }],
-                        },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
-                    ),
-                },
-            },
-        ],
-    },
-
-    orbit2v1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
-            {
-                color: "#FF00FF40",
-            },
-            {
-                gradient: {
-                    id: `gradient1-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient1-${id}`,
-                            colors: [{ value: "#00FFFF00" }, { value: "#00FFFF" }],
-                        },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs() * 2}ms`}
-                            repeatCount="indefinite"
-                        />,
-                    ),
-                },
-            },
-            {
-                gradient: {
-                    id: `gradient2-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient2-${id}`,
-                            colors: [{ value: "#FFFF0000" }, { value: "#FFFF00" }],
-                        },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="360 0.5 0.5"
-                            to="0 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
-                    ),
-                },
-            },
-        ],
-    },
-
-    orbit2v2: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
-            {
-                color: "#FF00FF40",
-            },
-            {
-                gradient: {
-                    id: `gradient1-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient1-${id}`,
-                            colors: [{ value: "#FFFF0000" }, { value: "#FFFF00" }, { value: "#FFFF0000" }],
-                        },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
-                    ),
-                },
-            },
-            {
-                gradient: {
-                    id: `gradient2-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient2-${id}`,
-                            colors: [{ value: "#00FFFF00" }, { value: "#00FFFF" }, { value: "#00FFFF00" }],
-                        },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="360 0.5 0.5"
-                            to="0 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
-                    ),
-                },
-            },
-        ],
-    },
-
-    orbit3: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
-            {
-                color: "#FF00FF40",
-            },
-            {
-                gradient: {
-                    id: `gradient1-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient1-${id}`,
-                            colors: [{ value: "#00FFFF00" }, { value: "#00FFFF" }, { value: "#00FFFF00" }],
-                        },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs() * 0.5}ms`}
-                            repeatCount="indefinite"
-                        />,
-                    ),
-                },
-                blend: true,
-            },
-            {
-                gradient: {
-                    id: `gradient2-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient2-${id}`,
-                            colors: [{ value: "#FFFF0000" }, { value: "#FFFF00" }, { value: "#FFFF0000" }],
-                        },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
-                    ),
-                },
-                blend: true,
-            },
-            {
-                gradient: {
-                    id: `gradient3-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient3-${id}`,
-                            colors: [{ value: "#FF00FF00" }, { value: "#FF00FF" }, { value: "#FF00FF00" }],
-                        },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs() * 2}ms`}
-                            repeatCount="indefinite"
-                        />,
-                    ),
-                },
-                blend: true,
-            },
-        ],
-    },
-
-    orbit4: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
-            {
-                color: "#FF00FF40",
+                color: getBaseBorderColor(defs.getColors().background),
             },
             {
                 gradient: {
@@ -944,9 +745,8 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient1-${id}`,
                             colors: [
-                                { value: "#FF44CC00" },
-                                { value: "#FF44CC", stop: 75 },
-                                { value: "#FF44CC00", stop: 75 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
                             ],
                         },
                         <animateTransform
@@ -984,9 +784,318 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient2-${id}`,
                             colors: [
-                                { value: "#FF888800" },
-                                { value: "#FF8888", stop: 75 },
-                                { value: "#FF888800", stop: 75 },
+                                { value: defs.getColors().secondary },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                            ],
+                        },
+                        <animateTransform
+                            attributeName="gradientTransform"
+                            type="rotate"
+                            from="360 0.5 0.5"
+                            to="0 0.5 0.5"
+                            dur={`${defs.getAnimationDurationMs()}ms`}
+                            repeatCount="indefinite"
+                        />,
+                    ),
+                },
+                clipPath: {
+                    id: `clip2-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
+                            <path d={`M -0.5 0.5 A 1 1 0 0 1 1.5 0.5`}>
+                                <animateTransform
+                                    attributeName="transform"
+                                    type="rotate"
+                                    from="360 0.5 0.5"
+                                    to="0 0.5 0.5"
+                                    dur={`${defs.getAnimationDurationMs()}ms`}
+                                    repeatCount="indefinite"
+                                />
+                            </path>
+                        </clipPath>
+                    ),
+                },
+            },
+        ],
+    },
+
+    orbit2: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs.getColors().background),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                            ],
+                        },
+                        <animateTransform
+                            attributeName="gradientTransform"
+                            type="rotate"
+                            from="0 0.5 0.5"
+                            to="360 0.5 0.5"
+                            dur={`${defs.getAnimationDurationMs()}ms`}
+                            repeatCount="indefinite"
+                        />,
+                    ),
+                },
+            },
+        ],
+    },
+
+    orbit2v1: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs.getColors().background),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary },
+                            ],
+                        },
+                        <animateTransform
+                            attributeName="gradientTransform"
+                            type="rotate"
+                            from="0 0.5 0.5"
+                            to="360 0.5 0.5"
+                            dur={`${defs.getAnimationDurationMs() * 2}ms`}
+                            repeatCount="indefinite"
+                        />,
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                            ],
+                        },
+                        <animateTransform
+                            attributeName="gradientTransform"
+                            type="rotate"
+                            from="360 0.5 0.5"
+                            to="0 0.5 0.5"
+                            dur={`${defs.getAnimationDurationMs()}ms`}
+                            repeatCount="indefinite"
+                        />,
+                    ),
+                },
+            },
+        ],
+    },
+
+    orbit2v2: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs.getColors().background),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                            ],
+                        },
+                        <animateTransform
+                            attributeName="gradientTransform"
+                            type="rotate"
+                            from="0 0.5 0.5"
+                            to="360 0.5 0.5"
+                            dur={`${defs.getAnimationDurationMs()}ms`}
+                            repeatCount="indefinite"
+                        />,
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                            ],
+                        },
+                        <animateTransform
+                            attributeName="gradientTransform"
+                            type="rotate"
+                            from="360 0.5 0.5"
+                            to="0 0.5 0.5"
+                            dur={`${defs.getAnimationDurationMs()}ms`}
+                            repeatCount="indefinite"
+                        />,
+                    ),
+                },
+            },
+        ],
+    },
+
+    orbit3: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs.getColors().background),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                            ],
+                        },
+                        <animateTransform
+                            attributeName="gradientTransform"
+                            type="rotate"
+                            from="0 0.5 0.5"
+                            to="360 0.5 0.5"
+                            dur={`${defs.getAnimationDurationMs() * 0.5}ms`}
+                            repeatCount="indefinite"
+                        />,
+                    ),
+                },
+                blend: true,
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                            ],
+                        },
+                        <animateTransform
+                            attributeName="gradientTransform"
+                            type="rotate"
+                            from="0 0.5 0.5"
+                            to="360 0.5 0.5"
+                            dur={`${defs.getAnimationDurationMs()}ms`}
+                            repeatCount="indefinite"
+                        />,
+                    ),
+                },
+                blend: true,
+            },
+            {
+                gradient: {
+                    id: `gradient3-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient3-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().tertiary} r g b / 0)` },
+                                { value: defs.getColors().tertiary },
+                                { value: `rgb(from ${defs.getColors().tertiary} r g b / 0)` },
+                            ],
+                        },
+                        <animateTransform
+                            attributeName="gradientTransform"
+                            type="rotate"
+                            from="0 0.5 0.5"
+                            to="360 0.5 0.5"
+                            dur={`${defs.getAnimationDurationMs() * 2}ms`}
+                            repeatCount="indefinite"
+                        />,
+                    ),
+                },
+                blend: true,
+            },
+        ],
+    },
+
+    orbit4: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs.getColors().background),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary, stop: 75 },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 75 },
+                            ],
+                        },
+                        <animateTransform
+                            attributeName="gradientTransform"
+                            type="rotate"
+                            from="0 0.5 0.5"
+                            to="360 0.5 0.5"
+                            dur={`${defs.getAnimationDurationMs()}ms`}
+                            repeatCount="indefinite"
+                        />,
+                    ),
+                },
+                clipPath: {
+                    id: `clip1-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                            <path d={`M -0.5 0.5 A 1 1 0 0 1 1.5 0.5`}>
+                                <animateTransform
+                                    attributeName="transform"
+                                    type="rotate"
+                                    from="0 0.5 0.5"
+                                    to="360 0.5 0.5"
+                                    dur={`${defs.getAnimationDurationMs()}ms`}
+                                    repeatCount="indefinite"
+                                />
+                            </path>
+                        </clipPath>
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary, stop: 75 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 75 },
                             ],
                         },
                         <animateTransform
@@ -1024,9 +1133,9 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient3-${id}`,
                             colors: [
-                                { value: "#FFCC4400" },
-                                { value: "#FFCC44", stop: 75 },
-                                { value: "#FFCC4400", stop: 75 },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary, stop: 75 },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 75 },
                             ],
                         },
                         <animateTransform
@@ -1064,9 +1173,9 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient4-${id}`,
                             colors: [
-                                { value: "#FFFF0000" },
-                                { value: "#FFFF00", stop: 75 },
-                                { value: "#FFFF0000", stop: 75 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary, stop: 75 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 75 },
                             ],
                         },
                         <animateTransform
@@ -1099,4 +1208,4 @@ export const BORDER_CONFIGS = {
             },
         ],
     },
-} as const satisfies Record<string, BorderDefs>;
+} as const satisfies Record<string, BorderConfigDefs>;

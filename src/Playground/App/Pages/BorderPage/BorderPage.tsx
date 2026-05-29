@@ -1,9 +1,12 @@
 import { For, createMemo, createSignal } from "solid-js";
+import { createStore } from "solid-js/store";
+
+import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { BORDER_CONFIGS } from "./BorderPage.config";
-import type { BorderExampleProps } from "./BorderPage.types";
+import type { BorderConfigColors, BorderExampleProps } from "./BorderPage.types";
 import { AsymmetricalExample } from "./Examples/Asymmetrical";
 import AsymmetricalExampleRaw from "./Examples/Asymmetrical.tsx?raw";
 import { SymmetricalExample } from "./Examples/Symmetrical";
@@ -14,6 +17,12 @@ import WideExampleRaw from "./Examples/Wide.tsx?raw";
 import * as pageStyles from "../Pages.css";
 import * as styles from "./BorderPage.css";
 
+const STARTING_COLORS: BorderConfigColors = {
+    background: "#282018",
+    primary: "#FFFF00",
+    secondary: "#00FFFF",
+    tertiary: "#FF00FF",
+};
 const ASYMMETRICAL_SOURCE = highlighter.codeToHtml(AsymmetricalExampleRaw, getDefaultHighlighterConfig());
 const SYMMETRICAL_SOURCE = highlighter.codeToHtml(SymmetricalExampleRaw, getDefaultHighlighterConfig());
 const WIDE_SOURCE = highlighter.codeToHtml(WideExampleRaw, getDefaultHighlighterConfig());
@@ -145,11 +154,13 @@ export const BorderPage = () => {
     const [getIsSolid, setIsSolid] = createSignal(false);
     const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
     const [getConfigKey, setConfigKey] = createSignal<keyof typeof BORDER_CONFIGS>("sweepDiagonal1");
+    const [colors, setColors] = createStore(STARTING_COLORS);
 
     const getExamples = createMemo(() => {
         const commonProps: BorderExampleProps = {
             getIsSolid,
             getAnimationDurationMs,
+            getColors: () => colors,
             getConfig: () => BORDER_CONFIGS[getConfigKey()],
         };
 
@@ -173,7 +184,7 @@ export const BorderPage = () => {
     });
 
     return (
-        <div class={styles.root}>
+        <div class={styles.root} style={assignInlineVars({ [styles.backgroundColor]: colors.background })}>
             <div class={[styles.container, pageStyles.exampleContainer].join(" ")}>
                 <div class={pageStyles.props}>
                     <div class={pageStyles.propPanel}>
@@ -207,6 +218,21 @@ export const BorderPage = () => {
                                 {(order) => <option value={order}>{order}</option>}
                             </For>
                         </select>
+                    </div>
+
+                    <div class={pageStyles.propPanel}>
+                        <div>{"Colors"}</div>
+                        <div class={styles.colorList}>
+                            <For each={Object.entries(colors)}>
+                                {([key, value]) => (
+                                    <input
+                                        type="color"
+                                        value={value}
+                                        onChange={(e) => setColors(key as keyof typeof colors, e.target.value)}
+                                    />
+                                )}
+                            </For>
+                        </div>
                     </div>
                 </div>
             </div>

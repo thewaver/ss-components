@@ -26,6 +26,7 @@ export const SymmetricalExample = (props: Props) => {
                     getBorderWidths,
                     getBorderRadii,
                     getAnimationDurationMs: props.getAnimationDurationMs,
+                    getColors: props.getColors,
                 })
             }
             getIsSolid={props.getIsSolid}

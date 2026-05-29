@@ -1,4 +1,6 @@
-import { style } from "@vanilla-extract/css";
+import { createVar, style } from "@vanilla-extract/css";
+
+export const backgroundColor = createVar();
 
 export const root = style({
     display: "flex",
@@ -17,8 +19,17 @@ export const container = style({
     maxWidth: 600,
 });
 
+export const colorList = style({
+    display: "flex",
+    flexWrap: "wrap",
+    flexDirection: "row",
+    justifyContent: "start",
+    alignItems: "start",
+    gap: 10,
+});
+
 export const borderedContainer = style({
-    backgroundColor: "#8000FF80",
+    backgroundColor: `rgb(from ${backgroundColor} r g b / 50%)`,
 });
 
 export const borderedContent = style({
