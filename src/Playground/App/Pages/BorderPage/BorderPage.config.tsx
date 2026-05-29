@@ -1,3 +1,5 @@
+import { For } from "solid-js";
+
 import type { Size2d } from "@thewaver/ss-utils";
 
 import { SVGGradientDefsUtils } from "../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
@@ -7,28 +9,32 @@ import type { BorderConfigColors } from "./BorderPage.types";
 
 import * as styles from "./BorderPage.css";
 
-export type BorderConfigDefs = {
-    class: string;
-    getFillDefs: (
-        id: string,
-        defs: {
-            getSize: () => Size2d;
-            getBorderWidths: () => BorderWidthDefs;
-            getBorderRadii: () => BorderRadiusDefs;
-            getAnimationDurationMs: () => number;
-            getColors: () => BorderConfigColors;
-        },
-    ) => SVGDefs[];
+export type BorderFillConfigDefs = {
+    getSize: () => Size2d;
+    getBorderWidths: () => BorderWidthDefs;
+    getBorderRadii: () => BorderRadiusDefs;
+    getAnimationDurationMs: () => number;
+    getColors: () => BorderConfigColors;
 };
 
-const getBaseBorderColor = (color: string) => `hsl(from ${color} h s calc(l * 2))`;
+export type BorderConfigDefs = {
+    class: string;
+    getFillDefs: (id: string, defs: BorderFillConfigDefs) => SVGDefs[];
+};
+
+const getBaseBorderColor = (defs: BorderFillConfigDefs) => `hsl(from ${defs.getColors().background} h s calc(l * 2))`;
+
+const getCommonAnimDefs = (defs: BorderFillConfigDefs) => ({
+    dur: `${defs.getAnimationDurationMs()}ms`,
+    repeatCount: "indefinite" as const,
+});
 
 export const BORDER_CONFIGS = {
     plain: {
         class: styles.borderedContainer,
         getFillDefs: (_, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
         ],
     },
@@ -51,26 +57,18 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().tertiary },
                                 { value: defs.getColors().primary },
                             ],
+                            scale: { width: 2, height: 1 },
                         },
-                        <>
-                            {" "}
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="scale"
-                                values="2 2;2 2"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="translate"
-                                values="0 0;-0.5 0"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                        </>,
+                        (x1, y1, x2, y2) => {
+                            const commonDefs = getCommonAnimDefs(defs);
+
+                            return (
+                                <>
+                                    <animate attributeName="x1" values={`${x1 + 0.5};${x1 - 0.5}`} {...commonDefs} />
+                                    <animate attributeName="x2" values={`${x2 + 0.5};${x2 - 0.5}`} {...commonDefs} />
+                                </>
+                            );
+                        },
                     ),
                 },
             },
@@ -96,28 +94,36 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                             angle: 45,
+                            scale: { width: 3, height: 3 },
                         },
-                        <>
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="scale"
-                                values="3 3;3 3"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="translate"
-                                values={((rad) =>
-                                    `${-0.166 * Math.cos(rad)} ${-0.166 * Math.sin(rad)};${-0.666 * Math.cos(rad)} ${-0.666 * Math.sin(rad)}`)(
-                                    (45 * Math.PI) / 180,
-                                )}
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                        </>,
+                        (...params) => {
+                            const rad = (45 * Math.PI) / 180;
+                            const commonDefs = getCommonAnimDefs(defs);
+
+                            return (
+                                <For each={Array.from({ length: params.length * 0.5 }, (_, idx) => idx)}>
+                                    {(itemIndex) => {
+                                        const x = params[0 + itemIndex * 2];
+                                        const y = params[1 + itemIndex * 2];
+
+                                        return (
+                                            <>
+                                                <animate
+                                                    attributeName={`x${itemIndex + 1}`}
+                                                    values={`${x + 0.75 * Math.cos(rad)};${x - 0.75 * Math.cos(rad)}`}
+                                                    {...commonDefs}
+                                                />
+                                                <animate
+                                                    attributeName={`y${itemIndex + 1}`}
+                                                    values={`${y + 0.75 * Math.sin(rad)};${y - 0.75 * Math.sin(rad)}`}
+                                                    {...commonDefs}
+                                                />
+                                            </>
+                                        );
+                                    }}
+                                </For>
+                            );
+                        },
                     ),
                 },
             },
@@ -128,7 +134,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
             {
                 gradient: {
@@ -182,7 +188,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
             {
                 gradient: {
@@ -213,7 +219,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
             {
                 gradient: {
@@ -245,7 +251,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
             {
                 gradient: {
@@ -300,7 +306,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
             {
                 gradient: {
@@ -405,7 +411,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
             {
                 gradient: {
@@ -546,7 +552,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
             {
                 gradient: {
@@ -589,7 +595,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
             {
                 gradient: {
@@ -688,7 +694,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
             {
                 gradient: {
@@ -736,7 +742,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
             {
                 gradient: {
@@ -823,7 +829,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
             {
                 gradient: {
@@ -855,7 +861,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
             {
                 gradient: {
@@ -908,7 +914,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
             {
                 gradient: {
@@ -963,7 +969,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
             {
                 gradient: {
@@ -1044,7 +1050,7 @@ export const BORDER_CONFIGS = {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
-                color: getBaseBorderColor(defs.getColors().background),
+                color: getBaseBorderColor(defs),
             },
             {
                 gradient: {

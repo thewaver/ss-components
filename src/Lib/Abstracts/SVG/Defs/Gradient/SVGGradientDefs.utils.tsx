@@ -1,5 +1,7 @@
 import type { JSX } from "solid-js";
 
+import type { Point2d, Size2d } from "@thewaver/ss-utils";
+
 import type { SVGLinearGradientDefs, SVGRadialGradientDefs } from "./SVGGradientDefs.types";
 
 export namespace SVGGradientDefsUtils {
@@ -20,27 +22,50 @@ export namespace SVGGradientDefsUtils {
             return <stop offset={`${offset}%`} stop-color={c.value} />;
         });
 
-    const getLinearCoordsFromAngle = (angle: number = 0) => {
+    export const getLinearCoords = ({
+        angle = 0,
+        scale = { width: 1, height: 1 },
+        offset = { x: 0, y: 0 },
+    }: {
+        angle?: number;
+        scale?: Size2d;
+        offset?: Point2d;
+    }) => {
         const rad = (angle * Math.PI) / 180;
-
         const x = Math.cos(rad);
         const y = Math.sin(rad);
+        const cx = 0.5 + offset.x;
+        const cy = 0.5 + offset.y;
+        const halfW = 0.5 * scale.width;
+        const halfH = 0.5 * scale.height;
 
-        const x1 = 50 - x * 50;
-        const y1 = 50 - y * 50;
-        const x2 = 50 + x * 50;
-        const y2 = 50 + y * 50;
-
-        return { x1: `${x1}%`, y1: `${y1}%`, x2: `${x2}%`, y2: `${y2}%` };
+        return {
+            x1: cx - x * halfW,
+            y1: cy - y * halfH,
+            x2: cx + x * halfW,
+            y2: cy + y * halfH,
+        };
     };
 
-    export const getLinearGradient = (defs: SVGLinearGradientDefs, custom?: JSX.Element) => {
-        const { id, angle, colors, ...baseProps } = defs;
-        const { x1, y1, x2, y2 } = getLinearCoordsFromAngle(angle);
+    const get01ToPercent = (value: number) => `${value * 100}%`;
+
+    export const getLinearGradient = (
+        defs: SVGLinearGradientDefs,
+        custom?: JSX.Element | ((x1: number, y1: number, x2: number, y2: number) => JSX.Element),
+    ) => {
+        const { id, angle, offset, scale, colors, ...baseProps } = defs;
+        const { x1, y1, x2, y2 } = getLinearCoords({ angle, offset, scale });
 
         return (
-            <linearGradient {...baseProps} id={id} x1={x1} y1={y1} x2={x2} y2={y2}>
-                {custom}
+            <linearGradient
+                {...baseProps}
+                id={id}
+                x1={get01ToPercent(x1)}
+                y1={get01ToPercent(y1)}
+                x2={get01ToPercent(x2)}
+                y2={get01ToPercent(y2)}
+            >
+                {typeof custom === "function" ? custom(x1, y1, x2, y2) : custom}
                 {renderGradientStops(colors)}
             </linearGradient>
         );
