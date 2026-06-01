@@ -24,10 +24,95 @@ export type BorderConfigDefs = {
 
 const getBaseBorderColor = (defs: BorderFillConfigDefs) => `hsl(from ${defs.getColors().background} h s calc(l * 2))`;
 
-const getCommonAnimDefs = (defs: BorderFillConfigDefs) => ({
+const getCommonAnimDefs = (defs: BorderFillConfigDefs, keyTimes?: string) => ({
+    keyTimes,
     dur: `${defs.getAnimationDurationMs()}ms`,
     repeatCount: "indefinite" as const,
 });
+
+export namespace BorderAnimationUtils {
+    export const growOrthogonal = (
+        vName: "x" | "y",
+        v1: number,
+        v2: number,
+        sArr: number[],
+        tArr: number[] | undefined,
+        defs: BorderFillConfigDefs,
+    ) => {
+        const keyTimes = tArr?.length ? tArr.join(";") : undefined;
+        const commonDefs = getCommonAnimDefs(defs, keyTimes);
+        const halfDist = Math.abs(v2 - v1) * 0.5;
+
+        return (
+            <>
+                <animate attributeName={`${vName}1`} values={sArr.map((s) => `${v1 + halfDist - halfDist * s}`).join(";")} {...commonDefs} />
+                <animate attributeName={`${vName}2`} values={sArr.map((s) => `${v2 - halfDist + halfDist * s}`).join(";")} {...commonDefs} />
+            </>
+        );
+    };
+    
+    export const sweepOrthogonal = (
+        vName: "x" | "y",
+        v1: number,
+        v2: number,
+        oArr: number[],
+        tArr: number[] | undefined,
+        defs: BorderFillConfigDefs,
+    ) => {
+        const keyTimes = tArr?.length ? tArr.join(";") : undefined;
+        const commonDefs = getCommonAnimDefs(defs, keyTimes);
+
+        return (
+            <>
+                <animate attributeName={`${vName}1`} values={oArr.map((o) => `${v1 + o}`).join(";")} {...commonDefs} />
+                <animate attributeName={`${vName}2`} values={oArr.map((o) => `${v2 + o}`).join(";")} {...commonDefs} />
+            </>
+        );
+    };
+
+    export const sweepDiagonal = (
+        x1: number,
+        y1: number,
+        x2: number,
+        y2: number,
+        oArrX: number[],
+        oArrY: number[],
+        tArr: number[] | undefined,
+        defs: BorderFillConfigDefs,
+    ) => {
+        const points = [
+            [x1, y1],
+            [x2, y2],
+        ];
+        const rad = (45 * Math.PI) / 180;
+        const keyTimes = tArr?.length ? tArr.join(";") : undefined;
+        const commonDefs = getCommonAnimDefs(defs, keyTimes);
+
+        return (
+            <For each={points}>
+                {(point, getIndex) => {
+                    const x = point[0];
+                    const y = point[1];
+
+                    return (
+                        <>
+                            <animate
+                                attributeName={`x${getIndex() + 1}`}
+                                values={oArrX.map((o) => `${x + o * Math.cos(rad)}`).join(";")}
+                                {...commonDefs}
+                            />
+                            <animate
+                                attributeName={`y${getIndex() + 1}`}
+                                values={oArrY.map((o) => `${y + o * Math.sin(rad)}`).join(";")}
+                                {...commonDefs}
+                            />
+                        </>
+                    );
+                }}
+            </For>
+        );
+    };
+}
 
 export const BORDER_CONFIGS = {
     plain: {
@@ -59,16 +144,8 @@ export const BORDER_CONFIGS = {
                             ],
                             scale: { width: 2, height: 1 },
                         },
-                        (x1, y1, x2, y2) => {
-                            const commonDefs = getCommonAnimDefs(defs);
-
-                            return (
-                                <>
-                                    <animate attributeName="x1" values={`${x1 + 0.5};${x1 - 0.5}`} {...commonDefs} />
-                                    <animate attributeName="x2" values={`${x2 + 0.5};${x2 - 0.5}`} {...commonDefs} />
-                                </>
-                            );
-                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.sweepOrthogonal("x", x1, x2, [0.5, -0.5], undefined, defs),
                     ),
                 },
             },
@@ -96,34 +173,17 @@ export const BORDER_CONFIGS = {
                             angle: 45,
                             scale: { width: 3, height: 3 },
                         },
-                        (...params) => {
-                            const rad = (45 * Math.PI) / 180;
-                            const commonDefs = getCommonAnimDefs(defs);
-
-                            return (
-                                <For each={Array.from({ length: params.length * 0.5 }, (_, idx) => idx)}>
-                                    {(itemIndex) => {
-                                        const x = params[0 + itemIndex * 2];
-                                        const y = params[1 + itemIndex * 2];
-
-                                        return (
-                                            <>
-                                                <animate
-                                                    attributeName={`x${itemIndex + 1}`}
-                                                    values={`${x + 0.75 * Math.cos(rad)};${x - 0.75 * Math.cos(rad)}`}
-                                                    {...commonDefs}
-                                                />
-                                                <animate
-                                                    attributeName={`y${itemIndex + 1}`}
-                                                    values={`${y + 0.75 * Math.sin(rad)};${y - 0.75 * Math.sin(rad)}`}
-                                                    {...commonDefs}
-                                                />
-                                            </>
-                                        );
-                                    }}
-                                </For>
-                            );
-                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [0.75, -0.75],
+                                [0.75, -0.75],
+                                undefined,
+                                defs,
+                            ),
                     ),
                 },
             },
@@ -147,13 +207,8 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="translate"
-                            values="1 0;-1 0;1 0"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.sweepOrthogonal("x", x1, x2, [1, -1, 1], undefined, defs),
                     ),
                 },
                 blend: true,
@@ -170,13 +225,8 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 180,
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="translate"
-                            values="-1 0;1 0;-1 0"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.sweepOrthogonal("x", x1, x2, [-1, 1, -1], undefined, defs),
                     ),
                 },
                 blend: true,
@@ -202,13 +252,8 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="translate"
-                            values="-1 0;1 0;-1 0"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.sweepOrthogonal("x", x1, x2, [-1, 1, -1], undefined, defs),
                     ),
                 },
             },
@@ -234,13 +279,17 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 45,
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="translate"
-                            values="-1 -1;1 1"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [-1.25, 1.25],
+                                [-1.25, 1.25],
+                                undefined,
+                                defs,
+                            ),
                     ),
                 },
             },
@@ -266,13 +315,17 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 45,
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="translate"
-                            values="-1 -1;1 1"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [-1.25, 1.25],
+                                [-1.25, 1.25],
+                                undefined,
+                                defs,
+                            ),
                     ),
                 },
             },
@@ -289,13 +342,17 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 225,
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="translate"
-                            values="1 1;-1 -1"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [1.25, -1.25],
+                                [1.25, -1.25],
+                                undefined,
+                                defs,
+                            ),
                     ),
                 },
             },
@@ -321,14 +378,17 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 45,
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="translate"
-                            values="-1 -1;0 0;1 1;1 1;1 1;1 1"
-                            keyTimes="0;0.2;0.4;0.6;0.8;1"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [-1.25, 0, 1.25, 1.25, 1.25, 1.25],
+                                [-1.25, 0, 1.25, 1.25, 1.25, 1.25],
+                                undefined,
+                                defs,
+                            ),
                     ),
                 },
             },
@@ -345,14 +405,17 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 225,
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="translate"
-                            values="1 1;1 1;0 0;-1 -1;-1 -1;-1 -1"
-                            keyTimes="0;0.2;0.4;0.6;0.8;1"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [1.25, 1.25, 0, -1.25, -1.25, -1.25],
+                                [1.25, 1.25, 0, -1.25, -1.25, -1.25],
+                                undefined,
+                                defs,
+                            ),
                     ),
                 },
             },
@@ -369,14 +432,17 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 135,
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="translate"
-                            values="1 -1;1 -1;1 -1;0 0;-1 1;-1 1"
-                            keyTimes="0;0.2;0.4;0.6;0.8;1"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [1.25, 1.25, 1.25, 0, -1.25, -1.25],
+                                [-1.25, -1.25, -1.25, 0, 1.25, 1.25],
+                                undefined,
+                                defs,
+                            ),
                     ),
                 },
             },
@@ -393,14 +459,17 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 315,
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="translate"
-                            values="-1 1;-1 1;-1 1;-1 1;0 0;1 -1"
-                            keyTimes="0;0.2;0.4;0.6;0.8;1"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [-1.25, -1.25, -1.25, -1.25, 0, 1.25],
+                                [1.25, 1.25, 1.25, 1.25, 0, -1.25],
+                                undefined,
+                                defs,
+                            ),
                     ),
                 },
             },
@@ -425,24 +494,7 @@ export const BORDER_CONFIGS = {
                             ],
                             origin: { x: 0, y: 0 },
                         },
-                        <>
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="translate"
-                                values="0 0;0 0;0 0"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="scale"
-                                values="0 0;2 2;0 0"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                        </>,
+                        () => <animate attributeName="r" values={"0;2;0"} {...getCommonAnimDefs(defs)} />,
                     ),
                 },
             },
@@ -456,26 +508,9 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().secondary },
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
-                            origin: { x: 100, y: 0 },
+                            origin: { x: 1, y: 0 },
                         },
-                        <>
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="translate"
-                                values="1 0;-1 0;1 0"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="scale"
-                                values="0 0;2 2;0 0"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                        </>,
+                        () => <animate attributeName="r" values={"0;2;0"} {...getCommonAnimDefs(defs)} />,
                     ),
                 },
             },
@@ -489,26 +524,9 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
-                            origin: { x: 100, y: 100 },
+                            origin: { x: 1, y: 1 },
                         },
-                        <>
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="translate"
-                                values="1 1;-1 -1;1 1"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="scale"
-                                values="0 0;2 2;0 0"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                        </>,
+                        () => <animate attributeName="r" values={"0;2;0"} {...getCommonAnimDefs(defs)} />,
                     ),
                 },
             },
@@ -522,26 +540,9 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().secondary },
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
-                            origin: { x: 0, y: 100 },
+                            origin: { x: 0, y: 1 },
                         },
-                        <>
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="translate"
-                                values="0 1;0 -1;0 1"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="scale"
-                                values="0 0;2 2;0 0"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                        </>,
+                        () => <animate attributeName="r" values={"0;2;0"} {...getCommonAnimDefs(defs)} />,
                     ),
                 },
             },
@@ -567,24 +568,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                         },
-                        <>
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="translate"
-                                values="0.5 0;-1.5 0;0.5 0"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="scale"
-                                values="0 1;4 1;0 1"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                        </>,
+                        (x1, y1, x2, y2) => BorderAnimationUtils.growOrthogonal("x", x1, x2, [0, 4, 0], undefined, defs),
                     ),
                 },
             },
@@ -611,36 +595,9 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 45,
                         },
-                        <>
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="translate"
-                                values="0.5 0;-1.5 0;0.5 0"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="scale"
-                                values="0 1;4 1;0 1"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="rotate"
-                                from="0 0.5 0.5"
-                                to="360 0.5 0.5"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                        </>,
+                        (x1, y1, x2, y2) => BorderAnimationUtils.growOrthogonal("x", x1, x2, [0, 2, 0], undefined, defs),
                     ),
                 },
-                blend: true,
             },
             {
                 gradient: {
@@ -656,36 +613,9 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 135,
                         },
-                        <>
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="translate"
-                                values="0 0.5;0 -1.5;0 0.5"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="scale"
-                                values="1 0;1 4;1 0"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                            <animateTransform
-                                attributeName="gradientTransform"
-                                type="rotate"
-                                from="0 0.5 0.5"
-                                to="360 0.5 0.5"
-                                dur={`${defs.getAnimationDurationMs()}ms`}
-                                additive="sum"
-                                repeatCount="indefinite"
-                            />
-                        </>,
+                        (x1, y1, x2, y2) => BorderAnimationUtils.growOrthogonal("y", y1, y2, [0, 2, 0], undefined, defs),
                     ),
                 },
-                blend: true,
             },
         ],
     },

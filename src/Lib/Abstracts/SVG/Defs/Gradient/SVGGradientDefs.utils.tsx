@@ -47,8 +47,6 @@ export namespace SVGGradientDefsUtils {
         };
     };
 
-    const get01ToPercent = (value: number) => `${value * 100}%`;
-
     export const getLinearGradient = (
         defs: SVGLinearGradientDefs,
         custom?: JSX.Element | ((x1: number, y1: number, x2: number, y2: number) => JSX.Element),
@@ -57,26 +55,23 @@ export namespace SVGGradientDefsUtils {
         const { x1, y1, x2, y2 } = getLinearCoords({ angle, offset, scale });
 
         return (
-            <linearGradient
-                {...baseProps}
-                id={id}
-                x1={get01ToPercent(x1)}
-                y1={get01ToPercent(y1)}
-                x2={get01ToPercent(x2)}
-                y2={get01ToPercent(y2)}
-            >
+            <linearGradient {...baseProps} id={id} x1={x1} y1={y1} x2={x2} y2={y2}>
                 {typeof custom === "function" ? custom(x1, y1, x2, y2) : custom}
                 {renderGradientStops(colors)}
             </linearGradient>
         );
     };
 
-    export const getRadialGradient = (defs: SVGRadialGradientDefs, custom?: JSX.Element) => {
-        const { id, colors, origin, ...baseProps } = defs;
+    export const getRadialGradient = (
+        defs: SVGRadialGradientDefs,
+        custom?: JSX.Element | ((cx: number, cy: number, r: number) => JSX.Element),
+    ) => {
+        const { id, colors, origin, scale, ...baseProps } = defs;
+        const r = 0.5 * (scale ?? 1);
 
         return (
-            <radialGradient {...baseProps} id={id} cx={`${origin.x}%`} cy={`${origin.y}%`} r="50%">
-                {custom}
+            <radialGradient {...baseProps} id={id} cx={origin.x} cy={origin.y} r={r}>
+                {typeof custom === "function" ? custom(origin.x, origin.y, r) : custom}
                 {renderGradientStops(colors)}
             </radialGradient>
         );
