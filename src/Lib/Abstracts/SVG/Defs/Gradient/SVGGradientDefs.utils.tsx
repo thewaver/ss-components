@@ -22,6 +22,36 @@ export namespace SVGGradientDefsUtils {
             return <stop offset={`${offset}%`} stop-color={c.value} />;
         });
 
+    export const getHemisphereLozengePoints = (angle: number) => {
+        const rad = (angle * Math.PI) / 180;    
+        const cx = 0.5;
+        const cy = 0.5;
+        const tangentX = Math.cos(rad);
+        const tangentY = Math.sin(rad);
+        const normalX = -tangentY;
+        const normalY = tangentX;
+        const extent = Math.SQRT2;
+    
+        return [
+            {
+                x: cx + (tangentX + normalX) * extent,
+                y: cy + (tangentY + normalY) * extent,
+            },
+            {
+                x: cx + (tangentX - normalX) * extent,
+                y: cy + (tangentY - normalY) * extent,
+            },
+            {
+                x: cx - (tangentX - normalX) * extent,
+                y: cy - (tangentY - normalY) * extent,
+            },
+            {
+                x: cx - (tangentX + normalX) * extent,
+                y: cy - (tangentY + normalY) * extent,
+            },
+        ];
+    };
+
     export const getLinearCoords = ({
         angle = 0,
         scale = { width: 1, height: 1 },

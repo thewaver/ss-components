@@ -31,6 +31,8 @@ const getCommonAnimDefs = (defs: BorderFillConfigDefs, keyTimes?: string) => ({
 });
 
 export namespace BorderAnimationUtils {
+    const V_KEYS = ["x1", "y1", "x2", "y2"] as const;
+
     export const growOrthogonal = (
         vName: "x" | "y",
         v1: number,
@@ -112,6 +114,19 @@ export namespace BorderAnimationUtils {
             </For>
         );
     };
+
+    export const rotate = (from: number, to: number, stepSize: number = 10, defs: BorderFillConfigDefs) => {
+        const steps = Array.from({ length: Math.round(Math.abs(to - from) / stepSize) + 1 }, (_, index) => SVGGradientDefsUtils.getLinearCoords({ angle: from < to ? from + stepSize * index : from - stepSize * index }));
+        const commonDefs = getCommonAnimDefs(defs);
+
+        return <For each={V_KEYS}> 
+            {(vKey) => <animate
+                attributeName={vKey}
+                values={steps.map((step) => step[vKey]).join(";")}
+                {...commonDefs}
+            />}
+        </For>
+    }
 }
 
 export const BORDER_CONFIGS = {
@@ -494,7 +509,7 @@ export const BORDER_CONFIGS = {
                             ],
                             origin: { x: 0, y: 0 },
                         },
-                        () => <animate attributeName="r" values={"0;2;0"} {...getCommonAnimDefs(defs)} />,
+                        <animate attributeName="r" values={"0;2;0"} {...getCommonAnimDefs(defs)} />,
                     ),
                 },
             },
@@ -510,7 +525,7 @@ export const BORDER_CONFIGS = {
                             ],
                             origin: { x: 1, y: 0 },
                         },
-                        () => <animate attributeName="r" values={"0;2;0"} {...getCommonAnimDefs(defs)} />,
+                        <animate attributeName="r" values={"0;2;0"} {...getCommonAnimDefs(defs)} />,
                     ),
                 },
             },
@@ -526,7 +541,7 @@ export const BORDER_CONFIGS = {
                             ],
                             origin: { x: 1, y: 1 },
                         },
-                        () => <animate attributeName="r" values={"0;2;0"} {...getCommonAnimDefs(defs)} />,
+                        <animate attributeName="r" values={"0;2;0"} {...getCommonAnimDefs(defs)} />,
                     ),
                 },
             },
@@ -542,7 +557,7 @@ export const BORDER_CONFIGS = {
                             ],
                             origin: { x: 0, y: 1 },
                         },
-                        () => <animate attributeName="r" values={"0;2;0"} {...getCommonAnimDefs(defs)} />,
+                        <animate attributeName="r" values={"0;2;0"} {...getCommonAnimDefs(defs)} />,
                     ),
                 },
             },
@@ -637,33 +652,19 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        BorderAnimationUtils.rotate(0, 360, undefined, defs),
                     ),
                 },
-                clipPath: {
+                /*clipPath: {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
                             <path d={`M -0.5 0.5 A 1 1 0 0 1 1.5 0.5`}>
-                                <animateTransform
-                                    attributeName="transform"
-                                    type="rotate"
-                                    from="0 0.5 0.5"
-                                    to="360 0.5 0.5"
-                                    dur={`${defs.getAnimationDurationMs()}ms`}
-                                    repeatCount="indefinite"
-                                />
+                                {BorderAnimationUtils.rotate(0, 360, undefined, defs)},
                             </path>
                         </clipPath>
                     ),
-                },
+                },*/
             },
         ],
     },
@@ -685,33 +686,19 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        BorderAnimationUtils.rotate(0, 360, undefined, defs),
                     ),
                 },
-                clipPath: {
+                /*clipPath: {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
                             <path d={`M -0.5 0.5 A 1 1 0 0 1 1.5 0.5`}>
-                                <animateTransform
-                                    attributeName="transform"
-                                    type="rotate"
-                                    from="0 0.5 0.5"
-                                    to="360 0.5 0.5"
-                                    dur={`${defs.getAnimationDurationMs()}ms`}
-                                    repeatCount="indefinite"
-                                />
+                                {BorderAnimationUtils.rotate(0, 360, undefined, defs)}
                             </path>
                         </clipPath>
                     ),
-                },
+                },*/
             },
             {
                 gradient: {
@@ -724,33 +711,19 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="360 0.5 0.5"
-                            to="0 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        BorderAnimationUtils.rotate(360, 0, undefined, defs),
                     ),
                 },
-                clipPath: {
+                /*clipPath: {
                     id: `clip2-${id}`,
                     defsElement: (
                         <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
                             <path d={`M -0.5 0.5 A 1 1 0 0 1 1.5 0.5`}>
-                                <animateTransform
-                                    attributeName="transform"
-                                    type="rotate"
-                                    from="360 0.5 0.5"
-                                    to="0 0.5 0.5"
-                                    dur={`${defs.getAnimationDurationMs()}ms`}
-                                    repeatCount="indefinite"
-                                />
+                                {BorderAnimationUtils.rotate(360, 0, undefined, defs)}
                             </path>
                         </clipPath>
                     ),
-                },
+                },*/
             },
         ],
     },
@@ -773,14 +746,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        BorderAnimationUtils.rotate(0, 360, undefined, defs),
                     ),
                 },
             },
@@ -804,14 +770,7 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().secondary },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs() * 2}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        BorderAnimationUtils.rotate(0, 360, undefined, defs),
                     ),
                 },
             },
@@ -826,14 +785,7 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="360 0.5 0.5"
-                            to="0 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        BorderAnimationUtils.rotate(360, 0, undefined, defs),
                     ),
                 },
             },
@@ -858,14 +810,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        BorderAnimationUtils.rotate(0, 360, undefined, defs),
                     ),
                 },
             },
@@ -881,14 +826,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="360 0.5 0.5"
-                            to="0 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        BorderAnimationUtils.rotate(360, 0, undefined, defs),
                     ),
                 },
             },
@@ -913,14 +851,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs() * 0.5}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        BorderAnimationUtils.rotate(0, 360, undefined, ({ ...defs, getAnimationDurationMs: () => defs.getAnimationDurationMs() * 0.5 })),
                     ),
                 },
                 blend: true,
@@ -937,14 +868,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        BorderAnimationUtils.rotate(0, 360, undefined, defs),
                     ),
                 },
                 blend: true,
@@ -961,14 +885,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().tertiary} r g b / 0)` },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs() * 2}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        BorderAnimationUtils.rotate(0, 360, undefined, ({ ...defs, getAnimationDurationMs: () => defs.getAnimationDurationMs() * 2 })),
                     ),
                 },
                 blend: true,
@@ -994,33 +911,19 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 75 },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="0 0.5 0.5"
-                            to="360 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        BorderAnimationUtils.rotate(0, 360, undefined, defs),
                     ),
                 },
-                clipPath: {
+                /*clipPath: {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
                             <path d={`M -0.5 0.5 A 1 1 0 0 1 1.5 0.5`}>
-                                <animateTransform
-                                    attributeName="transform"
-                                    type="rotate"
-                                    from="0 0.5 0.5"
-                                    to="360 0.5 0.5"
-                                    dur={`${defs.getAnimationDurationMs()}ms`}
-                                    repeatCount="indefinite"
-                                />
+                                {BorderAnimationUtils.rotate(0, 360, undefined, defs)}
                             </path>
                         </clipPath>
                     ),
-                },
+                },*/
             },
             {
                 gradient: {
@@ -1034,33 +937,19 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 75 },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="90 0.5 0.5"
-                            to="450 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        BorderAnimationUtils.rotate(90, 450, undefined, defs),
                     ),
                 },
-                clipPath: {
+                /*clipPath: {
                     id: `clip2-${id}`,
                     defsElement: (
                         <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
                             <path d={`M -0.5 0.5 A 1 1 0 0 1 1.5 0.5`}>
-                                <animateTransform
-                                    attributeName="transform"
-                                    type="rotate"
-                                    from="90 0.5 0.5"
-                                    to="450 0.5 0.5"
-                                    dur={`${defs.getAnimationDurationMs()}ms`}
-                                    repeatCount="indefinite"
-                                />
+                                {BorderAnimationUtils.rotate(90, 450, undefined, defs)}
                             </path>
                         </clipPath>
                     ),
-                },
+                },*/
             },
             {
                 gradient: {
@@ -1074,33 +963,19 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 75 },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="180 0.5 0.5"
-                            to="540 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        BorderAnimationUtils.rotate(180, 540, undefined, defs),
                     ),
                 },
-                clipPath: {
+                /*clipPath: {
                     id: `clip3-${id}`,
                     defsElement: (
                         <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
                             <path d={`M -0.5 0.5 A 1 1 0 0 1 1.5 0.5`}>
-                                <animateTransform
-                                    attributeName="transform"
-                                    type="rotate"
-                                    from="180 0.5 0.5"
-                                    to="540 0.5 0.5"
-                                    dur={`${defs.getAnimationDurationMs()}ms`}
-                                    repeatCount="indefinite"
-                                />
+                                {BorderAnimationUtils.rotate(180, 540, undefined, defs)}
                             </path>
                         </clipPath>
                     ),
-                },
+                },*/
             },
             {
                 gradient: {
@@ -1114,33 +989,19 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 75 },
                             ],
                         },
-                        <animateTransform
-                            attributeName="gradientTransform"
-                            type="rotate"
-                            from="270 0.5 0.5"
-                            to="630 0.5 0.5"
-                            dur={`${defs.getAnimationDurationMs()}ms`}
-                            repeatCount="indefinite"
-                        />,
+                        BorderAnimationUtils.rotate(270, 630, undefined, defs),
                     ),
                 },
-                clipPath: {
+                /*clipPath: {
                     id: `clip4-${id}`,
                     defsElement: (
                         <clipPath id={`clip4-${id}`} clipPathUnits="objectBoundingBox">
                             <path d={`M -0.5 0.5 A 1 1 0 0 1 1.5 0.5`}>
-                                <animateTransform
-                                    attributeName="transform"
-                                    type="rotate"
-                                    from="270 0.5 0.5"
-                                    to="630 0.5 0.5"
-                                    dur={`${defs.getAnimationDurationMs()}ms`}
-                                    repeatCount="indefinite"
-                                />
+                                {BorderAnimationUtils.rotate(270, 630, undefined, defs)}
                             </path>
                         </clipPath>
                     ),
-                },
+                },*/
             },
         ],
     },
