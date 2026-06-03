@@ -1,5 +1,8 @@
+import { For } from "solid-js";
+
 import type { Point2d, Size2d } from "@thewaver/ss-utils";
 
+import { SVGUtils } from "../../Abstracts/SVG/SVG.utils";
 import type { BorderRadiusDefs, BorderWidthDefs } from "./Border.types";
 
 export namespace BorderUtils {
@@ -235,5 +238,161 @@ export namespace BorderUtils {
                 return acc / total;
             }),
         ];
+    };
+}
+
+export namespace BorderAnimationUtils {
+    export type BorderAnimationDefs = {
+        getAnimationDurationMs: () => number;
+    };
+
+    const getCommonAnimDefs = (defs: BorderAnimationDefs) => ({
+        dur: `${defs.getAnimationDurationMs()}ms`,
+        repeatCount: "indefinite" as const,
+    });
+
+    const V_KEYS = ["x1", "y1", "x2", "y2"] as const;
+
+    export const growOrthogonal = (
+        vName: "x" | "y",
+        v1: number,
+        v2: number,
+        sArr: number[],
+        defs: BorderAnimationDefs,
+    ) => {
+        const commonDefs = getCommonAnimDefs(defs);
+        const halfDist = Math.abs(v2 - v1) * 0.5;
+
+        return (
+            <>
+                <animate
+                    attributeName={`${vName}1`}
+                    values={sArr.map((s) => `${v1 + halfDist - halfDist * s}`).join(";")}
+                    {...commonDefs}
+                />
+                <animate
+                    attributeName={`${vName}2`}
+                    values={sArr.map((s) => `${v2 - halfDist + halfDist * s}`).join(";")}
+                    {...commonDefs}
+                />
+            </>
+        );
+    };
+
+    export const sweepOrthogonal = (
+        vName: "x" | "y",
+        v1: number,
+        v2: number,
+        oArr: number[],
+        defs: BorderAnimationDefs,
+    ) => {
+        const commonDefs = getCommonAnimDefs(defs);
+
+        return (
+            <>
+                <animate attributeName={`${vName}1`} values={oArr.map((o) => `${v1 + o}`).join(";")} {...commonDefs} />
+                <animate attributeName={`${vName}2`} values={oArr.map((o) => `${v2 + o}`).join(";")} {...commonDefs} />
+            </>
+        );
+    };
+
+    export const sweepDiagonal = (
+        x1: number,
+        y1: number,
+        x2: number,
+        y2: number,
+        oArrX: number[],
+        oArrY: number[],
+        defs: BorderAnimationDefs,
+    ) => {
+        const points = [
+            [x1, y1],
+            [x2, y2],
+        ];
+        const rad = (45 * Math.PI) / 180;
+        const commonDefs = getCommonAnimDefs(defs);
+
+        return (
+            <For each={points}>
+                {(point, getIndex) => {
+                    const x = point[0];
+                    const y = point[1];
+
+                    return (
+                        <>
+                            <animate
+                                attributeName={`x${getIndex() + 1}`}
+                                values={oArrX.map((o) => `${x + o * Math.cos(rad)}`).join(";")}
+                                {...commonDefs}
+                            />
+                            <animate
+                                attributeName={`y${getIndex() + 1}`}
+                                values={oArrY.map((o) => `${y + o * Math.sin(rad)}`).join(";")}
+                                {...commonDefs}
+                            />
+                        </>
+                    );
+                }}
+            </For>
+        );
+    };
+
+    export const growRadial = (rArr: number[], defs: BorderAnimationDefs) => {
+        return <animate attributeName="r" values={rArr.join(";")} {...getCommonAnimDefs(defs)} />;
+    };
+
+    const ROT_STEP_SIZE = 15;
+    const ARC_START = { x: -0.5, y: 0.5 };
+    const ARC_END = { x: 1.5, y: 0.5 };
+    const ARC_CENTER = { x: 0.5, y: 0.5 };
+
+    export const rotate = (from: number, to: number, defs: BorderAnimationDefs) => {
+        const steps = Array.from({ length: Math.round(Math.abs(to - from) / ROT_STEP_SIZE) + 1 }, (_, index) =>
+            SVGUtils.getLinearCoords({
+                angle: from < to ? from + ROT_STEP_SIZE * index : from - ROT_STEP_SIZE * index,
+            }),
+        );
+        const commonDefs = getCommonAnimDefs(defs);
+
+        return (
+            <For each={V_KEYS}>
+                {(vKey) => (
+                    <animate attributeName={vKey} values={steps.map((step) => step[vKey]).join(";")} {...commonDefs} />
+                )}
+            </For>
+        );
+    };
+
+    export const getRotatingArc = (from: number, to: number, defs: BorderAnimationDefs) => {
+        const rotatePoint = (p: Point2d, cx: number, cy: number, deg: number) => {
+            const rad = (deg * Math.PI) / 180;
+            const s = Math.sin(rad);
+            const c = Math.cos(rad);
+            const x = p.x - cx;
+            const y = p.y - cy;
+
+            return {
+                x: x * c - y * s + cx,
+                y: x * s + y * c + cy,
+            };
+        };
+
+        const getArcPath = (angle: number) => {
+            const s = rotatePoint(ARC_START, ARC_CENTER.x, ARC_CENTER.y, angle);
+            const e = rotatePoint(ARC_END, ARC_CENTER.x, ARC_CENTER.y, angle);
+
+            return `M ${s.x} ${s.y} A 1 1 0 0 1 ${e.x} ${e.y}`;
+        };
+
+        const steps = Array.from({ length: Math.round(Math.abs(to - from) / ROT_STEP_SIZE) + 1 }, (_, index) =>
+            getArcPath(from < to ? from + ROT_STEP_SIZE * index : from - ROT_STEP_SIZE * index),
+        );
+        const commonDefs = getCommonAnimDefs(defs);
+
+        return (
+            <path d={steps[0]}>
+                <animate attributeName="d" values={steps.join(";")} {...commonDefs} />
+            </path>
+        );
     };
 }

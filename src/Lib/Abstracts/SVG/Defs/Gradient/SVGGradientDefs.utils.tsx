@@ -1,7 +1,6 @@
 import type { JSX } from "solid-js";
 
-import type { Point2d, Size2d } from "@thewaver/ss-utils";
-
+import { SVGUtils } from "../../SVG.utils";
 import type { SVGLinearGradientDefs, SVGRadialGradientDefs } from "./SVGGradientDefs.types";
 
 export namespace SVGGradientDefsUtils {
@@ -22,67 +21,12 @@ export namespace SVGGradientDefsUtils {
             return <stop offset={`${offset}%`} stop-color={c.value} />;
         });
 
-    export const getHemisphereLozengePoints = (angle: number) => {
-        const rad = (angle * Math.PI) / 180;    
-        const cx = 0.5;
-        const cy = 0.5;
-        const tangentX = Math.cos(rad);
-        const tangentY = Math.sin(rad);
-        const normalX = -tangentY;
-        const normalY = tangentX;
-        const extent = Math.SQRT2;
-    
-        return [
-            {
-                x: cx + (tangentX + normalX) * extent,
-                y: cy + (tangentY + normalY) * extent,
-            },
-            {
-                x: cx + (tangentX - normalX) * extent,
-                y: cy + (tangentY - normalY) * extent,
-            },
-            {
-                x: cx - (tangentX - normalX) * extent,
-                y: cy - (tangentY - normalY) * extent,
-            },
-            {
-                x: cx - (tangentX + normalX) * extent,
-                y: cy - (tangentY + normalY) * extent,
-            },
-        ];
-    };
-
-    export const getLinearCoords = ({
-        angle = 0,
-        scale = { width: 1, height: 1 },
-        offset = { x: 0, y: 0 },
-    }: {
-        angle?: number;
-        scale?: Size2d;
-        offset?: Point2d;
-    }) => {
-        const rad = (angle * Math.PI) / 180;
-        const x = Math.cos(rad);
-        const y = Math.sin(rad);
-        const cx = 0.5 + offset.x;
-        const cy = 0.5 + offset.y;
-        const halfW = 0.5 * scale.width;
-        const halfH = 0.5 * scale.height;
-
-        return {
-            x1: cx - x * halfW,
-            y1: cy - y * halfH,
-            x2: cx + x * halfW,
-            y2: cy + y * halfH,
-        };
-    };
-
     export const getLinearGradient = (
         defs: SVGLinearGradientDefs,
         custom?: JSX.Element | ((x1: number, y1: number, x2: number, y2: number) => JSX.Element),
     ) => {
         const { id, angle, offset, scale, colors, ...baseProps } = defs;
-        const { x1, y1, x2, y2 } = getLinearCoords({ angle, offset, scale });
+        const { x1, y1, x2, y2 } = SVGUtils.getLinearCoords({ angle, offset, scale });
 
         return (
             <linearGradient {...baseProps} id={id} x1={x1} y1={y1} x2={x2} y2={y2}>
