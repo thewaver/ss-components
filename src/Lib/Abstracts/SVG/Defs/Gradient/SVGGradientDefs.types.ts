@@ -19,7 +19,7 @@ export type SVGLinearGradientDefs = SVGGradientDefs & {
 };
 
 export type SVGRadialGradientDefs = SVGGradientDefs & {
-    origin: Point2d;
+    origin?: Point2d;
     scale?: number;
 };
 

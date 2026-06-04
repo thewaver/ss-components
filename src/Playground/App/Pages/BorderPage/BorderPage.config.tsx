@@ -32,7 +32,117 @@ export const BORDER_CONFIGS = {
         ],
     },
 
-    flow1: {
+    // CORNY
+
+    cornyDesync_4x: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getRadialGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: defs.getColors().primary },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                            ],
+                            origin: { x: 0, y: 0 },
+                        },
+                        BorderAnimationUtils.Radial.grow([0, 1, 1, 1, 1, 0, 0, 0, 0], defs),
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient3-${id}`,
+                    defsElement: SVGGradientDefsUtils.getRadialGradient(
+                        {
+                            id: `gradient3-${id}`,
+                            colors: [
+                                { value: defs.getColors().primary },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                            ],
+                            origin: { x: 1, y: 1 },
+                        },
+                        BorderAnimationUtils.Radial.grow([0, 0, 1, 1, 1, 1, 0, 0, 0], defs),
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getRadialGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: defs.getColors().secondary },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                            ],
+                            origin: { x: 1, y: 0 },
+                        },
+                        BorderAnimationUtils.Radial.grow([0, 0, 0, 1, 1, 1, 1, 0, 0], defs),
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient4-${id}`,
+                    defsElement: SVGGradientDefsUtils.getRadialGradient(
+                        {
+                            id: `gradient4-${id}`,
+                            colors: [
+                                { value: defs.getColors().secondary },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                            ],
+                            origin: { x: 0, y: 1 },
+                        },
+                        BorderAnimationUtils.Radial.grow([0, 0, 0, 0, 1, 1, 1, 1, 0], defs),
+                    ),
+                },
+            },
+        ],
+    },
+
+    // FLOOD
+
+    /*flood_2: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                            ],
+                        },
+                    ),
+                },
+                clipPath: {
+                    id: `clip1-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(0, 360, 0, 360, defs)}
+                        </clipPath>
+                    ),
+                }
+            },
+        ],
+    },*/
+
+    // FLOW
+
+    flow_1: {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
@@ -52,14 +162,14 @@ export const BORDER_CONFIGS = {
                             ],
                             scale: { width: 2, height: 1 },
                         },
-                        (x1, y1, x2, y2) => BorderAnimationUtils.sweepOrthogonal("x", x1, x2, [0.5, -0.5], defs),
+                        (x1, y1, x2, y2) => BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0.5, -0.5], defs),
                     ),
                 },
             },
         ],
     },
 
-    flowDiagonal1: {
+    flowDiagonal_1: {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
@@ -81,14 +191,26 @@ export const BORDER_CONFIGS = {
                             scale: { width: 3, height: 3 },
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.sweepDiagonal(x1, y1, x2, y2, [0.75, -0.75], [0.75, -0.75], defs),
+                            BorderAnimationUtils.Linear.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [
+                                    [0.75, 0.75],
+                                    [-0.75, -0.75],
+                                ],
+                                defs,
+                            ),
                     ),
                 },
             },
         ],
     },
 
-    clam1v1: {
+    // MERGE
+
+    merge_1v1: {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
@@ -101,11 +223,11 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient1-${id}`,
                             colors: [
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                                 { value: defs.getColors().primary },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        (x1, y1, x2, y2) => BorderAnimationUtils.sweepOrthogonal("x", x1, x2, [1, -1, 1], defs),
+                        (x1, y1, x2, y2) => BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
                     ),
                 },
                 blend: true,
@@ -117,12 +239,12 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient2-${id}`,
                             colors: [
-                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                                 { value: defs.getColors().secondary },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                             angle: 180,
                         },
-                        (x1, y1, x2, y2) => BorderAnimationUtils.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
+                        (x1, y1, x2, y2) => BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [1, -1, 1], defs),
                     ),
                 },
                 blend: true,
@@ -130,7 +252,7 @@ export const BORDER_CONFIGS = {
         ],
     },
 
-    scan1: {
+    mergeDiagonal_1v1: {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
@@ -143,68 +265,27 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient1-${id}`,
                             colors: [
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                                 { value: defs.getColors().primary },
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
-                        },
-                        (x1, y1, x2, y2) => BorderAnimationUtils.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
-                    ),
-                },
-            },
-        ],
-    },
-
-    sweepDiagonal1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
-            {
-                color: getBaseBorderColor(defs),
-            },
-            {
-                gradient: {
-                    id: `gradient1-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient1-${id}`,
-                            colors: [
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                { value: defs.getColors().primary, stop: 50 },
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
-                            ],
                             angle: 45,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.sweepDiagonal(x1, y1, x2, y2, [-1.25, 1.25], [-1.25, 1.25], defs),
+                            BorderAnimationUtils.Linear.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [
+                                    [-1.25, -1.25],
+                                    [1.25, 1.25],
+                                    [-1.25, -1.25],
+                                ],
+                                defs,
+                            ),
                     ),
                 },
-            },
-        ],
-    },
-
-    sweepDiagonal1v1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
-            {
-                color: getBaseBorderColor(defs),
-            },
-            {
-                gradient: {
-                    id: `gradient1-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient1-${id}`,
-                            colors: [
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                { value: defs.getColors().primary, stop: 50 },
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
-                            ],
-                            angle: 45,
-                        },
-                        (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.sweepDiagonal(x1, y1, x2, y2, [-1.25, 1.25], [-1.25, 1.25], defs),
-                    ),
-                },
+                blend: true,
             },
             {
                 gradient: {
@@ -213,21 +294,32 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient2-${id}`,
                             colors: [
+                                { value: defs.getColors().secondary },
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                { value: defs.getColors().secondary, stop: 50 },
-                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 50 },
                             ],
                             angle: 225,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.sweepDiagonal(x1, y1, x2, y2, [1.25, -1.25], [1.25, -1.25], defs),
+                            BorderAnimationUtils.Linear.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [
+                                    [1.25, 1.25],
+                                    [-1.25, -1.25],
+                                    [1.25, 1.25],
+                                ],
+                                defs,
+                            ),
                     ),
                 },
+                blend: true,
             },
         ],
     },
 
-    sweepDiagonal1v1v1v1: {
+    mergeDiagonalDesync_4x: {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
@@ -240,50 +332,31 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient1-${id}`,
                             colors: [
+                                { value: defs.getColors().primary },
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                { value: defs.getColors().primary, stop: 50 },
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
                             ],
                             angle: 45,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.sweepDiagonal(
+                            BorderAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
                                 y2,
-                                [-1.25, 0, 1.25, 1.25, 1.25, 1.25],
-                                [-1.25, 0, 1.25, 1.25, 1.25, 1.25],
+                                [
+                                    [-1.25, -1.25],
+                                    [0, 0],
+                                    [0, 0],
+                                    [-1.25, -1.25],
+                                    [-1.25, -1.25],
+                                    [-1.25, -1.25],
+                                    [-1.25, -1.25],
+                                ],
                                 defs,
                             ),
                     ),
                 },
-            },
-            {
-                gradient: {
-                    id: `gradient2-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient2-${id}`,
-                            colors: [
-                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                { value: defs.getColors().secondary, stop: 50 },
-                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 50 },
-                            ],
-                            angle: 225,
-                        },
-                        (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.sweepDiagonal(
-                                x1,
-                                y1,
-                                x2,
-                                y2,
-                                [1.25, 1.25, 0, -1.25, -1.25, -1.25],
-                                [1.25, 1.25, 0, -1.25, -1.25, -1.25],
-                                defs,
-                            ),
-                    ),
-                },
+                blend: true,
             },
             {
                 gradient: {
@@ -292,24 +365,64 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient3-${id}`,
                             colors: [
+                                { value: defs.getColors().primary },
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                { value: defs.getColors().primary, stop: 50 },
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
+                            ],
+                            angle: 225,
+                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.Linear.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [
+                                    [1.25, 1.25],
+                                    [1.25, 1.25],
+                                    [0, 0],
+                                    [0, 0],
+                                    [1.25, 1.25],
+                                    [1.25, 1.25],
+                                    [1.25, 1.25],
+                                ],
+                                defs,
+                            ),
+                    ),
+                },
+                blend: true,
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: defs.getColors().secondary },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                             angle: 135,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.sweepDiagonal(
+                            BorderAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
                                 y2,
-                                [1.25, 1.25, 1.25, 0, -1.25, -1.25],
-                                [-1.25, -1.25, -1.25, 0, 1.25, 1.25],
+                                [
+                                    [1.25, -1.25],
+                                    [1.25, -1.25],
+                                    [1.25, -1.25],
+                                    [0, 0],
+                                    [0, 0],
+                                    [1.25, -1.25],
+                                    [1.25, -1.25],
+                                ],
                                 defs,
                             ),
                     ),
                 },
+                blend: true,
             },
             {
                 gradient: {
@@ -318,320 +431,38 @@ export const BORDER_CONFIGS = {
                         {
                             id: `gradient4-${id}`,
                             colors: [
+                                { value: defs.getColors().secondary },
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                { value: defs.getColors().secondary, stop: 50 },
-                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 50 },
                             ],
                             angle: 315,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.sweepDiagonal(
+                            BorderAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
                                 y2,
-                                [-1.25, -1.25, -1.25, -1.25, 0, 1.25],
-                                [1.25, 1.25, 1.25, 1.25, 0, -1.25],
+                                [
+                                    [-1.25, 1.25],
+                                    [-1.25, 1.25],
+                                    [-1.25, 1.25],
+                                    [-1.25, 1.25],
+                                    [0, 0],
+                                    [0, 0],
+                                    [-1.25, 1.25],
+                                ],
                                 defs,
                             ),
                     ),
                 },
+                blend: true,
             },
         ],
     },
 
-    corny1v1v1v1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
-            {
-                color: getBaseBorderColor(defs),
-            },
-            {
-                gradient: {
-                    id: `gradient1-${id}`,
-                    defsElement: SVGGradientDefsUtils.getRadialGradient(
-                        {
-                            id: `gradient1-${id}`,
-                            colors: [
-                                { value: defs.getColors().primary },
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                            ],
-                            origin: { x: 0, y: 0 },
-                        },
-                        BorderAnimationUtils.growRadial([0, 1, 1, 1, 1, 0, 0, 0, 0], defs),
-                    ),
-                },
-            },
-            {
-                gradient: {
-                    id: `gradient3-${id}`,
-                    defsElement: SVGGradientDefsUtils.getRadialGradient(
-                        {
-                            id: `gradient3-${id}`,
-                            colors: [
-                                { value: defs.getColors().primary },
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                            ],
-                            origin: { x: 1, y: 1 },
-                        },
-                        BorderAnimationUtils.growRadial([0, 0, 1, 1, 1, 1, 0, 0, 0], defs),
-                    ),
-                },
-            },
-            {
-                gradient: {
-                    id: `gradient2-${id}`,
-                    defsElement: SVGGradientDefsUtils.getRadialGradient(
-                        {
-                            id: `gradient2-${id}`,
-                            colors: [
-                                { value: defs.getColors().secondary },
-                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                            ],
-                            origin: { x: 1, y: 0 },
-                        },
-                        BorderAnimationUtils.growRadial([0, 0, 0, 1, 1, 1, 1, 0, 0], defs),
-                    ),
-                },
-            },
-            {
-                gradient: {
-                    id: `gradient4-${id}`,
-                    defsElement: SVGGradientDefsUtils.getRadialGradient(
-                        {
-                            id: `gradient4-${id}`,
-                            colors: [
-                                { value: defs.getColors().secondary },
-                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                            ],
-                            origin: { x: 0, y: 1 },
-                        },
-                        BorderAnimationUtils.growRadial([0, 0, 0, 0, 1, 1, 1, 1, 0], defs),
-                    ),
-                },
-            },
-        ],
-    },
+    // ORBIT
 
-    flood2: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
-            {
-                color: getBaseBorderColor(defs),
-            },
-            {
-                gradient: {
-                    id: `gradient1-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient1-${id}`,
-                            colors: [
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                { value: defs.getColors().primary },
-                                { value: defs.getColors().secondary },
-                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                            ],
-                        },
-                        (x1, y1, x2, y2) => BorderAnimationUtils.growOrthogonal("x", x1, x2, [0, 4, 0], defs),
-                    ),
-                },
-            },
-        ],
-    },
-
-    snake1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
-            {
-                color: getBaseBorderColor(defs),
-            },
-            {
-                gradient: {
-                    id: `gradient1-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient1-${id}`,
-                            colors: [
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                { value: defs.getColors().primary },
-                            ],
-                        },
-                        BorderAnimationUtils.rotate(0, 360, defs),
-                    ),
-                },
-                clipPath: {
-                    id: `clip1-${id}`,
-                    defsElement: (
-                        <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.getRotatingArc(0, 360, defs)},
-                        </clipPath>
-                    ),
-                },
-            },
-        ],
-    },
-
-    snake1v1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
-            {
-                color: getBaseBorderColor(defs),
-            },
-            {
-                gradient: {
-                    id: `gradient1-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient1-${id}`,
-                            colors: [
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                { value: defs.getColors().primary },
-                            ],
-                        },
-                        BorderAnimationUtils.rotate(0, 360, defs),
-                    ),
-                },
-                clipPath: {
-                    id: `clip1-${id}`,
-                    defsElement: (
-                        <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.getRotatingArc(0, 360, defs)},
-                        </clipPath>
-                    ),
-                },
-            },
-            {
-                gradient: {
-                    id: `gradient2-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient2-${id}`,
-                            colors: [
-                                { value: defs.getColors().secondary },
-                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                            ],
-                        },
-                        BorderAnimationUtils.rotate(360, 0, defs),
-                    ),
-                },
-                clipPath: {
-                    id: `clip2-${id}`,
-                    defsElement: (
-                        <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.getRotatingArc(360, 0, defs)},
-                        </clipPath>
-                    ),
-                },
-            },
-        ],
-    },
-
-    snake4: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
-            {
-                color: getBaseBorderColor(defs),
-            },
-            {
-                gradient: {
-                    id: `gradient1-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient1-${id}`,
-                            colors: [
-                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                { value: defs.getColors().secondary, stop: 75 },
-                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 75 },
-                            ],
-                        },
-                        BorderAnimationUtils.rotate(0, 360, defs),
-                    ),
-                },
-                clipPath: {
-                    id: `clip1-${id}`,
-                    defsElement: (
-                        <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.getRotatingArc(0, 360, defs)},
-                        </clipPath>
-                    ),
-                },
-            },
-            {
-                gradient: {
-                    id: `gradient2-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient2-${id}`,
-                            colors: [
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                { value: defs.getColors().primary, stop: 75 },
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 75 },
-                            ],
-                        },
-                        BorderAnimationUtils.rotate(90, 450, defs),
-                    ),
-                },
-                clipPath: {
-                    id: `clip2-${id}`,
-                    defsElement: (
-                        <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.getRotatingArc(90, 450, defs)},
-                        </clipPath>
-                    ),
-                },
-            },
-            {
-                gradient: {
-                    id: `gradient3-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient3-${id}`,
-                            colors: [
-                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                { value: defs.getColors().secondary, stop: 75 },
-                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 75 },
-                            ],
-                        },
-                        BorderAnimationUtils.rotate(180, 540, defs),
-                    ),
-                },
-                clipPath: {
-                    id: `clip3-${id}`,
-                    defsElement: (
-                        <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.getRotatingArc(180, 540, defs)},
-                        </clipPath>
-                    ),
-                },
-            },
-            {
-                gradient: {
-                    id: `gradient4-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient4-${id}`,
-                            colors: [
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                { value: defs.getColors().primary, stop: 75 },
-                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 75 },
-                            ],
-                        },
-                        BorderAnimationUtils.rotate(270, 630, defs),
-                    ),
-                },
-                clipPath: {
-                    id: `clip4-${id}`,
-                    defsElement: (
-                        <clipPath id={`clip4-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.getRotatingArc(270, 630, defs)},
-                        </clipPath>
-                    ),
-                },
-            },
-        ],
-    },
-
-    orbit1: {
+    orbit_1: {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
@@ -649,14 +480,14 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.rotate(0, 360, defs),
+                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
                     ),
                 },
             },
         ],
     },
 
-    orbit1v1: {
+    orbit_1v1: {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
@@ -674,7 +505,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.rotate(0, 360, defs),
+                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
                     ),
                 },
             },
@@ -690,14 +521,14 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.rotate(360, 0, defs),
+                        BorderAnimationUtils.Linear.rotate(360, 0, defs),
                     ),
                 },
             },
         ],
     },
 
-    orbit2v1: {
+    orbitDesync_2v1: {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
@@ -711,7 +542,7 @@ export const BORDER_CONFIGS = {
                             id: `gradient1-${id}`,
                             colors: [{ value: defs.getColors().tertiary }, { value: defs.getColors().secondary }],
                         },
-                        BorderAnimationUtils.rotate(0, 360, defs),
+                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
                     ),
                 },
             },
@@ -726,14 +557,14 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        BorderAnimationUtils.rotate(360, 0, defs),
+                        BorderAnimationUtils.Linear.rotate(360, 0, defs),
                     ),
                 },
             },
         ],
     },
 
-    orbit3: {
+    orbitDesync_3x: {
         class: styles.borderedContainer,
         getFillDefs: (id, defs) => [
             {
@@ -751,7 +582,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.rotate(0, 360, {
+                        BorderAnimationUtils.Linear.rotate(0, 360, {
                             ...defs,
                             getAnimationDurationMs: () => defs.getAnimationDurationMs() * 0.5,
                         }),
@@ -771,7 +602,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.rotate(0, 360, defs),
+                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
                     ),
                 },
                 blend: true,
@@ -788,13 +619,832 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().tertiary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.rotate(0, 360, {
+                        BorderAnimationUtils.Linear.rotate(0, 360, {
                             ...defs,
                             getAnimationDurationMs: () => defs.getAnimationDurationMs() * 2,
                         }),
                     ),
                 },
                 blend: true,
+            },
+        ],
+    },
+
+    // SCAN
+
+    scan_1: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                            ],
+                        },
+                        (x1, y1, x2, y2) => BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
+                    ),
+                },
+            },
+        ],
+    },
+
+    scan_1v1: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                            ],
+                        },
+                        (x1, y1, x2, y2) => BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                            ],
+                            angle: 90,
+                        },
+                        (x1, y1, x2, y2) => BorderAnimationUtils.Linear.sweepOrthogonal("y", y1, y2, [-1, 1, -1], defs),
+                    ),
+                },
+            },
+        ],
+    },
+
+    scanDiagonal_1: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                            ],
+                            angle: 45,
+                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.Linear.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [
+                                    [-1.25, -1.25],
+                                    [1.25, 1.25],
+                                    [-1.25, -1.25],
+                                ],
+                                defs,
+                            ),
+                    ),
+                },
+            },
+        ],
+    },
+
+    scanDiagonal_1v1: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                            ],
+                            angle: 45,
+                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.Linear.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [
+                                    [-1.25, -1.25],
+                                    [1.25, 1.25],
+                                    [-1.25, -1.25],
+                                ],
+                                defs,
+                            ),
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                            ],
+                            angle: 135,
+                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.Linear.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [
+                                    [1.25, -1.25],
+                                    [-1.25, 1.25],
+                                    [1.25, -1.25],
+                                ],
+                                defs,
+                            ),
+                    ),
+                },
+            },
+        ],
+    },
+
+    // SNAKE
+
+    snake_1: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                            ],
+                        },
+                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
+                    ),
+                },
+                clipPath: {
+                    id: `clip1-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(0, 360, 180, 180, defs)},
+                        </clipPath>
+                    ),
+                },
+            },
+        ],
+    },
+
+    snake_1v1: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                            ],
+                        },
+                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
+                    ),
+                },
+                clipPath: {
+                    id: `clip1-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(0, 360, 180, 180, defs)},
+                        </clipPath>
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: defs.getColors().secondary },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                            ],
+                        },
+                        BorderAnimationUtils.Linear.rotate(360, 0, defs),
+                    ),
+                },
+                clipPath: {
+                    id: `clip2-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(360, 0, 180, 180, defs)},
+                        </clipPath>
+                    ),
+                },
+            },
+        ],
+    },
+
+    snake_2: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                            ],
+                        },
+                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
+                    ),
+                },
+                clipPath: {
+                    id: `clip1-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(0, 360, 180, 180, defs)},
+                        </clipPath>
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary },
+                            ],
+                        },
+                        BorderAnimationUtils.Linear.rotate(180, 540, defs),
+                    ),
+                },
+                clipPath: {
+                    id: `clip2-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(180, 540, 180, 180, defs)},
+                        </clipPath>
+                    ),
+                },
+            },
+        ],
+    },
+
+    snake_4: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary, stop: 75 },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 75 },
+                            ],
+                        },
+                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
+                    ),
+                },
+                clipPath: {
+                    id: `clip1-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(0, 360, 180, 180, defs)},
+                        </clipPath>
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary, stop: 75 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 75 },
+                            ],
+                        },
+                        BorderAnimationUtils.Linear.rotate(90, 450, defs),
+                    ),
+                },
+                clipPath: {
+                    id: `clip2-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(90, 450, 180, 180, defs)},
+                        </clipPath>
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient3-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient3-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary, stop: 75 },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 75 },
+                            ],
+                        },
+                        BorderAnimationUtils.Linear.rotate(180, 540, defs),
+                    ),
+                },
+                clipPath: {
+                    id: `clip3-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(180, 540, 180, 180, defs)},
+                        </clipPath>
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient4-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient4-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary, stop: 75 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 75 },
+                            ],
+                        },
+                        BorderAnimationUtils.Linear.rotate(270, 630, defs),
+                    ),
+                },
+                clipPath: {
+                    id: `clip4-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip4-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(270, 630, 180, 180, defs)},
+                        </clipPath>
+                    ),
+                },
+            },
+        ],
+    },
+
+    snakeDesync_3x: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                            ],
+                        },
+                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
+                    ),
+                },
+                clipPath: {
+                    id: `clip1-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(0, 360, 180, 180, defs)},
+                        </clipPath>
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary },
+                            ],
+                        },
+                        BorderAnimationUtils.Linear.rotate(180, 540, defs),
+                    ),
+                },
+                clipPath: {
+                    id: `clip2-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(180, 540, 180, 180, defs)},
+                        </clipPath>
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient3-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient3-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().tertiary} r g b / 0)` },
+                                { value: defs.getColors().tertiary },
+                            ],
+                        },
+                        BorderAnimationUtils.Linear.rotate(0, 360, {
+                            ...defs,
+                            getAnimationDurationMs: () => defs.getAnimationDurationMs() * 0.5,
+                        }),
+                    ),
+                },
+                clipPath: {
+                    id: `clip3-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(0, 360, 180, 180, {
+                                ...defs,
+                                getAnimationDurationMs: () => defs.getAnimationDurationMs() * 0.5,
+                            })}
+                            ,
+                        </clipPath>
+                    ),
+                },
+            },
+        ],
+    },
+
+    // SWEEP
+
+    sweep_1: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
+                            ],
+                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1.25, 1.25], defs),
+                    ),
+                },
+            },
+        ],
+    },
+
+    sweep_1v1: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
+                            ],
+                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1.25, 1.25], defs),
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 50 },
+                            ],
+                            angle: 180,
+                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [1.25, -1.25], defs),
+                    ),
+                },
+            },
+        ],
+    },
+
+    sweepDiagonal_1: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
+                            ],
+                            angle: 45,
+                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.Linear.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [
+                                    [-1.25, -1.25],
+                                    [1.25, 1.25],
+                                ],
+                                defs,
+                            ),
+                    ),
+                },
+            },
+        ],
+    },
+
+    sweepDiagonal_1v1: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
+                            ],
+                            angle: 45,
+                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.Linear.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [
+                                    [-1.25, -1.25],
+                                    [1.25, 1.25],
+                                ],
+                                defs,
+                            ),
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 50 },
+                            ],
+                            angle: 225,
+                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.Linear.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [
+                                    [1.25, 1.25],
+                                    [-1.25, -1.25],
+                                ],
+                                defs,
+                            ),
+                    ),
+                },
+            },
+        ],
+    },
+
+    sweepDiagonalDesync_4x: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
+                            ],
+                            angle: 45,
+                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.Linear.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [
+                                    [-1.25, -1.25],
+                                    [0, 0],
+                                    [1.25, 1.25],
+                                    [1.25, 1.25],
+                                    [1.25, 1.25],
+                                    [1.25, 1.25],
+                                ],
+                                defs,
+                            ),
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 50 },
+                            ],
+                            angle: 225,
+                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.Linear.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [
+                                    [1.25, 1.25],
+                                    [1.25, 1.25],
+                                    [0, 0],
+                                    [-1.25, -1.25],
+                                    [-1.25, -1.25],
+                                    [-1.25, -1.25],
+                                ],
+                                defs,
+                            ),
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient3-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient3-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
+                            ],
+                            angle: 135,
+                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.Linear.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [
+                                    [1.25, -1.25],
+                                    [1.25, -1.25],
+                                    [1.25, -1.25],
+                                    [0, 0],
+                                    [-1.25, 1.25],
+                                    [-1.25, 1.25],
+                                ],
+                                defs,
+                            ),
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient4-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient4-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary, stop: 50 },
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 50 },
+                            ],
+                            angle: 315,
+                        },
+                        (x1, y1, x2, y2) =>
+                            BorderAnimationUtils.Linear.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [
+                                    [-1.25, 1.25],
+                                    [-1.25, 1.25],
+                                    [-1.25, 1.25],
+                                    [-1.25, 1.25],
+                                    [0, 0],
+                                    [1.25, -1.25],
+                                ],
+                                defs,
+                            ),
+                    ),
+                },
             },
         ],
     },

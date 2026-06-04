@@ -36,16 +36,19 @@ export namespace SVGGradientDefsUtils {
         );
     };
 
+    const DEFAULT_RADIAL_ORIGIN = { x: 0.5, y: 0.5 };
+
     export const getRadialGradient = (
         defs: SVGRadialGradientDefs,
         custom?: JSX.Element | ((cx: number, cy: number, r: number) => JSX.Element),
     ) => {
         const { id, colors, origin, scale, ...baseProps } = defs;
+        const o = defs.origin ?? DEFAULT_RADIAL_ORIGIN;
         const r = 0.5 * (scale ?? 1);
 
         return (
-            <radialGradient {...baseProps} id={id} cx={origin.x} cy={origin.y} r={r}>
-                {typeof custom === "function" ? custom(origin.x, origin.y, r) : custom}
+            <radialGradient {...baseProps} id={id} cx={o.x} cy={o.y} r={r}>
+                {typeof custom === "function" ? custom(o.x, o.y, r) : custom}
                 {renderGradientStops(colors)}
             </radialGradient>
         );

@@ -153,7 +153,7 @@ const WideWrapper = (props: BorderExampleProps) => {
 export const BorderPage = () => {
     const [getIsSolid, setIsSolid] = createSignal(false);
     const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
-    const [getConfigKey, setConfigKey] = createSignal<keyof typeof BORDER_CONFIGS>("sweepDiagonal1");
+    const [getConfigKey, setConfigKey] = createSignal<keyof typeof BORDER_CONFIGS>("sweepDiagonal_1");
     const [colors, setColors] = createStore(STARTING_COLORS);
 
     const getExamples = createMemo(() => {
