@@ -20,6 +20,33 @@ export type BorderConfigDefs = {
     getFillDefs: (id: string, defs: BorderFillConfigDefs) => SVGDefs[];
 };
 
+type ZipValue<T> = T extends readonly (infer U)[] ? U : T;
+
+type ZipTuple<T extends readonly unknown[]> = {
+    [K in keyof T]: ZipValue<T[K]>;
+};
+
+const zip = <T extends readonly unknown[]>(...values: T) => {
+    const lengths = values.filter(Array.isArray).map((v) => v.length);
+    const length = lengths.length ? Math.min(...lengths) : 1;
+    const zipped = Array.from({ length }, (_, i) => values.map((v) => (Array.isArray(v) ? v[i] : v)));
+
+    return zipped as ZipTuple<T>[];
+};
+
+const getIntermediateValues = (from: number, to: number, stepCount: number) => {
+    if (stepCount < 3) return [from, to];
+
+    const stepSize = Math.abs(to - from) / (stepCount - 1);
+    const values = Array.from({ length: stepCount - 1 }, (_, index) =>
+        Math.round(from < to ? from + stepSize * index : from - stepSize * index),
+    );
+
+    values.push(to);
+
+    return values;
+};
+
 const getBaseBorderColor = (defs: BorderFillConfigDefs) => `hsl(from ${defs.getColors().background} h s calc(l * 2))`;
 
 export const BORDER_CONFIGS = {
@@ -480,7 +507,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
             },
@@ -505,7 +532,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
             },
@@ -521,7 +548,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(360, 0, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(360, 0, 12), defs),
                     ),
                 },
             },
@@ -542,7 +569,7 @@ export const BORDER_CONFIGS = {
                             id: `gradient1-${id}`,
                             colors: [{ value: defs.getColors().tertiary }, { value: defs.getColors().secondary }],
                         },
-                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
             },
@@ -557,7 +584,7 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(360, 0, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(360, 0, 12), defs),
                     ),
                 },
             },
@@ -582,7 +609,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(0, 360, {
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(0, 360, 12), {
                             ...defs,
                             getAnimationDurationMs: () => defs.getAnimationDurationMs() * 0.5,
                         }),
@@ -602,7 +629,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
                 blend: true,
@@ -619,7 +646,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().tertiary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(0, 360, {
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(0, 360, 12), {
                             ...defs,
                             getAnimationDurationMs: () => defs.getAnimationDurationMs() * 2,
                         }),
@@ -823,14 +850,18 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(0, 360, 180, 180, defs)},
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(getIntermediateValues(0, 360, 12), 180),
+                                defs,
+                            )}
+                            ,
                         </clipPath>
                     ),
                 },
@@ -855,14 +886,18 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(0, 360, 180, 180, defs)},
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(getIntermediateValues(0, 360, 12), 180),
+                                defs,
+                            )}
+                            ,
                         </clipPath>
                     ),
                 },
@@ -878,14 +913,18 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(360, 0, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(360, 0, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip2-${id}`,
                     defsElement: (
                         <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(360, 0, 180, 180, defs)},
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(getIntermediateValues(360, 0, 12), 180),
+                                defs,
+                            )}
+                            ,
                         </clipPath>
                     ),
                 },
@@ -910,14 +949,18 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(0, 360, 180, 180, defs)},
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(getIntermediateValues(0, 360, 12), 180),
+                                defs,
+                            )}
+                            ,
                         </clipPath>
                     ),
                 },
@@ -933,14 +976,18 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().secondary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(180, 540, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(180, 540, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip2-${id}`,
                     defsElement: (
                         <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(180, 540, 180, 180, defs)},
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(getIntermediateValues(180, 540, 12), 180),
+                                defs,
+                            )}
+                            ,
                         </clipPath>
                     ),
                 },
@@ -966,14 +1013,18 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 75 },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(0, 360, 180, 180, defs)},
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(getIntermediateValues(0, 360, 12), 180),
+                                defs,
+                            )}
+                            ,
                         </clipPath>
                     ),
                 },
@@ -990,14 +1041,18 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 75 },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(90, 450, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(90, 450, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip2-${id}`,
                     defsElement: (
                         <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(90, 450, 180, 180, defs)},
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(getIntermediateValues(90, 450, 12), 180),
+                                defs,
+                            )}
+                            ,
                         </clipPath>
                     ),
                 },
@@ -1014,14 +1069,18 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 75 },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(180, 540, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(180, 540, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip3-${id}`,
                     defsElement: (
                         <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(180, 540, 180, 180, defs)},
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(getIntermediateValues(180, 540, 12), 180),
+                                defs,
+                            )}
+                            ,
                         </clipPath>
                     ),
                 },
@@ -1038,14 +1097,18 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 75 },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(270, 630, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(270, 630, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip4-${id}`,
                     defsElement: (
                         <clipPath id={`clip4-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(270, 630, 180, 180, defs)},
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(getIntermediateValues(270, 630, 12), 180),
+                                defs,
+                            )}
+                            ,
                         </clipPath>
                     ),
                 },
@@ -1070,14 +1133,18 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(0, 360, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(0, 360, 180, 180, defs)},
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(getIntermediateValues(0, 360, 12), 180),
+                                defs,
+                            )}
+                            ,
                         </clipPath>
                     ),
                 },
@@ -1093,14 +1160,18 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().secondary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(180, 540, defs),
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(180, 540, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip2-${id}`,
                     defsElement: (
                         <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(180, 540, 180, 180, defs)},
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(getIntermediateValues(180, 540, 12), 180),
+                                defs,
+                            )}
+                            ,
                         </clipPath>
                     ),
                 },
@@ -1116,7 +1187,7 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().tertiary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(0, 360, {
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(0, 360, 12), {
                             ...defs,
                             getAnimationDurationMs: () => defs.getAnimationDurationMs() * 0.5,
                         }),
@@ -1126,10 +1197,304 @@ export const BORDER_CONFIGS = {
                     id: `clip3-${id}`,
                     defsElement: (
                         <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(0, 360, 180, 180, {
+                            {BorderAnimationUtils.Path.getRotatingArc(zip(getIntermediateValues(0, 360, 12), 180), {
                                 ...defs,
                                 getAnimationDurationMs: () => defs.getAnimationDurationMs() * 0.5,
                             })}
+                            ,
+                        </clipPath>
+                    ),
+                },
+            },
+        ],
+    },
+
+    snakeWait_1: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                            ],
+                        },
+                        BorderAnimationUtils.Linear.rotate(
+                            [
+                                ...getIntermediateValues(90, 270, 12),
+                                ...getIntermediateValues(270, 270, 12),
+                                ...getIntermediateValues(270, 450, 12),
+                                ...getIntermediateValues(450, 450, 12),
+                            ],
+                            defs,
+                        ),
+                    ),
+                },
+                clipPath: {
+                    id: `clip1-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(
+                                    [
+                                        ...getIntermediateValues(90, 270, 12),
+                                        ...getIntermediateValues(270, 270, 12),
+                                        ...getIntermediateValues(270, 450, 12),
+                                        ...getIntermediateValues(450, 450, 12),
+                                    ],
+                                    180,
+                                ),
+                                defs,
+                            )}
+                            ,
+                        </clipPath>
+                    ),
+                },
+            },
+        ],
+    },
+
+    snakeWait_3x1s: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                            ],
+                            angle: 90,
+                        },
+                        BorderAnimationUtils.Linear.rotate(
+                            [
+                                ...getIntermediateValues(90, 450, 12),
+                                ...getIntermediateValues(450, 450, 12),
+                                ...getIntermediateValues(450, 450, 12),
+                            ],
+                            defs,
+                        ),
+                    ),
+                },
+                clipPath: {
+                    id: `clip1-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(
+                                    [
+                                        ...getIntermediateValues(90, 450, 12),
+                                        ...getIntermediateValues(450, 450, 12),
+                                        ...getIntermediateValues(450, 450, 12),
+                                    ],
+                                    180,
+                                ),
+                                defs,
+                            )}
+                            ,
+                        </clipPath>
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary },
+                            ],
+                            angle: 90,
+                        },
+                        BorderAnimationUtils.Linear.rotate(
+                            [...getIntermediateValues(90, 450, 12), ...getIntermediateValues(450, 450, 12)],
+                            defs,
+                        ),
+                    ),
+                },
+                clipPath: {
+                    id: `clip2-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(
+                                    [...getIntermediateValues(90, 450, 12), ...getIntermediateValues(450, 450, 12)],
+                                    180,
+                                ),
+                                defs,
+                            )}
+                            ,
+                        </clipPath>
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient3-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient3-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().tertiary} r g b / 0)` },
+                                { value: defs.getColors().tertiary },
+                            ],
+                            angle: 90,
+                        },
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(90, 450, 12), defs),
+                    ),
+                },
+                clipPath: {
+                    id: `clip3-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(getIntermediateValues(90, 450, 12), 180),
+                                defs,
+                            )}
+                            ,
+                        </clipPath>
+                    ),
+                },
+            },
+        ],
+    },
+
+    snakeWait_3x2s: {
+        class: styles.borderedContainer,
+        getFillDefs: (id, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                { value: defs.getColors().primary },
+                            ],
+                            angle: 90,
+                        },
+                        BorderAnimationUtils.Linear.rotate(
+                            [
+                                ...getIntermediateValues(90, 270, 12),
+                                ...getIntermediateValues(270, 270, 12),
+                                ...getIntermediateValues(270, 270, 12),
+                                ...getIntermediateValues(270, 450, 12),
+                                ...getIntermediateValues(450, 450, 12),
+                                ...getIntermediateValues(450, 450, 12),
+                            ],
+                            defs,
+                        ),
+                    ),
+                },
+                clipPath: {
+                    id: `clip1-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(
+                                    [
+                                        ...getIntermediateValues(90, 270, 12),
+                                        ...getIntermediateValues(270, 270, 12),
+                                        ...getIntermediateValues(270, 270, 12),
+                                        ...getIntermediateValues(270, 450, 12),
+                                        ...getIntermediateValues(450, 450, 12),
+                                        ...getIntermediateValues(450, 450, 12),
+                                    ],
+                                    180,
+                                ),
+                                defs,
+                            )}
+                            ,
+                        </clipPath>
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient2-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient2-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                { value: defs.getColors().secondary },
+                            ],
+                            angle: 90,
+                        },
+                        BorderAnimationUtils.Linear.rotate(
+                            [
+                                ...getIntermediateValues(90, 270, 12),
+                                ...getIntermediateValues(270, 270, 12),
+                                ...getIntermediateValues(270, 450, 12),
+                                ...getIntermediateValues(450, 450, 12),
+                            ],
+                            defs,
+                        ),
+                    ),
+                },
+                clipPath: {
+                    id: `clip2-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(
+                                    [
+                                        ...getIntermediateValues(90, 270, 12),
+                                        ...getIntermediateValues(270, 270, 12),
+                                        ...getIntermediateValues(270, 450, 12),
+                                        ...getIntermediateValues(450, 450, 12),
+                                    ],
+                                    180,
+                                ),
+                                defs,
+                            )}
+                            ,
+                        </clipPath>
+                    ),
+                },
+            },
+            {
+                gradient: {
+                    id: `gradient3-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient3-${id}`,
+                            colors: [
+                                { value: `rgb(from ${defs.getColors().tertiary} r g b / 0)` },
+                                { value: defs.getColors().tertiary },
+                            ],
+                            angle: 90,
+                        },
+                        BorderAnimationUtils.Linear.rotate(getIntermediateValues(90, 450, 12), defs),
+                    ),
+                },
+                clipPath: {
+                    id: `clip3-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
+                            {BorderAnimationUtils.Path.getRotatingArc(
+                                zip(getIntermediateValues(90, 450, 12), 180),
+                                defs,
+                            )}
                             ,
                         </clipPath>
                     ),

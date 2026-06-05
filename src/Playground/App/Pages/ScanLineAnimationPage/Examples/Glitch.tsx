@@ -1,7 +1,10 @@
 import { createSignal } from "solid-js";
 
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
-import { ScanlineAnimationKeyframes } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
+import {
+    ScanlineAnimationBreakpoints,
+    ScanlineAnimationKeyframes,
+} from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.types";
 
@@ -9,7 +12,7 @@ const BREAKPOINTS = [
     [0.35, 0.35, 0.45, 0.45],
     [0.45, 0.45, 0.55, 0.55],
     [0.55, 0.55, 0.65, 0.65],
-] as [number, number, number, number][];
+] as ScanlineAnimationBreakpoints.BreakpointTupleQuad[];
 
 const ROOT_KEYFRAMES: Keyframe[] = [
     { offset: 0, filter: "brightness(1)" },

@@ -187,7 +187,7 @@ export namespace BorderUtils {
     ): Partial<BorderTraversalLengths> => {
         const getPositiveLengthOrUndefined = (length: number) => (length > 0 ? length : undefined);
 
-        const getQuarterCircleLength = (radius: number) => (radius > 0 ? (Math.PI * radius) / 2 : undefined);
+        const getQuarterCircleLength = (radius: number) => (radius > 0 ? Math.PI * radius * 0.5 : undefined);
 
         const halfWidth = size.width * 0.5;
         const halfHeight = size.height * 0.5;
@@ -251,7 +251,6 @@ export namespace BorderAnimationUtils {
         repeatCount: "indefinite" as const,
     });
 
-    const ROT_STEP_SIZE = 15;
     const DIAGONAL_RAD = (45 * Math.PI) / 180;
 
     export namespace Linear {
@@ -305,7 +304,7 @@ export namespace BorderAnimationUtils {
             y1: number,
             x2: number,
             y2: number,
-            oArr: [number, number][],
+            oArr: [oX: number, oY: number][],
             defs: BorderAnimationDefs,
         ) => {
             const points = [
@@ -341,14 +340,8 @@ export namespace BorderAnimationUtils {
 
         const V_KEYS = ["x1", "y1", "x2", "y2"] as const;
 
-        // TODO: send vArray of [from, to] instead
-        export const rotate = (from: number, to: number, defs: BorderAnimationDefs) => {
-            const stepCount = Math.round(Math.abs(to - from) / ROT_STEP_SIZE) + 1;
-            const steps = Array.from({ length: stepCount }, (_, index) =>
-                SVGUtils.getLinearCoords({
-                    angle: from < to ? from + ROT_STEP_SIZE * index : from - ROT_STEP_SIZE * index,
-                }),
-            );
+        export const rotate = (aArray: number[], defs: BorderAnimationDefs) => {
+            const steps = aArray.map((angle) => SVGUtils.getLinearCoords({ angle }));
             const commonDefs = getCommonAnimDefs(defs);
 
             return (
@@ -374,7 +367,12 @@ export namespace BorderAnimationUtils {
             return <animate attributeName={vName} values={vArr.join(";")} {...getCommonAnimDefs(defs)} />;
         };
 
-        export const sweepDiagonal = (cx: number, cy: number, oArr: [number, number][], defs: BorderAnimationDefs) => {
+        export const sweepDiagonal = (
+            cx: number,
+            cy: number,
+            oArr: [x: number, y: number][],
+            defs: BorderAnimationDefs,
+        ) => {
             const commonDefs = getCommonAnimDefs(defs);
 
             return (
@@ -395,24 +393,8 @@ export namespace BorderAnimationUtils {
     }
 
     export namespace Path {
-        // TODO: send vArray of [from, to, from, to] instead
-        export const getRotatingArc = (
-            fromRotation: number,
-            toRotation: number,
-            fromArcSize: number,
-            toArcSize: number,
-            defs: BorderAnimationDefs,
-        ) => {
-            const stepCount = Math.round(Math.abs(toRotation - fromRotation) / ROT_STEP_SIZE) + 1;
-            const arcStepSize = Math.round(Math.abs(toArcSize - fromArcSize) / stepCount);
-            const steps = Array.from({ length: stepCount }, (_, index) =>
-                SVGUtils.getArcPath(
-                    fromArcSize < toArcSize ? fromArcSize + arcStepSize * index : fromArcSize - arcStepSize * index,
-                    fromRotation < toRotation
-                        ? fromRotation + ROT_STEP_SIZE * index
-                        : fromRotation - ROT_STEP_SIZE * index,
-                ),
-            );
+        export const getRotatingArc = (aArray: [rotation: number, arcSize: number][], defs: BorderAnimationDefs) => {
+            const steps = aArray.map(([rotation, arcSize]) => SVGUtils.getArcPath(arcSize, rotation));
             const commonDefs = getCommonAnimDefs(defs);
 
             return (

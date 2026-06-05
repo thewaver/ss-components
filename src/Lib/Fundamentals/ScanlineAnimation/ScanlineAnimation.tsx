@@ -74,11 +74,8 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
             }),
         ];
 
-        const fps = 60;
-        const easing = `steps(${Math.max(1, Math.round((duration / 1000) * fps))}, end)`;
-
         for (const config of configs) {
-            let animation = config.el.animate(config.keyframes, { duration, easing, iterations: 1 });
+            let animation = config.el.animate(config.keyframes, { duration, iterations: 1 });
             animation.onfinish =
                 config.el === rootRef
                     ? () => {

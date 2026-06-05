@@ -29,6 +29,9 @@ export namespace ScanlineAnimationBreakpoints {
         smoothness?: number;
     };
 
+    export type BreakpointTupleTriple = [start: number, middle: number, end: number];
+    export type BreakpointTupleQuad = [first: number, second: number, third: number, fourth: number];
+
     const applyDirection = (idx: number, lineCount: number, dir: Direction = "asc") =>
         dir === "desc" ? lineCount - 1 - idx : idx;
 
@@ -43,9 +46,9 @@ export namespace ScanlineAnimationBreakpoints {
         },
 
         evenOdd: (idx, lineCount) => {
-            const evenCount = Math.ceil(lineCount / 2);
+            const evenCount = Math.ceil(lineCount * 0.5);
 
-            return MathUtils.isEven(idx) ? idx / 2 : evenCount + Math.floor(idx / 2);
+            return MathUtils.isEven(idx) ? idx * 0.5 : evenCount + Math.floor(idx * 0.5);
         },
 
         interleaved: (idx, lineCount) => {
@@ -74,7 +77,7 @@ export namespace ScanlineAnimationBreakpoints {
         const step = 1 / (lineCount + 1);
         const middle = step * directedIdx + step;
 
-        return [Math.max(0, middle - smoothness), middle, Math.min(1, middle + smoothness)] as [number, number, number];
+        return [Math.max(0, middle - smoothness), middle, Math.min(1, middle + smoothness)] as BreakpointTupleTriple;
     };
 }
 
@@ -92,7 +95,7 @@ export namespace ScanlineAnimationKeyframes {
     let shiftPercent = [0];
 
     export const getRandomHorizontalShiftKeyframes = (
-        breakpoints: [number, number, number, number][],
+        breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleQuad[],
         opts?: HorizontalShiftOpts,
     ): Keyframe[] => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_SHIFT_OPTS, ...opts };
@@ -124,7 +127,7 @@ export namespace ScanlineAnimationKeyframes {
     };
 
     export const getHorizontalStretchKeyframes = (
-        breakpoints: [number, number, number],
+        breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
         opts?: HorizontalStretchOpts,
     ): Keyframe[] => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_STRETCH_OPTS, ...opts };
@@ -147,7 +150,7 @@ export namespace ScanlineAnimationKeyframes {
     };
 
     export const getHorizontalSnakeKeyframes = (
-        breakpoints: [number, number, number],
+        breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
         opts?: HorizontalSnakeOpts,
     ): Keyframe[] => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_SNAKE_OPTS, ...opts };
@@ -168,7 +171,7 @@ export namespace ScanlineAnimationKeyframes {
     const DEFAULT_HORIZONTAL_HUE_OPTS: Required<HorizontalHueOpts> = {};
 
     export const getHorizontalHueKeyframes = (
-        breakpoints: [number, number, number],
+        breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
         opts?: HorizontalHueOpts,
     ): Keyframe[] => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_HUE_OPTS, ...opts };
@@ -187,7 +190,7 @@ export namespace ScanlineAnimationKeyframes {
     const DEFAULT_HORIZONTAL_GRAYSCALE_OPTS: Required<HorizontalGrayscaleOpts> = {};
 
     export const getHorizontalGrayscaleKeyframes = (
-        breakpoints: [number, number, number],
+        breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
         opts?: HorizontalGrayscaleOpts,
     ): Keyframe[] => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_GRAYSCALE_OPTS, ...opts };
@@ -210,7 +213,7 @@ export namespace ScanlineAnimationKeyframes {
     };
 
     export const getHorizontalSplitKeyframes = (
-        breakpoints: [number, number, number],
+        breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
         idx: number,
         opts?: HorizontalSplitOpts,
     ): Keyframe[] => {
