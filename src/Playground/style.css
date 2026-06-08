@@ -82,6 +82,14 @@ textarea {
     line-height: 1.25;
 }
 
+input[type="checkbox"],
+input[type="radio"] {
+    padding: 0;
+    margin: 0;
+    width: 20px;
+    height: 20px;
+}
+
 input[type="color"] {
     padding: 0;
     margin: 0;

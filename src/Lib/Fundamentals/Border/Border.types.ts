@@ -19,6 +19,7 @@ export type BorderProps = AccessorProps<{
     borderWidths: BorderWidthDefs;
     borderRadii: BorderRadiusDefs;
     isSolid?: boolean;
+    shouldPadChildren?: boolean;
     getFillDefs: (
         getSize: () => Size2d,
         getBorderWidths: () => BorderWidthDefs,

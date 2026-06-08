@@ -36,9 +36,11 @@ export const AsymmetricalExample = (props: Props) => {
                     getBorderRadii,
                     getAnimationDurationMs: props.getAnimationDurationMs,
                     getColors: props.getColors,
+                    getShouldApplyBlur: props.getShouldApplyBlur,
                 })
             }
             getIsSolid={props.getIsSolid}
+            getShouldPadChildren={props.getShouldPadChildren}
         >
             <div class={[styles.borderedContent, props.getConfig().class].join(" ")}>I have a border</div>
         </Border>

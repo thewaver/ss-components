@@ -47,14 +47,6 @@ export const Border = (props: ParentProps<BorderProps>) => {
                 rootRef = el;
             }}
             class={styles.borderRoot}
-            style={{
-                ...Object.fromEntries(
-                    Object.entries(props.getBorderRadii()).map(([key, value]) => [
-                        StringUtils.camelToKebabCase(key),
-                        `${value}px`,
-                    ]),
-                ),
-            }}
         >
             <svg
                 class={styles.borderSVG}
@@ -62,6 +54,7 @@ export const Border = (props: ParentProps<BorderProps>) => {
                 height={getRootSize().height}
                 viewBox={`0 0 ${getRootSize().width} ${getRootSize().height}`}
                 style={{ "z-index": props.getIsSolid?.() ? -1 : 1 }}
+                overflow="visible"
             >
                 <defs>
                     {getFillDefs().map((def) => (
@@ -90,7 +83,27 @@ export const Border = (props: ParentProps<BorderProps>) => {
                     )}
                 </For>
             </svg>
-            {props.children}
+            <div
+                class={styles.borderChildren}
+                style={{
+                    ...Object.fromEntries(
+                        Object.entries(props.getBorderRadii()).map(([key, value]) => [
+                            StringUtils.camelToKebabCase(key),
+                            `${value}px`,
+                        ]),
+                    ),
+                    ...(!props.getIsSolid?.() && props.getShouldPadChildren?.()
+                        ? {
+                              "padding-top": `${props.getBorderWidths().borderTopWidth}px`,
+                              "padding-right": `${props.getBorderWidths().borderRightWidth}px`,
+                              "padding-bottom": `${props.getBorderWidths().borderBottomWidth}px`,
+                              "padding-left": `${props.getBorderWidths().borderLeftWidth}px`,
+                          }
+                        : {}),
+                }}
+            >
+                {props.children}
+            </div>
         </div>
     );
 };

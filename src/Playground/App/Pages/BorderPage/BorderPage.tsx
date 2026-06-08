@@ -152,6 +152,8 @@ const WideWrapper = (props: BorderExampleProps) => {
 
 export const BorderPage = () => {
     const [getIsSolid, setIsSolid] = createSignal(false);
+    const [getShouldPadChildren, setShouldPadChildren] = createSignal(false);
+    const [getShouldApplyBlur, setShouldApplyBlur] = createSignal(true);
     const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
     const [getConfigKey, setConfigKey] = createSignal<keyof typeof BORDER_CONFIGS>("sweepDiagonal_1");
     const [colors, setColors] = createStore(STARTING_COLORS);
@@ -159,6 +161,8 @@ export const BorderPage = () => {
     const getExamples = createMemo(() => {
         const commonProps: BorderExampleProps = {
             getIsSolid,
+            getShouldPadChildren,
+            getShouldApplyBlur,
             getAnimationDurationMs,
             getColors: () => colors,
             getConfig: () => BORDER_CONFIGS[getConfigKey()],
@@ -190,6 +194,15 @@ export const BorderPage = () => {
                     <div class={pageStyles.propPanel}>
                         <div>{"Solid"}</div>
                         <input type="checkbox" checked={getIsSolid()} onChange={(e) => setIsSolid((prev) => !prev)} />
+                    </div>
+
+                    <div class={pageStyles.propPanel}>
+                        <div>{"Pad children"}</div>
+                        <input
+                            type="checkbox"
+                            checked={getShouldPadChildren()}
+                            onChange={(e) => setShouldPadChildren((prev) => !prev)}
+                        />
                     </div>
 
                     <div class={pageStyles.propPanel}>
@@ -233,6 +246,15 @@ export const BorderPage = () => {
                                 )}
                             </For>
                         </div>
+                    </div>
+
+                    <div class={pageStyles.propPanel}>
+                        <div>{"Shine on your crazy diamond™"}</div>
+                        <input
+                            type="checkbox"
+                            checked={getShouldApplyBlur()}
+                            onChange={(e) => setShouldApplyBlur((prev) => !prev)}
+                        />
                     </div>
                 </div>
             </div>

@@ -27,9 +27,11 @@ export const WideExample = (props: Props) => {
                     getBorderRadii,
                     getAnimationDurationMs: props.getAnimationDurationMs,
                     getColors: props.getColors,
+                    getShouldApplyBlur: props.getShouldApplyBlur,
                 })
             }
             getIsSolid={props.getIsSolid}
+            getShouldPadChildren={props.getShouldPadChildren}
         >
             <div class={[styles.borderedContentWide, props.getConfig().class].join(" ")}>I have a border</div>
         </Border>

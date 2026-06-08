@@ -5,6 +5,8 @@ export type BorderConfigColors = { [K in "primary" | "secondary" | "tertiary" | 
 
 export type BorderExampleProps = AccessorProps<{
     isSolid?: boolean;
+    shouldPadChildren?: boolean;
+    shouldApplyBlur?: boolean;
     animationDurationMs: number;
     colors: BorderConfigColors;
     config: BorderConfigDefs;
