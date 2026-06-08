@@ -1,6 +1,6 @@
 import type { AccessorProps } from "../../Utils/typeUtils";
 
-export type TypewriterUpdateCause = "controller" | "content" | "layout";
+export type TypewriterUpdateCause = "content" | "layout" | "other";
 
 export type TypewriterController = {
     restartAnimation: () => boolean;

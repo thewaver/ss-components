@@ -1,4 +1,43 @@
-import { style } from "@vanilla-extract/css";
+import { keyframes, style } from "@vanilla-extract/css";
+
+export const typewriterFade = keyframes({
+    "0%": {
+        opacity: 0,
+    },
+    "100%": {
+        opacity: 1,
+    },
+});
+
+export const typewriterScale = keyframes({
+    "0%": {
+        opacity: 0,
+        transform: "scale(3)",
+    },
+    "50%": {
+        opacity: 1,
+        transform: "scale(3)",
+    },
+    "100%": {
+        opacity: 1,
+        transform: "scale(1)",
+    },
+});
+
+export const typewriterGlow = keyframes({
+    "0%": {
+        opacity: 0,
+        filter: "saturate(0) brightness(10)",
+    },
+    "50%": {
+        opacity: 1,
+        filter: "saturate(0) brightness(10)",
+    },
+    "100%": {
+        opacity: 1,
+        filter: "saturate(1) brightness(1)",
+    },
+});
 
 export const root = style({
     display: "flex",

@@ -1,11 +1,14 @@
 import { Typewriter } from "../../../../../Lib/Fundamentals/Typewriter/Typewriter";
 import knight from "../../../knight.png";
+import type { TypewriterExampleProps } from "../TypewriterPage.types";
 
 import * as styles from "../TypewriterPage.css";
 
-export const ComplexExample = () => {
+type Props = TypewriterExampleProps;
+
+export const ComplexExample = (props: Props) => {
     return (
-        <Typewriter>
+        <Typewriter getAnimationName={props.getAnimationName}>
             This is a bit of{" "}
             <b>
                 text that appears

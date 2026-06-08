@@ -1,5 +1,6 @@
-import { createMemo, createSignal } from "solid-js";
+import { For, createMemo, createSignal } from "solid-js";
 
+import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { ComplexExample } from "./Examples/Complex";
@@ -11,19 +12,31 @@ import type { TypewriterExampleProps } from "./TypewriterPage.types";
 import * as pageStyles from "../Pages.css";
 import * as styles from "./TypewriterPage.css";
 
+const TEXT_EFFECTS = ["fade", "scale", "glow"] as const;
+const TEXT_EFFECT_MAP: Record<(typeof TEXT_EFFECTS)[number], string> = {
+    fade: styles.typewriterFade,
+    scale: styles.typewriterScale,
+    glow: styles.typewriterGlow,
+};
+
 const STARTING_WIDTH = 240;
 const COMPLEX_SOURCE = highlighter.codeToHtml(ComplexExampleRaw, getDefaultHighlighterConfig());
 const CUSTOM_SOURCE = highlighter.codeToHtml(CustomExampleRaw, getDefaultHighlighterConfig());
 
-const ComplexExampleWrapper = (props: TypewriterExampleProps) => {
+type ExampleWrapperProps = TypewriterExampleProps &
+    AccessorProps<{
+        width: number;
+    }>;
+
+const ComplexExampleWrapper = ({ getWidth, ...props }: ExampleWrapperProps) => {
     return (
-        <div class={pageStyles.measureBox} style={{ width: `${props.getWidth()}px` }}>
-            <ComplexExample />
+        <div class={pageStyles.measureBox} style={{ width: `${getWidth()}px` }}>
+            <ComplexExample {...props} />
         </div>
     );
 };
 
-const CustomExampleWrapper = (props: TypewriterExampleProps) => {
+const CustomExampleWrapper = ({ getWidth, ...props }: ExampleWrapperProps) => {
     const [getText, setText] = createSignal("Line one\n\nline two");
 
     return (
@@ -35,8 +48,8 @@ const CustomExampleWrapper = (props: TypewriterExampleProps) => {
                 onInput={(e) => setText(e.target.value)}
             />
 
-            <div class={pageStyles.measureBox} style={{ width: `${props.getWidth()}px` }}>
-                <CustomExample getText={getText} />
+            <div class={pageStyles.measureBox} style={{ width: `${getWidth()}px` }}>
+                <CustomExample {...props} getText={getText} />
             </div>
         </>
     );
@@ -44,10 +57,12 @@ const CustomExampleWrapper = (props: TypewriterExampleProps) => {
 
 export const TypewriterPage = () => {
     const [getTextContainerWidth, setTextContainerWidth] = createSignal(STARTING_WIDTH);
+    const [getTextEffect, setTextEffect] = createSignal<(typeof TEXT_EFFECTS)[number]>(TEXT_EFFECTS[0]);
 
     const getExamples = createMemo(() => {
-        const commonProps: TypewriterExampleProps = {
+        const commonProps: ExampleWrapperProps = {
             getWidth: getTextContainerWidth,
+            getAnimationName: () => TEXT_EFFECT_MAP[getTextEffect()],
         };
 
         return [
@@ -82,6 +97,16 @@ export const TypewriterPage = () => {
                                 )
                             }
                         />
+                    </div>
+
+                    <div class={pageStyles.propPanel}>
+                        <div>{"Effect"}</div>
+                        <select
+                            value={getTextEffect()}
+                            onChange={(e) => setTextEffect(e.target.value as (typeof TEXT_EFFECTS)[number])}
+                        >
+                            <For each={TEXT_EFFECTS}>{(effect) => <option value={effect}>{effect}</option>}</For>
+                        </select>
                     </div>
                 </div>
             </div>

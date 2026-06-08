@@ -5,10 +5,12 @@ import { FunctionUtils } from "@thewaver/ss-utils";
 import { Typewriter } from "../../../../../Lib/Fundamentals/Typewriter/Typewriter";
 import type { TypewriterController } from "../../../../../Lib/Fundamentals/Typewriter/Typewriter.types";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
+import type { TypewriterExampleProps } from "../TypewriterPage.types";
 
-type Props = AccessorProps<{
-    text: string;
-}>;
+type Props = TypewriterExampleProps &
+    AccessorProps<{
+        text: string;
+    }>;
 
 export const CustomExample = (props: Props) => {
     const [getController, setController] = createSignal<TypewriterController>();
@@ -21,5 +23,9 @@ export const CustomExample = (props: Props) => {
 
     createEffect(on(props.getText, updateContent));
 
-    return <Typewriter getController={setController}>{getText()}</Typewriter>;
+    return (
+        <Typewriter getAnimationName={props.getAnimationName} getController={setController}>
+            {getText()}
+        </Typewriter>
+    );
 };

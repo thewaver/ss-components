@@ -228,7 +228,7 @@ export const BorderPage = () => {
                             onChange={(e) => setConfigKey(e.target.value as keyof typeof BORDER_CONFIGS)}
                         >
                             <For each={Object.keys(BORDER_CONFIGS)}>
-                                {(order) => <option value={order}>{order}</option>}
+                                {(config) => <option value={config}>{config}</option>}
                             </For>
                         </select>
                     </div>

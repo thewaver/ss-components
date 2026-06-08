@@ -1,4 +1,4 @@
-import { For, Show, createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import { For, Show, createEffect, createMemo, createSignal, on, onCleanup, onMount } from "solid-js";
 import type { ParentProps } from "solid-js";
 
 import { EMPTY_ARRAY } from "@thewaver/ss-utils";
@@ -43,7 +43,9 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
         clearTimeout(animationToggleTimeout);
     };
 
-    const restartAnimation = (cause: TypewriterUpdateCause) => {
+    const restartAnimation = (cause: TypewriterUpdateCause = "other") => {
+        clearAnimation();
+
         const timeoutDuration =
             getAnimatedElementCount() * getAnimationDelayMs() +
             (props.getInitialAnimationDelayMs?.() ?? 0) +
@@ -88,8 +90,6 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
             return result;
         });
 
-        console.log(segments);
-
         setIndexedSegments(indexedSegments);
         setAnimatedElementCount(itemCount);
         restartAnimation(cause);
@@ -98,7 +98,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
     const controller = createMemo(() => ({
         restartAnimation: () => {
             if (!getIsAnimating()) {
-                restartAnimation("controller");
+                restartAnimation();
 
                 return true;
             }
@@ -107,6 +107,8 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
         },
         update,
     }));
+
+    createEffect(on(getAnimationName, restartAnimation as any)); // avoid function re-wrapping just to satisfy param types
 
     onMount(() => {
         props.getController?.(controller());
