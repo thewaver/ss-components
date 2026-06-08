@@ -16,6 +16,11 @@ export const container = style({
     gap: 20,
 });
 
+export const textArea = style({
+    minWidth: 320,
+    minHeight: 160,
+});
+
 export const textHighlight = style({
     textTransform: "uppercase",
     lineHeight: 2,

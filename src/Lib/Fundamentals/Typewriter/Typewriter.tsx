@@ -5,7 +5,7 @@ import { EMPTY_ARRAY } from "@thewaver/ss-utils";
 
 import type { ElementSegment } from "../../Abstracts/JSX/Text/Parser/JSXTextParser.utils";
 import { JSXTextParser } from "../../Abstracts/JSX/Text/Parser/JSXTextParser.utils";
-import type { TypewriterProps } from "./Typewriter.types";
+import type { TypewriterProps, TypewriterUpdateCause } from "./Typewriter.types";
 
 import * as styles from "./Typewriter.css";
 
@@ -38,36 +38,35 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
         () => props.getAnimationDelayMs?.() ?? DEFAULT_TYPEWRITER_ANIMATION_DELAY_MS,
     );
 
-    const getAnimationStyle = (startIndex: number) => ({
-        "animation-name": getAnimationName(),
-        "animation-duration": `${getAnimationDurationMs()}ms`,
-        "animation-delay": `${startIndex * getAnimationDelayMs() + (props.getInitialAnimationDelayMs?.() ?? 0)}ms`,
-    });
-
     const clearAnimation = () => {
         setIsAnimating(false);
         clearTimeout(animationToggleTimeout);
     };
 
-    const restartAnimation = () => {
+    const restartAnimation = (cause: TypewriterUpdateCause) => {
         const timeoutDuration =
             getAnimatedElementCount() * getAnimationDelayMs() +
             (props.getInitialAnimationDelayMs?.() ?? 0) +
             getAnimationDurationMs();
 
-        if (!getHasAnimatedOnce() || props.getResetAnimationOnResize?.()) {
-            setIsAnimating(true);
-            setHasAnimatedOnce(true);
+        if (
+            getHasAnimatedOnce() &&
+            ((cause === "content" && props.getResetAnimationOnContent?.() === false) ||
+                (cause === "layout" && props.getResetAnimationOnLayout?.() === false))
+        )
+            return;
 
-            animationToggleTimeout = setTimeout(() => {
-                setIsAnimating(false);
+        setIsAnimating(true);
+        setHasAnimatedOnce(true);
 
-                props.onAnimationEnd?.();
-            }, timeoutDuration);
-        }
+        animationToggleTimeout = setTimeout(() => {
+            setIsAnimating(false);
+
+            props.onAnimationEnd?.();
+        }, timeoutDuration);
     };
 
-    const updateLayout = () => {
+    const update = (cause: TypewriterUpdateCause) => {
         const containerRef = getContainerRef();
 
         if (!containerRef) return;
@@ -89,21 +88,24 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
             return result;
         });
 
+        console.log(segments);
+
         setIndexedSegments(indexedSegments);
         setAnimatedElementCount(itemCount);
-        restartAnimation();
+        restartAnimation(cause);
     };
 
     const controller = createMemo(() => ({
         restartAnimation: () => {
             if (!getIsAnimating()) {
-                restartAnimation();
+                restartAnimation("controller");
 
                 return true;
             }
 
             return false;
         },
+        update,
     }));
 
     onMount(() => {
@@ -119,7 +121,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
 
         if (!containerRef) return;
 
-        childrenContainerObserver = new ResizeObserver(updateLayout);
+        childrenContainerObserver = new ResizeObserver(() => update("layout"));
         childrenContainerObserver.observe(containerRef);
     });
 
@@ -133,6 +135,15 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
                 <div class={styles.typewriterTextWrap} style={{ width: `${getContainerRef()?.clientWidth ?? 0}px` }}>
                     <For each={getIndexedSegments()}>
                         {(segment) => {
+                            const getAnimationStyle = (startIndex: number) =>
+                                getIsAnimating()
+                                    ? {
+                                          "animation-name": getAnimationName(),
+                                          "animation-duration": `${getAnimationDurationMs()}ms`,
+                                          "animation-delay": `${startIndex * getAnimationDelayMs() + (props.getInitialAnimationDelayMs?.() ?? 0)}ms`,
+                                      }
+                                    : undefined;
+
                             switch (segment.type) {
                                 case "atomic": {
                                     return (
@@ -142,18 +153,14 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
                                                     ? styles.typewriterBlockLikeAtomic
                                                     : styles.typewriterChar
                                             }
-                                            style={getIsAnimating() ? getAnimationStyle(segment.startIndex) : undefined}
+                                            style={getAnimationStyle(segment.startIndex)}
                                         >
                                             {segment.element}
                                         </span>
                                     );
                                 }
                                 case "linebreak":
-                                    return (
-                                        <br
-                                            style={getIsAnimating() ? getAnimationStyle(segment.startIndex) : undefined}
-                                        />
-                                    );
+                                    return <br style={getAnimationStyle(segment.startIndex)} />;
                                 case "text": {
                                     const style = { ...segment.nonMetrics, ...segment.metrics };
 
