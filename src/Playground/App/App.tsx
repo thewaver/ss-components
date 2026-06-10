@@ -6,13 +6,13 @@ import { StringUtils } from "@thewaver/ss-utils";
 
 import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
-import { BorderPage } from "./Pages/BorderPage/BorderPage";
 import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
 import { ElementHighlightPage } from "./Pages/ElementHighlightPage/ElementHighlightPage";
 import { ModalPage } from "./Pages/ModalPage/ModalPage";
 import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
 import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
 import { ShapeButtonPage } from "./Pages/ShapeButtonPage/ShapeButtonPage";
+import { SurfacePage } from "./Pages/SurfacePage/SurfacePage";
 import { TypewriterPage } from "./Pages/TypewriterPage/TypewriterPage";
 
 import * as styles from "./App.css";
@@ -42,10 +42,6 @@ const TAB_CONFIGS: TabConfig[] = [
         component: () => null,
     },
     */
-    {
-        name: "Border",
-        component: () => <BorderPage />,
-    },
     {
         name: "Button",
         component: () => <ButtonPage />,
@@ -81,6 +77,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "ShapeButton",
         component: () => <ShapeButtonPage />,
+    },
+    {
+        name: "Surface",
+        component: () => <SurfacePage />,
     },
     {
         name: "TypeWriter",

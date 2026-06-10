@@ -23,7 +23,7 @@ export const CustomExample = (props: Props) => {
 
         setText(props.getText());
         getController()?.update("content");
-    }
+    };
 
     const updateContentDebounced = FunctionUtils.debounce(updateContent, 500);
 

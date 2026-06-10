@@ -5,19 +5,19 @@ import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
-import { BORDER_CONFIGS } from "./BorderPage.config";
-import type { BorderConfigColors, BorderExampleProps } from "./BorderPage.types";
 import { AsymmetricalExample } from "./Examples/Asymmetrical";
 import AsymmetricalExampleRaw from "./Examples/Asymmetrical.tsx?raw";
 import { SymmetricalExample } from "./Examples/Symmetrical";
 import SymmetricalExampleRaw from "./Examples/Symmetrical.tsx?raw";
 import { WideExample } from "./Examples/Wide";
 import WideExampleRaw from "./Examples/Wide.tsx?raw";
+import { SURFACE_CONFIGS } from "./SurfacePage.config";
+import type { SurfaceConfigColors, SurfaceExampleProps } from "./SurfacePage.types";
 
 import * as pageStyles from "../Pages.css";
-import * as styles from "./BorderPage.css";
+import * as styles from "./SurfacePage.css";
 
-const STARTING_COLORS: BorderConfigColors = {
+const STARTING_COLORS: SurfaceConfigColors = {
     background: "#282018",
     primary: "#FFFF00",
     secondary: "#00FFFF",
@@ -27,7 +27,7 @@ const ASYMMETRICAL_SOURCE = highlighter.codeToHtml(AsymmetricalExampleRaw, getDe
 const SYMMETRICAL_SOURCE = highlighter.codeToHtml(SymmetricalExampleRaw, getDefaultHighlighterConfig());
 const WIDE_SOURCE = highlighter.codeToHtml(WideExampleRaw, getDefaultHighlighterConfig());
 
-const AsymmetricalWrapper = (props: BorderExampleProps) => {
+const AsymmetricalWrapper = (props: SurfaceExampleProps) => {
     const [getBorderWidth, setBorderWidth] = createSignal(4);
     const [getBorderRadius, setBorderRadius] = createSignal(20);
 
@@ -68,7 +68,7 @@ const AsymmetricalWrapper = (props: BorderExampleProps) => {
     );
 };
 
-const SymmetricalWrapper = (props: BorderExampleProps) => {
+const SymmetricalWrapper = (props: SurfaceExampleProps) => {
     const [getBorderWidth, setBorderWidth] = createSignal(4);
     const [getBorderRadius, setBorderRadius] = createSignal(20);
 
@@ -109,7 +109,7 @@ const SymmetricalWrapper = (props: BorderExampleProps) => {
     );
 };
 
-const WideWrapper = (props: BorderExampleProps) => {
+const WideWrapper = (props: SurfaceExampleProps) => {
     const [getBorderWidth, setBorderWidth] = createSignal(4);
     const [getBorderRadius, setBorderRadius] = createSignal(20);
 
@@ -150,22 +150,22 @@ const WideWrapper = (props: BorderExampleProps) => {
     );
 };
 
-export const BorderPage = () => {
-    const [getIsSolid, setIsSolid] = createSignal(false);
+export const SurfacePage = () => {
     const [getShouldPadChildren, setShouldPadChildren] = createSignal(false);
     const [getShouldApplyBlur, setShouldApplyBlur] = createSignal(true);
     const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
-    const [getConfigKey, setConfigKey] = createSignal<keyof typeof BORDER_CONFIGS>("sweepDiagonal_1");
+    const [getStrokeConfigKey, setStrokeConfigKey] = createSignal<keyof typeof SURFACE_CONFIGS>("sweepDiagonal_1");
+    const [getFillConfigKey, setFillConfigKey] = createSignal<keyof typeof SURFACE_CONFIGS>("plain");
     const [colors, setColors] = createStore(STARTING_COLORS);
 
     const getExamples = createMemo(() => {
-        const commonProps: BorderExampleProps = {
-            getIsSolid,
+        const commonProps: SurfaceExampleProps = {
             getShouldPadChildren,
             getShouldApplyBlur,
             getAnimationDurationMs,
             getColors: () => colors,
-            getConfig: () => BORDER_CONFIGS[getConfigKey()],
+            getStrokeConfig: () => SURFACE_CONFIGS[getStrokeConfigKey()],
+            getFillConfig: () => SURFACE_CONFIGS[getFillConfigKey()],
         };
 
         return [
@@ -192,11 +192,6 @@ export const BorderPage = () => {
             <div class={[styles.container, pageStyles.exampleContainer].join(" ")}>
                 <div class={pageStyles.props}>
                     <div class={pageStyles.propPanel}>
-                        <div>{"Solid"}</div>
-                        <input type="checkbox" checked={getIsSolid()} onChange={(e) => setIsSolid((prev) => !prev)} />
-                    </div>
-
-                    <div class={pageStyles.propPanel}>
                         <div>{"Pad children"}</div>
                         <input
                             type="checkbox"
@@ -222,12 +217,24 @@ export const BorderPage = () => {
                     </div>
 
                     <div class={pageStyles.propPanel}>
-                        <div>{"Direction"}</div>
+                        <div>{"Stroke Pattern"}</div>
                         <select
-                            value={getConfigKey()}
-                            onChange={(e) => setConfigKey(e.target.value as keyof typeof BORDER_CONFIGS)}
+                            value={getStrokeConfigKey()}
+                            onChange={(e) => setStrokeConfigKey(e.target.value as keyof typeof SURFACE_CONFIGS)}
                         >
-                            <For each={Object.keys(BORDER_CONFIGS)}>
+                            <For each={Object.keys(SURFACE_CONFIGS)}>
+                                {(config) => <option value={config}>{config}</option>}
+                            </For>
+                        </select>
+                    </div>
+
+                    <div class={pageStyles.propPanel}>
+                        <div>{"Fill Pattern"}</div>
+                        <select
+                            value={getFillConfigKey()}
+                            onChange={(e) => setFillConfigKey(e.target.value as keyof typeof SURFACE_CONFIGS)}
+                        >
+                            <For each={Object.keys(SURFACE_CONFIGS)}>
                                 {(config) => <option value={config}>{config}</option>}
                             </For>
                         </select>

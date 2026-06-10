@@ -3,26 +3,23 @@ import { MathUtils, ObjectUtils, type Size2d } from "@thewaver/ss-utils";
 import { SVGFilterDefsFactory } from "../../../../Lib/Abstracts/SVG/Defs/Filter/SVGFilterDefs.factory";
 import { SVGGradientDefsUtils } from "../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
 import type { SVGDefs } from "../../../../Lib/Abstracts/SVG/Defs/SVGDefs.types";
-import type { BorderRadiusDefs, BorderWidthDefs } from "../../../../Lib/Fundamentals/Border/Border.types";
-import { BorderAnimationUtils } from "../../../../Lib/Fundamentals/Border/Border.utils";
-import type { BorderConfigColors } from "./BorderPage.types";
+import type { SurfaceRadiusDefs, SurfaceWidthDefs } from "../../../../Lib/Fundamentals/Surface/Surface.types";
+import { SurfaceAnimationUtils } from "../../../../Lib/Fundamentals/Surface/Surface.utils";
+import type { SurfaceConfigColors } from "./SurfacePage.types";
 
-import * as styles from "./BorderPage.css";
-
-export type BorderFillConfigDefs = BorderAnimationUtils.BorderAnimationDefs & {
+export type SurfaceColorConfigDefs = SurfaceAnimationUtils.SurfaceAnimationDefs & {
     getSize: () => Size2d;
-    getBorderWidths: () => BorderWidthDefs;
-    getBorderRadii: () => BorderRadiusDefs;
-    getColors: () => BorderConfigColors;
+    getBorderWidths?: () => SurfaceWidthDefs;
+    getBorderRadii: () => SurfaceRadiusDefs;
+    getColors: () => SurfaceConfigColors;
     getShouldApplyBlur?: () => boolean;
 };
 
-export type BorderConfigDefs = {
-    class: string;
-    getFillDefs: (id: string, defs: BorderFillConfigDefs) => SVGDefs[];
+export type SurfaceConfigDefs = {
+    getColorDefs: (id: string, defs: SurfaceColorConfigDefs) => SVGDefs[];
 };
 
-const getBaseBorderColor = (defs: BorderFillConfigDefs) => `hsl(from ${defs.getColors().background} h s calc(l * 2))`;
+const getBaseBorderColor = (defs: SurfaceColorConfigDefs) => `hsl(from ${defs.getColors().background} h s calc(l * 2))`;
 
 const getBaseBlur = () => ({
     id: "border-blur-filter",
@@ -31,10 +28,10 @@ const getBaseBlur = () => ({
         .getFilterPrimitives(),
 });
 
-export const BORDER_CONFIGS = {
+export const SURFACE_CONFIGS = {
     plain: {
-        class: styles.borderedContainer,
-        getFillDefs: (_, defs) => [
+         
+        getColorDefs: (_, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -44,8 +41,8 @@ export const BORDER_CONFIGS = {
     // CORNY
 
     cornyDesync_4x: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -61,7 +58,7 @@ export const BORDER_CONFIGS = {
                             ],
                             origin: { x: 0, y: 0 },
                         },
-                        BorderAnimationUtils.Radial.grow([0, 1, 1, 1, 1, 0, 0, 0, 0], defs),
+                        SurfaceAnimationUtils.Radial.grow([0, 1, 1, 1, 1, 0, 0, 0, 0], defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -78,7 +75,7 @@ export const BORDER_CONFIGS = {
                             ],
                             origin: { x: 1, y: 1 },
                         },
-                        BorderAnimationUtils.Radial.grow([0, 0, 1, 1, 1, 1, 0, 0, 0], defs),
+                        SurfaceAnimationUtils.Radial.grow([0, 0, 1, 1, 1, 1, 0, 0, 0], defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -95,7 +92,7 @@ export const BORDER_CONFIGS = {
                             ],
                             origin: { x: 1, y: 0 },
                         },
-                        BorderAnimationUtils.Radial.grow([0, 0, 0, 1, 1, 1, 1, 0, 0], defs),
+                        SurfaceAnimationUtils.Radial.grow([0, 0, 0, 1, 1, 1, 1, 0, 0], defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -112,7 +109,7 @@ export const BORDER_CONFIGS = {
                             ],
                             origin: { x: 0, y: 1 },
                         },
-                        BorderAnimationUtils.Radial.grow([0, 0, 0, 0, 1, 1, 1, 1, 0], defs),
+                        SurfaceAnimationUtils.Radial.grow([0, 0, 0, 0, 1, 1, 1, 1, 0], defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -123,8 +120,8 @@ export const BORDER_CONFIGS = {
     // FLOW
 
     flow_1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 gradient: {
                     id: `gradient1-${id}`,
@@ -142,7 +139,8 @@ export const BORDER_CONFIGS = {
                             ],
                             scale: { width: 2, height: 1 },
                         },
-                        (x1, y1, x2, y2) => BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0.5, -0.5], defs),
+                        (x1, y1, x2, y2) =>
+                            SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0.5, -0.5], defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -151,8 +149,8 @@ export const BORDER_CONFIGS = {
     },
 
     flowDiagonal_1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 gradient: {
                     id: `gradient1-${id}`,
@@ -172,7 +170,7 @@ export const BORDER_CONFIGS = {
                             scale: { width: 3, height: 3 },
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -193,8 +191,8 @@ export const BORDER_CONFIGS = {
     // MERGE
 
     merge_1v1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -209,7 +207,8 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        (x1, y1, x2, y2) => BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
+                        (x1, y1, x2, y2) =>
+                            SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -227,7 +226,7 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 180,
                         },
-                        (x1, y1, x2, y2) => BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [1, -1, 1], defs),
+                        (x1, y1, x2, y2) => SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [1, -1, 1], defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -237,8 +236,8 @@ export const BORDER_CONFIGS = {
     },
 
     mergeDiagonal_1v1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -255,7 +254,7 @@ export const BORDER_CONFIGS = {
                             angle: 45,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -285,7 +284,7 @@ export const BORDER_CONFIGS = {
                             angle: 225,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -306,8 +305,8 @@ export const BORDER_CONFIGS = {
     },
 
     mergeDiagonalDesync_4x: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -324,7 +323,7 @@ export const BORDER_CONFIGS = {
                             angle: 45,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -358,7 +357,7 @@ export const BORDER_CONFIGS = {
                             angle: 225,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -392,7 +391,7 @@ export const BORDER_CONFIGS = {
                             angle: 135,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -426,7 +425,7 @@ export const BORDER_CONFIGS = {
                             angle: 315,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -453,8 +452,8 @@ export const BORDER_CONFIGS = {
     // ORBIT
 
     orbit_1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -470,7 +469,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -479,8 +478,8 @@ export const BORDER_CONFIGS = {
     },
 
     orbit_1v1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -496,7 +495,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -513,7 +512,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -522,8 +521,8 @@ export const BORDER_CONFIGS = {
     },
 
     orbitDesync_2v1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -535,7 +534,7 @@ export const BORDER_CONFIGS = {
                             id: `gradient1-${id}`,
                             colors: [{ value: defs.getColors().tertiary }, { value: defs.getColors().secondary }],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -551,7 +550,7 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -560,8 +559,8 @@ export const BORDER_CONFIGS = {
     },
 
     orbitDesync_3x: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -577,7 +576,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), {
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), {
                             ...defs,
                             getAnimationDurationMs: () => defs.getAnimationDurationMs() * 0.5,
                         }),
@@ -598,7 +597,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -616,7 +615,7 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().tertiary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), {
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), {
                             ...defs,
                             getAnimationDurationMs: () => defs.getAnimationDurationMs() * 2,
                         }),
@@ -631,8 +630,8 @@ export const BORDER_CONFIGS = {
     // SCAN
 
     scan_1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -648,7 +647,8 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        (x1, y1, x2, y2) => BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
+                        (x1, y1, x2, y2) =>
+                            SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -657,8 +657,8 @@ export const BORDER_CONFIGS = {
     },
 
     scan_1v1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -674,7 +674,8 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
                             ],
                         },
-                        (x1, y1, x2, y2) => BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
+                        (x1, y1, x2, y2) =>
+                            SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -692,7 +693,8 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 90,
                         },
-                        (x1, y1, x2, y2) => BorderAnimationUtils.Linear.sweepOrthogonal("y", y1, y2, [-1, 1, -1], defs),
+                        (x1, y1, x2, y2) =>
+                            SurfaceAnimationUtils.Linear.sweepOrthogonal("y", y1, y2, [-1, 1, -1], defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -701,8 +703,8 @@ export const BORDER_CONFIGS = {
     },
 
     scanDiagonal_1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -720,7 +722,7 @@ export const BORDER_CONFIGS = {
                             angle: 45,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -740,8 +742,8 @@ export const BORDER_CONFIGS = {
     },
 
     scanDiagonal_1v1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -759,7 +761,7 @@ export const BORDER_CONFIGS = {
                             angle: 45,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -789,7 +791,7 @@ export const BORDER_CONFIGS = {
                             angle: 135,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -811,8 +813,8 @@ export const BORDER_CONFIGS = {
     // SNAKE
 
     snake_1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -827,14 +829,14 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
                                 defs,
                             )}
@@ -847,8 +849,8 @@ export const BORDER_CONFIGS = {
     },
 
     snake_1v1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -863,14 +865,14 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
                                 defs,
                             )}
@@ -890,14 +892,14 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip2-${id}`,
                     defsElement: (
                         <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(360, 0, 12), 180),
                                 defs,
                             )}
@@ -910,8 +912,8 @@ export const BORDER_CONFIGS = {
     },
 
     snake_2: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -926,14 +928,14 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
                                 defs,
                             )}
@@ -953,14 +955,14 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().secondary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(180, 540, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(180, 540, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip2-${id}`,
                     defsElement: (
                         <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(180, 540, 12), 180),
                                 defs,
                             )}
@@ -973,8 +975,8 @@ export const BORDER_CONFIGS = {
     },
 
     snake_4: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -990,14 +992,14 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 75 },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
                                 defs,
                             )}
@@ -1018,14 +1020,14 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 75 },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip2-${id}`,
                     defsElement: (
                         <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
                                 defs,
                             )}
@@ -1046,14 +1048,14 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 75 },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(180, 540, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(180, 540, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip3-${id}`,
                     defsElement: (
                         <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(180, 540, 12), 180),
                                 defs,
                             )}
@@ -1074,14 +1076,14 @@ export const BORDER_CONFIGS = {
                                 { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 75 },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(270, 630, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(270, 630, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip4-${id}`,
                     defsElement: (
                         <clipPath id={`clip4-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(270, 630, 12), 180),
                                 defs,
                             )}
@@ -1094,8 +1096,8 @@ export const BORDER_CONFIGS = {
     },
 
     snakeDesync_3x: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1110,14 +1112,14 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
                                 defs,
                             )}
@@ -1137,14 +1139,14 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().secondary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(180, 540, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(180, 540, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip2-${id}`,
                     defsElement: (
                         <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(180, 540, 12), 180),
                                 defs,
                             )}
@@ -1164,7 +1166,7 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().tertiary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), {
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), {
                             ...defs,
                             getAnimationDurationMs: () => defs.getAnimationDurationMs() * 0.5,
                         }),
@@ -1174,7 +1176,7 @@ export const BORDER_CONFIGS = {
                     id: `clip3-${id}`,
                     defsElement: (
                         <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
                                 {
                                     ...defs,
@@ -1190,8 +1192,8 @@ export const BORDER_CONFIGS = {
     },
 
     snakeWait_1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1206,7 +1208,7 @@ export const BORDER_CONFIGS = {
                                 { value: defs.getColors().primary },
                             ],
                         },
-                        BorderAnimationUtils.Linear.rotate(
+                        SurfaceAnimationUtils.Linear.rotate(
                             [
                                 ...MathUtils.getIntermediateValues(90, 270, 12),
                                 ...MathUtils.getIntermediateValues(270, 270, 12),
@@ -1221,7 +1223,7 @@ export const BORDER_CONFIGS = {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(
                                     [
                                         ...MathUtils.getIntermediateValues(90, 270, 12),
@@ -1242,8 +1244,8 @@ export const BORDER_CONFIGS = {
     },
 
     snakeWait_3x1s: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1259,7 +1261,7 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 90,
                         },
-                        BorderAnimationUtils.Linear.rotate(
+                        SurfaceAnimationUtils.Linear.rotate(
                             [
                                 ...MathUtils.getIntermediateValues(90, 450, 12),
                                 ...MathUtils.getIntermediateValues(450, 450, 12),
@@ -1273,7 +1275,7 @@ export const BORDER_CONFIGS = {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(
                                     [
                                         ...MathUtils.getIntermediateValues(90, 450, 12),
@@ -1301,7 +1303,7 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 90,
                         },
-                        BorderAnimationUtils.Linear.rotate(
+                        SurfaceAnimationUtils.Linear.rotate(
                             [
                                 ...MathUtils.getIntermediateValues(90, 450, 12),
                                 ...MathUtils.getIntermediateValues(450, 450, 12),
@@ -1314,7 +1316,7 @@ export const BORDER_CONFIGS = {
                     id: `clip2-${id}`,
                     defsElement: (
                         <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(
                                     [
                                         ...MathUtils.getIntermediateValues(90, 450, 12),
@@ -1341,14 +1343,14 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 90,
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip3-${id}`,
                     defsElement: (
                         <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
                                 defs,
                             )}
@@ -1361,8 +1363,8 @@ export const BORDER_CONFIGS = {
     },
 
     snakeWait_3x2s: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1378,7 +1380,7 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 90,
                         },
-                        BorderAnimationUtils.Linear.rotate(
+                        SurfaceAnimationUtils.Linear.rotate(
                             [
                                 ...MathUtils.getIntermediateValues(90, 270, 12),
                                 ...MathUtils.getIntermediateValues(270, 270, 12),
@@ -1395,7 +1397,7 @@ export const BORDER_CONFIGS = {
                     id: `clip1-${id}`,
                     defsElement: (
                         <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(
                                     [
                                         ...MathUtils.getIntermediateValues(90, 270, 12),
@@ -1426,7 +1428,7 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 90,
                         },
-                        BorderAnimationUtils.Linear.rotate(
+                        SurfaceAnimationUtils.Linear.rotate(
                             [
                                 ...MathUtils.getIntermediateValues(90, 270, 12),
                                 ...MathUtils.getIntermediateValues(270, 270, 12),
@@ -1441,7 +1443,7 @@ export const BORDER_CONFIGS = {
                     id: `clip2-${id}`,
                     defsElement: (
                         <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(
                                     [
                                         ...MathUtils.getIntermediateValues(90, 270, 12),
@@ -1470,14 +1472,14 @@ export const BORDER_CONFIGS = {
                             ],
                             angle: 90,
                         },
-                        BorderAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
+                        SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
                     ),
                 },
                 clipPath: {
                     id: `clip3-${id}`,
                     defsElement: (
                         <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
-                            {BorderAnimationUtils.Path.getRotatingArc(
+                            {SurfaceAnimationUtils.Path.getRotatingArc(
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
                                 defs,
                             )}
@@ -1492,8 +1494,8 @@ export const BORDER_CONFIGS = {
     // SWEEP
 
     sweep_1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1510,7 +1512,7 @@ export const BORDER_CONFIGS = {
                             ],
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1.25, 1.25], defs),
+                            SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1.25, 1.25], defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -1519,8 +1521,8 @@ export const BORDER_CONFIGS = {
     },
 
     sweep_1v1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1537,7 +1539,7 @@ export const BORDER_CONFIGS = {
                             ],
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1.25, 1.25], defs),
+                            SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1.25, 1.25], defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -1556,7 +1558,7 @@ export const BORDER_CONFIGS = {
                             angle: 180,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [1.25, -1.25], defs),
+                            SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [1.25, -1.25], defs),
                     ),
                 },
                 filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
@@ -1565,8 +1567,8 @@ export const BORDER_CONFIGS = {
     },
 
     sweepDiagonal_1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1584,7 +1586,7 @@ export const BORDER_CONFIGS = {
                             angle: 45,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -1603,8 +1605,8 @@ export const BORDER_CONFIGS = {
     },
 
     sweepDiagonal_1v1: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1622,7 +1624,7 @@ export const BORDER_CONFIGS = {
                             angle: 45,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -1651,7 +1653,7 @@ export const BORDER_CONFIGS = {
                             angle: 225,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -1670,8 +1672,8 @@ export const BORDER_CONFIGS = {
     },
 
     sweepDiagonalDesync_4x: {
-        class: styles.borderedContainer,
-        getFillDefs: (id, defs) => [
+         
+        getColorDefs: (id, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1689,7 +1691,7 @@ export const BORDER_CONFIGS = {
                             angle: 45,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -1722,7 +1724,7 @@ export const BORDER_CONFIGS = {
                             angle: 225,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -1755,7 +1757,7 @@ export const BORDER_CONFIGS = {
                             angle: 135,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -1788,7 +1790,7 @@ export const BORDER_CONFIGS = {
                             angle: 315,
                         },
                         (x1, y1, x2, y2) =>
-                            BorderAnimationUtils.Linear.sweepDiagonal(
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -1809,4 +1811,4 @@ export const BORDER_CONFIGS = {
             },
         ],
     },
-} as const satisfies Record<string, BorderConfigDefs>;
+} as const satisfies Record<string, SurfaceConfigDefs>;

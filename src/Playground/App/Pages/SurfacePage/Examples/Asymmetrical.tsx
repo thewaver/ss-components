@@ -1,22 +1,23 @@
 import { createUniqueId } from "solid-js";
 
-import { Border } from "../../../../../Lib/Fundamentals/Border/Border";
+import { Surface } from "../../../../../Lib/Fundamentals/Surface/Surface";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
-import type { BorderExampleProps } from "../BorderPage.types";
+import type { SurfaceExampleProps } from "../SurfacePage.types";
 
-import * as styles from "../BorderPage.css";
+import * as styles from "../SurfacePage.css";
 
-type Props = BorderExampleProps &
+type Props = SurfaceExampleProps &
     AccessorProps<{
         borderRadius: number;
         borderWidth: number;
     }>;
 
 export const AsymmetricalExample = (props: Props) => {
-    const id = createUniqueId();
+    const strokeId = createUniqueId();
+    const fillId = createUniqueId();
 
     return (
-        <Border
+        <Surface
             getBorderRadii={() => ({
                 borderBottomLeftRadius: props.getBorderRadius() * 2,
                 borderBottomRightRadius: props.getBorderRadius(),
@@ -29,8 +30,8 @@ export const AsymmetricalExample = (props: Props) => {
                 borderBottomWidth: props.getBorderWidth() * 2,
                 borderLeftWidth: props.getBorderWidth(),
             })}
-            getFillDefs={(getSize, getBorderWidths, getBorderRadii) =>
-                props.getConfig().getFillDefs(id, {
+            getStrokeDefs={(getSize, getBorderWidths, getBorderRadii) =>
+                props.getStrokeConfig().getColorDefs(strokeId, {
                     getSize,
                     getBorderWidths,
                     getBorderRadii,
@@ -39,10 +40,17 @@ export const AsymmetricalExample = (props: Props) => {
                     getShouldApplyBlur: props.getShouldApplyBlur,
                 })
             }
-            getIsSolid={props.getIsSolid}
+            getFillDefs={(getSize, getBorderRadii) =>
+                props.getFillConfig().getColorDefs(fillId, {
+                    getSize,
+                    getBorderRadii,
+                    getAnimationDurationMs: props.getAnimationDurationMs,
+                    getColors: props.getColors,
+                })
+            }
             getShouldPadChildren={props.getShouldPadChildren}
         >
-            <div class={[styles.borderedContent, props.getConfig().class].join(" ")}>I have a border</div>
-        </Border>
+            <div class={styles.borderedContent}>I have a border</div>
+        </Surface>
     );
 };

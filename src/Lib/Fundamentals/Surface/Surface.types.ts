@@ -7,22 +7,25 @@ type Side = "top" | "right" | "bottom" | "left";
 
 type Corner = "topLeft" | "topRight" | "bottomLeft" | "bottomRight";
 
-export type BorderWidthDefs = {
+export type SurfaceWidthDefs = {
     [k in `border${Capitalize<Side>}Width`]: number;
 };
 
-export type BorderRadiusDefs = {
+export type SurfaceRadiusDefs = {
     [k in `border${Capitalize<Corner>}Radius`]: number;
 };
 
-export type BorderProps = AccessorProps<{
-    borderWidths: BorderWidthDefs;
-    borderRadii: BorderRadiusDefs;
-    isSolid?: boolean;
+export type SurfaceProps = AccessorProps<{
+    borderWidths: SurfaceWidthDefs;
+    borderRadii: SurfaceRadiusDefs;
     shouldPadChildren?: boolean;
-    getFillDefs: (
+    getStrokeDefs?: (
         getSize: () => Size2d,
-        getBorderWidths: () => BorderWidthDefs,
-        getBorderRadii: () => BorderRadiusDefs,
+        getBorderWidths: () => SurfaceWidthDefs,
+        getBorderRadii: () => SurfaceRadiusDefs,
+    ) => SVGDefs[];
+    getFillDefs?: (
+        getSize: () => Size2d,
+        getBorderRadii: () => SurfaceRadiusDefs,
     ) => SVGDefs[];
 }>;

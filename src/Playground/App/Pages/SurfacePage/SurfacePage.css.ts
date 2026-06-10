@@ -28,10 +28,6 @@ export const colorList = style({
     gap: 10,
 });
 
-export const borderedContainer = style({
-    backgroundColor: `rgb(from ${backgroundColor} r g b / 50%)`,
-});
-
 export const borderedContent = style({
     width: 240,
     height: 240,
@@ -39,6 +35,8 @@ export const borderedContent = style({
 });
 
 export const borderedContentWide = style({
+    resize: "both",
+    overflow: "auto",
     width: 480,
     height: 240,
     padding: 20,
