@@ -12,11 +12,11 @@ export const typewriterFade = keyframes({
 export const typewriterScale = keyframes({
     "0%": {
         opacity: 0,
-        transform: "scale(3)",
+        transform: "scale(2)",
     },
-    "50%": {
+    "25%": {
         opacity: 1,
-        transform: "scale(3)",
+        transform: "scale(2)",
     },
     "100%": {
         opacity: 1,
@@ -27,11 +27,11 @@ export const typewriterScale = keyframes({
 export const typewriterGlow = keyframes({
     "0%": {
         opacity: 0,
-        filter: "saturate(0) brightness(10)",
+        filter: "saturate(0) brightness(4)",
     },
-    "50%": {
+    "25%": {
         opacity: 1,
-        filter: "saturate(0) brightness(10)",
+        filter: "saturate(0) brightness(4)",
     },
     "100%": {
         opacity: 1,

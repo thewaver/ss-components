@@ -13,15 +13,21 @@ type Props = TypewriterExampleProps &
     }>;
 
 export const CustomExample = (props: Props) => {
-    const [getController, setController] = createSignal<TypewriterController>();
-    const [getText, setText] = createSignal(props.getText());
+    let hasMounted = false;
 
-    const updateContent = FunctionUtils.debounce(() => {
+    const [getController, setController] = createSignal<TypewriterController>();
+    const [getText, setText] = createSignal("");
+
+    const updateContent = () => {
+        hasMounted = true;
+
         setText(props.getText());
         getController()?.update("content");
-    }, 500);
+    }
 
-    createEffect(on(props.getText, updateContent));
+    const updateContentDebounced = FunctionUtils.debounce(updateContent, 500);
+
+    createEffect(on(props.getText, hasMounted ? updateContentDebounced : updateContent));
 
     return (
         <Typewriter getAnimationName={props.getAnimationName} getController={setController}>

@@ -10,7 +10,7 @@ import type { TypewriterProps, TypewriterUpdateCause } from "./Typewriter.types"
 import * as styles from "./Typewriter.css";
 
 const DEFAULT_TYPEWRITER_ANIMATION_NAME = styles.typewriterFade;
-const DEFAULT_TYPEWRITER_ANIMATION_DURATION_MS = 200;
+const DEFAULT_TYPEWRITER_ANIMATION_DURATION_MS = 500;
 const DEFAULT_TYPEWRITER_ANIMATION_DELAY_MS = 10;
 
 export const Typewriter = (props: ParentProps<TypewriterProps>) => {
