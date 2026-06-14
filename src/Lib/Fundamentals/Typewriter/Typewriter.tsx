@@ -1,4 +1,4 @@
-import { For, Show, createEffect, createMemo, createSignal, on, onCleanup, onMount } from "solid-js";
+import { For, createEffect, createMemo, createSignal, on, onCleanup, onMount } from "solid-js";
 import type { ParentProps } from "solid-js";
 
 import { EMPTY_ARRAY } from "@thewaver/ss-utils";
@@ -133,7 +133,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
                 {props.children}
             </div>
 
-            <Show when={getIndexedSegments().length}>
+            {getIndexedSegments().length && (
                 <div class={styles.typewriterTextWrap} style={{ width: `${getContainerRef()?.clientWidth ?? 0}px` }}>
                     <For each={getIndexedSegments()}>
                         {(segment) => {
@@ -208,7 +208,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
                         }}
                     </For>
                 </div>
-            </Show>
+            )}
         </div>
     );
 };

@@ -105,6 +105,7 @@ export const codeBoxOutter = style({
 
 export const codeBoxInner = style({
     padding: 15,
+    maxHeight: 800,
     fontFamily: "monospace",
     whiteSpace: "pre",
     overflowX: "auto",

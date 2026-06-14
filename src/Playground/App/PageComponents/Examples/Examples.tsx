@@ -1,5 +1,6 @@
 import { For, createSignal } from "solid-js";
 
+import { CSSUtils } from "../../../../Lib/Abstracts/CSS/CSS.utils";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
 import type { ExamplesProps } from "./Examples.types";
@@ -19,27 +20,29 @@ export const PageExamples = (props: ExamplesProps) => {
                         <div class={styles.exampleContainer}>
                             <div class={styles.exampleTitle}>
                                 {`${example.name}:`}
-                                <Button
-                                    getTooltipDefs={() => ({
-                                        getPlacement: () => ({ x: "center", y: "top-out" }),
-                                        getOffset: () => ({ x: 0, y: 5 }),
-                                        renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                                            <div
-                                                class={pageStyles.tooltipContent}
-                                                classList={{ [pageStyles.isVisible]: getVisibilityTarget() === 1 }}
-                                                style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
-                                            >
-                                                View source code
-                                            </div>
-                                        ),
-                                    })}
-                                    onClick={async () => {
-                                        setActiveIndex(getExampleIndex());
-                                        setIsModalOpen(true);
-                                    }}
-                                >
-                                    {"</>"}
-                                </Button>
+                                {example.src && (
+                                    <Button
+                                        getTooltipDefs={() => ({
+                                            getPlacement: () => ({ x: "center", y: "top-out" }),
+                                            getOffset: () => ({ x: 0, y: 5 }),
+                                            renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
+                                                <div
+                                                    class={pageStyles.tooltipContent}
+                                                    classList={{ [pageStyles.isVisible]: getVisibilityTarget() === 1 }}
+                                                    style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
+                                                >
+                                                    View source code
+                                                </div>
+                                            ),
+                                        })}
+                                        onClick={async () => {
+                                            setActiveIndex(getExampleIndex());
+                                            setIsModalOpen(true);
+                                        }}
+                                    >
+                                        {"</>"}
+                                    </Button>
+                                )}
                             </div>
 
                             {example.component()}
@@ -49,6 +52,7 @@ export const PageExamples = (props: ExamplesProps) => {
             </div>
 
             <Modal
+                getMargins={() => CSSUtils.spreadMargin(40)}
                 getIsVisible={getIsModalOpen}
                 onHide={() => {
                     setIsModalOpen(false);
@@ -62,22 +66,18 @@ export const PageExamples = (props: ExamplesProps) => {
                     />
                 )}
                 renderContent={(getVisibilityTarget, getTransitionDurationMs) => (
-                    <>
-                        <div
-                            class={getVisibilityTarget() === 1 ? pageStyles.modalOn : pageStyles.modalOff}
-                            style={{
-                                transition: `transform ${getTransitionDurationMs()}ms`,
-                            }}
-                        >
-                            <div class={pageStyles.codeBoxOutter}>
-                                <div
-                                    class={pageStyles.codeBoxInner}
-                                    innerHTML={props.getItems()[getActiveIndex()].src}
-                                />
-                            </div>
-                            <div class={pageStyles.modalHint}>{"tap anywhere to close"}</div>
+                    <div
+                        class={getVisibilityTarget() === 1 ? pageStyles.modalOn : pageStyles.modalOff}
+                        style={{
+                            transition: `transform ${getTransitionDurationMs()}ms`,
+                            background: "none",
+                        }}
+                    >
+                        <div class={pageStyles.codeBoxOutter}>
+                            <div class={pageStyles.codeBoxInner} innerHTML={props.getItems()[getActiveIndex()].src} />
                         </div>
-                    </>
+                        <div class={pageStyles.modalHint}>{"tap anywhere to close"}</div>
+                    </div>
                 )}
             />
         </>

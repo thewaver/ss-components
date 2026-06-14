@@ -21,7 +21,5 @@ export const modalOverlay = style({
 
 export const modalContainer = style({
     zIndex: 100,
-    maxWidth: "100%",
-    maxHeight: "100%",
     pointerEvents: "all",
 });

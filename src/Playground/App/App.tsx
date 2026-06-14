@@ -1,5 +1,5 @@
 import type { JSX } from "solid-js";
-import { Show, createEffect, createMemo, createSignal, onMount } from "solid-js";
+import { createEffect, createMemo, createSignal, onMount } from "solid-js";
 
 import { Route, type RouteSectionProps, Router } from "@solidjs/router";
 import { StringUtils } from "@thewaver/ss-utils";
@@ -150,9 +150,7 @@ export function AppContent(props: RouteSectionProps) {
             </div>
 
             <div class={styles.tabPage}>
-                <Show when={getTabIndex()}>
-                    <div class={styles.tabPageTitle}>{getTabConfig()[getTabIndex()!].name}</div>
-                </Show>
+                {getTabIndex() && <div class={styles.tabPageTitle}>{getTabConfig()[getTabIndex()!].name}</div>}
                 {props.children}
             </div>
         </div>

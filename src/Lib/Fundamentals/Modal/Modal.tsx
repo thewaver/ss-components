@@ -67,7 +67,11 @@ export const Modal = (props: ModalProps) => {
                     <div
                         ref={setContainerRef}
                         class={styles.modalContainer}
-                        style={CSSUtils.spreadableToStyle(getMargins(), (key) => StringUtils.camelToKebabCase(key))}
+                        style={{
+                            ...CSSUtils.spreadableToStyle(getMargins(), (key) => StringUtils.camelToKebabCase(key)),
+                            "max-width": `calc(100% - ${getMargins().marginLeft + getMargins().marginRight}px)`,
+                            "max-height": `calc(100% - ${getMargins().marginTop + getMargins().marginBottom}px)`,
+                        }}
                         role="dialog"
                         aria-modal="true"
                     >

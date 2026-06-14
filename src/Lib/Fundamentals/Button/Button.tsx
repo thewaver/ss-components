@@ -1,4 +1,4 @@
-import { Show, createSignal } from "solid-js";
+import { createSignal } from "solid-js";
 import type { ParentProps } from "solid-js";
 
 import { Tooltip } from "../Tooltip/Tooltip";
@@ -30,13 +30,9 @@ export const Button = (props: ParentProps<ButtonProps>) => {
                 {props.children}
             </button>
 
-            <Show when={props.renderHighlight}>
-                <div class={styles.buttonCornersWrapper}>{props.renderHighlight!()}</div>
-            </Show>
+            {props.renderHighlight && <div class={styles.buttonCornersWrapper}>{props.renderHighlight()}</div>}
 
-            <Show when={props.getTooltipDefs}>
-                <Tooltip {...props.getTooltipDefs!()} getAnchorRef={getAnchorRef} />
-            </Show>
+            {props.getTooltipDefs && <Tooltip {...props.getTooltipDefs()} getAnchorRef={getAnchorRef} />}
         </div>
     );
 };

@@ -1,4 +1,4 @@
-import { For, type JSX, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import { For, type JSX, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
 import { A } from "@solidjs/router";
 
@@ -52,17 +52,15 @@ export const Tabs = (props: TabProps) => {
 
     return (
         <div class={styles.tabsRoot} style={{ "flex-direction": getDir(), "gap": `${getTabGap()}px` }} role="tablist">
-            <Show when={props.renderGutter}>
-                <div class={styles.tabsGutter}>{props.renderGutter?.()}</div>
-            </Show>
-            <Show when={props.renderFloater && getFloaterBounds()}>
+            {props.renderGutter && <div class={styles.tabsGutter}>{props.renderGutter?.()}</div>}
+            {props.renderFloater && getFloaterBounds() && (
                 <div
                     class={styles.tabsFloater}
                     style={{ ...getFloaterBounds(), "transition-duration": `${getTransitionDurationMs()}ms` }}
                 >
                     {props.renderFloater?.()}
                 </div>
-            </Show>
+            )}
 
             <For each={getTabArray()}>
                 {(_, getIndex) => {

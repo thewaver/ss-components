@@ -74,7 +74,7 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
                     </For>
                 </div>
 
-                <Show when={props.renderHighlight && getElementRect()}>
+                {props.renderHighlight && getElementRect() && (
                     <div
                         class={styles.elementHighlightDecoration}
                         style={{
@@ -86,7 +86,7 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
                     >
                         {props.renderHighlight!(getTransitionTarget, getTransitionDurationMs)}
                     </div>
-                </Show>
+                )}
             </Portal>
         </Show>
     );

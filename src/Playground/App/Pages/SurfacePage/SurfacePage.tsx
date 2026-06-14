@@ -111,41 +111,11 @@ const WideWrapper = (props: SurfaceExampleProps) => {
     );
 };
 
-export const SurfacePage = () => {
+const StressTest = (props: SurfaceExampleProps) => {
     const [getModalOpen, setModalOpen] = createSignal(false);
-    const [getShouldPadChildren, setShouldPadChildren] = createSignal(false);
-    const [getShouldApplyBlur, setShouldApplyBlur] = createSignal(true);
-    const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
-    const [getStrokeConfigKey, setStrokeConfigKey] = createSignal<keyof typeof SURFACE_CONFIGS>("sweepDiagonal_1");
-    const [getFillConfigKey, setFillConfigKey] = createSignal<keyof typeof SURFACE_CONFIGS>("plain");
-    const [colors, setColors] = createStore(STARTING_COLORS);
-
-    const getExamples = createMemo(() => {
-        const commonProps: SurfaceExampleProps = {
-            getShouldPadChildren,
-            getShouldApplyBlur,
-            getAnimationDurationMs,
-            getColors: () => colors,
-            getStrokeConfig: () => SURFACE_CONFIGS[getStrokeConfigKey()],
-            getFillConfig: () => SURFACE_CONFIGS[getFillConfigKey()],
-        };
-
-        return [
-            {
-                name: "Asymmetrical",
-                component: () => <AsymmetricalWrapper {...commonProps} />,
-                src: ASYMMETRICAL_SOURCE,
-            },
-            {
-                name: "Wide",
-                component: () => <WideWrapper {...commonProps} />,
-                src: WIDE_SOURCE,
-            },
-        ];
-    });
 
     return (
-        <div class={styles.root} style={assignInlineVars({ [styles.backgroundColor]: colors.background })}>
+        <>
             <Button
                 onClick={async () => {
                     setModalOpen(true);
@@ -153,7 +123,6 @@ export const SurfacePage = () => {
             >
                 <div class={pageStyles.buttonContent}>{`Render ${STRESS_ITEMS.length} isntances`}</div>
             </Button>
-
             <Modal
                 getMargins={() => CSSUtils.spreadMargin(40)}
                 getIsVisible={getModalOpen}
@@ -186,33 +155,29 @@ export const SurfacePage = () => {
                                         getBorderWidths={() => CSSUtils.spreadWidth(4)}
                                         getPaddings={() => CSSUtils.spreadPadding(20)}
                                         getStrokeDefs={(getSize, getBorderWidths, getBorderRadii, getState) =>
-                                            SURFACE_CONFIGS[getStrokeConfigKey()].getColorDefs(
-                                                "stress-stroke",
-                                                getState,
-                                                {
-                                                    getSize,
-                                                    getBorderWidths,
-                                                    getBorderRadii,
-                                                    getAnimationDurationMs,
-                                                    getColors: () => colors,
-                                                    getShouldApplyBlur,
-                                                },
-                                            )
+                                            props.getStrokeConfig().getColorDefs("stress-stroke", getState, {
+                                                getSize,
+                                                getBorderWidths,
+                                                getBorderRadii,
+                                                getAnimationDurationMs: props.getAnimationDurationMs,
+                                                getColors: props.getColors,
+                                                getShouldApplyBlur: props.getShouldApplyBlur,
+                                            })
                                         }
                                         getFillDefs={(getSize, getBorderRadii, getState) =>
-                                            SURFACE_CONFIGS[getFillConfigKey()].getColorDefs("stress-fill", getState, {
+                                            props.getFillConfig().getColorDefs("stress-fill", getState, {
                                                 getSize,
                                                 getBorderRadii,
-                                                getAnimationDurationMs,
-                                                getColors: () => colors,
-                                                getShouldApplyBlur,
+                                                getAnimationDurationMs: props.getAnimationDurationMs,
+                                                getColors: props.getColors,
+                                                getShouldApplyBlur: props.getShouldApplyBlur,
                                             })
                                         }
                                         renderChildren={(outer, inner) => (
                                             <div
                                                 class={[
                                                     styles.borderedContentSmall,
-                                                    getShouldPadChildren?.() ? inner : outer,
+                                                    props.getShouldPadChildren?.() ? inner : outer,
                                                 ].join(" ")}
                                             >
                                                 {item}
@@ -225,7 +190,49 @@ export const SurfacePage = () => {
                     </div>
                 )}
             />
+        </>
+    );
+};
 
+export const SurfacePage = () => {
+    const [getShouldPadChildren, setShouldPadChildren] = createSignal(false);
+    const [getShouldApplyBlur, setShouldApplyBlur] = createSignal(true);
+    const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
+    const [getStrokeConfigKey, setStrokeConfigKey] = createSignal<keyof typeof SURFACE_CONFIGS>("sweepDiagonal_1v1");
+    const [getFillConfigKey, setFillConfigKey] = createSignal<keyof typeof SURFACE_CONFIGS>("plain");
+    const [colors, setColors] = createStore(STARTING_COLORS);
+
+    const getExamples = createMemo(() => {
+        const commonProps: SurfaceExampleProps = {
+            getShouldPadChildren,
+            getShouldApplyBlur,
+            getAnimationDurationMs,
+            getColors: () => colors,
+            getStrokeConfig: () => SURFACE_CONFIGS[getStrokeConfigKey()],
+            getFillConfig: () => SURFACE_CONFIGS[getFillConfigKey()],
+        };
+
+        return [
+            {
+                name: "Asymmetrical",
+                component: () => <AsymmetricalWrapper {...commonProps} />,
+                src: ASYMMETRICAL_SOURCE,
+            },
+            {
+                name: "Wide",
+                component: () => <WideWrapper {...commonProps} />,
+                src: WIDE_SOURCE,
+            },
+            {
+                name: "Stress Test",
+                component: () => <StressTest {...commonProps} />,
+                src: "",
+            },
+        ];
+    });
+
+    return (
+        <div class={styles.root} style={assignInlineVars({ [styles.backgroundColor]: colors.background })}>
             <div class={[styles.container, pageStyles.exampleContainer].join(" ")}>
                 <div class={pageStyles.props}>
                     <div class={pageStyles.propPanel}>
