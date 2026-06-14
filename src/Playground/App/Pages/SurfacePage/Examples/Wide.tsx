@@ -1,7 +1,7 @@
 import { createUniqueId } from "solid-js";
 
+import { CSSUtils } from "../../../../../Lib/Abstracts/CSS/CSS.utils";
 import { Surface } from "../../../../../Lib/Fundamentals/Surface/Surface";
-import { SurfaceUtils } from "../../../../../Lib/Fundamentals/Surface/Surface.utils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import type { SurfaceExampleProps } from "../SurfacePage.types";
 
@@ -19,10 +19,11 @@ export const WideExample = (props: Props) => {
 
     return (
         <Surface
-            getBorderRadii={() => SurfaceUtils.spreadRadius(props.getBorderRadius())}
-            getBorderWidths={() => SurfaceUtils.spreadWidth(props.getBorderWidth())}
-            getStrokeDefs={(getSize, getBorderWidths, getBorderRadii) =>
-                props.getStrokeConfig().getColorDefs(strokeId, {
+            getBorderRadii={() => CSSUtils.spreadRadius(props.getBorderRadius())}
+            getBorderWidths={() => CSSUtils.spreadWidth(props.getBorderWidth())}
+            getPaddings={() => CSSUtils.spreadPadding(20)}
+            getStrokeDefs={(getSize, getBorderWidths, getBorderRadii, getState) =>
+                props.getStrokeConfig().getColorDefs(strokeId, getState, {
                     getSize,
                     getBorderWidths,
                     getBorderRadii,
@@ -31,17 +32,20 @@ export const WideExample = (props: Props) => {
                     getShouldApplyBlur: props.getShouldApplyBlur,
                 })
             }
-            getFillDefs={(getSize, getBorderRadii) =>
-                props.getFillConfig().getColorDefs(fillId, {
+            getFillDefs={(getSize, getBorderRadii, getState) =>
+                props.getFillConfig().getColorDefs(fillId, getState, {
                     getSize,
                     getBorderRadii,
                     getAnimationDurationMs: props.getAnimationDurationMs,
                     getColors: props.getColors,
+                    getShouldApplyBlur: props.getShouldApplyBlur,
                 })
             }
-            getShouldPadChildren={props.getShouldPadChildren}
-        >
-            <div class={styles.borderedContentWide}>I have a border</div>
-        </Surface>
+            renderChildren={(outer, inner) => (
+                <div class={[styles.borderedContentWide, props.getShouldPadChildren?.() ? inner : outer].join(" ")}>
+                    I have a border
+                </div>
+            )}
+        />
     );
 };

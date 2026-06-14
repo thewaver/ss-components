@@ -28,10 +28,20 @@ export const colorList = style({
     gap: 10,
 });
 
+export const stressContainer = style({
+    display: "grid",
+    gridTemplateColumns: "repeat(20, auto)",
+    gap: 10,
+});
+
+export const borderedContentSmall = style({
+    width: 80,
+    height: 80,
+});
+
 export const borderedContent = style({
     width: 240,
     height: 240,
-    padding: 20,
 });
 
 export const borderedContentWide = style({
@@ -39,5 +49,4 @@ export const borderedContentWide = style({
     overflow: "auto",
     width: 480,
     height: 240,
-    padding: 20,
 });

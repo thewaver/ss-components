@@ -1,23 +1,37 @@
-import { For, type ParentProps, Show, createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import { For, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
-import { type Size2d, StringUtils } from "@thewaver/ss-utils";
+import { type Size2d } from "@thewaver/ss-utils";
+import { assignInlineVars } from "@vanilla-extract/dynamic";
 
-import type { SurfaceProps } from "./Surface.types";
+import { CSSUtils } from "../../Abstracts/CSS/CSS.utils";
+import type { SurfaceInteractionState, SurfaceProps } from "./Surface.types";
 import { SurfaceUtils } from "./Surface.utils";
 
 import * as styles from "./Surface.css";
 
-export const Surface = (props: ParentProps<SurfaceProps>) => {
+type StyleVar = keyof typeof styles;
+
+export const Surface = (props: SurfaceProps) => {
     let rootRef: HTMLElement | undefined;
 
+    const [getHovered, setHovered] = createSignal(false);
+    const [getPressed, setPressed] = createSignal(false);
     const [getRootSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
 
+    const getInteractionState = createMemo(
+        (): SurfaceInteractionState => (getPressed() ? "press" : getHovered() ? "hover" : "rest"),
+    );
+
     const getStrokeDefs = createMemo(() => {
-        return props.getStrokeDefs?.(getRootSize, props.getBorderWidths, props.getBorderRadii);
+        return props.getStrokeDefs?.(getRootSize, props.getBorderWidths, props.getBorderRadii, getInteractionState);
     });
 
     const getFillDefs = createMemo(() => {
-        return props.getFillDefs?.(getRootSize, props.getBorderRadii);
+        return props.getFillDefs?.(getRootSize, props.getBorderRadii, getInteractionState);
+    });
+
+    const getPaddings = createMemo(() => {
+        return props.getPaddings?.() ?? CSSUtils.spreadPadding(0);
     });
 
     const getPaths = createMemo(() => {
@@ -51,6 +65,19 @@ export const Surface = (props: ParentProps<SurfaceProps>) => {
                 rootRef = el;
             }}
             class={styles.surfaceRoot}
+            style={assignInlineVars({
+                ...CSSUtils.spreadableToStyle(getPaths().outerRadii, (key) => styles[`${key}Outer` as StyleVar]),
+                ...CSSUtils.spreadableToStyle(getPaths().innerRadii, (key) => styles[`${key}Inner` as StyleVar]),
+                ...CSSUtils.spreadableToStyle(props.getBorderWidths(), (key) => styles[key as StyleVar]),
+                ...CSSUtils.spreadableToStyle(getPaddings(), (key) => styles[key as StyleVar]),
+            })}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => {
+                setHovered(false);
+                setPressed(false);
+            }}
+            onMouseDown={() => setPressed(true)}
+            onMouseUp={() => setPressed(false)}
         >
             {getFillDefs() && (
                 <svg
@@ -117,27 +144,7 @@ export const Surface = (props: ParentProps<SurfaceProps>) => {
                 </svg>
             )}
 
-            <div
-                class={styles.surfaceChildren}
-                style={{
-                    ...Object.fromEntries(
-                        Object.entries(props.getBorderRadii()).map(([key, value]) => [
-                            StringUtils.camelToKebabCase(key),
-                            `${value}px`,
-                        ]),
-                    ),
-                    ...(props.getShouldPadChildren?.()
-                        ? {
-                              "padding-top": `${props.getBorderWidths().borderTopWidth}px`,
-                              "padding-right": `${props.getBorderWidths().borderRightWidth}px`,
-                              "padding-bottom": `${props.getBorderWidths().borderBottomWidth}px`,
-                              "padding-left": `${props.getBorderWidths().borderLeftWidth}px`,
-                          }
-                        : {}),
-                }}
-            >
-                {props.children}
-            </div>
+            {props.renderChildren(styles.surfaceChildrenOuter, styles.surfaceChildrenInner)}
         </div>
     );
 };

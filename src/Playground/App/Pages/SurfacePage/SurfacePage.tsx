@@ -3,12 +3,14 @@ import { createStore } from "solid-js/store";
 
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
+import { CSSUtils } from "../../../../Lib/Abstracts/CSS/CSS.utils";
+import { Button } from "../../../../Lib/Fundamentals/Button/Button";
+import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
+import { Surface } from "../../../../Lib/Fundamentals/Surface/Surface";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { AsymmetricalExample } from "./Examples/Asymmetrical";
 import AsymmetricalExampleRaw from "./Examples/Asymmetrical.tsx?raw";
-import { SymmetricalExample } from "./Examples/Symmetrical";
-import SymmetricalExampleRaw from "./Examples/Symmetrical.tsx?raw";
 import { WideExample } from "./Examples/Wide";
 import WideExampleRaw from "./Examples/Wide.tsx?raw";
 import { SURFACE_CONFIGS } from "./SurfacePage.config";
@@ -17,6 +19,7 @@ import type { SurfaceConfigColors, SurfaceExampleProps } from "./SurfacePage.typ
 import * as pageStyles from "../Pages.css";
 import * as styles from "./SurfacePage.css";
 
+const STRESS_ITEMS = Array.from({ length: 200 }, (_, idx) => idx + 1);
 const STARTING_COLORS: SurfaceConfigColors = {
     background: "#282018",
     primary: "#FFFF00",
@@ -24,7 +27,6 @@ const STARTING_COLORS: SurfaceConfigColors = {
     tertiary: "#FF00FF",
 };
 const ASYMMETRICAL_SOURCE = highlighter.codeToHtml(AsymmetricalExampleRaw, getDefaultHighlighterConfig());
-const SYMMETRICAL_SOURCE = highlighter.codeToHtml(SymmetricalExampleRaw, getDefaultHighlighterConfig());
 const WIDE_SOURCE = highlighter.codeToHtml(WideExampleRaw, getDefaultHighlighterConfig());
 
 const AsymmetricalWrapper = (props: SurfaceExampleProps) => {
@@ -41,52 +43,11 @@ const AsymmetricalWrapper = (props: SurfaceExampleProps) => {
                     <input
                         type="number"
                         min={0}
-                        max={20}
+                        max={40}
                         step={1}
                         value={getBorderWidth()}
                         onInput={(e) =>
-                            setBorderWidth((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0), 20))
-                        }
-                    />
-                </div>
-
-                <div class={pageStyles.propPanel}>
-                    <div>{"Border radius (px)"}</div>
-                    <input
-                        type="number"
-                        min={0}
-                        max={80}
-                        step={5}
-                        value={getBorderRadius()}
-                        onInput={(e) =>
-                            setBorderRadius((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0), 80))
-                        }
-                    />
-                </div>
-            </div>
-        </>
-    );
-};
-
-const SymmetricalWrapper = (props: SurfaceExampleProps) => {
-    const [getBorderWidth, setBorderWidth] = createSignal(4);
-    const [getBorderRadius, setBorderRadius] = createSignal(20);
-
-    return (
-        <>
-            <SymmetricalExample {...props} getBorderRadius={getBorderRadius} getBorderWidth={getBorderWidth} />
-
-            <div class={pageStyles.props}>
-                <div class={pageStyles.propPanel}>
-                    <div>{"Border width (px)"}</div>
-                    <input
-                        type="number"
-                        min={0}
-                        max={20}
-                        step={1}
-                        value={getBorderWidth()}
-                        onInput={(e) =>
-                            setBorderWidth((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0), 20))
+                            setBorderWidth((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0), 40))
                         }
                     />
                 </div>
@@ -123,11 +84,11 @@ const WideWrapper = (props: SurfaceExampleProps) => {
                     <input
                         type="number"
                         min={0}
-                        max={20}
+                        max={40}
                         step={1}
                         value={getBorderWidth()}
                         onInput={(e) =>
-                            setBorderWidth((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0), 20))
+                            setBorderWidth((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0), 40))
                         }
                     />
                 </div>
@@ -151,6 +112,7 @@ const WideWrapper = (props: SurfaceExampleProps) => {
 };
 
 export const SurfacePage = () => {
+    const [getModalOpen, setModalOpen] = createSignal(false);
     const [getShouldPadChildren, setShouldPadChildren] = createSignal(false);
     const [getShouldApplyBlur, setShouldApplyBlur] = createSignal(true);
     const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
@@ -170,11 +132,6 @@ export const SurfacePage = () => {
 
         return [
             {
-                name: "Symmetrical",
-                component: () => <SymmetricalWrapper {...commonProps} />,
-                src: SYMMETRICAL_SOURCE,
-            },
-            {
                 name: "Asymmetrical",
                 component: () => <AsymmetricalWrapper {...commonProps} />,
                 src: ASYMMETRICAL_SOURCE,
@@ -189,6 +146,86 @@ export const SurfacePage = () => {
 
     return (
         <div class={styles.root} style={assignInlineVars({ [styles.backgroundColor]: colors.background })}>
+            <Button
+                onClick={async () => {
+                    setModalOpen(true);
+                }}
+            >
+                <div class={pageStyles.buttonContent}>{`Render ${STRESS_ITEMS.length} isntances`}</div>
+            </Button>
+
+            <Modal
+                getMargins={() => CSSUtils.spreadMargin(40)}
+                getIsVisible={getModalOpen}
+                onHide={() => {
+                    setModalOpen(false);
+                }}
+                renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
+                    <div
+                        class={getVisibilityTarget() === 1 ? pageStyles.overlayOn : pageStyles.overlayOff}
+                        style={{
+                            transition: `background-color ${getTransitionDurationMs()}ms, backdrop-filter ${getTransitionDurationMs()}ms`,
+                        }}
+                    />
+                )}
+                renderContent={(getVisibilityTarget, getTransitionDurationMs) => (
+                    <div
+                        class={[
+                            getVisibilityTarget() === 1 ? pageStyles.modalOn : pageStyles.modalOff,
+                            pageStyles.exampleContainer,
+                        ].join(" ")}
+                        style={{
+                            transition: `transform ${getTransitionDurationMs()}ms`,
+                        }}
+                    >
+                        <div class={styles.stressContainer}>
+                            <For each={STRESS_ITEMS}>
+                                {(item) => (
+                                    <Surface
+                                        getBorderRadii={() => CSSUtils.spreadRadius(10)}
+                                        getBorderWidths={() => CSSUtils.spreadWidth(4)}
+                                        getPaddings={() => CSSUtils.spreadPadding(20)}
+                                        getStrokeDefs={(getSize, getBorderWidths, getBorderRadii, getState) =>
+                                            SURFACE_CONFIGS[getStrokeConfigKey()].getColorDefs(
+                                                "stress-stroke",
+                                                getState,
+                                                {
+                                                    getSize,
+                                                    getBorderWidths,
+                                                    getBorderRadii,
+                                                    getAnimationDurationMs,
+                                                    getColors: () => colors,
+                                                    getShouldApplyBlur,
+                                                },
+                                            )
+                                        }
+                                        getFillDefs={(getSize, getBorderRadii, getState) =>
+                                            SURFACE_CONFIGS[getFillConfigKey()].getColorDefs("stress-fill", getState, {
+                                                getSize,
+                                                getBorderRadii,
+                                                getAnimationDurationMs,
+                                                getColors: () => colors,
+                                                getShouldApplyBlur,
+                                            })
+                                        }
+                                        renderChildren={(outer, inner) => (
+                                            <div
+                                                class={[
+                                                    styles.borderedContentSmall,
+                                                    getShouldPadChildren?.() ? inner : outer,
+                                                ].join(" ")}
+                                            >
+                                                {item}
+                                            </div>
+                                        )}
+                                    />
+                                )}
+                            </For>
+                        </div>
+                    </div>
+                )}
+            />
+
             <div class={[styles.container, pageStyles.exampleContainer].join(" ")}>
                 <div class={pageStyles.props}>
                     <div class={pageStyles.propPanel}>

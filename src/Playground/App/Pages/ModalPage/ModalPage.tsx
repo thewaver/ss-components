@@ -70,7 +70,7 @@ export const ModalPage = () => {
                         </div>
                     </div>
                 )}
-            ></Modal>
+            />
         </div>
     );
 };

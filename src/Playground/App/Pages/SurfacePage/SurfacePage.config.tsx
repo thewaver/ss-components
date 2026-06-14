@@ -1,25 +1,27 @@
 import { MathUtils, ObjectUtils, type Size2d } from "@thewaver/ss-utils";
 
+import type { CSSBorderRadius, CSSBorderWidth } from "../../../../Lib/Abstracts/CSS/CSS.types";
 import { SVGFilterDefsFactory } from "../../../../Lib/Abstracts/SVG/Defs/Filter/SVGFilterDefs.factory";
 import { SVGGradientDefsUtils } from "../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
 import type { SVGDefs } from "../../../../Lib/Abstracts/SVG/Defs/SVGDefs.types";
-import type { SurfaceRadiusDefs, SurfaceWidthDefs } from "../../../../Lib/Fundamentals/Surface/Surface.types";
+import type { SurfaceInteractionState } from "../../../../Lib/Fundamentals/Surface/Surface.types";
 import { SurfaceAnimationUtils } from "../../../../Lib/Fundamentals/Surface/Surface.utils";
 import type { SurfaceConfigColors } from "./SurfacePage.types";
 
 export type SurfaceColorConfigDefs = SurfaceAnimationUtils.SurfaceAnimationDefs & {
     getSize: () => Size2d;
-    getBorderWidths?: () => SurfaceWidthDefs;
-    getBorderRadii: () => SurfaceRadiusDefs;
+    getBorderWidths?: () => CSSBorderWidth;
+    getBorderRadii: () => CSSBorderRadius;
     getColors: () => SurfaceConfigColors;
     getShouldApplyBlur?: () => boolean;
 };
 
 export type SurfaceConfigDefs = {
-    getColorDefs: (id: string, defs: SurfaceColorConfigDefs) => SVGDefs[];
+    getColorDefs: (id: string, state: () => SurfaceInteractionState, defs: SurfaceColorConfigDefs) => SVGDefs[];
 };
 
-const getBaseBorderColor = (defs: SurfaceColorConfigDefs) => `hsl(from ${defs.getColors().background} h s calc(l * 2))`;
+const getBaseBorderColor = (defs: SurfaceColorConfigDefs) =>
+    `hsl(from ${defs.getColors().background} h s calc(l * 1.5) / 50%)`;
 
 const getBaseBlur = () => ({
     id: "border-blur-filter",
@@ -30,8 +32,7 @@ const getBaseBlur = () => ({
 
 export const SURFACE_CONFIGS = {
     plain: {
-         
-        getColorDefs: (_, defs) => [
+        getColorDefs: (_, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -41,8 +42,7 @@ export const SURFACE_CONFIGS = {
     // CORNY
 
     cornyDesync_4x: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -119,9 +119,8 @@ export const SURFACE_CONFIGS = {
 
     // FLOW
 
-    flow_1: {
-         
-        getColorDefs: (id, defs) => [
+    flow_x: {
+        getColorDefs: (id, __, defs) => [
             {
                 gradient: {
                     id: `gradient1-${id}`,
@@ -148,9 +147,37 @@ export const SURFACE_CONFIGS = {
         ],
     },
 
-    flowDiagonal_1: {
-         
-        getColorDefs: (id, defs) => [
+    flow_1v1: {
+        getColorDefs: (id, __, defs) => [
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: MathUtils.getIntermediateValues(0, 100, 20).flatMap((step, index) => {
+                                const isEven = MathUtils.isEven(index);
+                                const color1 = isEven ? defs.getColors().primary : defs.getColors().secondary;
+                                const color2 = isEven ? defs.getColors().secondary : defs.getColors().primary;
+
+                                return [
+                                    { value: color1, stop: step },
+                                    { value: color2, stop: step },
+                                ];
+                            }),
+                            scale: { width: 2, height: 1 },
+                        },
+                        (x1, y1, x2, y2) =>
+                            SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0.5, -0.5], defs),
+                    ),
+                },
+                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+            },
+        ],
+    },
+
+    flowDiagonal_x: {
+        getColorDefs: (id, __, defs) => [
             {
                 gradient: {
                     id: `gradient1-${id}`,
@@ -188,11 +215,50 @@ export const SURFACE_CONFIGS = {
         ],
     },
 
+    flowDiagonal_1v1: {
+        getColorDefs: (id, __, defs) => [
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: MathUtils.getIntermediateValues(0, 100, 20).flatMap((step, index) => {
+                                const isEven = MathUtils.isEven(index);
+                                const color1 = isEven ? defs.getColors().primary : defs.getColors().secondary;
+                                const color2 = isEven ? defs.getColors().secondary : defs.getColors().primary;
+
+                                return [
+                                    { value: color1, stop: step },
+                                    { value: color2, stop: step },
+                                ];
+                            }),
+                            angle: 45,
+                            scale: { width: 3, height: 3 },
+                        },
+                        (x1, y1, x2, y2) =>
+                            SurfaceAnimationUtils.Linear.sweepDiagonal(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                [
+                                    [0.75, 0.75],
+                                    [-0.75, -0.75],
+                                ],
+                                defs,
+                            ),
+                    ),
+                },
+                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+            },
+        ],
+    },
+
     // MERGE
 
     merge_1v1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -236,8 +302,7 @@ export const SURFACE_CONFIGS = {
     },
 
     mergeDiagonal_1v1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -305,8 +370,7 @@ export const SURFACE_CONFIGS = {
     },
 
     mergeDiagonalDesync_4x: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -452,8 +516,7 @@ export const SURFACE_CONFIGS = {
     // ORBIT
 
     orbit_1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -478,8 +541,7 @@ export const SURFACE_CONFIGS = {
     },
 
     orbit_1v1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -521,8 +583,7 @@ export const SURFACE_CONFIGS = {
     },
 
     orbitDesync_2v1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -559,8 +620,7 @@ export const SURFACE_CONFIGS = {
     },
 
     orbitDesync_3x: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -630,8 +690,7 @@ export const SURFACE_CONFIGS = {
     // SCAN
 
     scan_1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -657,8 +716,7 @@ export const SURFACE_CONFIGS = {
     },
 
     scan_1v1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -703,8 +761,7 @@ export const SURFACE_CONFIGS = {
     },
 
     scanDiagonal_1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -742,8 +799,7 @@ export const SURFACE_CONFIGS = {
     },
 
     scanDiagonal_1v1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -813,8 +869,7 @@ export const SURFACE_CONFIGS = {
     // SNAKE
 
     snake_1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -849,8 +904,7 @@ export const SURFACE_CONFIGS = {
     },
 
     snake_1v1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -912,8 +966,7 @@ export const SURFACE_CONFIGS = {
     },
 
     snake_2: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -975,8 +1028,7 @@ export const SURFACE_CONFIGS = {
     },
 
     snake_4: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1096,8 +1148,7 @@ export const SURFACE_CONFIGS = {
     },
 
     snakeDesync_3x: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1192,8 +1243,7 @@ export const SURFACE_CONFIGS = {
     },
 
     snakeWait_1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1244,8 +1294,7 @@ export const SURFACE_CONFIGS = {
     },
 
     snakeWait_3x1s: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1363,8 +1412,7 @@ export const SURFACE_CONFIGS = {
     },
 
     snakeWait_3x2s: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1494,8 +1542,7 @@ export const SURFACE_CONFIGS = {
     // SWEEP
 
     sweep_1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1521,8 +1568,7 @@ export const SURFACE_CONFIGS = {
     },
 
     sweep_1v1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1567,8 +1613,7 @@ export const SURFACE_CONFIGS = {
     },
 
     sweepDiagonal_1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1605,8 +1650,7 @@ export const SURFACE_CONFIGS = {
     },
 
     sweepDiagonal_1v1: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },
@@ -1672,8 +1716,7 @@ export const SURFACE_CONFIGS = {
     },
 
     sweepDiagonalDesync_4x: {
-         
-        getColorDefs: (id, defs) => [
+        getColorDefs: (id, __, defs) => [
             {
                 color: getBaseBorderColor(defs),
             },

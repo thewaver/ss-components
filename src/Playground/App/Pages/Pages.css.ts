@@ -141,6 +141,7 @@ const modal = style({
     flexDirection: "column",
     alignItems: "center",
     gap: 20,
+    backgroundImage: "linear-gradient(215deg, var(--clr-bkg-primary), var(--clr-bkg-secondary))",
 });
 
 export const modalOn = style([

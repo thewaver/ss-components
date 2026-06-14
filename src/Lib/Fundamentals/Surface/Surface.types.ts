@@ -1,31 +1,27 @@
+import type { JSX } from "solid-js";
+
 import type { Size2d } from "@thewaver/ss-utils";
 
+import type { CSSBorderRadius, CSSBorderWidth, CSSPadding } from "../../Abstracts/CSS/CSS.types";
 import type { SVGDefs } from "../../Abstracts/SVG/Defs/SVGDefs.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
 
-type Side = "top" | "right" | "bottom" | "left";
-
-type Corner = "topLeft" | "topRight" | "bottomLeft" | "bottomRight";
-
-export type SurfaceWidthDefs = {
-    [k in `border${Capitalize<Side>}Width`]: number;
-};
-
-export type SurfaceRadiusDefs = {
-    [k in `border${Capitalize<Corner>}Radius`]: number;
-};
+export type SurfaceInteractionState = "rest" | "hover" | "press";
 
 export type SurfaceProps = AccessorProps<{
-    borderWidths: SurfaceWidthDefs;
-    borderRadii: SurfaceRadiusDefs;
-    shouldPadChildren?: boolean;
+    borderWidths: CSSBorderWidth;
+    borderRadii: CSSBorderRadius;
+    paddings?: CSSPadding;
     getStrokeDefs?: (
         getSize: () => Size2d,
-        getBorderWidths: () => SurfaceWidthDefs,
-        getBorderRadii: () => SurfaceRadiusDefs,
+        getBorderWidths: () => CSSBorderWidth,
+        getBorderRadii: () => CSSBorderRadius,
+        getState: () => SurfaceInteractionState,
     ) => SVGDefs[];
     getFillDefs?: (
         getSize: () => Size2d,
-        getBorderRadii: () => SurfaceRadiusDefs,
+        getBorderRadii: () => CSSBorderRadius,
+        getState: () => SurfaceInteractionState,
     ) => SVGDefs[];
+    renderChildren: (outerClass: string, innerClass: string) => JSX.Element;
 }>;

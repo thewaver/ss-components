@@ -1,6 +1,9 @@
 import { Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 import { Portal } from "solid-js/web";
 
+import { StringUtils } from "@thewaver/ss-utils";
+
+import { CSSUtils } from "../../Abstracts/CSS/CSS.utils";
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { FocusUtils } from "../../Abstracts/Focus/Focus.utils";
 import { useViewportContext } from "../Viewport/Viewpoer.context";
@@ -18,6 +21,10 @@ export const Modal = (props: ModalProps) => {
     const getTransitionDurationMs = createMemo(
         () => props.getTransitionDurationMs?.() ?? DEFAULT_MODAL_TRANSITION_DURATION_MS,
     );
+
+    const getMargins = createMemo(() => {
+        return props.getMargins?.() ?? CSSUtils.spreadMargin(0);
+    });
 
     const { getIsVisible, getTransitionTarget, hide } = ElementFader.createFader(
         props.getIsVisible,
@@ -57,7 +64,13 @@ export const Modal = (props: ModalProps) => {
                     <div class={styles.modalOverlay} onClick={hide}>
                         {props.renderOverlay(getTransitionTarget, getTransitionDurationMs)}
                     </div>
-                    <div ref={setContainerRef} class={styles.modalContainer} role="dialog" aria-modal="true">
+                    <div
+                        ref={setContainerRef}
+                        class={styles.modalContainer}
+                        style={CSSUtils.spreadableToStyle(getMargins(), (key) => StringUtils.camelToKebabCase(key))}
+                        role="dialog"
+                        aria-modal="true"
+                    >
                         {props.renderContent(getTransitionTarget, getTransitionDurationMs)}
                     </div>
                 </div>

@@ -2,29 +2,11 @@ import { For } from "solid-js";
 
 import type { Point2d, Size2d } from "@thewaver/ss-utils";
 
+import type { CSSBorderRadius, CSSBorderWidth } from "../../Abstracts/CSS/CSS.types";
 import { SVGUtils } from "../../Abstracts/SVG/SVG.utils";
-import type { SurfaceRadiusDefs, SurfaceWidthDefs } from "./Surface.types";
 
 export namespace SurfaceUtils {
-    export const spreadRadius = (radius: number) => ({
-        borderBottomLeftRadius: radius,
-        borderBottomRightRadius: radius,
-        borderTopLeftRadius: radius,
-        borderTopRightRadius: radius,
-    });
-
-    export const spreadWidth = (width: number) => ({
-        borderTopWidth: width,
-        borderRightWidth: width,
-        borderBottomWidth: width,
-        borderLeftWidth: width,
-    });
-
-    export const normalizeCornerRadii = (
-        width: number,
-        height: number,
-        radii: SurfaceRadiusDefs,
-    ): SurfaceRadiusDefs => {
+    export const fitCornerRadii = (width: number, height: number, radii: CSSBorderRadius): CSSBorderRadius => {
         const safeWidth = Math.max(0, width);
         const safeHeight = Math.max(0, height);
 
@@ -54,7 +36,7 @@ export namespace SurfaceUtils {
         y: number,
         width: number,
         height: number,
-        radii: SurfaceRadiusDefs,
+        radii: CSSBorderRadius,
     ): string => {
         const right = x + width;
         const bottom = y + height;
@@ -64,7 +46,7 @@ export namespace SurfaceUtils {
             borderBottomRightRadius: br,
             borderTopLeftRadius: tl,
             borderTopRightRadius: tr,
-        } = normalizeCornerRadii(width, height, radii);
+        } = fitCornerRadii(width, height, radii);
 
         return [
             `M ${x + tl} ${y}`,
@@ -84,6 +66,53 @@ export namespace SurfaceUtils {
         ].join(" ");
     };
 
+    export const getCornerRadii = ({
+        width,
+        height,
+        borderTopLeftRadius,
+        borderTopRightRadius,
+        borderBottomRightRadius,
+        borderBottomLeftRadius,
+        borderTopWidth,
+        borderRightWidth,
+        borderBottomWidth,
+        borderLeftWidth,
+    }: Size2d & CSSBorderWidth & CSSBorderRadius) => {
+        const outerRadii = fitCornerRadii(width, height, {
+            borderTopLeftRadius: Math.max(borderTopLeftRadius, 0),
+            borderTopRightRadius: Math.max(borderTopRightRadius, 0),
+            borderBottomRightRadius: Math.max(borderBottomRightRadius, 0),
+            borderBottomLeftRadius: Math.max(borderBottomLeftRadius, 0),
+        });
+
+        const innerWidth = Math.max(width - borderLeftWidth - borderRightWidth, 0);
+        const innerHeight = Math.max(height - borderTopWidth - borderBottomWidth, 0);
+
+        const innerRadii = fitCornerRadii(innerWidth, innerHeight, {
+            borderTopLeftRadius: Math.max(
+                outerRadii.borderTopLeftRadius - Math.max(borderLeftWidth, borderTopWidth),
+                0,
+            ),
+            borderTopRightRadius: Math.max(
+                outerRadii.borderTopRightRadius - Math.max(borderRightWidth, borderTopWidth),
+                0,
+            ),
+            borderBottomRightRadius: Math.max(
+                outerRadii.borderBottomRightRadius - Math.max(borderRightWidth, borderBottomWidth),
+                0,
+            ),
+            borderBottomLeftRadius: Math.max(
+                outerRadii.borderBottomLeftRadius - Math.max(borderLeftWidth, borderBottomWidth),
+                0,
+            ),
+        });
+
+        return {
+            innerRadii,
+            outerRadii,
+        };
+    };
+
     export const getRoundedRectPaths = ({
         x,
         y,
@@ -97,40 +126,30 @@ export namespace SurfaceUtils {
         borderRightWidth,
         borderBottomWidth,
         borderLeftWidth,
-    }: Point2d & Size2d & SurfaceWidthDefs & SurfaceRadiusDefs): { outerPath: string; innerPath: string } => {
-        const outerRadii = normalizeCornerRadii(width, height, {
-            borderTopLeftRadius: Math.max(0, borderTopLeftRadius),
-            borderTopRightRadius: Math.max(0, borderTopRightRadius),
-            borderBottomRightRadius: Math.max(0, borderBottomRightRadius),
-            borderBottomLeftRadius: Math.max(0, borderBottomLeftRadius),
-        });
-
+    }: Point2d & Size2d & CSSBorderWidth & CSSBorderRadius) => {
         const innerX = x + borderLeftWidth;
         const innerY = y + borderTopWidth;
-        const innerWidth = Math.max(0, width - borderLeftWidth - borderRightWidth);
-        const innerHeight = Math.max(0, height - borderTopWidth - borderBottomWidth);
 
-        const innerRadii = normalizeCornerRadii(innerWidth, innerHeight, {
-            borderTopLeftRadius: Math.max(
-                0,
-                outerRadii.borderTopLeftRadius - Math.max(borderLeftWidth, borderTopWidth),
-            ),
-            borderTopRightRadius: Math.max(
-                0,
-                outerRadii.borderTopRightRadius - Math.max(borderRightWidth, borderTopWidth),
-            ),
-            borderBottomRightRadius: Math.max(
-                0,
-                outerRadii.borderBottomRightRadius - Math.max(borderRightWidth, borderBottomWidth),
-            ),
-            borderBottomLeftRadius: Math.max(
-                0,
-                outerRadii.borderBottomLeftRadius - Math.max(borderLeftWidth, borderBottomWidth),
-            ),
+        const innerWidth = Math.max(width - borderLeftWidth - borderRightWidth, 0);
+        const innerHeight = Math.max(height - borderTopWidth - borderBottomWidth, 0);
+
+        const { innerRadii, outerRadii } = getCornerRadii({
+            width,
+            height,
+            borderTopLeftRadius,
+            borderTopRightRadius,
+            borderBottomRightRadius,
+            borderBottomLeftRadius,
+            borderTopWidth,
+            borderRightWidth,
+            borderBottomWidth,
+            borderLeftWidth,
         });
 
         return {
+            outerRadii,
             outerPath: getRoundedRectPathInternal(x, y, width, height, outerRadii),
+            innerRadii,
             innerPath:
                 innerWidth > 0 && innerHeight > 0
                     ? getRoundedRectPathInternal(innerX, innerY, innerWidth, innerHeight, innerRadii)

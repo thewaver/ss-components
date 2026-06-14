@@ -1,5 +1,6 @@
 import { createUniqueId } from "solid-js";
 
+import { CSSUtils } from "../../../../../Lib/Abstracts/CSS/CSS.utils";
 import { Surface } from "../../../../../Lib/Fundamentals/Surface/Surface";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import type { SurfaceExampleProps } from "../SurfacePage.types";
@@ -30,8 +31,9 @@ export const AsymmetricalExample = (props: Props) => {
                 borderBottomWidth: props.getBorderWidth() * 2,
                 borderLeftWidth: props.getBorderWidth(),
             })}
-            getStrokeDefs={(getSize, getBorderWidths, getBorderRadii) =>
-                props.getStrokeConfig().getColorDefs(strokeId, {
+            getPaddings={() => CSSUtils.spreadPadding(20)}
+            getStrokeDefs={(getSize, getBorderWidths, getBorderRadii, getState) =>
+                props.getStrokeConfig().getColorDefs(strokeId, getState, {
                     getSize,
                     getBorderWidths,
                     getBorderRadii,
@@ -40,17 +42,20 @@ export const AsymmetricalExample = (props: Props) => {
                     getShouldApplyBlur: props.getShouldApplyBlur,
                 })
             }
-            getFillDefs={(getSize, getBorderRadii) =>
-                props.getFillConfig().getColorDefs(fillId, {
+            getFillDefs={(getSize, getBorderRadii, getState) =>
+                props.getFillConfig().getColorDefs(fillId, getState, {
                     getSize,
                     getBorderRadii,
                     getAnimationDurationMs: props.getAnimationDurationMs,
                     getColors: props.getColors,
+                    getShouldApplyBlur: props.getShouldApplyBlur,
                 })
             }
-            getShouldPadChildren={props.getShouldPadChildren}
-        >
-            <div class={styles.borderedContent}>I have a border</div>
-        </Surface>
+            renderChildren={(outer, inner) => (
+                <div class={[styles.borderedContent, props.getShouldPadChildren?.() ? inner : outer].join(" ")}>
+                    I have a border
+                </div>
+            )}
+        />
     );
 };
