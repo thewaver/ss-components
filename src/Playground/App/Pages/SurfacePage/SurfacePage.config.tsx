@@ -4,7 +4,7 @@ import type { CSSBorderRadius, CSSBorderWidth } from "../../../../Lib/Abstracts/
 import { SVGFilterDefsFactory } from "../../../../Lib/Abstracts/SVG/Defs/Filter/SVGFilterDefs.factory";
 import { SVGGradientDefsUtils } from "../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
 import type { SVGDefs } from "../../../../Lib/Abstracts/SVG/Defs/SVGDefs.types";
-import type { SurfaceInteractionState } from "../../../../Lib/Fundamentals/Surface/Surface.types";
+import type { SurfaceInteractionStates } from "../../../../Lib/Fundamentals/Surface/Surface.types";
 import { SurfaceAnimationUtils } from "../../../../Lib/Fundamentals/Surface/Surface.utils";
 import type { SurfaceConfigColors } from "./SurfacePage.types";
 
@@ -17,7 +17,7 @@ export type SurfaceColorConfigDefs = SurfaceAnimationUtils.SurfaceAnimationDefs 
 };
 
 export type SurfaceConfigDefs = {
-    getColorDefs: (id: string, state: () => SurfaceInteractionState, defs: SurfaceColorConfigDefs) => SVGDefs[];
+    getColorDefs: (id: string, state: () => SurfaceInteractionStates, defs: SurfaceColorConfigDefs) => SVGDefs[];
 };
 
 const getBaseBorderColor = (defs: SurfaceColorConfigDefs) =>
@@ -119,7 +119,42 @@ export const SURFACE_CONFIGS = {
 
     // FLOW
 
-    flow_x: {
+    flow_2s: {
+        getColorDefs: (id, __, defs) => [
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getLinearGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().primary },
+                            ],
+                            spreadKind: "banded",
+                            scale: { width: 2, height: 1 },
+                        },
+                        (x1, y1, x2, y2) =>
+                            SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0.5, -0.5], defs),
+                    ),
+                },
+                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+            },
+        ],
+    },
+
+    flow_3: {
         getColorDefs: (id, __, defs) => [
             {
                 gradient: {
@@ -147,36 +182,7 @@ export const SURFACE_CONFIGS = {
         ],
     },
 
-    flow_1v1: {
-        getColorDefs: (id, __, defs) => [
-            {
-                gradient: {
-                    id: `gradient1-${id}`,
-                    defsElement: SVGGradientDefsUtils.getLinearGradient(
-                        {
-                            id: `gradient1-${id}`,
-                            colors: MathUtils.getIntermediateValues(0, 100, 20).flatMap((step, index) => {
-                                const isEven = MathUtils.isEven(index);
-                                const color1 = isEven ? defs.getColors().primary : defs.getColors().secondary;
-                                const color2 = isEven ? defs.getColors().secondary : defs.getColors().primary;
-
-                                return [
-                                    { value: color1, stop: step },
-                                    { value: color2, stop: step },
-                                ];
-                            }),
-                            scale: { width: 2, height: 1 },
-                        },
-                        (x1, y1, x2, y2) =>
-                            SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0.5, -0.5], defs),
-                    ),
-                },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
-            },
-        ],
-    },
-
-    flowDiagonal_x: {
+    flowDiagonal_2s: {
         getColorDefs: (id, __, defs) => [
             {
                 gradient: {
@@ -187,12 +193,19 @@ export const SURFACE_CONFIGS = {
                             colors: [
                                 { value: defs.getColors().primary },
                                 { value: defs.getColors().secondary },
-                                { value: defs.getColors().tertiary },
                                 { value: defs.getColors().primary },
                                 { value: defs.getColors().secondary },
-                                { value: defs.getColors().tertiary },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
                                 { value: defs.getColors().primary },
                             ],
+                            spreadKind: "banded",
                             angle: 45,
                             scale: { width: 3, height: 3 },
                         },
@@ -215,7 +228,7 @@ export const SURFACE_CONFIGS = {
         ],
     },
 
-    flowDiagonal_1v1: {
+    flowDiagonal_3: {
         getColorDefs: (id, __, defs) => [
             {
                 gradient: {
@@ -223,16 +236,15 @@ export const SURFACE_CONFIGS = {
                     defsElement: SVGGradientDefsUtils.getLinearGradient(
                         {
                             id: `gradient1-${id}`,
-                            colors: MathUtils.getIntermediateValues(0, 100, 20).flatMap((step, index) => {
-                                const isEven = MathUtils.isEven(index);
-                                const color1 = isEven ? defs.getColors().primary : defs.getColors().secondary;
-                                const color2 = isEven ? defs.getColors().secondary : defs.getColors().primary;
-
-                                return [
-                                    { value: color1, stop: step },
-                                    { value: color2, stop: step },
-                                ];
-                            }),
+                            colors: [
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().tertiary },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().tertiary },
+                                { value: defs.getColors().primary },
+                            ],
                             angle: 45,
                             scale: { width: 3, height: 3 },
                         },
@@ -687,6 +699,49 @@ export const SURFACE_CONFIGS = {
         ],
     },
 
+    // ROULETTE
+
+    roulette_2: {
+        getColorDefs: (id, __, defs) => [
+            {
+                color: getBaseBorderColor(defs),
+            },
+            {
+                gradient: {
+                    id: `gradient1-${id}`,
+                    defsElement: SVGGradientDefsUtils.getRadialGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().primary },
+                                { value: defs.getColors().secondary },
+                                { value: defs.getColors().primary },
+                            ],
+                        },
+                        SurfaceAnimationUtils.Radial.grow([0, 2], {
+                            ...defs,
+                            getAnimationDurationMs: () => defs.getAnimationDurationMs() * 0.5,
+                        }),
+                    ),
+                },
+                clipPath: {
+                    id: `clip1-${id}`,
+                    defsElement: (
+                        <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                            {SurfaceAnimationUtils.Path.getRotatingWedges(
+                                48,
+                                1.5,
+                                MathUtils.getIntermediateValues(0, 360, 12),
+                                defs,
+                            )}
+                        </clipPath>
+                    ),
+                },
+            },
+        ],
+    },
+
     // SCAN
 
     scan_1: {
@@ -895,7 +950,6 @@ export const SURFACE_CONFIGS = {
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -930,7 +984,6 @@ export const SURFACE_CONFIGS = {
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -957,7 +1010,6 @@ export const SURFACE_CONFIGS = {
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(360, 0, 12), 180),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -992,7 +1044,6 @@ export const SURFACE_CONFIGS = {
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -1019,7 +1070,6 @@ export const SURFACE_CONFIGS = {
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(180, 540, 12), 180),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -1055,7 +1105,6 @@ export const SURFACE_CONFIGS = {
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -1083,7 +1132,6 @@ export const SURFACE_CONFIGS = {
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -1111,7 +1159,6 @@ export const SURFACE_CONFIGS = {
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(180, 540, 12), 180),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -1139,7 +1186,6 @@ export const SURFACE_CONFIGS = {
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(270, 630, 12), 180),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -1174,7 +1220,6 @@ export const SURFACE_CONFIGS = {
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -1201,7 +1246,6 @@ export const SURFACE_CONFIGS = {
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(180, 540, 12), 180),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -1234,7 +1278,6 @@ export const SURFACE_CONFIGS = {
                                     getAnimationDurationMs: () => defs.getAnimationDurationMs() * 0.5,
                                 },
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -1285,7 +1328,6 @@ export const SURFACE_CONFIGS = {
                                 ),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -1335,7 +1377,6 @@ export const SURFACE_CONFIGS = {
                                 ),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -1375,7 +1416,6 @@ export const SURFACE_CONFIGS = {
                                 ),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -1403,7 +1443,6 @@ export const SURFACE_CONFIGS = {
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -1459,7 +1498,6 @@ export const SURFACE_CONFIGS = {
                                 ),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -1503,7 +1541,6 @@ export const SURFACE_CONFIGS = {
                                 ),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },
@@ -1531,7 +1568,6 @@ export const SURFACE_CONFIGS = {
                                 ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
                                 defs,
                             )}
-                            ,
                         </clipPath>
                     ),
                 },

@@ -310,13 +310,33 @@ export namespace SurfaceAnimationUtils {
     }
 
     export namespace Path {
+        const CX = 0.5;
+        const CY = 0.5;
+        const R = Math.SQRT2;
+
         export const getRotatingArc = (aArray: [rotation: number, arcSize: number][], defs: SurfaceAnimationDefs) => {
-            const steps = aArray.map(([rotation, arcSize]) => SVGUtils.getArcPath(arcSize, rotation));
+            const paths = aArray.map(([rotation, arcSize]) => SVGUtils.getArcPath(arcSize, rotation));
             const commonDefs = getCommonAnimDefs(defs);
 
             return (
-                <path d={steps[0]}>
-                    <animate attributeName="d" values={steps.join(";")} {...commonDefs} />
+                <path d={paths[0]}>
+                    <animate attributeName="d" values={paths.join(";")} {...commonDefs} />
+                </path>
+            );
+        };
+
+        export const getRotatingWedges = (
+            wedgeCount: number,
+            wedgeThickness: number,
+            aArray: number[],
+            defs: SurfaceAnimationDefs,
+        ) => {
+            const paths = aArray.map((rotation) => SVGUtils.getWedgesPath(wedgeCount, wedgeThickness, rotation));
+            const commonDefs = getCommonAnimDefs(defs);
+
+            return (
+                <path d={paths[0]}>
+                    <animate attributeName="d" values={paths.join(";")} {...commonDefs} />
                 </path>
             );
         };

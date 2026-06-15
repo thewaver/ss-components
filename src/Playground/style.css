@@ -113,8 +113,9 @@ label:hover:not(:disabled) {
 
 input:hover:not(:disabled),
 select:hover:not(:disabled),
-textarea:hover:not(:disabled) {
-    filter: brightness(125%);
+textarea:hover:not(:disabled),
+button:hover:not(:disabled) {
+    filter: brightness(120%);
 }
 
 input[type="range"],

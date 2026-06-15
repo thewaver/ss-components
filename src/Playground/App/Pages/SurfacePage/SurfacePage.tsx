@@ -19,7 +19,30 @@ import type { SurfaceConfigColors, SurfaceExampleProps } from "./SurfacePage.typ
 import * as pageStyles from "../Pages.css";
 import * as styles from "./SurfacePage.css";
 
-const STRESS_ITEMS = Array.from({ length: 200 }, (_, idx) => idx + 1);
+const STRESS_ITEMS = [
+    {
+        arr: Array.from({ length: 50 }, (_, idx) => idx + 1),
+        cols: 10,
+        gap: 20,
+        size: 160,
+        hue: 0,
+    },
+    {
+        arr: Array.from({ length: 200 }, (_, idx) => idx + 1),
+        cols: 20,
+        gap: 10,
+        size: 80,
+        hue: 90,
+    },
+    {
+        arr: Array.from({ length: 800 }, (_, idx) => idx + 1),
+        cols: 40,
+        gap: 5,
+        size: 40,
+        hue: 180,
+    },
+];
+
 const STARTING_COLORS: SurfaceConfigColors = {
     background: "#282018",
     primary: "#FFFF00",
@@ -113,16 +136,26 @@ const WideWrapper = (props: SurfaceExampleProps) => {
 
 const StressTest = (props: SurfaceExampleProps) => {
     const [getModalOpen, setModalOpen] = createSignal(false);
+    const [getIndex, setIndex] = createSignal(0);
 
     return (
         <>
-            <Button
-                onClick={async () => {
-                    setModalOpen(true);
-                }}
-            >
-                <div class={pageStyles.buttonContent}>{`Render ${STRESS_ITEMS.length} isntances`}</div>
-            </Button>
+            <For each={STRESS_ITEMS}>
+                {(items, getIndex) => (
+                    <Button
+                        onClick={async () => {
+                            setIndex(getIndex());
+                            setModalOpen(true);
+                        }}
+                    >
+                        <div
+                            class={pageStyles.buttonContent}
+                            style={{ filter: `hue-rotate(${items.hue}deg)` }}
+                        >{`Render ${items.arr.length} isntances`}</div>
+                    </Button>
+                )}
+            </For>
+
             <Modal
                 getMargins={() => CSSUtils.spreadMargin(40)}
                 getIsVisible={getModalOpen}
@@ -147,13 +180,19 @@ const StressTest = (props: SurfaceExampleProps) => {
                             transition: `transform ${getTransitionDurationMs()}ms`,
                         }}
                     >
-                        <div class={styles.stressContainer}>
-                            <For each={STRESS_ITEMS}>
+                        <div
+                            class={styles.stressContainer}
+                            style={{
+                                "grid-template-columns": `repeat(${STRESS_ITEMS[getIndex()].cols}, auto)`,
+                                "gap": `${STRESS_ITEMS[getIndex()].gap}px`,
+                            }}
+                        >
+                            <For each={STRESS_ITEMS[getIndex()].arr}>
                                 {(item) => (
                                     <Surface
                                         getBorderRadii={() => CSSUtils.spreadRadius(10)}
                                         getBorderWidths={() => CSSUtils.spreadWidth(4)}
-                                        getPaddings={() => CSSUtils.spreadPadding(20)}
+                                        getPaddings={() => CSSUtils.spreadPadding(10)}
                                         getStrokeDefs={(getSize, getBorderWidths, getBorderRadii, getState) =>
                                             props.getStrokeConfig().getColorDefs("stress-stroke", getState, {
                                                 getSize,
@@ -175,10 +214,11 @@ const StressTest = (props: SurfaceExampleProps) => {
                                         }
                                         renderChildren={(outer, inner) => (
                                             <div
-                                                class={[
-                                                    styles.borderedContentSmall,
-                                                    props.getShouldPadChildren?.() ? inner : outer,
-                                                ].join(" ")}
+                                                class={props.getShouldPadChildren?.() ? inner : outer}
+                                                style={{
+                                                    width: `${STRESS_ITEMS[getIndex()].size}px`,
+                                                    height: `${STRESS_ITEMS[getIndex()].size}px`,
+                                                }}
                                             >
                                                 {item}
                                             </div>

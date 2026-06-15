@@ -6,7 +6,9 @@ import type { CSSBorderRadius, CSSBorderWidth, CSSPadding } from "../../Abstract
 import type { SVGDefs } from "../../Abstracts/SVG/Defs/SVGDefs.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
 
-export type SurfaceInteractionState = "rest" | "hover" | "press";
+export type SurfaceInteractionState = "hover" | "press";
+
+export type SurfaceInteractionStates = { [k in SurfaceInteractionState]?: boolean };
 
 export type SurfaceProps = AccessorProps<{
     borderWidths: CSSBorderWidth;
@@ -16,12 +18,12 @@ export type SurfaceProps = AccessorProps<{
         getSize: () => Size2d,
         getBorderWidths: () => CSSBorderWidth,
         getBorderRadii: () => CSSBorderRadius,
-        getState: () => SurfaceInteractionState,
+        getInteractionStates: () => SurfaceInteractionStates,
     ) => SVGDefs[];
     getFillDefs?: (
         getSize: () => Size2d,
         getBorderRadii: () => CSSBorderRadius,
-        getState: () => SurfaceInteractionState,
+        getInteractionStates: () => SurfaceInteractionStates,
     ) => SVGDefs[];
     renderChildren: (outerClass: string, innerClass: string) => JSX.Element;
 }>;

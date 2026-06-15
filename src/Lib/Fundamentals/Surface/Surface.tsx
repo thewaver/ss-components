@@ -4,7 +4,7 @@ import { type Size2d } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { CSSUtils } from "../../Abstracts/CSS/CSS.utils";
-import type { SurfaceInteractionState, SurfaceProps } from "./Surface.types";
+import type { SurfaceInteractionStates, SurfaceProps } from "./Surface.types";
 import { SurfaceUtils } from "./Surface.utils";
 
 import * as styles from "./Surface.css";
@@ -15,11 +15,15 @@ export const Surface = (props: SurfaceProps) => {
     let rootRef: HTMLElement | undefined;
 
     const [getHovered, setHovered] = createSignal(false);
-    const [getPressed, setPressed] = createSignal(false);
+    const [getPressedByMouse, setPressedByMouse] = createSignal(false);
+    const [getPressedByKey, setPressedByKey] = createSignal(false);
     const [getRootSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
 
     const getInteractionState = createMemo(
-        (): SurfaceInteractionState => (getPressed() ? "press" : getHovered() ? "hover" : "rest"),
+        (): SurfaceInteractionStates => ({
+            hover: getHovered(),
+            press: getPressedByKey() || getPressedByMouse(),
+        }),
     );
 
     const getStrokeDefs = createMemo(() => {
@@ -74,10 +78,12 @@ export const Surface = (props: SurfaceProps) => {
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => {
                 setHovered(false);
-                setPressed(false);
+                setPressedByMouse(false);
             }}
-            onMouseDown={() => setPressed(true)}
-            onMouseUp={() => setPressed(false)}
+            onMouseDown={() => setPressedByMouse(true)}
+            onMouseUp={() => setPressedByMouse(false)}
+            onKeyDown={() => setPressedByKey(true)}
+            onKeyUp={() => setPressedByKey(false)}
         >
             {getFillDefs() && (
                 <svg

@@ -30,13 +30,7 @@ export const colorList = style({
 
 export const stressContainer = style({
     display: "grid",
-    gridTemplateColumns: "repeat(20, auto)",
-    gap: 10,
-});
-
-export const borderedContentSmall = style({
-    width: 80,
-    height: 80,
+    fontSize: "0.75rem",
 });
 
 export const borderedContent = style({

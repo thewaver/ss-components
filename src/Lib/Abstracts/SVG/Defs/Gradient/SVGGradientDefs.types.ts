@@ -9,6 +9,7 @@ type SVGGradientDefs = SVGBaseGradientDefs & {
         value: string;
         stop?: number;
     }[];
+    spreadKind?: "smooth" | "banded";
     spreadMethod?: "pad" | "reflect" | "repeat";
 };
 
