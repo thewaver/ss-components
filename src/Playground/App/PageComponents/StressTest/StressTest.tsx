@@ -28,6 +28,7 @@ export const StressTest = (props: StressTestProps) => {
 
         onCleanup(() => {
             cancelAnimationFrame(rafId);
+            setFPS({ current: 0, average: 0 });
 
             cycleFrameCount = 0;
             totalFrameCount = 0;
