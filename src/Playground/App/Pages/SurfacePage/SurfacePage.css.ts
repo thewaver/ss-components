@@ -10,15 +10,6 @@ export const root = style({
     gap: 40,
 });
 
-export const container = style({
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "start",
-    alignItems: "start",
-    gap: 20,
-    maxWidth: 600,
-});
-
 export const colorList = style({
     display: "flex",
     flexWrap: "wrap",
@@ -26,11 +17,6 @@ export const colorList = style({
     justifyContent: "start",
     alignItems: "start",
     gap: 10,
-});
-
-export const stressContainer = style({
-    display: "grid",
-    fontSize: "0.75rem",
 });
 
 export const borderedContent = style({

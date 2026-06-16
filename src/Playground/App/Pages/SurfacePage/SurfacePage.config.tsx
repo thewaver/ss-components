@@ -13,7 +13,7 @@ export type SurfaceColorConfigDefs = SurfaceAnimationUtils.SurfaceAnimationDefs 
     getBorderWidths?: () => CSSBorderWidth;
     getBorderRadii: () => CSSBorderRadius;
     getColors: () => SurfaceConfigColors;
-    getShouldApplyBlur?: () => boolean;
+    getBlurWidth?: () => number;
 };
 
 export type SurfaceConfigDefs = {
@@ -23,12 +23,15 @@ export type SurfaceConfigDefs = {
 const getBaseBorderColor = (defs: SurfaceColorConfigDefs) =>
     `hsl(from ${defs.getColors().background} h s calc(l * 1.5) / 50%)`;
 
-const getBaseBlur = () => ({
-    id: "border-blur-filter",
-    defsElement: new SVGFilterDefsFactory("border-blur-filter")
-        .addGaussianBlurFilter({ stdDeviation: 10 })
-        .getFilterPrimitives(),
-});
+const getBaseBlur = (stdDeviation: number = 0) =>
+    stdDeviation
+        ? {
+              id: "border-blur-filter",
+              defsElement: new SVGFilterDefsFactory("border-blur-filter")
+                  .addGaussianBlurFilter({ stdDeviation })
+                  .getFilterPrimitives({ method: "isolate" }),
+          }
+        : undefined;
 
 export const SURFACE_CONFIGS = {
     plain: {
@@ -61,7 +64,7 @@ export const SURFACE_CONFIGS = {
                         SurfaceAnimationUtils.Radial.grow([0, 1, 1, 1, 1, 0, 0, 0, 0], defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
             {
                 gradient: {
@@ -78,7 +81,7 @@ export const SURFACE_CONFIGS = {
                         SurfaceAnimationUtils.Radial.grow([0, 0, 1, 1, 1, 1, 0, 0, 0], defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
             {
                 gradient: {
@@ -95,7 +98,7 @@ export const SURFACE_CONFIGS = {
                         SurfaceAnimationUtils.Radial.grow([0, 0, 0, 1, 1, 1, 1, 0, 0], defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
             {
                 gradient: {
@@ -112,7 +115,7 @@ export const SURFACE_CONFIGS = {
                         SurfaceAnimationUtils.Radial.grow([0, 0, 0, 0, 1, 1, 1, 1, 0], defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -149,7 +152,7 @@ export const SURFACE_CONFIGS = {
                             SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0.5, -0.5], defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -177,7 +180,7 @@ export const SURFACE_CONFIGS = {
                             SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0.5, -0.5], defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -223,7 +226,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -262,7 +265,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -289,7 +292,7 @@ export const SURFACE_CONFIGS = {
                             SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
                 blend: true,
             },
             {
@@ -307,7 +310,7 @@ export const SURFACE_CONFIGS = {
                         (x1, y1, x2, y2) => SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [1, -1, 1], defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
                 blend: true,
             },
         ],
@@ -345,7 +348,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
                 blend: true,
             },
             {
@@ -375,7 +378,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
                 blend: true,
             },
         ],
@@ -417,7 +420,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
                 blend: true,
             },
             {
@@ -451,7 +454,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
                 blend: true,
             },
             {
@@ -485,7 +488,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
                 blend: true,
             },
             {
@@ -519,7 +522,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
                 blend: true,
             },
         ],
@@ -547,7 +550,7 @@ export const SURFACE_CONFIGS = {
                         SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -572,7 +575,7 @@ export const SURFACE_CONFIGS = {
                         SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
             {
                 gradient: {
@@ -589,7 +592,7 @@ export const SURFACE_CONFIGS = {
                         SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -610,7 +613,7 @@ export const SURFACE_CONFIGS = {
                         SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
             {
                 gradient: {
@@ -626,7 +629,7 @@ export const SURFACE_CONFIGS = {
                         SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -654,7 +657,7 @@ export const SURFACE_CONFIGS = {
                         }),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
                 blend: true,
             },
             {
@@ -672,7 +675,7 @@ export const SURFACE_CONFIGS = {
                         SurfaceAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
                 blend: true,
             },
             {
@@ -693,7 +696,7 @@ export const SURFACE_CONFIGS = {
                         }),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
                 blend: true,
             },
         ],
@@ -765,7 +768,7 @@ export const SURFACE_CONFIGS = {
                             SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -791,7 +794,7 @@ export const SURFACE_CONFIGS = {
                             SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
             {
                 gradient: {
@@ -810,7 +813,7 @@ export const SURFACE_CONFIGS = {
                             SurfaceAnimationUtils.Linear.sweepOrthogonal("y", y1, y2, [-1, 1, -1], defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -848,7 +851,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -886,7 +889,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
             {
                 gradient: {
@@ -916,7 +919,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -1598,7 +1601,7 @@ export const SURFACE_CONFIGS = {
                             SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1.25, 1.25], defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -1624,7 +1627,7 @@ export const SURFACE_CONFIGS = {
                             SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1.25, 1.25], defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
             {
                 gradient: {
@@ -1643,7 +1646,7 @@ export const SURFACE_CONFIGS = {
                             SurfaceAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [1.25, -1.25], defs),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -1680,7 +1683,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -1717,7 +1720,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
             {
                 gradient: {
@@ -1746,7 +1749,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },
@@ -1787,7 +1790,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
             {
                 gradient: {
@@ -1820,7 +1823,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
             {
                 gradient: {
@@ -1853,7 +1856,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
             {
                 gradient: {
@@ -1886,7 +1889,7 @@ export const SURFACE_CONFIGS = {
                             ),
                     ),
                 },
-                filter: defs.getShouldApplyBlur?.() ? getBaseBlur() : undefined,
+                filter: getBaseBlur(defs.getBlurWidth?.() ?? 0),
             },
         ],
     },

@@ -25,6 +25,7 @@ export const SurgeExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...
                         {},
                         getBreakpointOpts(),
                     ),
+                    getIndex(),
                     getKeyframeOpts(),
                 )
             }

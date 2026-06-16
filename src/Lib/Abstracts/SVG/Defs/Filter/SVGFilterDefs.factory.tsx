@@ -29,6 +29,7 @@ export class SVGFilterDefsFactory {
     private contrastCount = 0;
     private inversionCount = 0;
     private colorCount = 0;
+    private maxStdDeviation = 0;
 
     constructor(private readonly filterId: string) {}
 
@@ -38,11 +39,18 @@ export class SVGFilterDefsFactory {
         if (entries.length < 1) return undefined;
 
         const mergedDefs = { ...SVG_PRIMITIVE_DEFS, ...defs };
+        const offset = this.maxStdDeviation * 3;
 
         let currentSourceGraphic = "SourceGraphic";
 
         return (
-            <filter id={this.filterId}>
+            <filter
+                id={this.filterId}
+                x={`${-offset}px`}
+                y={`${-offset}px`}
+                width={`calc(100% + ${offset * 2}px)`}
+                height={`calc(100% + ${offset * 2}px)`}
+            >
                 {entries.map(([, createPrimitive]) => {
                     const result = createPrimitive(currentSourceGraphic);
 
@@ -68,6 +76,7 @@ export class SVGFilterDefsFactory {
     public addDropShadowFilter = (defs: SVGDropShadowFilterDefs, custom?: JSX.Element) => {
         const key = `${this.filterId}_dropShadow_${this.dropShadowCount++}`;
 
+        this.maxStdDeviation = Math.max(this.maxStdDeviation, defs.stdDeviation);
         this.filterPrimitives[key] = () => ({
             element: (
                 <feDropShadow {...defs} result={key}>
@@ -83,6 +92,7 @@ export class SVGFilterDefsFactory {
     public addGaussianBlurFilter = (defs: SVGGaussianBlurFilterDefs, custom?: JSX.Element) => {
         const key = `${this.filterId}_gaussianBlur_${this.gaussianBlurCount++}`;
 
+        this.maxStdDeviation = Math.max(this.maxStdDeviation, defs.stdDeviation);
         this.filterPrimitives[key] = (srcIn: string) => ({
             element: (
                 <feGaussianBlur in={srcIn} {...defs} result={key}>

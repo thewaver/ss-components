@@ -25,6 +25,7 @@ export const SnakeExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...
                         {},
                         getBreakpointOpts(),
                     ),
+                    getIndex(),
                     getKeyframeOpts(),
                 )
             }

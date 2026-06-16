@@ -25,6 +25,7 @@ export const HueExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...ot
                         {},
                         getBreakpointOpts(),
                     ),
+                    getIndex(),
                     getKeyframeOpts(),
                 )
             }

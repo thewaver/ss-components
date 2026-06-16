@@ -26,8 +26,8 @@ const ROOT_KEYFRAMES: Keyframe[] = [
 ];
 
 const getRandomKeyframes = (lineCount: number, opts: ScanlineAnimationKeyframes.HorizontalShiftOpts) =>
-    Array.from({ length: lineCount }, () =>
-        ScanlineAnimationKeyframes.getRandomHorizontalShiftKeyframes(BREAKPOINTS, opts),
+    Array.from({ length: lineCount }, (_, index) =>
+        ScanlineAnimationKeyframes.getRandomHorizontalShiftKeyframes(BREAKPOINTS, index, opts),
     );
 
 type Props = ScanlineAnimationExampleProps &

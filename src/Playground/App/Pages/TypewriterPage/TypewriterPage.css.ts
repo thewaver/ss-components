@@ -47,14 +47,6 @@ export const root = style({
     gap: 40,
 });
 
-export const container = style({
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "start",
-    alignItems: "start",
-    gap: 20,
-});
-
 export const textArea = style({
     minWidth: 320,
     minHeight: 160,

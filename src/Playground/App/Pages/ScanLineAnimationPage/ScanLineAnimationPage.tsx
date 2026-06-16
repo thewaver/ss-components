@@ -1,12 +1,17 @@
 import { For, createMemo, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 
+import { ObjectUtils } from "@thewaver/ss-utils";
+
+import { ScanlineAnimation } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
 import {
     ScanlineAnimationBreakpoints,
     ScanlineAnimationKeyframes,
 } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
+import { StressTest } from "../../PageComponents/StressTest/StressTest";
+import type { StressTestDefs } from "../../PageComponents/StressTest/StressText.types";
 import knight from "../../knight.png";
 import { GlitchExample } from "./Examples/Glitch";
 import GlitchExampleRaw from "./Examples/Glitch.tsx?raw";
@@ -25,6 +30,38 @@ import type { ScanlineAnimationExampleProps } from "./ScanlineAnimationPage.type
 import * as pageStyles from "../Pages.css";
 import * as styles from "./ScanlineAnimationPage.css";
 
+const STRESS_LINE_COUNT = 160;
+const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
+    {
+        count: 8,
+        cols: 4,
+        gap: 10,
+        size: STRESS_LINE_COUNT,
+        anchorHue: 0,
+    },
+    {
+        count: 18,
+        cols: 6,
+        gap: 10,
+        size: STRESS_LINE_COUNT,
+        anchorHue: 60,
+    },
+    {
+        count: 32,
+        cols: 8,
+        gap: 10,
+        size: STRESS_LINE_COUNT,
+        anchorHue: 120,
+    },
+    {
+        count: 50,
+        cols: 10,
+        gap: 10,
+        size: STRESS_LINE_COUNT,
+        anchorHue: 180,
+    },
+];
+
 const GLITCH_SOURCE = highlighter.codeToHtml(GlitchExampleRaw, getDefaultHighlighterConfig());
 const SURGE_SOURCE = highlighter.codeToHtml(SurgeExampleRaw, getDefaultHighlighterConfig());
 const SNAKE_SOURCE = highlighter.codeToHtml(SnakeExampleRaw, getDefaultHighlighterConfig());
@@ -32,9 +69,57 @@ const SPLIT_SOURCE = highlighter.codeToHtml(SplitExampleRaw, getDefaultHighlight
 const GRAYSCALE_SOURCE = highlighter.codeToHtml(GrayscaleExampleRaw, getDefaultHighlighterConfig());
 const HUE_SOURCE = highlighter.codeToHtml(HueExampleRaw, getDefaultHighlighterConfig());
 
+const StressTestWrapper = (props: ScanlineAnimationExampleProps) => {
+    return (
+        <>
+            <div>{"160 lines, transforms only"}</div>
+
+            <StressTest
+                getConfigs={() => STRESS_ITEMS}
+                renderItem={(getConfigIndex) => {
+                    const random = Math.random() * 3;
+                    const foo =
+                        random < 1
+                            ? ScanlineAnimationKeyframes.getHorizontalSnakeKeyframes
+                            : random < 2
+                              ? ScanlineAnimationKeyframes.getHorizontalSplitKeyframes
+                              : ScanlineAnimationKeyframes.getHorizontalStretchKeyframes;
+
+                    return (
+                        <div
+                            class={[styles.imageContainer, pageStyles.measureBox].join(" ")}
+                            style={{
+                                width: `${STRESS_ITEMS[getConfigIndex()].size}px`,
+                                height: `${STRESS_ITEMS[getConfigIndex()].size}px`,
+                            }}
+                        >
+                            <ScanlineAnimation
+                                {...props}
+                                getScanlineAnimationKeyframes={(getIndex, getLineCount) =>
+                                    foo(
+                                        ScanlineAnimationBreakpoints.getBreakpoints(
+                                            props.getOrder(),
+                                            getIndex(),
+                                            STRESS_LINE_COUNT,
+                                            {},
+                                            undefined,
+                                        ),
+                                        getIndex(),
+                                        undefined,
+                                    )
+                                }
+                            />
+                        </div>
+                    );
+                }}
+            />
+        </>
+    );
+};
+
 const SmoothnessInput = (props: { getter: () => number; setter: (value: number) => void }) => {
     return (
-        <div class={pageStyles.propPanel}>
+        <div class={pageStyles.propContainer}>
             <div>{"Smoothness (0-1)"}</div>
             <input
                 type="number"
@@ -53,15 +138,13 @@ const DirInput = (props: {
     setter: (value: ScanlineAnimationBreakpoints.Direction) => void;
 }) => {
     return (
-        <div class={pageStyles.propPanel}>
+        <div class={pageStyles.propContainer}>
             <div>{"Direction"}</div>
             <select
                 value={props.getter()}
                 onChange={(e) => props.setter(e.target.value as ScanlineAnimationBreakpoints.Direction)}
             >
-                <For each={ScanlineAnimationBreakpoints.DIRECTIONS}>
-                    {(order) => <option value={order}>{order}</option>}
-                </For>
+                <For each={ScanlineAnimationBreakpoints.DIRECTIONS}>{(dir) => <option value={dir}>{dir}</option>}</For>
             </select>
         </div>
     );
@@ -72,7 +155,7 @@ const OrdererInput = (props: {
     setter: (value: ScanlineAnimationBreakpoints.OrderingType) => void;
 }) => {
     return (
-        <div class={pageStyles.propPanel}>
+        <div class={pageStyles.propContainer}>
             <div>{"Ordering"}</div>
             <select
                 value={props.getter()}
@@ -98,8 +181,8 @@ const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                 <GlitchExample {...props} getKeyframeOpts={() => keyframeOpts} />
             </div>
 
-            <div class={pageStyles.props}>
-                <div class={pageStyles.propPanel}>
+            <div class={pageStyles.localPropsContainer}>
+                <div class={pageStyles.propContainer}>
                     <div>{"Max shift (%)"}</div>
                     <input
                         type="number"
@@ -115,7 +198,7 @@ const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     />
                 </div>
 
-                <div class={pageStyles.propPanel}>
+                <div class={pageStyles.propContainer}>
                     <div>{"Chunkyness (0-1)"}</div>
                     <input
                         type="number"
@@ -156,8 +239,8 @@ const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                 />
             </div>
 
-            <div class={pageStyles.props}>
-                <div class={pageStyles.propPanel}>
+            <div class={pageStyles.localPropsContainer}>
+                <div class={pageStyles.propContainer}>
                     <div>{"Peak Scale (%)"}</div>
                     <input
                         type="number"
@@ -205,8 +288,8 @@ const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                 />
             </div>
 
-            <div class={pageStyles.props}>
-                <div class={pageStyles.propPanel}>
+            <div class={pageStyles.localPropsContainer}>
+                <div class={pageStyles.propContainer}>
                     <div>{"Shift (%)"}</div>
                     <input
                         type="number"
@@ -254,8 +337,8 @@ const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                 />
             </div>
 
-            <div class={pageStyles.props}>
-                <div class={pageStyles.propPanel}>
+            <div class={pageStyles.localPropsContainer}>
+                <div class={pageStyles.propContainer}>
                     <div>{"Shift (%)"}</div>
                     <input
                         type="number"
@@ -301,7 +384,7 @@ const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                 />
             </div>
 
-            <div class={pageStyles.props}>
+            <div class={pageStyles.localPropsContainer}>
                 <SmoothnessInput
                     getter={() => breakpointOpts.smoothness!}
                     setter={(value) => setBreakpointOpts("smoothness", value)}
@@ -332,7 +415,7 @@ const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                 />
             </div>
 
-            <div class={pageStyles.props}>
+            <div class={pageStyles.localPropsContainer}>
                 <SmoothnessInput
                     getter={() => breakpointOpts.smoothness!}
                     setter={(value) => setBreakpointOpts("smoothness", value)}
@@ -388,7 +471,7 @@ export const ScanlineAnimationPage = () => {
                 component: () => <SplitExampleWrapper {...commonProps} />,
                 src: SPLIT_SOURCE,
             },
-            {
+            /*{
                 name: "Grayscale",
                 component: () => <GrayscaleExampleWrapper {...commonProps} />,
                 src: GRAYSCALE_SOURCE,
@@ -397,19 +480,24 @@ export const ScanlineAnimationPage = () => {
                 name: "Hue",
                 component: () => <HueExampleWrapper {...commonProps} />,
                 src: HUE_SOURCE,
+            },*/
+            {
+                name: "Stress Test",
+                component: () => <StressTestWrapper {...commonProps} />,
+                src: "",
             },
         ];
     });
 
     return (
         <div class={styles.root}>
-            <div class={[styles.container, pageStyles.exampleContainer].join(" ")}>
-                <div class={pageStyles.propPanel}>
+            <div class={pageStyles.globalPropsContainer}>
+                <div class={pageStyles.propContainer}>
                     <div>{"Image"}</div>
                     <input type="file" accept="image/*" onChange={handleFile} />
                 </div>
 
-                <div class={pageStyles.propPanel}>
+                <div class={pageStyles.propContainer}>
                     <div>{"Line count"}</div>
                     <input
                         type="number"
@@ -423,7 +511,7 @@ export const ScanlineAnimationPage = () => {
                     />
                 </div>
 
-                <div class={pageStyles.propPanel}>
+                <div class={pageStyles.propContainer}>
                     <div>{"Animation duration (ms)"}</div>
                     <input
                         type="number"
@@ -439,7 +527,7 @@ export const ScanlineAnimationPage = () => {
                     />
                 </div>
 
-                <div class={pageStyles.propPanel}>
+                <div class={pageStyles.propContainer}>
                     <div>{"Iteration delay (ms)"}</div>
                     <input
                         type="number"

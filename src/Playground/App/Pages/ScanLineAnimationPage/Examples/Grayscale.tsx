@@ -25,6 +25,7 @@ export const GrayscaleExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder,
                         {},
                         getBreakpointOpts(),
                     ),
+                    getIndex(),
                     getKeyframeOpts(),
                 )
             }

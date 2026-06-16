@@ -18,6 +18,41 @@ export const exampleContainer = style({
     padding: 20,
 });
 
+export const globalPropsContainer = style([
+    exampleContainer,
+    {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
+        gap: 10,
+        width: "100%",
+    },
+]);
+
+export const localPropsContainer = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    width: "100%",
+});
+
+export const propContainer = style({
+    display: "grid",
+    gridTemplateColumns: "1fr auto",
+    alignItems: "center",
+    gap: 20,
+    borderRadius: 5,
+    padding: 10,
+    width: "100%",
+    backgroundColor: "rgb(from var(--clr-bkg-secondary) r g b / 50%)",
+    boxShadow: "var(--shd-tiny)",
+});
+
+export const stressContainer = style({
+    position: "relative",
+    display: "grid",
+    fontSize: "0.75rem",
+});
+
 export const content = style({
     backgroundImage: "linear-gradient(45deg, var(--clr-primary), var(--clr-secondary))",
     color: "var(--clr-text-contrast)",
@@ -173,23 +208,4 @@ export const overlayOff = style({
     backdropFilter: "none",
 });
 
-export const props = style({
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "stretch",
-    gap: 10,
-    width: "100%",
-});
-
-export const propPanel = style({
-    display: "grid",
-    gridTemplateColumns: "1fr auto",
-    gap: 20,
-    borderRadius: 5,
-    padding: 10,
-    width: "100%",
-    backgroundColor: "rgb(from var(--clr-bkg-secondary) r g b / 50%)",
-    boxShadow: "var(--shd-tiny)",
-});
-
-globalStyle(`${propPanel} > :first-child`, { alignSelf: "center" });
+globalStyle(`${propContainer} > :first-child`, { alignSelf: "center" });

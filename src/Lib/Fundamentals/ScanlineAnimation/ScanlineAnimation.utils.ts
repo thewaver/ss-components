@@ -96,6 +96,7 @@ export namespace ScanlineAnimationKeyframes {
 
     export const getRandomHorizontalShiftKeyframes = (
         breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleQuad[],
+        idx: number,
         opts?: HorizontalShiftOpts,
     ): Keyframe[] => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_SHIFT_OPTS, ...opts };
@@ -128,6 +129,7 @@ export namespace ScanlineAnimationKeyframes {
 
     export const getHorizontalStretchKeyframes = (
         breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
+        idx: number,
         opts?: HorizontalStretchOpts,
     ): Keyframe[] => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_STRETCH_OPTS, ...opts };
@@ -151,6 +153,7 @@ export namespace ScanlineAnimationKeyframes {
 
     export const getHorizontalSnakeKeyframes = (
         breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
+        idx: number,
         opts?: HorizontalSnakeOpts,
     ): Keyframe[] => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_SNAKE_OPTS, ...opts };
@@ -172,6 +175,7 @@ export namespace ScanlineAnimationKeyframes {
 
     export const getHorizontalHueKeyframes = (
         breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
+        idx: number,
         opts?: HorizontalHueOpts,
     ): Keyframe[] => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_HUE_OPTS, ...opts };
@@ -191,6 +195,7 @@ export namespace ScanlineAnimationKeyframes {
 
     export const getHorizontalGrayscaleKeyframes = (
         breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
+        idx: number,
         opts?: HorizontalGrayscaleOpts,
     ): Keyframe[] => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_GRAYSCALE_OPTS, ...opts };

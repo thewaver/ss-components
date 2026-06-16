@@ -30,10 +30,6 @@ export const Surface = (props: SurfaceProps) => {
         return props.getStrokeDefs?.(getRootSize, props.getBorderWidths, props.getBorderRadii, getInteractionState);
     });
 
-    const getFillDefs = createMemo(() => {
-        return props.getFillDefs?.(getRootSize, props.getBorderRadii, getInteractionState);
-    });
-
     const getPaddings = createMemo(() => {
         return props.getPaddings?.() ?? CSSUtils.spreadPadding(0);
     });
@@ -85,38 +81,6 @@ export const Surface = (props: SurfaceProps) => {
             onKeyDown={() => setPressedByKey(true)}
             onKeyUp={() => setPressedByKey(false)}
         >
-            {getFillDefs() && (
-                <svg
-                    class={styles.surfaceFillSVG}
-                    width={getRootSize().width}
-                    height={getRootSize().height}
-                    viewBox={`0 0 ${getRootSize().width} ${getRootSize().height}`}
-                    overflow="visible"
-                >
-                    <defs>
-                        {getFillDefs()?.map((def) => (
-                            <>
-                                {def.gradient?.defsElement}
-                                {def.filter?.defsElement}
-                                {def.clipPath?.defsElement}
-                            </>
-                        ))}
-                    </defs>
-
-                    <For each={getFillDefs()}>
-                        {(def) => (
-                            <path
-                                d={getPaths().outerPath}
-                                fill={def.gradient ? `url(#${def.gradient?.id})` : def.color}
-                                filter={def.filter ? `url(#${def.filter?.id})` : undefined}
-                                clip-path={def.clipPath ? `url(#${def.clipPath?.id})` : undefined}
-                                style={def.blend ? { "mix-blend-mode": "screen" } : undefined}
-                            />
-                        )}
-                    </For>
-                </svg>
-            )}
-
             {getStrokeDefs() && (
                 <svg
                     class={styles.surfaceStrokeSVG}

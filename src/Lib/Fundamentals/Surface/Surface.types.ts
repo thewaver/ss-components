@@ -20,10 +20,5 @@ export type SurfaceProps = AccessorProps<{
         getBorderRadii: () => CSSBorderRadius,
         getInteractionStates: () => SurfaceInteractionStates,
     ) => SVGDefs[];
-    getFillDefs?: (
-        getSize: () => Size2d,
-        getBorderRadii: () => CSSBorderRadius,
-        getInteractionStates: () => SurfaceInteractionStates,
-    ) => SVGDefs[];
     renderChildren: (outerClass: string, innerClass: string) => JSX.Element;
 }>;

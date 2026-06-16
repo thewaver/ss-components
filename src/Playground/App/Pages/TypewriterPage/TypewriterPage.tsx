@@ -81,33 +81,29 @@ export const TypewriterPage = () => {
 
     return (
         <div class={styles.root}>
-            <div class={[styles.container, pageStyles.exampleContainer].join(" ")}>
-                <div class={pageStyles.props}>
-                    <div class={pageStyles.propPanel}>
-                        <div>{"Container width"}</div>
-                        <input
-                            type="number"
-                            min={40}
-                            max={560}
-                            step={4}
-                            value={getTextContainerWidth()}
-                            onInput={(e) =>
-                                setTextContainerWidth((prev) =>
-                                    Math.min(Math.max(Number(e.target.value) ?? prev, 40), 560),
-                                )
-                            }
-                        />
-                    </div>
+            <div class={pageStyles.globalPropsContainer}>
+                <div class={pageStyles.propContainer}>
+                    <div>{"Container width"}</div>
+                    <input
+                        type="number"
+                        min={40}
+                        max={560}
+                        step={4}
+                        value={getTextContainerWidth()}
+                        onInput={(e) =>
+                            setTextContainerWidth((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 40), 560))
+                        }
+                    />
+                </div>
 
-                    <div class={pageStyles.propPanel}>
-                        <div>{"Effect"}</div>
-                        <select
-                            value={getTextEffect()}
-                            onChange={(e) => setTextEffect(e.target.value as (typeof TEXT_EFFECTS)[number])}
-                        >
-                            <For each={TEXT_EFFECTS}>{(effect) => <option value={effect}>{effect}</option>}</For>
-                        </select>
-                    </div>
+                <div class={pageStyles.propContainer}>
+                    <div>{"Effect"}</div>
+                    <select
+                        value={getTextEffect()}
+                        onChange={(e) => setTextEffect(e.target.value as (typeof TEXT_EFFECTS)[number])}
+                    >
+                        <For each={TEXT_EFFECTS}>{(effect) => <option value={effect}>{effect}</option>}</For>
+                    </select>
                 </div>
             </div>
 
