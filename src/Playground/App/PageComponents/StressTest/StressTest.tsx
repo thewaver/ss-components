@@ -20,18 +20,22 @@ export const StressTest = (props: StressTestProps) => {
     );
 
     createEffect(() => {
-        let rafId: ReturnType<typeof requestAnimationFrame>;
-
-        onCleanup(() => {
-            cancelAnimationFrame(rafId);
-        });
-
-        if (!getModalOpen()) return;
-
         let cycleFrameCount = 0;
         let totalFrameCount = 0;
         let lastTime: number;
         let firstTime: number;
+        let rafId: ReturnType<typeof requestAnimationFrame>;
+
+        onCleanup(() => {
+            cancelAnimationFrame(rafId);
+
+            cycleFrameCount = 0;
+            totalFrameCount = 0;
+            lastTime = 0;
+            firstTime = 0;
+        });
+
+        if (!getModalOpen()) return;
 
         const updateFPS = () => {
             const now = performance.now();
