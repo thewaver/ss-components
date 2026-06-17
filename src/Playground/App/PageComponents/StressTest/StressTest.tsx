@@ -105,8 +105,12 @@ export const StressTest = (props: StressTestProps) => {
                         ].join(" ")}
                         style={{
                             transition: `transform ${getTransitionDurationMs()}ms`,
+                            position: "relative",
                         }}
                     >
+                        <div
+                            class={styles.fpsCounter}
+                        >{`FPS: ${getFPS().current.toFixed(1)}\nAVG: ${getFPS().average.toFixed(1)}`}</div>
                         <div
                             class={pageStyles.stressContainer}
                             style={{
@@ -114,9 +118,6 @@ export const StressTest = (props: StressTestProps) => {
                                 "gap": `${props.getConfigs()[getConfigIndex()].gap}px`,
                             }}
                         >
-                            <div
-                                class={styles.fpsCounter}
-                            >{`FPS: ${getFPS().current.toFixed(1)}\nAVG: ${getFPS().average.toFixed(1)}`}</div>
                             <For each={getArr()}>{(_, getIndex) => props.renderItem(getConfigIndex, getIndex)}</For>
                         </div>
                     </div>

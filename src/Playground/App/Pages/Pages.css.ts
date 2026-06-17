@@ -48,7 +48,6 @@ export const propContainer = style({
 });
 
 export const stressContainer = style({
-    position: "relative",
     display: "grid",
     fontSize: "0.75rem",
 });
