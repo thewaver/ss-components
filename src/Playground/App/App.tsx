@@ -1,5 +1,5 @@
 import type { JSX } from "solid-js";
-import { createEffect, createMemo, createSignal, onMount } from "solid-js";
+import { createEffect, createMemo, createSignal } from "solid-js";
 
 import { Route, type RouteSectionProps, Router } from "@solidjs/router";
 import { StringUtils } from "@thewaver/ss-utils";

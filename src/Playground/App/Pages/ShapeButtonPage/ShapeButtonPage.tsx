@@ -1,6 +1,5 @@
 import { ShapeButton } from "../../../../Lib/Fundamentals/ShapeButton/ShapeButton";
 
-import * as pageStyles from "../Pages.css";
 import * as styles from "./ShapeButtonPage.css";
 
 export const ShapeButtonPage = () => {

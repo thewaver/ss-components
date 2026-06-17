@@ -1,6 +1,7 @@
-import { For, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import { For, createMemo, createSignal } from "solid-js";
 
 import { CSSUtils } from "../../../../Lib/Abstracts/CSS/CSS.utils";
+import { FPSUtils } from "../../../../Lib/Abstracts/FPS/FPS.utils";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
 import type { StressTestProps } from "./StressText.types";
@@ -8,10 +9,7 @@ import type { StressTestProps } from "./StressText.types";
 import * as pageStyles from "./../../Pages/Pages.css";
 import * as styles from "./StressTest.css";
 
-const FPS_INTERVAL = 1000;
-
 export const StressTest = (props: StressTestProps) => {
-    const [getFPS, setFPS] = createSignal({ current: 0, average: 0 });
     const [getModalOpen, setModalOpen] = createSignal(false);
     const [getConfigIndex, setConfigIndex] = createSignal(0);
 
@@ -19,51 +17,7 @@ export const StressTest = (props: StressTestProps) => {
         Array.from({ length: props.getConfigs()[getConfigIndex()].count }, (_, idx) => idx),
     );
 
-    createEffect(() => {
-        let cycleFrameCount = 0;
-        let totalFrameCount = 0;
-        let lastTime: number;
-        let firstTime: number;
-        let rafId: ReturnType<typeof requestAnimationFrame>;
-
-        onCleanup(() => {
-            cancelAnimationFrame(rafId);
-            setFPS({ current: 0, average: 0 });
-
-            cycleFrameCount = 0;
-            totalFrameCount = 0;
-            lastTime = 0;
-            firstTime = 0;
-        });
-
-        if (!getModalOpen()) return;
-
-        const updateFPS = () => {
-            const now = performance.now();
-
-            cycleFrameCount++;
-            totalFrameCount++;
-
-            if (now - lastTime >= FPS_INTERVAL) {
-                const current = (cycleFrameCount * FPS_INTERVAL) / (now - lastTime);
-                const average = (totalFrameCount * FPS_INTERVAL) / (now - firstTime);
-
-                cycleFrameCount = 0;
-                lastTime = now;
-
-                setFPS({ current, average });
-            }
-
-            rafId = requestAnimationFrame(updateFPS);
-        };
-
-        setTimeout(() => {
-            lastTime = performance.now();
-            firstTime = lastTime;
-
-            rafId = requestAnimationFrame(updateFPS);
-        }, FPS_INTERVAL);
-    });
+    const { getFPS } = FPSUtils.createMonitor(getModalOpen);
 
     return (
         <>
@@ -86,8 +40,10 @@ export const StressTest = (props: StressTestProps) => {
             <Modal
                 getMargins={() => CSSUtils.spreadMargin(40)}
                 getIsVisible={getModalOpen}
+                onShow={props.onShowModal}
                 onHide={() => {
                     setModalOpen(false);
+                    props.onHideModal?.();
                 }}
                 renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
                     <div

@@ -11,5 +11,7 @@ export type StressTestDefs = {
 
 export type StressTestProps = AccessorProps<{
     configs: StressTestDefs[];
+    onShowModal?: () => void;
+    onHideModal?: () => void;
     renderItem: (getConfigIndex: () => number, getItemIndex: () => number) => JSX.Element;
 }>;

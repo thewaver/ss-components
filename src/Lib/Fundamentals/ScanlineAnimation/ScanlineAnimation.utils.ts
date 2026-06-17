@@ -171,14 +171,14 @@ export namespace ScanlineAnimationKeyframes {
 
     export type HorizontalHueOpts = {};
 
-    const DEFAULT_HORIZONTAL_HUE_OPTS: Required<HorizontalHueOpts> = {};
+    // const DEFAULT_HORIZONTAL_HUE_OPTS: Required<HorizontalHueOpts> = {};
 
     export const getHorizontalHueKeyframes = (
         breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
         idx: number,
         opts?: HorizontalHueOpts,
     ): Keyframe[] => {
-        const mergedOpts = { ...DEFAULT_HORIZONTAL_HUE_OPTS, ...opts };
+        // const mergedOpts = { ...DEFAULT_HORIZONTAL_HUE_OPTS, ...opts };
 
         return [
             { offset: 0, filter: `hue-rotate(0deg)` },
@@ -191,14 +191,14 @@ export namespace ScanlineAnimationKeyframes {
 
     export type HorizontalGrayscaleOpts = {};
 
-    const DEFAULT_HORIZONTAL_GRAYSCALE_OPTS: Required<HorizontalGrayscaleOpts> = {};
+    // const DEFAULT_HORIZONTAL_GRAYSCALE_OPTS: Required<HorizontalGrayscaleOpts> = {};
 
     export const getHorizontalGrayscaleKeyframes = (
         breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
         idx: number,
         opts?: HorizontalGrayscaleOpts,
     ): Keyframe[] => {
-        const mergedOpts = { ...DEFAULT_HORIZONTAL_GRAYSCALE_OPTS, ...opts };
+        // const mergedOpts = { ...DEFAULT_HORIZONTAL_GRAYSCALE_OPTS, ...opts };
 
         return [
             { offset: 0, filter: `grayscale(0)` },

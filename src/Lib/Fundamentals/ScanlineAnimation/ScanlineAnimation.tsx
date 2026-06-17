@@ -31,7 +31,8 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
     const [getImgRef, setImgRef] = createSignal<HTMLElement>();
     const [getSvgRef, setSvgRef] = createSignal<SVGSVGElement>();
-    const [getIsVisible, setIsVisible] = createSignal(true);
+    const [getIsWindowVisible, setIsWindowVisible] = createSignal(true);
+    const [getIsPlaying, setIsPlaying] = createSignal(true);
     const [getCurrentIteration, setCurrentIteration] = createSignal(0);
     const [getRootSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
 
@@ -40,6 +41,15 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
     const getLineHeight = createMemo(() => getRootSize().height / getLineCount());
 
     const getLineArray = createMemo(() => Array.from({ length: getLineCount() }, (_, i) => i));
+
+    const controller = createMemo(() => ({
+        start: () => {
+            setIsPlaying(true);
+        },
+        stop: () => {
+            setIsPlaying(false);
+        },
+    }));
 
     createEffect(() => {
         let animations: Animation[] = [];
@@ -58,8 +68,10 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
         const duration = getAnimationDurationMs();
         const remainingIterations = getAnimationIterationCount() - getCurrentIteration();
         const animationIterationDelayMs = getAnimationIterationDelayMs();
+        const isWindowVisible = getIsWindowVisible();
+        const isPlaying = getIsPlaying();
 
-        if (!getIsVisible() || !rootRef || !svgRef || remainingIterations <= 0) return;
+        if (!isWindowVisible || !isPlaying || !rootRef || !svgRef || remainingIterations <= 0) return;
 
         const configs = [
             {
@@ -111,8 +123,10 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
     });
 
     onMount(() => {
+        props.getController?.(controller());
+
         const handleVisibilityChange = () => {
-            setIsVisible(document.visibilityState === "visible");
+            setIsWindowVisible(document.visibilityState === "visible");
         };
 
         document.addEventListener("visibilitychange", handleVisibilityChange);

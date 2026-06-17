@@ -10,6 +10,7 @@
         "skipLibCheck": true,
 
         "noUnusedParameters": false,
+        "noUnusedLocals": true,
         "noEmit": true
     },
     "include": ["src"]

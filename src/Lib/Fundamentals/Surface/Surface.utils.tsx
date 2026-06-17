@@ -310,10 +310,6 @@ export namespace SurfaceAnimationUtils {
     }
 
     export namespace Path {
-        const CX = 0.5;
-        const CY = 0.5;
-        const R = Math.SQRT2;
-
         export const getRotatingArc = (aArray: [rotation: number, arcSize: number][], defs: SurfaceAnimationDefs) => {
             const paths = aArray.map(([rotation, arcSize]) => SVGUtils.getArcPath(arcSize, rotation));
             const commonDefs = getCommonAnimDefs(defs);

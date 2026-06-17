@@ -1,9 +1,8 @@
 import { For, createMemo, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 
-import { ObjectUtils } from "@thewaver/ss-utils";
-
 import { ScanlineAnimation } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
+import type { ScanlineAnimationController } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.types";
 import {
     ScanlineAnimationBreakpoints,
     ScanlineAnimationKeyframes,
@@ -69,13 +68,19 @@ const SPLIT_SOURCE = highlighter.codeToHtml(SplitExampleRaw, getDefaultHighlight
 const GRAYSCALE_SOURCE = highlighter.codeToHtml(GrayscaleExampleRaw, getDefaultHighlighterConfig());
 const HUE_SOURCE = highlighter.codeToHtml(HueExampleRaw, getDefaultHighlighterConfig());
 
-const StressTestWrapper = (props: ScanlineAnimationExampleProps) => {
+const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers: ScanlineAnimationController[] }) => {
     return (
         <>
             <div>{"160 lines, transforms only"}</div>
 
             <StressTest
                 getConfigs={() => STRESS_ITEMS}
+                onHideModal={() => {
+                    props.controllers.forEach((c) => c.start());
+                }}
+                onShowModal={() => {
+                    props.controllers.forEach((c) => c.stop());
+                }}
                 renderItem={(getConfigIndex) => {
                     const random = Math.random() * 3;
                     const foo =
@@ -95,12 +100,13 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps) => {
                         >
                             <ScanlineAnimation
                                 {...props}
+                                getAnimationIterationDelayMs={() => 0}
                                 getScanlineAnimationKeyframes={(getIndex, getLineCount) =>
                                     foo(
                                         ScanlineAnimationBreakpoints.getBreakpoints(
                                             props.getOrder(),
                                             getIndex(),
-                                            STRESS_LINE_COUNT,
+                                            getLineCount(),
                                             {},
                                             undefined,
                                         ),
@@ -367,7 +373,7 @@ const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
 const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) => {
     const [getOrder, setOrder] = createSignal(props.getOrder());
-    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalGrayscaleOpts>({});
+    const [keyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalGrayscaleOpts>({});
     const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
         dir: "asc",
         smoothness: 0.5,
@@ -398,7 +404,7 @@ const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
 const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
     const [getOrder, setOrder] = createSignal(props.getOrder());
-    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalHueOpts>({});
+    const [keyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalHueOpts>({});
     const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
         dir: "asc",
         smoothness: 0.5,
@@ -428,6 +434,8 @@ const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 };
 
 export const ScanlineAnimationPage = () => {
+    let controllers: ScanlineAnimationController[] = [];
+
     const [getSrc, setSrc] = createSignal(knight);
     const [getLineCount, setLineCount] = createSignal(160);
     const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
@@ -442,7 +450,12 @@ export const ScanlineAnimationPage = () => {
     };
 
     const getExamples = createMemo(() => {
+        controllers = [];
+
         const commonProps: ScanlineAnimationExampleProps = {
+            getController: (controller) => {
+                controllers.push(controller);
+            },
             getSrc,
             getLineCount,
             getAnimationDurationMs,
@@ -471,7 +484,7 @@ export const ScanlineAnimationPage = () => {
                 component: () => <SplitExampleWrapper {...commonProps} />,
                 src: SPLIT_SOURCE,
             },
-            /*{
+            {
                 name: "Grayscale",
                 component: () => <GrayscaleExampleWrapper {...commonProps} />,
                 src: GRAYSCALE_SOURCE,
@@ -480,10 +493,10 @@ export const ScanlineAnimationPage = () => {
                 name: "Hue",
                 component: () => <HueExampleWrapper {...commonProps} />,
                 src: HUE_SOURCE,
-            },*/
+            },
             {
                 name: "Stress Test",
-                component: () => <StressTestWrapper {...commonProps} />,
+                component: () => <StressTestWrapper {...commonProps} controllers={controllers} />,
                 src: "",
             },
         ];

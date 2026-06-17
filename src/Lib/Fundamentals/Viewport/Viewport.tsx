@@ -1,5 +1,5 @@
 import type { ParentProps } from "solid-js";
-import { Show, createSignal, onCleanup, onMount } from "solid-js";
+import { createSignal, onCleanup, onMount } from "solid-js";
 
 import { Rect, RectUtils, Size2d } from "@thewaver/ss-utils";
 

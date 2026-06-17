@@ -1,6 +1,5 @@
-import { globalStyle, style } from "@vanilla-extract/css";
+import { style } from "@vanilla-extract/css";
 
-import { tabItem } from "../../../Playground/App/App.css";
 import { buttonElement } from "../Button/Button.css";
 
 export const tabsRoot = style({
