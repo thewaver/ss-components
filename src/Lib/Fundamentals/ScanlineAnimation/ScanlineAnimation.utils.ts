@@ -1,5 +1,7 @@
 import { MathUtils } from "@thewaver/ss-utils";
 
+import type { ScanlineAnimationEvaluationResult } from "./ScanlineAnimation.types";
+
 const reverseBits = (n: number, bits: number) => {
     let r = 0;
 
@@ -30,7 +32,6 @@ export namespace ScanlineAnimationBreakpoints {
     };
 
     export type BreakpointTupleTriple = [start: number, middle: number, end: number];
-    export type BreakpointTupleQuad = [first: number, second: number, third: number, fourth: number];
 
     const applyDirection = (idx: number, lineCount: number, dir: Direction = "asc") =>
         dir === "desc" ? lineCount - 1 - idx : idx;
@@ -82,65 +83,12 @@ export namespace ScanlineAnimationBreakpoints {
 }
 
 export namespace ScanlineAnimationKeyframes {
-    export type HorizontalShiftOpts = {
-        maxShift?: number;
-        chunkyness?: number;
-    };
+    const peak = (a: number, b: number, x: number) => {
+        const mid = (a + b) * 0.5;
 
-    const DEFAULT_HORIZONTAL_SHIFT_OPTS: Required<HorizontalShiftOpts> = {
-        maxShift: 10,
-        chunkyness: 0.5,
-    };
-
-    let shiftPercent = [0];
-
-    export const getRandomHorizontalShiftKeyframes = (
-        breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleQuad[],
-        idx: number,
-        opts?: HorizontalShiftOpts,
-    ): Keyframe[] => {
-        const mergedOpts = { ...DEFAULT_HORIZONTAL_SHIFT_OPTS, ...opts };
-
-        return [
-            { offset: 0, transform: "translateX(0)" },
-            ...breakpoints.flatMap((breakpoint, idx) => {
-                if (!shiftPercent[idx] || Math.random() > mergedOpts.chunkyness) {
-                    shiftPercent[idx] = Math.random() * mergedOpts?.maxShift * 2 - mergedOpts?.maxShift;
-                }
-
-                return [
-                    { offset: breakpoint[0], transform: "translateX(0)" },
-                    { offset: breakpoint[1], transform: `translateX(${shiftPercent[idx]}%)` },
-                    { offset: breakpoint[2], transform: `translateX(${shiftPercent[idx]}%)` },
-                    { offset: breakpoint[3], transform: "translateX(0)" },
-                ];
-            }),
-            { offset: 1, transform: "translateX(0)" },
-        ];
-    };
-
-    export type HorizontalStretchOpts = {
-        peakScalePercent?: number;
-    };
-
-    const DEFAULT_HORIZONTAL_STRETCH_OPTS: Required<HorizontalStretchOpts> = {
-        peakScalePercent: 150,
-    };
-
-    export const getHorizontalStretchKeyframes = (
-        breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
-        idx: number,
-        opts?: HorizontalStretchOpts,
-    ): Keyframe[] => {
-        const mergedOpts = { ...DEFAULT_HORIZONTAL_STRETCH_OPTS, ...opts };
-
-        return [
-            { offset: 0, transform: "scaleX(1)" },
-            { offset: breakpoints[0], transform: "scaleX(1)" },
-            { offset: breakpoints[1], transform: `scaleX(${mergedOpts.peakScalePercent}%)` },
-            { offset: breakpoints[2], transform: "scaleX(1)" },
-            { offset: 1, transform: "scaleX(1)" },
-        ];
+        if (x < a || x > b) return 0;
+        if (x <= mid) return (x - a) / (mid - a);
+        return (b - x) / (b - mid);
     };
 
     export type HorizontalSnakeOpts = {
@@ -151,62 +99,19 @@ export namespace ScanlineAnimationKeyframes {
         shiftPercent: 5,
     };
 
-    export const getHorizontalSnakeKeyframes = (
-        breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
+    export const evaluateHorizontalSnake = (
+        [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
         idx: number,
+        t: number,
         opts?: HorizontalSnakeOpts,
-    ): Keyframe[] => {
+    ): ScanlineAnimationEvaluationResult => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_SNAKE_OPTS, ...opts };
+        const leftWave = peak(b0, b1, t) * -mergedOpts.shiftPercent;
+        const rightWave = peak(b1, b2, t) * mergedOpts.shiftPercent;
 
-        return [
-            { offset: 0, transform: "translateX(0)" },
-            { offset: breakpoints[0], transform: "translateX(0)" },
-            { offset: (breakpoints[0] + breakpoints[1]) * 0.5, transform: `translateX(${-mergedOpts.shiftPercent}%)` },
-            { offset: breakpoints[1], transform: "translateX(0)" },
-            { offset: (breakpoints[2] + breakpoints[1]) * 0.5, transform: `translateX(${+mergedOpts.shiftPercent}%)` },
-            { offset: breakpoints[2], transform: "translateX(0)" },
-            { offset: 1, transform: "translateX(0)" },
-        ];
-    };
-
-    export type HorizontalHueOpts = {};
-
-    // const DEFAULT_HORIZONTAL_HUE_OPTS: Required<HorizontalHueOpts> = {};
-
-    export const getHorizontalHueKeyframes = (
-        breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
-        idx: number,
-        opts?: HorizontalHueOpts,
-    ): Keyframe[] => {
-        // const mergedOpts = { ...DEFAULT_HORIZONTAL_HUE_OPTS, ...opts };
-
-        return [
-            { offset: 0, filter: `hue-rotate(0deg)` },
-            { offset: breakpoints[0], filter: `hue-rotate(0deg)` },
-            { offset: breakpoints[1], filter: `hue-rotate(180deg)` },
-            { offset: breakpoints[2], filter: `hue-rotate(0deg)` },
-            { offset: 1, filter: `hue-rotate(0deg)` },
-        ];
-    };
-
-    export type HorizontalGrayscaleOpts = {};
-
-    // const DEFAULT_HORIZONTAL_GRAYSCALE_OPTS: Required<HorizontalGrayscaleOpts> = {};
-
-    export const getHorizontalGrayscaleKeyframes = (
-        breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
-        idx: number,
-        opts?: HorizontalGrayscaleOpts,
-    ): Keyframe[] => {
-        // const mergedOpts = { ...DEFAULT_HORIZONTAL_GRAYSCALE_OPTS, ...opts };
-
-        return [
-            { offset: 0, filter: `grayscale(0)` },
-            { offset: breakpoints[0], filter: `grayscale(0)` },
-            { offset: breakpoints[1], filter: `grayscale(1)` },
-            { offset: breakpoints[2], filter: `grayscale(0)` },
-            { offset: 1, filter: `grayscale(0)` },
-        ];
+        return {
+            translateX: leftWave + rightWave,
+        };
     };
 
     export type HorizontalSplitOpts = {
@@ -217,22 +122,76 @@ export namespace ScanlineAnimationKeyframes {
         shiftPercent: 10,
     };
 
-    export const getHorizontalSplitKeyframes = (
-        breakpoints: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
+    export const evaluateHorizontalSplit = (
+        [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
         idx: number,
+        t: number,
         opts?: HorizontalSplitOpts,
-    ): Keyframe[] => {
+    ): ScanlineAnimationEvaluationResult => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_SPLIT_OPTS, ...opts };
+        const dir = MathUtils.isEven(idx) ? -1 : 1;
+        const p = peak(b0, b2, t);
 
-        return [
-            { offset: 0, transform: "translateX(0)" },
-            { offset: breakpoints[0], transform: "translateX(0)" },
-            {
-                offset: breakpoints[1],
-                transform: `translateX(${mergedOpts.shiftPercent * (MathUtils.isEven(idx) ? -1 : 1)}%)`,
-            },
-            { offset: breakpoints[2], transform: "translateX(0)" },
-            { offset: 1, transform: "translateX(0)" },
-        ];
+        return {
+            translateX: dir * mergedOpts.shiftPercent * p,
+        };
+    };
+
+    export type HorizontalStretchOpts = {
+        peakScalePercent?: number;
+    };
+
+    const DEFAULT_HORIZONTAL_STRETCH_OPTS: Required<HorizontalStretchOpts> = {
+        peakScalePercent: 150,
+    };
+
+    export const evaluateHorizontalStretch = (
+        [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
+        idx: number,
+        t: number,
+        opts?: HorizontalStretchOpts,
+    ): ScanlineAnimationEvaluationResult => {
+        const mergedOpts = { ...DEFAULT_HORIZONTAL_STRETCH_OPTS, ...opts };
+        const p = peak(b0, b2, t);
+
+        return {
+            scaleX: 100 + p * (mergedOpts.peakScalePercent - 100),
+        };
+    };
+
+    export type HorizontalHueOpts = {};
+
+    // const DEFAULT_HORIZONTAL_HUE_OPTS: Required<HorizontalHueOpts> = {};
+
+    export const evaluateHorizontalHue = (
+        [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
+        idx: number,
+        t: number,
+        opts?: HorizontalHueOpts,
+    ): ScanlineAnimationEvaluationResult => {
+        // const mergedOpts = { ...DEFAULT_HORIZONTAL_HUE_OPTS, ...opts };
+        const p = peak(b0, b2, t);
+
+        return {
+            "hue-rotate": 180 * p,
+        };
+    };
+
+    export type HorizontalGrayscaleOpts = {};
+
+    // const DEFAULT_HORIZONTAL_GRAYSCALE_OPTS: Required<HorizontalGrayscaleOpts> = {};
+
+    export const evaluateHorizontalGrayscale = (
+        [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
+        idx: number,
+        t: number,
+        opts?: HorizontalGrayscaleOpts,
+    ): ScanlineAnimationEvaluationResult => {
+        // const mergedOpts = { ...DEFAULT_HORIZONTAL_GRAYSCALE_OPTS, ...opts };
+        const p = peak(b0, b2, t);
+
+        return {
+            grayscale: 180 * p,
+        };
     };
 }

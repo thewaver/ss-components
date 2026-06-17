@@ -16,8 +16,8 @@ export const SplitExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...
     return (
         <ScanlineAnimation
             {...otherProps}
-            getScanlineAnimationKeyframes={(getIndex, getLineCount) =>
-                ScanlineAnimationKeyframes.getHorizontalSplitKeyframes(
+            evaluateScanlineAnimation={(getIndex, getLineCount, getTimeline) =>
+                ScanlineAnimationKeyframes.evaluateHorizontalSplit(
                     ScanlineAnimationBreakpoints.getBreakpoints(
                         getOrder(),
                         getIndex(),
@@ -26,6 +26,7 @@ export const SplitExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...
                         getBreakpointOpts(),
                     ),
                     getIndex(),
+                    getTimeline(),
                     getKeyframeOpts(),
                 )
             }

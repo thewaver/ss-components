@@ -17,3 +17,18 @@ export type CSSBorderWidth = {
 export type CSSBorderRadius = {
     [k in `border${Capitalize<Corner>}Radius`]: number;
 };
+
+export const CSS_TRANSFORM_KEYS = ["rotate", "scaleX", "scaleY", "skewX", "skewY", "translateX", "translateY"] as const;
+export type CSSTransformKey = (typeof CSS_TRANSFORM_KEYS)[number];
+export const CSS_FILTER_KEYS = [
+    "blur",
+    "brightness",
+    "contrast",
+    "grayscale",
+    "hue-rotate",
+    "invert",
+    "opacity",
+    "saturate",
+] as const;
+export type CSSFilterKey = (typeof CSS_FILTER_KEYS)[number];
+export type CSSAnimationKey = CSSFilterKey | CSSTransformKey;

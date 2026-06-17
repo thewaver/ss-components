@@ -31,6 +31,7 @@ export const globalPropsContainer = style([
 export const localPropsContainer = style({
     display: "flex",
     flexDirection: "column",
+    alignItems: "stretch",
     gap: 10,
     width: "100%",
 });
@@ -205,6 +206,16 @@ export const overlayOn = style({
 
 export const overlayOff = style({
     backdropFilter: "none",
+});
+
+export const overlayOnPlain = style({
+    backgroundColor: "black",
+    opacity: 0.75,
+});
+
+export const overlayOffPlain = style({
+    backgroundColor: "black",
+    opacity: 0,
 });
 
 globalStyle(`${propContainer} > :first-child`, { alignSelf: "center" });

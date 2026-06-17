@@ -30,36 +30,44 @@ import * as pageStyles from "../Pages.css";
 import * as styles from "./ScanlineAnimationPage.css";
 
 const STRESS_LINE_COUNT = 160;
-const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
-    {
-        count: 8,
-        cols: 4,
-        gap: 10,
-        size: STRESS_LINE_COUNT,
-        anchorHue: 0,
-    },
-    {
-        count: 18,
-        cols: 6,
-        gap: 10,
-        size: STRESS_LINE_COUNT,
-        anchorHue: 60,
-    },
-    {
-        count: 32,
-        cols: 8,
-        gap: 10,
-        size: STRESS_LINE_COUNT,
-        anchorHue: 120,
-    },
-    {
-        count: 50,
-        cols: 10,
-        gap: 10,
-        size: STRESS_LINE_COUNT,
-        anchorHue: 180,
-    },
-];
+const STRESS_ITEMS: (StressTestDefs & { size: number; kind: "transform" | "filter" })[] = (
+    ["transform", "filter"] as const
+)
+    .map((kind) => [
+        {
+            count: 8,
+            cols: 4,
+            gap: 10,
+            size: STRESS_LINE_COUNT,
+            anchorHue: kind === "transform" ? 0 : 0,
+            kind,
+        },
+        {
+            count: 18,
+            cols: 6,
+            gap: 10,
+            size: STRESS_LINE_COUNT,
+            anchorHue: kind === "transform" ? 0 : 90,
+            kind,
+        },
+        {
+            count: 32,
+            cols: 8,
+            gap: 10,
+            size: STRESS_LINE_COUNT,
+            anchorHue: kind === "transform" ? 0 : 180,
+            kind,
+        },
+        {
+            count: 50,
+            cols: 10,
+            gap: 10,
+            size: STRESS_LINE_COUNT,
+            anchorHue: kind === "transform" ? 90 : 180,
+            kind,
+        },
+    ])
+    .flat();
 
 const GLITCH_SOURCE = highlighter.codeToHtml(GlitchExampleRaw, getDefaultHighlighterConfig());
 const SURGE_SOURCE = highlighter.codeToHtml(SurgeExampleRaw, getDefaultHighlighterConfig());
@@ -71,7 +79,7 @@ const HUE_SOURCE = highlighter.codeToHtml(HueExampleRaw, getDefaultHighlighterCo
 const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers: ScanlineAnimationController[] }) => {
     return (
         <>
-            <div>{"160 lines, transforms only"}</div>
+            <div>{"160 lines"}</div>
 
             <StressTest
                 getConfigs={() => STRESS_ITEMS}
@@ -81,14 +89,21 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
                 onShowModal={() => {
                     props.controllers.forEach((c) => c.stop());
                 }}
+                renderLabel={(getConfigIndex) =>
+                    `Render ${STRESS_ITEMS[getConfigIndex()].count} ${STRESS_ITEMS[getConfigIndex()].kind} items`
+                }
                 renderItem={(getConfigIndex) => {
                     const random = Math.random() * 3;
                     const foo =
-                        random < 1
-                            ? ScanlineAnimationKeyframes.getHorizontalSnakeKeyframes
-                            : random < 2
-                              ? ScanlineAnimationKeyframes.getHorizontalSplitKeyframes
-                              : ScanlineAnimationKeyframes.getHorizontalStretchKeyframes;
+                        STRESS_ITEMS[getConfigIndex()].kind === "transform"
+                            ? random < 1
+                                ? ScanlineAnimationKeyframes.evaluateHorizontalSnake
+                                : random < 2
+                                  ? ScanlineAnimationKeyframes.evaluateHorizontalSplit
+                                  : ScanlineAnimationKeyframes.evaluateHorizontalStretch
+                            : random < 1
+                              ? ScanlineAnimationKeyframes.evaluateHorizontalHue
+                              : ScanlineAnimationKeyframes.evaluateHorizontalGrayscale;
 
                     return (
                         <div
@@ -101,7 +116,7 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
                             <ScanlineAnimation
                                 {...props}
                                 getAnimationIterationDelayMs={() => 0}
-                                getScanlineAnimationKeyframes={(getIndex, getLineCount) =>
+                                evaluateScanlineAnimation={(getIndex, getLineCount, getTimeline) =>
                                     foo(
                                         ScanlineAnimationBreakpoints.getBreakpoints(
                                             props.getOrder(),
@@ -111,6 +126,7 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
                                             undefined,
                                         ),
                                         getIndex(),
+                                        getTimeline(),
                                         undefined,
                                     )
                                 }
@@ -176,8 +192,8 @@ const OrdererInput = (props: {
 };
 
 const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalShiftOpts>({
-        maxShift: 10,
+    const [keyframeOpts, setKeyframeOpts] = createStore({
+        shiftPercent: 10,
         chunkyness: 0.8,
     });
 
@@ -195,9 +211,9 @@ const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                         min={5}
                         max={25}
                         step={5}
-                        value={keyframeOpts.maxShift}
+                        value={keyframeOpts.shiftPercent}
                         onInput={(e) =>
-                            setKeyframeOpts("maxShift", (prev) =>
+                            setKeyframeOpts("shiftPercent", (prev) =>
                                 Math.min(Math.max(Number(e.target.value) ?? prev, 5), 25),
                             )
                         }

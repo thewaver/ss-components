@@ -1,50 +1,61 @@
 import { createSignal } from "solid-js";
 
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
-import {
-    ScanlineAnimationBreakpoints,
-    ScanlineAnimationKeyframes,
-} from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
+import { ScanlineAnimationBreakpoints } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.types";
 
-const BREAKPOINTS = [
-    [0.35, 0.35, 0.45, 0.45],
-    [0.45, 0.45, 0.55, 0.55],
-    [0.55, 0.55, 0.65, 0.65],
-] as ScanlineAnimationBreakpoints.BreakpointTupleQuad[];
+const BREAKPOINT_GROUPS = [
+    [0.35, 0.4, 0.45],
+    [0.45, 0.5, 0.55],
+    [0.55, 0.6, 0.65],
+] as ScanlineAnimationBreakpoints.BreakpointTupleTriple[];
 
-const ROOT_KEYFRAMES: Keyframe[] = [
-    { offset: 0, filter: "brightness(1)" },
-    ...BREAKPOINTS.flatMap((breakpoint) => [
-        { offset: breakpoint[0], filter: "brightness(1)" },
-        { offset: breakpoint[1], filter: "brightness(1.25)" },
-        { offset: breakpoint[2], filter: "brightness(1.25)" },
-        { offset: breakpoint[3], filter: "brightness(1)" },
-    ]),
-    { offset: 1, filter: "brightness(1)" },
-];
+const getRandomShifts = (lineCount: number, shiftPercent: number, chunkyness: number) => {
+    let lastShift: number | undefined;
 
-const getRandomKeyframes = (lineCount: number, opts: ScanlineAnimationKeyframes.HorizontalShiftOpts) =>
-    Array.from({ length: lineCount }, (_, index) =>
-        ScanlineAnimationKeyframes.getRandomHorizontalShiftKeyframes(BREAKPOINTS, index, opts),
+    return Array.from({ length: BREAKPOINT_GROUPS.length }, () =>
+        Array.from({ length: lineCount }, () => {
+            if (lastShift === undefined || Math.random() > chunkyness) {
+                lastShift = Math.random() * shiftPercent * 2 - shiftPercent;
+            }
+
+            return lastShift;
+        }),
     );
+};
 
 type Props = ScanlineAnimationExampleProps &
     AccessorProps<{
-        keyframeOpts: ScanlineAnimationKeyframes.HorizontalShiftOpts;
+        keyframeOpts: { shiftPercent: number; chunkyness: number };
     }>;
 
 export const GlitchExample = ({ getKeyframeOpts, ...otherProps }: Props) => {
-    const [getKeyframes, setKeyframes] = createSignal(getRandomKeyframes(otherProps.getLineCount(), getKeyframeOpts()));
+    const [getShifts, setShifts] = createSignal(
+        getRandomShifts(otherProps.getLineCount(), getKeyframeOpts().shiftPercent, getKeyframeOpts().chunkyness),
+    );
 
     return (
         <ScanlineAnimation
             {...otherProps}
-            getRootAnimationKeyframes={() => ROOT_KEYFRAMES}
-            getScanlineAnimationKeyframes={(getIndex) => getKeyframes()[getIndex()]}
+            evaluateScanlineAnimation={(getIndex, _, getTimeline) => {
+                const t = getTimeline();
+
+                for (let g = 0; g < BREAKPOINT_GROUPS.length; g++) {
+                    if (t >= BREAKPOINT_GROUPS[g][0] && t <= BREAKPOINT_GROUPS[g][2])
+                        return { translateX: getShifts()[g][getIndex()] };
+                }
+
+                return { translateX: 0 };
+            }}
             onAnimationEnd={() => {
-                setKeyframes(getRandomKeyframes(otherProps.getLineCount(), getKeyframeOpts()));
+                setShifts(
+                    getRandomShifts(
+                        otherProps.getLineCount(),
+                        getKeyframeOpts().shiftPercent,
+                        getKeyframeOpts().chunkyness,
+                    ),
+                );
             }}
         />
     );

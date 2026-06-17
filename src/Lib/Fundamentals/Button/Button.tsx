@@ -1,17 +1,21 @@
-import { createSignal } from "solid-js";
+import { createMemo, createSignal } from "solid-js";
 import type { ParentProps } from "solid-js";
 
 import { Tooltip } from "../Tooltip/Tooltip";
-import type { ButtonProps } from "./Button.types";
+import type { ButtonProps, ButtonSizing } from "./Button.types";
 
 import * as styles from "./Button.css";
+
+const DEFAULT_BUTTON_SIZING: ButtonSizing = "fit-content";
 
 export const Button = (props: ParentProps<ButtonProps>) => {
     const [getAnchorRef, setAnchorRef] = createSignal<HTMLElement>();
 
+    const getSizing = createMemo(() => props.getSizing?.() ?? DEFAULT_BUTTON_SIZING);
+
     return (
         <div
-            class={styles.buttonRoot}
+            class={[styles.buttonRoot, styles.buttonSizingVariants[getSizing()]].join(" ")}
             classList={{
                 [styles.buttonError]: props.getHasError?.(),
                 [styles.buttonPressed]: props.getIsPressed?.(),
@@ -20,7 +24,7 @@ export const Button = (props: ParentProps<ButtonProps>) => {
             <button
                 ref={setAnchorRef}
                 type="button"
-                class={`${styles.buttonElement} ${props.getClassName?.()}`}
+                class={[styles.buttonElement, styles.buttonSizingVariants[getSizing()]].join(" ")}
                 disabled={props.getIsDisabled?.()}
                 aria-pressed={props.getIsPressed?.()}
                 onClick={props.onClick}

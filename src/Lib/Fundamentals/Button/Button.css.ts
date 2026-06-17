@@ -1,12 +1,19 @@
-import { style } from "@vanilla-extract/css";
+import { style, styleVariants } from "@vanilla-extract/css";
 
 export const buttonError = style({});
 export const buttonPressed = style({});
 
+export const buttonSizingVariants = styleVariants({
+    "fit-content": {
+        width: "fit-content",
+    },
+    "fill": {
+        width: "100%",
+    },
+});
+
 export const buttonRoot = style({
     position: "relative",
-    width: "fit-content",
-    height: "fit-content",
     pointerEvents: "none",
     userSelect: "none",
 

@@ -49,7 +49,7 @@ export namespace FPSUtils {
                 firstTime = lastTime;
 
                 rafId = requestAnimationFrame(updateFPS);
-            }, startupTimeMs);
+            }, 0);
         });
 
         return { getFPS };

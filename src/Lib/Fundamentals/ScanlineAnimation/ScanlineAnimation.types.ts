@@ -1,4 +1,7 @@
+import type { CSSAnimationKey } from "../../Abstracts/CSS/CSS.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
+
+export type ScanlineAnimationEvaluationResult = Partial<Record<CSSAnimationKey, number>>;
 
 export type ScanlineAnimationController = {
     start: () => void;
@@ -14,6 +17,10 @@ export type ScanlineAnimationProps = AccessorProps<{
     animationIterationDelayMs?: number;
     rootAnimationKeyframes?: Keyframe[];
     getController?: (controller: ScanlineAnimationController) => void;
-    getScanlineAnimationKeyframes: (getIndex: () => number, getLineCount: () => number) => Keyframe[];
+    evaluateScanlineAnimation: (
+        getIndex: () => number,
+        getLineCount: () => number,
+        getTimeline: () => number,
+    ) => ScanlineAnimationEvaluationResult;
     onAnimationEnd?: () => void;
 }>;

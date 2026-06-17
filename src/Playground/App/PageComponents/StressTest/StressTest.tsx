@@ -21,21 +21,26 @@ export const StressTest = (props: StressTestProps) => {
 
     return (
         <>
-            <For each={props.getConfigs()}>
-                {(items, getIndex) => (
-                    <Button
-                        onClick={async () => {
-                            setConfigIndex(getIndex());
-                            setModalOpen(true);
-                        }}
-                    >
-                        <div
-                            class={pageStyles.buttonContent}
-                            style={{ filter: `hue-rotate(${items.anchorHue}deg)` }}
-                        >{`Render ${items.count} isntances`}</div>
-                    </Button>
-                )}
-            </For>
+            <div class={pageStyles.localPropsContainer}>
+                <For each={props.getConfigs()}>
+                    {(items, getIndex) => (
+                        <Button
+                            getSizing={() => "fill"}
+                            onClick={async () => {
+                                setConfigIndex(getIndex());
+                                setModalOpen(true);
+                            }}
+                        >
+                            <div
+                                class={pageStyles.buttonContent}
+                                style={{ filter: `hue-rotate(${items.anchorHue}deg)` }}
+                            >
+                                {props.renderLabel(getIndex)}
+                            </div>
+                        </Button>
+                    )}
+                </For>
+            </div>
 
             <Modal
                 getMargins={() => CSSUtils.spreadMargin(40)}

@@ -64,6 +64,7 @@ const StressTestWrapper = (props: SurfaceExampleProps) => {
     return (
         <StressTest
             getConfigs={() => STRESS_ITEMS}
+            renderLabel={(getConfigIndex) => `Render ${STRESS_ITEMS[getConfigIndex()].count} items`}
             renderItem={(getConfigIndex, getItemIndex) => (
                 <Surface
                     getBorderRadii={() => CSSUtils.spreadRadius(10)}

@@ -3,6 +3,8 @@ import type { JSX } from "solid-js";
 import type { AccessorProps } from "../../Utils/typeUtils";
 import type { TooltipProps } from "../Tooltip/Tooltip.types";
 
+export type ButtonSizing = "fit-content" | "fill";
+
 export type ExternalButtonFlags = {
     isDisabled?: boolean;
     isPressed?: boolean;
@@ -31,7 +33,7 @@ export type ButtonProps = AccessorProps<
     ButtonCbs &
         ExternalButtonFlags & {
             id?: string;
-            className?: string;
+            sizing?: ButtonSizing;
             tooltipDefs?: Omit<TooltipProps, "getAnchorRef">;
             renderHighlight?: () => JSX.Element;
         }

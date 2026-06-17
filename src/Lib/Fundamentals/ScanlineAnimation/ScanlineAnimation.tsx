@@ -2,6 +2,8 @@ import { For, createEffect, createMemo, createSignal, createUniqueId, onCleanup,
 
 import { Size2d } from "@thewaver/ss-utils";
 
+import { CSSConst } from "../../Abstracts/CSS/CSS.const";
+import { type CSSAnimationKey, CSS_TRANSFORM_KEYS } from "../../Abstracts/CSS/CSS.types";
 import type { ScanlineAnimationProps } from "./ScanlineAnimation.types";
 
 import * as styles from "./ScanlineAnimation.css";
@@ -52,54 +54,80 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
     }));
 
     createEffect(() => {
-        let animations: Animation[] = [];
+        let rafId: ReturnType<typeof requestAnimationFrame>;
         let timeout: ReturnType<typeof setTimeout>;
 
         onCleanup(() => {
-            animations.forEach((a) => a.cancel());
-            animations = [];
+            cancelAnimationFrame(rafId);
             clearTimeout(timeout);
         });
 
-        getLineCount(); // retrigger
+        getLineCount();
 
         const rootRef = getRootRef();
         const svgRef = getSvgRef();
         const duration = getAnimationDurationMs();
-        const remainingIterations = getAnimationIterationCount() - getCurrentIteration();
-        const animationIterationDelayMs = getAnimationIterationDelayMs();
+        const iterationDelay = getAnimationIterationDelayMs();
+        const maxIterations = getAnimationIterationCount();
+        const currentIteration = getCurrentIteration();
         const isWindowVisible = getIsWindowVisible();
         const isPlaying = getIsPlaying();
 
-        if (!isWindowVisible || !isPlaying || !rootRef || !svgRef || remainingIterations <= 0) return;
+        if (!isWindowVisible || !isPlaying || !rootRef || !svgRef || currentIteration >= maxIterations) return;
 
-        const configs = [
-            {
-                el: rootRef,
-                keyframes: props.getRootAnimationKeyframes?.() ?? [],
-            },
-            ...Array.from(svgRef.querySelectorAll(":scope > image"), (el, idx) => {
-                return {
-                    el: el as HTMLElement,
-                    keyframes: props.getScanlineAnimationKeyframes(() => idx, getLineCount),
-                };
-            }),
-        ];
+        const lines = Array.from(svgRef.querySelectorAll(":scope > image")) as HTMLElement[];
+        const start = performance.now();
 
-        for (const config of configs) {
-            let animation = config.el.animate(config.keyframes, { duration, iterations: 1 });
-            animation.onfinish =
-                config.el === rootRef
-                    ? () => {
-                          props.onAnimationEnd?.();
+        const tick = (now: number) => {
+            const t = (now - start) / duration; // 0..1
 
-                          timeout = setTimeout(() => {
-                              setCurrentIteration((prev) => prev + 1);
-                          }, animationIterationDelayMs);
-                      }
-                    : null;
-            animations.push(animation);
-        }
+            for (let i = 0; i < lines.length; i++) {
+                const el = lines[i];
+                const evalResult = props.evaluateScanlineAnimation(
+                    () => i,
+                    () => lines.length,
+                    () => t,
+                );
+                const transforms: string[] = [];
+                const filters: string[] = [];
+
+                for (const [key, value] of Object.entries(evalResult)) {
+                    const k = key as CSSAnimationKey;
+                    const prop = `${k}(${value}${CSSConst.ANIMATION_UNITS[k]})`;
+
+                    if (CSS_TRANSFORM_KEYS.includes(k as any)) {
+                        transforms.push(prop);
+                    } else {
+                        filters.push(prop);
+                    }
+                }
+
+                if (transforms.length) {
+                    el.style.transform = transforms.join(" ");
+                }
+
+                if (filters.length) {
+                    el.style.filter = filters.join(" ");
+                }
+            }
+
+            if (t >= 1) {
+                const current = getCurrentIteration();
+
+                if (current + 1 >= maxIterations) return;
+
+                props.onAnimationEnd?.();
+                timeout = setTimeout(() => {
+                    setCurrentIteration((v) => v + 1);
+                }, iterationDelay);
+
+                return;
+            }
+
+            rafId = requestAnimationFrame(tick);
+        };
+
+        rafId = requestAnimationFrame(tick);
     });
 
     createEffect(() => {

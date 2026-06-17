@@ -16,8 +16,8 @@ export const SurgeExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...
     return (
         <ScanlineAnimation
             {...otherProps}
-            getScanlineAnimationKeyframes={(getIndex, getLineCount) =>
-                ScanlineAnimationKeyframes.getHorizontalStretchKeyframes(
+            evaluateScanlineAnimation={(getIndex, getLineCount, getTimeline) =>
+                ScanlineAnimationKeyframes.evaluateHorizontalStretch(
                     ScanlineAnimationBreakpoints.getBreakpoints(
                         getOrder(),
                         getIndex(),
@@ -26,6 +26,7 @@ export const SurgeExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...
                         getBreakpointOpts(),
                     ),
                     getIndex(),
+                    getTimeline(),
                     getKeyframeOpts(),
                 )
             }
