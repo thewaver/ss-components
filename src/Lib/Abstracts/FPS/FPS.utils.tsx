@@ -3,7 +3,7 @@ import { type Accessor, createEffect, createSignal, onCleanup } from "solid-js";
 const FPS_INTERVAL_MS = 1000;
 
 export namespace FPSUtils {
-    export const createMonitor = (getIsEnabled: Accessor<boolean>, startupTimeMs: number = FPS_INTERVAL_MS) => {
+    export const createMonitor = (getIsEnabled: Accessor<boolean>, startupTimeMs: number = 0) => {
         const [getFPS, setFPS] = createSignal({ current: 0, average: 0 });
 
         createEffect(() => {
@@ -12,8 +12,10 @@ export namespace FPSUtils {
             let lastTime: number;
             let firstTime: number;
             let rafId: ReturnType<typeof requestAnimationFrame>;
+            let timeoutHandle: ReturnType<typeof setTimeout>;
 
             onCleanup(() => {
+                clearTimeout(timeoutHandle);
                 cancelAnimationFrame(rafId);
                 setFPS({ current: 0, average: 0 });
             });
@@ -39,12 +41,12 @@ export namespace FPSUtils {
                 rafId = requestAnimationFrame(updateFPS);
             };
 
-            setTimeout(() => {
+            timeoutHandle = setTimeout(() => {
                 lastTime = performance.now();
                 firstTime = lastTime;
 
                 rafId = requestAnimationFrame(updateFPS);
-            }, 0);
+            }, startupTimeMs);
         });
 
         return { getFPS };

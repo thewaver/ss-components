@@ -1,4 +1,4 @@
-import { style } from "@vanilla-extract/css";
+import { style, styleVariants } from "@vanilla-extract/css";
 
 export const optionButton = style({
     width: "100%",
@@ -13,4 +13,16 @@ export const fpsCounter = style({
     backgroundColor: "black",
     padding: 20,
     whiteSpace: "pre",
+});
+
+export const fpsCounterVariants = styleVariants({
+    good: {
+        color: "#80FF00",
+    },
+    mid: {
+        color: "#FF8000",
+    },
+    bad: {
+        color: "#FF0080",
+    },
 });
