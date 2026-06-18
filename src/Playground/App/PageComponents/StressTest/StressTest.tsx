@@ -11,13 +11,21 @@ import * as styles from "./StressTest.css";
 
 export const StressTest = (props: StressTestProps) => {
     const [getModalOpen, setModalOpen] = createSignal(false);
+    const [getModalTransitionFinished, setModalTransitionFinished] = createSignal(false);
     const [getConfigIndex, setConfigIndex] = createSignal(0);
 
     const getArr = createMemo(() =>
         Array.from({ length: props.getConfigs()[getConfigIndex()].count }, (_, idx) => idx),
     );
 
-    const { getFPS } = FPSUtils.createMonitor(getModalOpen);
+    const getIsMonitoring = createMemo(() => {
+        const isOpen = getModalOpen();
+        const isStable = getModalTransitionFinished();
+
+        return isOpen && isStable;
+    });
+
+    const { getFPS } = FPSUtils.createMonitor(getIsMonitoring);
 
     return (
         <>
@@ -31,12 +39,7 @@ export const StressTest = (props: StressTestProps) => {
                                 setModalOpen(true);
                             }}
                         >
-                            <div
-                                class={pageStyles.buttonContent}
-                                style={{ filter: `hue-rotate(${items.anchorHue}deg)` }}
-                            >
-                                {props.renderLabel(getIndex)}
-                            </div>
+                            <div class={pageStyles.buttonContent}>{props.renderLabel(getIndex)}</div>
                         </Button>
                     )}
                 </For>
@@ -50,6 +53,7 @@ export const StressTest = (props: StressTestProps) => {
                     setModalOpen(false);
                     props.onHideModal?.();
                 }}
+                onTransitionStatusChange={setModalTransitionFinished}
                 renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
                     <div
                         class={getVisibilityTarget() === 1 ? pageStyles.overlayOn : pageStyles.overlayOff}

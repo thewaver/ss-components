@@ -16,11 +16,6 @@ export namespace FPSUtils {
             onCleanup(() => {
                 cancelAnimationFrame(rafId);
                 setFPS({ current: 0, average: 0 });
-
-                cycleFrameCount = 0;
-                totalFrameCount = 0;
-                lastTime = 0;
-                firstTime = 0;
             });
 
             if (!getIsEnabled()) return;

@@ -3,12 +3,9 @@ import type { JSX } from "solid-js";
 import type { Size2d } from "@thewaver/ss-utils";
 
 import type { CSSBorderRadius, CSSBorderWidth, CSSPadding } from "../../Abstracts/CSS/CSS.types";
+import type { InteractionStates } from "../../Abstracts/Interaction/Interaction.types";
 import type { SVGDefs } from "../../Abstracts/SVG/Defs/SVGDefs.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
-
-export type SurfaceInteractionState = "hover" | "press";
-
-export type SurfaceInteractionStates = { [k in SurfaceInteractionState]?: boolean };
 
 export type SurfaceProps = AccessorProps<{
     borderWidths: CSSBorderWidth;
@@ -18,7 +15,7 @@ export type SurfaceProps = AccessorProps<{
         getSize: () => Size2d,
         getBorderWidths: () => CSSBorderWidth,
         getBorderRadii: () => CSSBorderRadius,
-        getInteractionStates: () => SurfaceInteractionStates,
+        getInteractionStates: () => InteractionStates,
     ) => SVGDefs[];
     renderChildren: (outerClass: string, innerClass: string) => JSX.Element;
 }>;

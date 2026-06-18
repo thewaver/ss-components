@@ -6,7 +6,6 @@ export type StressTestDefs = {
     count: number;
     cols: number;
     gap: number;
-    anchorHue: number;
 };
 
 export type StressTestProps = AccessorProps<{

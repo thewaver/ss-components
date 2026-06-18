@@ -4,7 +4,8 @@ import { type Size2d } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { CSSUtils } from "../../Abstracts/CSS/CSS.utils";
-import type { SurfaceInteractionStates, SurfaceProps } from "./Surface.types";
+import type { InteractionStates } from "../../Abstracts/Interaction/Interaction.types";
+import type { SurfaceProps } from "./Surface.types";
 import { SurfaceUtils } from "./Surface.utils";
 
 import * as styles from "./Surface.css";
@@ -20,7 +21,7 @@ export const Surface = (props: SurfaceProps) => {
     const [getRootSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
 
     const getInteractionState = createMemo(
-        (): SurfaceInteractionStates => ({
+        (): InteractionStates => ({
             hover: getHovered(),
             press: getPressedByKey() || getPressedByMouse(),
         }),

@@ -9,6 +9,7 @@ export type ModalProps = AccessorProps<{
     margins?: CSSMargin;
     onShow?: () => void;
     onHide?: () => void;
+    onTransitionStatusChange?: (hasTransitionFinished: boolean) => void;
     renderOverlay: (getVisibilityTarget: () => 0 | 1, getTransitionDurationMs: () => number) => JSX.Element;
     renderContent: (getVisibilityTarget: () => 0 | 1, getTransitionDurationMs: () => number) => JSX.Element;
 }>;

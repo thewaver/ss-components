@@ -39,7 +39,6 @@ const STRESS_ITEMS: (StressTestDefs & { size: number; kind: "transform" | "filte
             cols: 4,
             gap: 10,
             size: STRESS_LINE_COUNT,
-            anchorHue: kind === "transform" ? 0 : 0,
             kind,
         },
         {
@@ -47,7 +46,6 @@ const STRESS_ITEMS: (StressTestDefs & { size: number; kind: "transform" | "filte
             cols: 6,
             gap: 10,
             size: STRESS_LINE_COUNT,
-            anchorHue: kind === "transform" ? 0 : 90,
             kind,
         },
         {
@@ -55,7 +53,6 @@ const STRESS_ITEMS: (StressTestDefs & { size: number; kind: "transform" | "filte
             cols: 8,
             gap: 10,
             size: STRESS_LINE_COUNT,
-            anchorHue: kind === "transform" ? 0 : 180,
             kind,
         },
         {
@@ -63,7 +60,6 @@ const STRESS_ITEMS: (StressTestDefs & { size: number; kind: "transform" | "filte
             cols: 10,
             gap: 10,
             size: STRESS_LINE_COUNT,
-            anchorHue: kind === "transform" ? 90 : 180,
             kind,
         },
     ])

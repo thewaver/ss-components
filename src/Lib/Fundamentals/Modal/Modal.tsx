@@ -26,7 +26,7 @@ export const Modal = (props: ModalProps) => {
         return props.getMargins?.() ?? CSSUtils.spreadMargin(0);
     });
 
-    const { getIsVisible, getTransitionTarget, hide } = ElementFader.createFader(
+    const { getIsVisible, getTransitionTarget, getHasTransitionFinished, hide } = ElementFader.createFader(
         props.getIsVisible,
         getTransitionDurationMs,
         { onShow: props.onShow, onHide: props.onHide },
@@ -50,6 +50,12 @@ export const Modal = (props: ModalProps) => {
         if (!getIsVisible()) return;
 
         document.addEventListener("keydown", handleKeyDown);
+    });
+
+    createEffect(() => {
+        const hasTransitionFinished = getHasTransitionFinished();
+
+        props.onTransitionStatusChange?.(hasTransitionFinished);
     });
 
     return (

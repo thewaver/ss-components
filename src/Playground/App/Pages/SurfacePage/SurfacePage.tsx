@@ -4,6 +4,7 @@ import { createStore } from "solid-js/store";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { CSSUtils } from "../../../../Lib/Abstracts/CSS/CSS.utils";
+import { SVGDefsSamples } from "../../../../Lib/Abstracts/SVG/Defs/SVGDefs.const";
 import { Surface } from "../../../../Lib/Fundamentals/Surface/Surface";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
@@ -13,8 +14,7 @@ import { AsymmetricalExample } from "./Examples/Asymmetrical";
 import AsymmetricalExampleRaw from "./Examples/Asymmetrical.tsx?raw";
 import { WideExample } from "./Examples/Wide";
 import WideExampleRaw from "./Examples/Wide.tsx?raw";
-import { SURFACE_CONFIGS } from "./SurfacePage.config";
-import type { SurfaceConfigColors, SurfaceExampleProps } from "./SurfacePage.types";
+import type { SurfaceExampleProps } from "./SurfacePage.types";
 
 import * as pageStyles from "../Pages.css";
 import * as styles from "./SurfacePage.css";
@@ -25,25 +25,22 @@ const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
         cols: 8,
         gap: 20,
         size: 160,
-        anchorHue: 0,
     },
     {
         count: 160,
         cols: 16,
         gap: 10,
         size: 80,
-        anchorHue: 90,
     },
     {
         count: 640,
         cols: 32,
         gap: 5,
         size: 40,
-        anchorHue: 180,
     },
 ];
 
-const STARTING_COLORS: SurfaceConfigColors = {
+const STARTING_COLORS: SVGDefsSamples.ColorDefs = {
     background: "#282018",
     primary: "#FFFF00",
     secondary: "#00FFFF",
@@ -71,7 +68,7 @@ const StressTestWrapper = (props: SurfaceExampleProps) => {
                     getBorderWidths={() => CSSUtils.spreadWidth(4)}
                     getPaddings={() => CSSUtils.spreadPadding(10)}
                     getStrokeDefs={(getSize, getBorderWidths, getBorderRadii, getState) =>
-                        props.getStrokeConfig().getColorDefs("stress-stroke", getState, {
+                        props.getStrokeConfig().getSVGDefs("stress-stroke", getState, {
                             getSize,
                             getBorderWidths,
                             getBorderRadii,
@@ -103,7 +100,8 @@ export const SurfacePage = () => {
     const [getShouldPadChildren, setShouldPadChildren] = createSignal(false);
     const [getBlurWidth, setBlurWidth] = createSignal(8);
     const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
-    const [getStrokeConfigKey, setStrokeConfigKey] = createSignal<keyof typeof SURFACE_CONFIGS>("sweepDiagonal_1v1");
+    const [getStrokeConfigKey, setStrokeConfigKey] =
+        createSignal<keyof typeof SVGDefsSamples.SAMPLE_CONFIGS>("sweepDiagonal_1v1");
     const [colors, setColors] = createStore(STARTING_COLORS);
 
     const getExamples = createMemo(() => {
@@ -114,7 +112,7 @@ export const SurfacePage = () => {
             getBlurWidth,
             getAnimationDurationMs,
             getColors: () => colors,
-            getStrokeConfig: () => SURFACE_CONFIGS[getStrokeConfigKey()],
+            getStrokeConfig: () => SVGDefsSamples.SAMPLE_CONFIGS[getStrokeConfigKey()],
         };
 
         return [
@@ -168,9 +166,11 @@ export const SurfacePage = () => {
                     <div>{"Stroke Pattern"}</div>
                     <select
                         value={getStrokeConfigKey()}
-                        onChange={(e) => setStrokeConfigKey(e.target.value as keyof typeof SURFACE_CONFIGS)}
+                        onChange={(e) =>
+                            setStrokeConfigKey(e.target.value as keyof typeof SVGDefsSamples.SAMPLE_CONFIGS)
+                        }
                     >
-                        <For each={Object.keys(SURFACE_CONFIGS)}>
+                        <For each={Object.keys(SVGDefsSamples.SAMPLE_CONFIGS)}>
                             {(config) => <option value={config}>{config}</option>}
                         </For>
                     </select>

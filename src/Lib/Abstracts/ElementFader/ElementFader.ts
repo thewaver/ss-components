@@ -64,6 +64,7 @@ export namespace ElementFader {
         return {
             getIsVisible: getIsVisibleOrTransitioning,
             getTransitionTarget,
+            getHasTransitionFinished,
             show,
             hide,
         };

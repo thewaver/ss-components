@@ -1,7 +1,5 @@
+import type { SVGDefsSamples } from "../../../../Lib/Abstracts/SVG/Defs/SVGDefs.const";
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
-import type { SurfaceConfigDefs } from "./SurfacePage.config";
-
-export type SurfaceConfigColors = { [K in "primary" | "secondary" | "tertiary" | "background"]: string };
 
 export type SurfaceExampleProps = AccessorProps<{
     borderRadius: number;
@@ -9,6 +7,6 @@ export type SurfaceExampleProps = AccessorProps<{
     shouldPadChildren?: boolean;
     blurWidth?: number;
     animationDurationMs: number;
-    colors: SurfaceConfigColors;
-    strokeConfig: SurfaceConfigDefs;
+    colors: SVGDefsSamples.ColorDefs;
+    strokeConfig: SVGDefsSamples.ConfigDefs;
 }>;
