@@ -46,6 +46,7 @@ export class SVGFilterDefsFactory {
         return (
             <filter
                 id={this.filterId}
+                filterUnits="userSpaceOnUse"
                 x={`${-offset}px`}
                 y={`${-offset}px`}
                 width={`calc(100% + ${offset * 2}px)`}
