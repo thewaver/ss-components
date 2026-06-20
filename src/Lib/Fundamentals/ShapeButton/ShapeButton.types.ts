@@ -4,7 +4,7 @@ import type { SVGDefs } from "../../Abstracts/SVG/Defs/SVGDefs.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
 import type { ButtonCbs, ButtonFlags, ButtonOutlineDefs, ExternalButtonFlags } from "../Button/Button.types";
 
-export type ShapeButtonShape = "hexagon" | "lozenge";
+export type ShapeButtonShape = "hexagon-top" | "hexagon-side" | "lozenge";
 
 export type ShapeButtonProps = AccessorProps<
     ButtonCbs &

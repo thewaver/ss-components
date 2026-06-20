@@ -57,7 +57,7 @@ export const ShapeButton = (props: ParentProps<ShapeButtonProps>) => {
                     { x: 0, y: height * 0.5 },
                 ];
 
-            case "hexagon":
+            case "hexagon-top":
                 return [
                     { x: width * 0.5, y: 0 },
                     { x: width, y: height / 3 },
@@ -65,6 +65,16 @@ export const ShapeButton = (props: ParentProps<ShapeButtonProps>) => {
                     { x: width * 0.5, y: height },
                     { x: 0, y: (height / 3) * 2 },
                     { x: 0, y: height / 3 },
+                ];
+
+            case "hexagon-side":
+                return [
+                    { x: width / 3, y: 0 },
+                    { x: (width / 3) * 2, y: 0 },
+                    { x: width, y: height * 0.5 },
+                    { x: (width / 3) * 2, y: height },
+                    { x: width / 3, y: height },
+                    { x: 0, y: height * 0.5 },
                 ];
         }
     };

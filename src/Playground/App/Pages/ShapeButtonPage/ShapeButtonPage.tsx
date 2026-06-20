@@ -1,3 +1,4 @@
+import { Shape } from "../../../../Lib/Fundamentals/Shape/Shape";
 import { ShapeButton } from "../../../../Lib/Fundamentals/ShapeButton/ShapeButton";
 
 import * as styles from "./ShapeButtonPage.css";
@@ -17,10 +18,18 @@ export const ShapeButtonPage = () => {
                 <ShapeButton
                     getWidth={() => 320}
                     getHeight={() => 240}
-                    getShape={() => "hexagon"}
+                    getShape={() => "hexagon-top"}
                     getStrokeDefs={() => ({ color: "#00FF0080", width: 20 })}
                     getFillDefs={() => ({ color: "#806040" })}
                 />
+                <ShapeButton
+                    getWidth={() => 320}
+                    getHeight={() => 240}
+                    getShape={() => "hexagon-side"}
+                    getStrokeDefs={() => ({ color: "#FF000080", width: 40 })}
+                    getFillDefs={() => ({ color: "#806040" })}
+                />
+                <Shape getWidth={() => 320} getHeight={() => 240} />
             </div>
         </div>
     );
