@@ -1,132 +1,205 @@
 import type { Point2d } from "@thewaver/ss-utils";
 
 export namespace ShapeUtils {
-    export const getPaths = (pts: Point2d[], edgeThickness: number[], vertexRadius: number[]) => {
-        const N = pts.length;
+    export type PathDefs = {
+        edgeThicknessType?: "progressive" | "constant";
+        joinType?: "round" | "bevel" | "scoop";
+        offset?: number;
+    };
 
-        if (N < 3) return { outer: "", inner: "" };
+    export const getPaths = (
+        vertices: Point2d[],
+        edgeThicknesses: number[],
+        vertexRadii: number[],
+        defs: PathDefs = {},
+    ) => {
+        const { edgeThicknessType = "constant", joinType = "round", offset = 0 } = defs;
+        const vertexCount = vertices.length;
 
-        const getThickness = (i: number) =>
-            i < edgeThickness.length ? edgeThickness[i] : edgeThickness[edgeThickness.length - 1];
+        if (vertexCount < 3) return { outer: "", inner: "" };
 
-        const getRadius = (i: number) =>
-            i < vertexRadius.length ? vertexRadius[i] : vertexRadius[vertexRadius.length - 1];
+        const getThickness = (index: number) =>
+            index < edgeThicknesses.length ? edgeThicknesses[index] : edgeThicknesses[edgeThicknesses.length - 1];
 
-        const uVectors: Point2d[] = [];
-        const nVectors: Point2d[] = [];
+        const getRadius = (index: number) =>
+            index < vertexRadii.length ? vertexRadii[index] : vertexRadii[vertexRadii.length - 1];
 
-        const { cx, cy } = pts.reduce((res, cur) => ({ cx: res.cx + cur.x, cy: res.cy + cur.y }), { cx: 0, cy: 0 });
-        const center = { x: cx / N, y: cy / N };
+        const unitTangents: Point2d[] = [];
+        const unitNormals: Point2d[] = [];
 
-        for (let i = 0; i < N; i++) {
-            const pCurr = pts[i];
-            const pNext = pts[(i + 1) % N];
-            const dx = pNext.x - pCurr.x;
-            const dy = pNext.y - pCurr.y;
-            const len = Math.hypot(dx, dy);
-            const midX = (pCurr.x + pNext.x) * 0.5;
-            const midY = (pCurr.y + pNext.y) * 0.5;
-            const u = { x: dx / len, y: dy / len };
-            uVectors.push(u);
+        const { totalX, totalY } = vertices.reduce(
+            (acc, curr) => ({ totalX: acc.totalX + curr.x, totalY: acc.totalY + curr.y }),
+            { totalX: 0, totalY: 0 },
+        );
+        const polygonCenter = { x: totalX / vertexCount, y: totalY / vertexCount };
 
-            let n = { x: -u.y, y: u.x };
+        for (let i = 0; i < vertexCount; i++) {
+            const currentVertex = vertices[i];
+            const nextVertex = vertices[(i + 1) % vertexCount];
+            const deltaX = nextVertex.x - currentVertex.x;
+            const deltaY = nextVertex.y - currentVertex.y;
+            const edgeLength = Math.hypot(deltaX, deltaY);
+            const edgeMidpointX = (currentVertex.x + nextVertex.x) * 0.5;
+            const edgeMidpointY = (currentVertex.y + nextVertex.y) * 0.5;
+            const vectorToMidpoint = { x: edgeMidpointX - polygonCenter.x, y: edgeMidpointY - polygonCenter.y };
+            const tangent = { x: deltaX / edgeLength, y: deltaY / edgeLength };
+            unitTangents.push(tangent);
 
-            if (n.x * (midX - center.x) + n.y * (midY - center.y) < 0) {
-                n = { x: u.y, y: -u.x };
+            let normal = { x: -tangent.y, y: tangent.x };
+
+            if (normal.x * vectorToMidpoint.x + normal.y * vectorToMidpoint.y < 0) {
+                normal = { x: tangent.y, y: -tangent.x };
             }
-            nVectors.push(n);
+            unitNormals.push(normal);
         }
 
-        const outS: Point2d[] = [];
-        const outE: Point2d[] = [];
-        const inS: Point2d[] = [];
-        const inE: Point2d[] = [];
-        const sweepOuter: number[] = [];
-        const hasArcIn: boolean[] = [];
+        const outerStartPoints: Point2d[] = [];
+        const outerEndPoints: Point2d[] = [];
+        const innerStartPoints: Point2d[] = [];
+        const innerEndPoints: Point2d[] = [];
+        const outerSweepFlags: number[] = [];
+        const innerArcRadii: number[] = [];
 
-        for (let i = 0; i < N; i++) {
-            const prev = (i - 1 + N) % N;
-            const curr = i;
-
-            const pVertex = pts[i];
-            const rArc = getRadius(i);
-            const tPrev = getThickness(prev);
-            const tCurr = getThickness(curr);
-
-            const uPrev = uVectors[prev];
-            const uCurr = uVectors[curr];
-            const nPrev = nVectors[prev];
-            const nCurr = nVectors[curr];
-
-            const cross = uPrev.x * uCurr.y - uPrev.y * uCurr.x;
-
-            const outOffsetPrev = 0;
-            const outOffsetCurr = 0;
-            const inOffsetPrev = tPrev;
-            const inOffsetCurr = tCurr;
-            const tMaxIn = Math.max(inOffsetPrev, inOffsetCurr);
-
-            const b1 = {
-                x: pVertex.x + (outOffsetPrev - rArc) * nPrev.x,
-                y: pVertex.y + (outOffsetPrev - rArc) * nPrev.y,
+        for (let i = 0; i < vertexCount; i++) {
+            const prevIndex = (i - 1 + vertexCount) % vertexCount;
+            const currIndex = i;
+            const vertex = vertices[currIndex];
+            const outerRadius = getRadius(currIndex);
+            const prevThickness = getThickness(prevIndex);
+            const currThickness = getThickness(currIndex);
+            const prevTangent = unitTangents[prevIndex];
+            const currTangent = unitTangents[currIndex];
+            const prevNormal = unitNormals[prevIndex];
+            const currNormal = unitNormals[currIndex];
+            const crossProduct = prevTangent.x * currTangent.y - prevTangent.y * currTangent.x;
+            const prevArcRefPt = {
+                x: vertex.x + (offset - outerRadius) * prevNormal.x,
+                y: vertex.y + (offset - outerRadius) * prevNormal.y,
             };
-            const b2 = {
-                x: pVertex.x + (outOffsetCurr - rArc) * nCurr.x,
-                y: pVertex.y + (outOffsetCurr - rArc) * nCurr.y,
+            const currArcRefPt = {
+                x: vertex.x + (offset - outerRadius) * currNormal.x,
+                y: vertex.y + (offset - outerRadius) * currNormal.y,
             };
 
-            const alphaOut = ((b2.x - b1.x) * uCurr.y - (b2.y - b1.y) * uCurr.x) / cross;
-            const arcCenter = { x: b1.x + alphaOut * uPrev.x, y: b1.y + alphaOut * uPrev.y };
-            const startPtOut = { x: arcCenter.x + rArc * nPrev.x, y: arcCenter.y + rArc * nPrev.y };
-            const endPtOut = { x: arcCenter.x + rArc * nCurr.x, y: arcCenter.y + rArc * nCurr.y };
+            const outerIntersectionScale =
+                ((currArcRefPt.x - prevArcRefPt.x) * currTangent.y -
+                    (currArcRefPt.y - prevArcRefPt.y) * currTangent.x) /
+                crossProduct;
+            const cornerArcCenter = {
+                x: prevArcRefPt.x + outerIntersectionScale * prevTangent.x,
+                y: prevArcRefPt.y + outerIntersectionScale * prevTangent.y,
+            };
+            const outerArcStart = {
+                x: cornerArcCenter.x + outerRadius * prevNormal.x,
+                y: cornerArcCenter.y + outerRadius * prevNormal.y,
+            };
+            const outerArcEnd = {
+                x: cornerArcCenter.x + outerRadius * currNormal.x,
+                y: cornerArcCenter.y + outerRadius * currNormal.y,
+            };
 
-            outS.push(startPtOut);
-            outE.push(endPtOut);
+            outerStartPoints.push(outerArcStart);
+            outerEndPoints.push(outerArcEnd);
 
-            const v1 = { x: startPtOut.x - arcCenter.x, y: startPtOut.y - arcCenter.y };
-            const v2 = { x: endPtOut.x - arcCenter.x, y: endPtOut.y - arcCenter.y };
-            sweepOuter.push(v1.x * v2.y - v1.y * v2.x > 0 ? 1 : 0);
+            const startVector = { x: outerArcStart.x - cornerArcCenter.x, y: outerArcStart.y - cornerArcCenter.y };
+            const endVector = { x: outerArcEnd.x - cornerArcCenter.x, y: outerArcEnd.y - cornerArcCenter.y };
+            outerSweepFlags.push(startVector.x * endVector.y - startVector.y * endVector.x > 0 ? 1 : 0);
 
-            const rIn = rArc - tMaxIn;
+            const arcThicknessPrev =
+                edgeThicknessType === "constant" ? prevThickness : Math.max(prevThickness, currThickness);
+            const arcThicknessCurr =
+                edgeThicknessType === "constant" ? currThickness : Math.max(prevThickness, currThickness);
+            const prevInnerRadius = outerRadius - arcThicknessPrev;
+            const currInnerRadius = outerRadius - arcThicknessCurr;
 
-            if (rIn > 0) {
-                const startPtIn = { x: arcCenter.x + rIn * nPrev.x, y: arcCenter.y + rIn * nPrev.y };
-                const endPtIn = { x: arcCenter.x + rIn * nCurr.x, y: arcCenter.y + rIn * nCurr.y };
+            if (prevInnerRadius > 0 && currInnerRadius > 0) {
+                if (joinType === "scoop") {
+                    const chordMidpoint = {
+                        x: (outerArcStart.x + outerArcEnd.x) * 0.5,
+                        y: (outerArcStart.y + outerArcEnd.y) * 0.5,
+                    };
+                    const scoopCenter = {
+                        x: 2 * chordMidpoint.x - cornerArcCenter.x,
+                        y: 2 * chordMidpoint.y - cornerArcCenter.y,
+                    };
+                    const targetInnerRadius = outerRadius + (arcThicknessPrev + arcThicknessCurr) * 0.5;
+                    const prevInnerEdgePt = {
+                        x: vertex.x - arcThicknessPrev * prevNormal.x,
+                        y: vertex.y - arcThicknessPrev * prevNormal.y,
+                    };
+                    const toPrevStart = { x: prevInnerEdgePt.x - scoopCenter.x, y: prevInnerEdgePt.y - scoopCenter.y };
+                    const bPrev = toPrevStart.x * prevTangent.x + toPrevStart.y * prevTangent.y;
+                    const cPrev =
+                        toPrevStart.x * toPrevStart.x +
+                        toPrevStart.y * toPrevStart.y -
+                        targetInnerRadius * targetInnerRadius;
+                    const sPrev = -bPrev - Math.sqrt(Math.max(0, bPrev * bPrev - cPrev));
+                    const innerArcStart = {
+                        x: prevInnerEdgePt.x + sPrev * prevTangent.x,
+                        y: prevInnerEdgePt.y + sPrev * prevTangent.y,
+                    };
+                    const currInnerEdgePt = {
+                        x: vertex.x - arcThicknessCurr * currNormal.x,
+                        y: vertex.y - arcThicknessCurr * currNormal.y,
+                    };
+                    const toCurrStart = { x: currInnerEdgePt.x - scoopCenter.x, y: currInnerEdgePt.y - scoopCenter.y };
+                    const bCurr = toCurrStart.x * currTangent.x + toCurrStart.y * currTangent.y;
+                    const cCurr =
+                        toCurrStart.x * toCurrStart.x +
+                        toCurrStart.y * toCurrStart.y -
+                        targetInnerRadius * targetInnerRadius;
+                    const sCurr = -bCurr + Math.sqrt(Math.max(0, bCurr * bCurr - cCurr));
+                    const innerArcEnd = {
+                        x: currInnerEdgePt.x + sCurr * currTangent.x,
+                        y: currInnerEdgePt.y + sCurr * currTangent.y,
+                    };
 
-                inS.push(startPtIn);
-                inE.push(endPtIn);
-                hasArcIn.push(true);
+                    innerStartPoints.push(innerArcStart);
+                    innerEndPoints.push(innerArcEnd);
+                    innerArcRadii.push(targetInnerRadius);
+                } else {
+                    // Standard Concentric Round behavior
+                    const innerArcStart = {
+                        x: cornerArcCenter.x + prevInnerRadius * prevNormal.x,
+                        y: cornerArcCenter.y + prevInnerRadius * prevNormal.y,
+                    };
+                    const innerArcEnd = {
+                        x: cornerArcCenter.x + currInnerRadius * currNormal.x,
+                        y: cornerArcCenter.y + currInnerRadius * currNormal.y,
+                    };
+
+                    innerStartPoints.push(innerArcStart);
+                    innerEndPoints.push(innerArcEnd);
+                    innerArcRadii.push(Math.max(0, (prevInnerRadius + currInnerRadius) * 0.5));
+                }
+            }
+        }
+
+        let outerPath = `M ${outerEndPoints[vertexCount - 1].x} ${outerEndPoints[vertexCount - 1].y}`;
+
+        for (let i = 0; i < vertexCount; i++) {
+            outerPath += ` L ${outerStartPoints[i].x} ${outerStartPoints[i].y}`;
+
+            if (joinType === "bevel") {
+                outerPath += ` L ${outerEndPoints[i].x} ${outerEndPoints[i].y}`;
             } else {
-                const c1 = { x: pVertex.x - inOffsetPrev * nPrev.x, y: pVertex.y - inOffsetPrev * nPrev.y };
-                const c2 = { x: pVertex.x - inOffsetCurr * nCurr.x, y: pVertex.y - inOffsetCurr * nCurr.y };
-                const alphaIn = ((c2.x - c1.x) * uCurr.y - (c2.y - c1.y) * uCurr.x) / cross;
-                const miterPt = { x: c1.x + alphaIn * uPrev.x, y: c1.y + alphaIn * uPrev.y };
-
-                inS.push(miterPt);
-                inE.push(miterPt);
-                hasArcIn.push(false);
+                const sweep = joinType === "scoop" ? (outerSweepFlags[i] === 1 ? 0 : 1) : outerSweepFlags[i];
+                outerPath += ` A ${getRadius(i)} ${getRadius(i)} 0 0 ${sweep} ${outerEndPoints[i].x} ${outerEndPoints[i].y}`;
             }
         }
 
-        let outerPath = `M ${outE[N - 1].x} ${outE[N - 1].y}`;
+        let innerPath = `M ${innerEndPoints[vertexCount - 1].x} ${innerEndPoints[vertexCount - 1].y}`;
 
-        for (let i = 0; i < N; i++) {
-            outerPath += ` L ${outS[i].x} ${outS[i].y}`;
-            outerPath += ` A ${getRadius(i)} ${getRadius(i)} 0 0 ${sweepOuter[i]} ${outE[i].x} ${outE[i].y}`;
-        }
+        for (let i = 0; i < vertexCount; i++) {
+            innerPath += ` L ${innerStartPoints[i].x} ${innerStartPoints[i].y}`;
 
-        let innerPath = `M ${inE[N - 1].x} ${inE[N - 1].y}`;
-
-        for (let i = 0; i < N; i++) {
-            innerPath += ` L ${inS[i].x} ${inS[i].y}`;
-
-            if (hasArcIn[i]) {
-                const prev = (i - 1 + N) % N;
-                const inOffsetPrev = getThickness(prev);
-                const inOffsetCurr = getThickness(i);
-                const rIn = getRadius(i) - Math.max(inOffsetPrev, inOffsetCurr);
-
-                innerPath += ` A ${rIn} ${rIn} 0 0 ${sweepOuter[i]} ${inE[i].x} ${inE[i].y}`;
+            if (innerArcRadii[i] > 0) {
+                if (joinType === "bevel") {
+                    innerPath += ` L ${innerEndPoints[i].x} ${innerEndPoints[i].y}`;
+                } else {
+                    const sweep = joinType === "scoop" ? (outerSweepFlags[i] === 1 ? 0 : 1) : outerSweepFlags[i];
+                    innerPath += ` A ${innerArcRadii[i]} ${innerArcRadii[i]} 0 0 ${sweep} ${innerEndPoints[i].x} ${innerEndPoints[i].y}`;
+                }
             }
         }
 

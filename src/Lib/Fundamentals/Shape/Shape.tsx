@@ -14,9 +14,10 @@ export const Shape = (props: ShapeProps) => {
             { x: width, y: 0 },
         ];
 
-        console.log(ShapeUtils.getPaths(pts, [10, 10, 20, 20], [40, 80, 40, 80]));
-
-        return ShapeUtils.getPaths(pts, [10, 10, 20, 20], [40, 80, 40, 80]);
+        return ShapeUtils.getPaths(pts, [10, 10, 20, 20], [40, 80, 40, 80], {
+            edgeThicknessType: "constant",
+            joinType: "round",
+        });
     });
 
     return (
