@@ -9,21 +9,6 @@ export const Shape = (props: ShapeProps) => {
         const height = props.getHeight();
         const pts = props.getPoints({ width, height });
 
-        console.log({
-            pts,
-            edgeThicknesses: props.edgeThicknesses,
-            edgeThicknessKinds: props.edgeThicknessKinds,
-            joinRadii: props.joinRadii,
-            joinKinds: props.joinKinds,
-            output: ShapeUtils.getPaths(
-                pts,
-                props.edgeThicknesses,
-                props.edgeThicknessKinds,
-                props.joinRadii,
-                props.joinKinds,
-            ),
-        });
-
         return ShapeUtils.getPaths(
             pts,
             props.edgeThicknesses,
