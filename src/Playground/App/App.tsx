@@ -11,7 +11,7 @@ import { ElementHighlightPage } from "./Pages/ElementHighlightPage/ElementHighli
 import { ModalPage } from "./Pages/ModalPage/ModalPage";
 import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
 import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
-import { ShapeButtonPage } from "./Pages/ShapeButtonPage/ShapeButtonPage";
+import { ShapePage } from "./Pages/ShapePage/ShapePage";
 import { SurfacePage } from "./Pages/SurfacePage/SurfacePage";
 import { TypewriterPage } from "./Pages/TypewriterPage/TypewriterPage";
 
@@ -75,8 +75,8 @@ const TAB_CONFIGS: TabConfig[] = [
         component: () => <ScreenWiperPage />,
     },
     {
-        name: "ShapeButton",
-        component: () => <ShapeButtonPage />,
+        name: "Shape",
+        component: () => <ShapePage />,
     },
     {
         name: "Surface",

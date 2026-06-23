@@ -7,17 +7,30 @@ export const Shape = (props: ShapeProps) => {
     const getPaths = createMemo(() => {
         const width = props.getWidth();
         const height = props.getHeight();
-        const pts = [
-            { x: 0, y: 0 },
-            { x: 0, y: height },
-            { x: width, y: height },
-            { x: width, y: 0 },
-        ];
+        const pts = props.getPoints({ width, height });
 
-        return ShapeUtils.getPaths(pts, [10, 10, 20, 20], [40, 80, 40, 80], {
-            edgeThicknessType: "constant",
-            joinType: "round",
+        console.log({
+            pts,
+            edgeThicknesses: props.edgeThicknesses,
+            edgeThicknessKinds: props.edgeThicknessKinds,
+            joinRadii: props.joinRadii,
+            joinKinds: props.joinKinds,
+            output: ShapeUtils.getPaths(
+                pts,
+                props.edgeThicknesses,
+                props.edgeThicknessKinds,
+                props.joinRadii,
+                props.joinKinds,
+            ),
         });
+
+        return ShapeUtils.getPaths(
+            pts,
+            props.edgeThicknesses,
+            props.edgeThicknessKinds,
+            props.joinRadii,
+            props.joinKinds,
+        );
     });
 
     return (
@@ -27,8 +40,8 @@ export const Shape = (props: ShapeProps) => {
             viewBox={`0 0 ${props.getWidth()} ${props.getHeight()}`}
             overflow="visible"
         >
-            <path d={`${getPaths().outer}`} fill-rule="evenodd" fill="red" />
-            <path d={`${getPaths().inner}`} fill-rule="evenodd" fill="yellow" />
+            <path d={`${getPaths().outer}`} fill-rule="evenodd" fill="#00F0C0" />
+            <path d={`${getPaths().inner}`} fill-rule="evenodd" fill="#504030" />
         </svg>
     );
 };
