@@ -133,7 +133,8 @@ export namespace ShapeUtils {
             const prevInnerRadius = outerRadius - arcThicknessPrev;
             const currInnerRadius = outerRadius - arcThicknessCurr;
 
-            // Calculate the true intersection point of inner parallel edge walls
+            const innerRadius = outerRadius - Math.max(arcThicknessPrev, arcThicknessCurr);
+
             const prevInnerWallPt = {
                 x: vertex.x - arcThicknessPrev * prevNormal.x,
                 y: vertex.y - arcThicknessPrev * prevNormal.y,
@@ -156,92 +157,84 @@ export namespace ShapeUtils {
             let cornerString = "";
             let finalSegmentEnd = { x: 0, y: 0 };
 
-            // If edge thickness swallows the radius, inner corner naturally sharpens to a single intersection point
-            if (prevInnerRadius <= 0 || currInnerRadius <= 0) {
-                cornerString = `L ${sharpInnerIntersection.x} ${sharpInnerIntersection.y}`;
-                finalSegmentEnd = sharpInnerIntersection;
-            } else if (currentJoinType === "bevel") {
-                const innerArcStart = {
-                    x: cornerArcCenter.x + prevInnerRadius * prevNormal.x,
-                    y: cornerArcCenter.y + prevInnerRadius * prevNormal.y,
+            // 1. Check Scoop FIRST so it is immune to the 0-radius sharp intercept
+            if (currentJoinType === "scoop") {
+                // The Wandering Center Approach - REVERSED FOR CONCAVE SCOOP
+                const scoopRadius = outerRadius + Math.max(arcThicknessPrev, arcThicknessCurr);
+
+                // To find the center of an inverted arc, we push the walls OUTWARD (against the normal)
+                const pA = {
+                    x: prevInnerWallPt.x - scoopRadius * prevNormal.x,
+                    y: prevInnerWallPt.y - scoopRadius * prevNormal.y,
                 };
-                const innerArcEnd = {
-                    x: cornerArcCenter.x + currInnerRadius * currNormal.x,
-                    y: cornerArcCenter.y + currInnerRadius * currNormal.y,
+                const pB = {
+                    x: currInnerWallPt.x - scoopRadius * currNormal.x,
+                    y: currInnerWallPt.y - scoopRadius * currNormal.y,
                 };
-                cornerString = `L ${innerArcStart.x} ${innerArcStart.y} L ${innerArcEnd.x} ${innerArcEnd.y}`;
-                finalSegmentEnd = innerArcEnd;
-            } else if (currentJoinType === "scoop") {
-                const chordMidpoint = {
-                    x: (outerArcStart.x + outerArcEnd.x) * 0.5,
-                    y: (outerArcStart.y + outerArcEnd.y) * 0.5,
-                };
+
+                const centerScale = ((pB.x - pA.x) * currTangent.y - (pB.y - pA.y) * currTangent.x) / crossCheck;
                 const scoopCenter = {
-                    x: 2 * chordMidpoint.x - cornerArcCenter.x,
-                    y: 2 * chordMidpoint.y - cornerArcCenter.y,
+                    x: pA.x + centerScale * prevTangent.x,
+                    y: pA.y + centerScale * prevTangent.y,
                 };
-                const targetInnerRadius = outerRadius + (arcThicknessPrev + arcThicknessCurr) * 0.5;
 
-                const toPrevStart = { x: prevInnerWallPt.x - scoopCenter.x, y: prevInnerWallPt.y - scoopCenter.y };
-                const bPrev = toPrevStart.x * prevTangent.x + toPrevStart.y * prevTangent.y;
-                const cPrev =
-                    toPrevStart.x * toPrevStart.x +
-                    toPrevStart.y * toPrevStart.y -
-                    targetInnerRadius * targetInnerRadius;
-                const sPrev = -bPrev - Math.sqrt(Math.max(0, bPrev * bPrev - cPrev));
+                // Project back INWARD to the walls to get perfect, mathematically tangent start and end points
                 const scoopStart = {
-                    x: prevInnerWallPt.x + sPrev * prevTangent.x,
-                    y: prevInnerWallPt.y + sPrev * prevTangent.y,
+                    x: scoopCenter.x + scoopRadius * prevNormal.x,
+                    y: scoopCenter.y + scoopRadius * prevNormal.y,
                 };
-
-                const toCurrStart = { x: currInnerWallPt.x - scoopCenter.x, y: currInnerWallPt.y - scoopCenter.y };
-                const bCurr = toCurrStart.x * currTangent.x + toCurrStart.y * currTangent.y;
-                const cCurr =
-                    toCurrStart.x * toCurrStart.x +
-                    toCurrStart.y * toCurrStart.y -
-                    targetInnerRadius * targetInnerRadius;
-                const sCurr = -bCurr + Math.sqrt(Math.max(0, bCurr * bCurr - cCurr));
                 const scoopEnd = {
-                    x: currInnerWallPt.x + sCurr * currTangent.x,
-                    y: currInnerWallPt.y + sCurr * currTangent.y,
+                    x: scoopCenter.x + scoopRadius * currNormal.x,
+                    y: scoopCenter.y + scoopRadius * currNormal.y,
                 };
 
                 const scoopSweep = sweepFlag === 1 ? 0 : 1;
-                cornerString = `L ${scoopStart.x} ${scoopStart.y} A ${targetInnerRadius} ${targetInnerRadius} 0 0 ${scoopSweep} ${scoopEnd.x} ${scoopEnd.y}`;
+                cornerString = `L ${scoopStart.x} ${scoopStart.y} A ${scoopRadius} ${scoopRadius} 0 0 ${scoopSweep} ${scoopEnd.x} ${scoopEnd.y}`;
                 finalSegmentEnd = scoopEnd;
-            } else {
-                // "round" join handling
-                const startAngle = Math.atan2(prevNormal.y, prevNormal.x);
-                let endAngle = Math.atan2(currNormal.y, currNormal.x);
-
-                if (sweepFlag === 1 && endAngle < startAngle) endAngle += Math.PI * 2;
-                if (sweepFlag === 0 && endAngle > startAngle) endAngle -= Math.PI * 2;
-
-                const steps = 16; // Increased resolution for smoother asymmetric curves
+            } else if (prevInnerRadius <= 0 || currInnerRadius <= 0) {
+                // 2. If edge thickness swallows the radius, round and bevel naturally sharpen to an intersection point
+                cornerString = `L ${sharpInnerIntersection.x} ${sharpInnerIntersection.y}`;
+                finalSegmentEnd = sharpInnerIntersection;
+            } else if (currentJoinType === "bevel") {
+                // 3. Bevel naturally bridges the inner offset limits
                 const innerArcStart = {
-                    x: cornerArcCenter.x + prevInnerRadius * prevNormal.x,
-                    y: cornerArcCenter.y + prevInnerRadius * prevNormal.y,
+                    x: outerArcStart.x - arcThicknessPrev * prevNormal.x,
+                    y: outerArcStart.y - arcThicknessPrev * prevNormal.y,
                 };
-                cornerString = `L ${innerArcStart.x} ${innerArcStart.y}`;
+                const innerArcEnd = {
+                    x: outerArcEnd.x - arcThicknessCurr * currNormal.x,
+                    y: outerArcEnd.y - arcThicknessCurr * currNormal.y,
+                };
+                cornerString = `L ${innerArcStart.x} ${innerArcStart.y} L ${innerArcEnd.x} ${innerArcEnd.y}`;
+                finalSegmentEnd = innerArcEnd;
+            } else {
+                // 4. "round" join handling - The Wandering Center Approach
+                const pA = {
+                    x: prevInnerWallPt.x - innerRadius * prevNormal.x,
+                    y: prevInnerWallPt.y - innerRadius * prevNormal.y,
+                };
+                const pB = {
+                    x: currInnerWallPt.x - innerRadius * currNormal.x,
+                    y: currInnerWallPt.y - innerRadius * currNormal.y,
+                };
 
-                let lastPt = innerArcStart;
-                for (let s = 1; s <= steps; s++) {
-                    const t = s / steps;
+                const centerScale = ((pB.x - pA.x) * currTangent.y - (pB.y - pA.y) * currTangent.x) / crossCheck;
+                const innerArcCenter = {
+                    x: pA.x + centerScale * prevTangent.x,
+                    y: pA.y + centerScale * prevTangent.y,
+                };
 
-                    // Using a smoothstep / cubic easing interpolation prevents the angular
-                    // acceleration that causes the dimple artifact when thicknesses diverge.
-                    const smoothT = t * t * (3 - 2 * t);
+                const innerArcStart = {
+                    x: innerArcCenter.x + innerRadius * prevNormal.x,
+                    y: innerArcCenter.y + innerRadius * prevNormal.y,
+                };
+                const innerArcEnd = {
+                    x: innerArcCenter.x + innerRadius * currNormal.x,
+                    y: innerArcCenter.y + innerRadius * currNormal.y,
+                };
 
-                    const currentAngle = startAngle + (endAngle - startAngle) * t;
-                    const currentRadius = prevInnerRadius + (currInnerRadius - prevInnerRadius) * smoothT;
-
-                    lastPt = {
-                        x: cornerArcCenter.x + currentRadius * Math.cos(currentAngle),
-                        y: cornerArcCenter.y + currentRadius * Math.sin(currentAngle),
-                    };
-                    cornerString += ` L ${lastPt.x} ${lastPt.y}`;
-                }
-                finalSegmentEnd = lastPt;
+                cornerString = `L ${innerArcStart.x} ${innerArcStart.y} A ${innerRadius} ${innerRadius} 0 0 ${sweepFlag} ${innerArcEnd.x} ${innerArcEnd.y}`;
+                finalSegmentEnd = innerArcEnd;
             }
 
             innerPathSegments.push(cornerString);
