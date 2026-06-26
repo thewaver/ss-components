@@ -32,11 +32,6 @@ export const surfaceStrokeSVG = style({
     pointerEvents: "none",
 });
 
-export const surfaceFillSVG = style({
-    position: "absolute",
-    zIndex: -2,
-});
-
 const surfaceChildren = style({
     display: "grid",
 });

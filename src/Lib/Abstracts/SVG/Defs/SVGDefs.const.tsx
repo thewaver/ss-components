@@ -14,7 +14,7 @@ export namespace SVGDefsSamples {
     type ElementDefs = SVGAnimationDefs & {
         getSize: () => Size2d;
         getBorderWidths?: () => CSSBorderWidth;
-        getBorderRadii: () => CSSBorderRadius;
+        getBorderRadii?: () => CSSBorderRadius;
         getColors: () => ColorDefs;
         getBlurWidth?: () => number;
     };

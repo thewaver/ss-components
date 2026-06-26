@@ -13,6 +13,7 @@ export type ExternalButtonFlags = {
 
 export type InternalButtonFlags = {
     isHovered?: boolean;
+    isActive?: boolean;
     isFocused?: boolean;
 };
 
