@@ -7,6 +7,8 @@ import type { ShapeExampleProps } from "../ShapePage.types";
 import * as styles from "../ShapePage.css";
 
 export const DefaultExample = ({
+    getShouldClipChildren,
+    getShouldPadChildren,
     getShapeKind,
     getStrokeConfig,
     getAnimationDurationMs,
@@ -28,7 +30,14 @@ export const DefaultExample = ({
                     getBlurWidth,
                 })
             }
-            renderChildren={() => <div class={styles.example}>I have a border</div>}
+            renderChildren={(innerPath) => (
+                <div
+                    class={getShouldPadChildren?.() ? styles.exampleWithPadding : styles.example}
+                    style={getShouldClipChildren?.() ? { "clip-path": `path("${innerPath}")` } : {}}
+                >
+                    I have a border
+                </div>
+            )}
         />
     );
 };

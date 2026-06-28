@@ -5,6 +5,7 @@ import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
 export type ShapeExampleProps = Pick<ShapeProps, "edgeThicknessKinds" | "edgeThicknesses" | "joinKinds" | "joinRadii"> &
     AccessorProps<{
+        shouldClipChildren?: boolean;
         shouldPadChildren?: boolean;
         blurWidth?: number;
         animationDurationMs: number;

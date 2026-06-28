@@ -8,7 +8,7 @@ import type { AccessorProps } from "../../Utils/typeUtils";
 import type { ButtonOutlineDefs } from "../Button/Button.types";
 import type { SVGInteractionWrapperProps } from "../SVGInteractible/SVGInteractionWrapper.types";
 
-export const SHAPE_EDGE_THICKNESS_KINDS = ["progressive", "constant"] as const;
+export const SHAPE_EDGE_THICKNESS_KINDS = ["linear", "constant"] as const;
 export type ShapeEdgeThicknessKind = (typeof SHAPE_EDGE_THICKNESS_KINDS)[number];
 
 export const SHAPE_JOIN_KINDS = ["round", "bevel", "scoop"] as const;
@@ -20,8 +20,9 @@ export type ShapeProps = AccessorProps<{
     joinRadii?: number[];
     joinKinds?: ShapeJoinKind[];
     getPoints: (size: Size2d) => Point2d[];
-    getStrokeDefs: (size: Size2d, interactionStates: InteractionStates) => SVGDefs[];
-    renderChildren: () => JSX.Element;
+    getStrokeDefs?: (size: Size2d, interactionStates: InteractionStates) => SVGDefs[];
+    getFillDefs?: (size: Size2d, interactionStates: InteractionStates) => SVGDefs[];
+    renderChildren: (innerPath: string, innerPoints: Point2d[]) => JSX.Element;
 }> &
     (
         | ({ isInteractible: true; getOutlineDefs?: Accessor<ButtonOutlineDefs> } & Omit<

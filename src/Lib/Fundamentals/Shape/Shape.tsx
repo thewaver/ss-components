@@ -50,8 +50,24 @@ export const Shape = (props: ShapeProps) => {
         return props.getStrokeDefs?.(getRootSize(), [] as any);
     });
 
-    const renderStrokes = createMemo(() => (
+    const getFillDefs = createMemo(() => {
+        return props.getFillDefs?.(getRootSize(), [] as any);
+    });
+
+    const renderSVGElements = createMemo(() => (
         <>
+            <For each={getFillDefs()}>
+                {(def) => (
+                    <path
+                        d={getStrokePaths().outer}
+                        fill={def.gradient ? `url(#${def.gradient?.id})` : def.color}
+                        filter={def.filter ? `url(#${def.filter?.id})` : undefined}
+                        clip-path={def.clipPath ? `url(#${def.clipPath?.id})` : undefined}
+                        style={def.blend ? { "mix-blend-mode": "screen" } : undefined}
+                    />
+                )}
+            </For>
+
             <For each={getStrokeDefs()}>
                 {(def) => (
                     <path
@@ -105,7 +121,14 @@ export const Shape = (props: ShapeProps) => {
                 overflow="visible"
             >
                 <defs>
-                    {getStrokeDefs().map((def) => (
+                    {getStrokeDefs()?.map((def) => (
+                        <>
+                            {def.gradient?.defsElement}
+                            {def.filter?.defsElement}
+                            {def.clipPath?.defsElement}
+                        </>
+                    ))}
+                    {getFillDefs()?.map((def) => (
                         <>
                             {def.gradient?.defsElement}
                             {def.filter?.defsElement}
@@ -122,14 +145,14 @@ export const Shape = (props: ShapeProps) => {
                         onClick={props.onClick}
                         onMouseEnter={props.onMouseEnter}
                         onMouseLeave={props.onMouseLeave}
-                        renderChildren={renderStrokes}
+                        renderChildren={renderSVGElements}
                     />
                 ) : (
-                    renderStrokes()
+                    renderSVGElements()
                 )}
             </svg>
 
-            {props.renderChildren()}
+            {props.renderChildren(getStrokePaths().inner, getStrokePaths().innerPoints)}
         </div>
     );
 };

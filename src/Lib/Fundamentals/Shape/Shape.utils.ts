@@ -3,6 +3,112 @@ import type { Point2d } from "@thewaver/ss-utils";
 import type { ShapeEdgeThicknessKind, ShapeJoinKind } from "./Shape.types";
 
 export namespace ShapeUtils {
+    const INNER_RECT_ITERATIONS = 5;
+    const INNER_RECT_SAMPLES = 50;
+
+    export const getInnerRect = (pts: Point2d[]) => {
+        if (pts.length < 3) return { x: 0, y: 0, width: 0, height: 0 };
+
+        let yMin = Infinity;
+        let yMax = -Infinity;
+
+        for (const p of pts) {
+            if (p.y < yMin) yMin = p.y;
+            if (p.y > yMax) yMax = p.y;
+        }
+
+        const getXBounds = (y: number) => {
+            let xMin = Infinity,
+                xMax = -Infinity;
+
+            for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+                const p1 = pts[i],
+                    p2 = pts[j];
+
+                if ((p1.y <= y && p2.y >= y) || (p2.y <= y && p1.y >= y)) {
+                    if (p1.y === p2.y) {
+                        xMin = Math.min(xMin, p1.x, p2.x);
+                        xMax = Math.max(xMax, p1.x, p2.x);
+                    } else {
+                        const x = p1.x + ((y - p1.y) * (p2.x - p1.x)) / (p2.y - p1.y);
+                        xMin = Math.min(xMin, x);
+                        xMax = Math.max(xMax, x);
+                    }
+                }
+            }
+
+            return { xMin, xMax };
+        };
+
+        let bestRect = { x: 0, y: 0, width: 0, height: 0, area: 0 };
+        let yB_min = yMin;
+        let yB_max = yMax;
+        let yT_min = yMin;
+        let yT_max = yMax;
+
+        for (let iter = 0; iter < INNER_RECT_ITERATIONS; iter++) {
+            let currentBest = { ...bestRect };
+
+            const stepB = (yB_max - yB_min) / INNER_RECT_SAMPLES;
+            const stepT = (yT_max - yT_min) / INNER_RECT_SAMPLES;
+            const bVals = [],
+                tVals = [];
+
+            for (let i = 0; i <= INNER_RECT_SAMPLES; i++) {
+                const yB = yB_min + i * stepB;
+                const yT = yT_min + i * stepT;
+                bVals.push({ y: yB, bounds: getXBounds(yB) });
+                tVals.push({ y: yT, bounds: getXBounds(yT) });
+            }
+
+            for (let i = 0; i <= INNER_RECT_SAMPLES; i++) {
+                for (let j = 0; j <= INNER_RECT_SAMPLES; j++) {
+                    const yB = bVals[i].y;
+                    const yT = tVals[j].y;
+
+                    if (yT <= yB) continue;
+
+                    const bB = bVals[i].bounds;
+                    const bT = tVals[j].bounds;
+                    const xL = Math.max(bB.xMin, bT.xMin);
+                    const xR = Math.min(bB.xMax, bT.xMax);
+
+                    if (xR > xL) {
+                        const area = (xR - xL) * (yT - yB);
+                        if (area > currentBest.area) {
+                            currentBest = {
+                                x: xL,
+                                y: yB,
+                                width: xR - xL,
+                                height: yT - yB,
+                                area,
+                            };
+                        }
+                    }
+                }
+            }
+
+            if (currentBest.area === 0) break;
+
+            bestRect = currentBest;
+
+            const rangeB = (yB_max - yB_min) * 0.2;
+            const rangeT = (yT_max - yT_min) * 0.2;
+
+            yB_min = Math.max(yMin, bestRect.y - rangeB);
+            yB_max = Math.min(yMax, bestRect.y + rangeB);
+            yT_min = Math.max(yMin, bestRect.y + bestRect.height - rangeT);
+            yT_max = Math.min(yMax, bestRect.y + bestRect.height + rangeT);
+        }
+
+        return {
+            x: bestRect.x,
+            y: bestRect.y,
+            width: bestRect.width,
+            height: bestRect.height,
+        };
+    };
+
     export const getPaths = (
         vertices: Point2d[],
         edgeThicknesses: number[],
@@ -13,7 +119,7 @@ export namespace ShapeUtils {
     ) => {
         const vertexCount = vertices.length;
 
-        if (vertexCount < 3) return { outer: "", inner: "" };
+        if (vertexCount < 3) return { outer: "", inner: "", outerPoints: [], innerPoints: [] };
 
         const getThickness = (index: number) =>
             index < edgeThicknesses.length ? edgeThicknesses[index] : edgeThicknesses[edgeThicknesses.length - 1];
@@ -70,6 +176,7 @@ export namespace ShapeUtils {
         const outerEndPoints: Point2d[] = [];
         const outerSweepFlags: number[] = [];
         const innerPathSegments: string[] = [];
+        const innerStartPoints: Point2d[] = [];
         const innerEndPoints: Point2d[] = [];
 
         for (let i = 0; i < vertexCount; i++) {
@@ -88,7 +195,6 @@ export namespace ShapeUtils {
             const crossProduct = prevTangent.x * currTangent.y - prevTangent.y * currTangent.x;
             const crossCheck = crossProduct || 0.001;
 
-            // --- OUTER PATH GEOMETRY ---
             const prevArcRefPt = {
                 x: vertex.x + (offset - outerRadius) * prevNormal.x,
                 y: vertex.y + (offset - outerRadius) * prevNormal.y,
@@ -123,7 +229,6 @@ export namespace ShapeUtils {
 
             outerSweepFlags.push(sweepFlag);
 
-            // --- INNER PATH GEOMETRY ---
             const arcThicknessPrev =
                 currentEdgeThicknessType === "constant" ? prevThickness : Math.max(prevThickness, currThickness);
             const arcThicknessCurr =
@@ -149,6 +254,7 @@ export namespace ShapeUtils {
             };
 
             let cornerString = "";
+            let finalSegmentStart = { x: 0, y: 0 };
             let finalSegmentEnd = { x: 0, y: 0 };
 
             if (currentJoinType === "scoop") {
@@ -177,9 +283,11 @@ export namespace ShapeUtils {
                 const scoopSweep = sweepFlag === 1 ? 0 : 1;
 
                 cornerString = `L ${scoopStart.x} ${scoopStart.y} A ${scoopRadius} ${scoopRadius} 0 0 ${scoopSweep} ${scoopEnd.x} ${scoopEnd.y}`;
+                finalSegmentStart = scoopStart;
                 finalSegmentEnd = scoopEnd;
             } else if (prevInnerRadius <= 0 || currInnerRadius <= 0) {
                 cornerString = `L ${sharpInnerIntersection.x} ${sharpInnerIntersection.y}`;
+                finalSegmentStart = sharpInnerIntersection;
                 finalSegmentEnd = sharpInnerIntersection;
             } else if (currentJoinType === "bevel") {
                 const innerArcStart = {
@@ -192,6 +300,7 @@ export namespace ShapeUtils {
                 };
 
                 cornerString = `L ${innerArcStart.x} ${innerArcStart.y} L ${innerArcEnd.x} ${innerArcEnd.y}`;
+                finalSegmentStart = innerArcStart;
                 finalSegmentEnd = innerArcEnd;
             } else {
                 const pA = {
@@ -217,37 +326,53 @@ export namespace ShapeUtils {
                 };
 
                 cornerString = `L ${innerArcStart.x} ${innerArcStart.y} A ${innerRadius} ${innerRadius} 0 0 ${sweepFlag} ${innerArcEnd.x} ${innerArcEnd.y}`;
+                finalSegmentStart = innerArcStart;
                 finalSegmentEnd = innerArcEnd;
             }
 
+            innerStartPoints.push(finalSegmentStart);
             innerPathSegments.push(cornerString);
             innerEndPoints.push(finalSegmentEnd);
         }
 
         let outerPath = `M ${outerEndPoints[vertexCount - 1].x} ${outerEndPoints[vertexCount - 1].y}`;
+        const outerPoints: Point2d[] = [];
+        const innerPoints: Point2d[] = [];
 
         for (let i = 0; i < vertexCount; i++) {
             const currentJoinType = getJoinType(i);
 
             outerPath += ` L ${outerStartPoints[i].x} ${outerStartPoints[i].y}`;
-
             if (currentJoinType === "bevel") {
                 outerPath += ` L ${outerEndPoints[i].x} ${outerEndPoints[i].y}`;
             } else {
                 const sweep = currentJoinType === "scoop" ? (outerSweepFlags[i] === 1 ? 0 : 1) : outerSweepFlags[i];
-
                 outerPath += ` A ${getRadius(i)} ${getRadius(i)} 0 0 ${sweep} ${outerEndPoints[i].x} ${outerEndPoints[i].y}`;
+            }
+
+            outerPoints.push(outerStartPoints[i]);
+            if (outerStartPoints[i].x !== outerEndPoints[i].x || outerStartPoints[i].y !== outerEndPoints[i].y) {
+                outerPoints.push(outerEndPoints[i]);
+            }
+
+            innerPoints.push(innerStartPoints[i]);
+            if (innerStartPoints[i].x !== innerEndPoints[i].x || innerStartPoints[i].y !== innerEndPoints[i].y) {
+                innerPoints.push(innerEndPoints[i]);
             }
         }
 
         const finalInnerEnd = innerEndPoints[vertexCount - 1];
-
         let innerPath = `M ${finalInnerEnd.x} ${finalInnerEnd.y}`;
 
         for (let i = 0; i < vertexCount; i++) {
             innerPath += " " + innerPathSegments[i];
         }
 
-        return { outer: `${outerPath} Z`, inner: `${innerPath} Z` };
+        return {
+            outer: `${outerPath} Z`,
+            inner: `${innerPath} Z`,
+            outerPoints,
+            innerPoints,
+        };
     };
 }

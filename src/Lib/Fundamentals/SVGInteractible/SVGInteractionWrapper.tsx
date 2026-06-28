@@ -44,6 +44,7 @@ export const SVGInteractionWrapper = (props: SVGInteractionWrapperProps) => {
             onMouseLeave={(e) => {
                 props.onMouseLeave?.(e);
                 setInternalFlags("isHovered", false);
+                setActiveByMouse(false);
             }}
             onMouseDown={(e) => {
                 if (props.getIsDisabled?.()) {
