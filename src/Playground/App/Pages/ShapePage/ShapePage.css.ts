@@ -1,10 +1,6 @@
 import { createVar, style } from "@vanilla-extract/css";
 
 export const backgroundColor = createVar();
-export const paddingTop = createVar();
-export const paddingRight = createVar();
-export const paddingBottom = createVar();
-export const paddingLeft = createVar();
 
 export const root = style({
     display: "flex",
@@ -29,19 +25,15 @@ export const colorList = style({
 });
 
 export const example = style({
-    backgroundColor,
+    backgroundColor: `rgb(from ${backgroundColor} r g b / 50%)`,
     resize: "both",
     overflow: "auto",
     width: 360,
     height: 240,
 });
 
-export const exampleWithPadding = style([
-    example,
-    {
-        paddingTop,
-        paddingRight,
-        paddingBottom,
-        paddingLeft,
-    },
-]);
+export const exampleInner = style({
+    border: "2px dashed #FFFFFF20",
+    width: "100%",
+    height: "100%",
+});

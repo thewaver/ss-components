@@ -43,7 +43,7 @@ export const Shape = (props: ShapeProps) => {
                   props.joinRadii,
                   props.joinKinds,
               )
-            : { outer: "", inner: "" };
+            : { outerPath: "", innerPath: "" };
     });
 
     const getStrokeDefs = createMemo(() => {
@@ -59,7 +59,7 @@ export const Shape = (props: ShapeProps) => {
             <For each={getFillDefs()}>
                 {(def) => (
                     <path
-                        d={getStrokePaths().outer}
+                        d={getStrokePaths().outerPath}
                         fill={def.gradient ? `url(#${def.gradient?.id})` : def.color}
                         filter={def.filter ? `url(#${def.filter?.id})` : undefined}
                         clip-path={def.clipPath ? `url(#${def.clipPath?.id})` : undefined}
@@ -71,7 +71,7 @@ export const Shape = (props: ShapeProps) => {
             <For each={getStrokeDefs()}>
                 {(def) => (
                     <path
-                        d={`${getStrokePaths().outer} ${getStrokePaths().inner}`}
+                        d={`${getStrokePaths().outerPath} ${getStrokePaths().innerPath}`}
                         fill-rule="evenodd"
                         fill={def.gradient ? `url(#${def.gradient?.id})` : def.color}
                         filter={def.filter ? `url(#${def.filter?.id})` : undefined}
@@ -83,7 +83,7 @@ export const Shape = (props: ShapeProps) => {
 
             {props.isInteractible ? (
                 <path
-                    d={`${getOutlinePaths().outer} ${getOutlinePaths().inner}`}
+                    d={`${getOutlinePaths().outerPath} ${getOutlinePaths().innerPath}`}
                     fill-rule="evenodd"
                     fill={(props.getOutlineDefs?.() ?? DEFAULT_SHAPE_OUTLINE).color}
                 />
@@ -152,7 +152,11 @@ export const Shape = (props: ShapeProps) => {
                 )}
             </svg>
 
-            {props.renderChildren(getStrokePaths().inner, getStrokePaths().innerPoints)}
+            {props.renderChildren(
+                getRootSize,
+                () => getStrokePaths().innerPath,
+                () => getStrokePaths().innerPoints,
+            )}
         </div>
     );
 };

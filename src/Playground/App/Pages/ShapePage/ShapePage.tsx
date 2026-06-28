@@ -102,16 +102,7 @@ export const ShapePage = () => {
     });
 
     return (
-        <div
-            class={styles.root}
-            style={assignInlineVars({
-                [styles.backgroundColor]: colors.background,
-                [styles.paddingTop]: `${Math.max(getEdgeThicknesses()[0], getJoinRadii()[0])}px`,
-                [styles.paddingRight]: `${Math.max(getEdgeThicknesses()[1], getJoinRadii()[1])}px`,
-                [styles.paddingBottom]: `${Math.max(getEdgeThicknesses()[2], getJoinRadii()[2])}px`,
-                [styles.paddingLeft]: `${Math.max(getEdgeThicknesses()[3], getJoinRadii()[3])}px`,
-            })}
-        >
+        <div class={styles.root} style={assignInlineVars({ [styles.backgroundColor]: colors.background })}>
             <div class={pageStyles.globalPropsContainer}>
                 <div class={pageStyles.propContainer}>
                     <div>{"Individual corner settings"}</div>

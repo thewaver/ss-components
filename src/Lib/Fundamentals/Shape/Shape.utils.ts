@@ -1,6 +1,6 @@
 import type { Point2d } from "@thewaver/ss-utils";
 
-import type { ShapeEdgeThicknessKind, ShapeJoinKind } from "./Shape.types";
+import type { ShapeEdgeThicknessKind, ShapeJoinKind, ShapePaths } from "./Shape.types";
 
 export namespace ShapeUtils {
     const INNER_RECT_ITERATIONS = 5;
@@ -116,10 +116,10 @@ export namespace ShapeUtils {
         joinRadii?: number[],
         joinKinds?: ShapeJoinKind[],
         offset: number = 0,
-    ) => {
+    ): ShapePaths => {
         const vertexCount = vertices.length;
 
-        if (vertexCount < 3) return { outer: "", inner: "", outerPoints: [], innerPoints: [] };
+        if (vertexCount < 3) return { outerPath: "", innerPath: "", outerPoints: [], innerPoints: [] };
 
         const getThickness = (index: number) =>
             index < edgeThicknesses.length ? edgeThicknesses[index] : edgeThicknesses[edgeThicknesses.length - 1];
@@ -369,8 +369,8 @@ export namespace ShapeUtils {
         }
 
         return {
-            outer: `${outerPath} Z`,
-            inner: `${innerPath} Z`,
+            outerPath: `${outerPath} Z`,
+            innerPath: `${innerPath} Z`,
             outerPoints,
             innerPoints,
         };

@@ -14,6 +14,13 @@ export type ShapeEdgeThicknessKind = (typeof SHAPE_EDGE_THICKNESS_KINDS)[number]
 export const SHAPE_JOIN_KINDS = ["round", "bevel", "scoop"] as const;
 export type ShapeJoinKind = (typeof SHAPE_JOIN_KINDS)[number];
 
+export type ShapePaths = {
+    innerPath: string;
+    innerPoints: Point2d[];
+    outerPath: string;
+    outerPoints: Point2d[];
+};
+
 export type ShapeProps = AccessorProps<{
     edgeThicknesses: number[];
     edgeThicknessKinds?: ShapeEdgeThicknessKind[];
@@ -22,7 +29,7 @@ export type ShapeProps = AccessorProps<{
     getPoints: (size: Size2d) => Point2d[];
     getStrokeDefs?: (size: Size2d, interactionStates: InteractionStates) => SVGDefs[];
     getFillDefs?: (size: Size2d, interactionStates: InteractionStates) => SVGDefs[];
-    renderChildren: (innerPath: string, innerPoints: Point2d[]) => JSX.Element;
+    renderChildren: (getSize: () => Size2d, getInnerPath: () => string, getInnerPoints: () => Point2d[]) => JSX.Element;
 }> &
     (
         | ({ isInteractible: true; getOutlineDefs?: Accessor<ButtonOutlineDefs> } & Omit<
