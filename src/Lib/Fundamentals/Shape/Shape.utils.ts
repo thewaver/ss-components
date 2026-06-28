@@ -109,40 +109,44 @@ export namespace ShapeUtils {
         };
     };
 
-    export const getPaths = (
+    export const setupPaths = (
         vertices: Point2d[],
         edgeThicknesses: number[],
         edgeThicknessKinds?: ShapeEdgeThicknessKind[],
         joinRadii?: number[],
         joinKinds?: ShapeJoinKind[],
         offset: number = 0,
-    ): ShapePaths => {
+    ) => {
         const vertexCount = vertices.length;
 
-        if (vertexCount < 3) return { outerPath: "", innerPath: "", outerPoints: [], innerPoints: [] };
+        const padArray = <T>(arr: T[] | undefined, defaultVal: T): T[] => {
+            if (!arr || !arr.length) return Array(vertexCount).fill(defaultVal);
+            return Array.from({ length: vertexCount }, (_, i) => (i < arr.length ? arr[i] : arr[arr.length - 1]));
+        };
 
-        const getThickness = (index: number) =>
-            index < edgeThicknesses.length ? edgeThicknesses[index] : edgeThicknesses[edgeThicknesses.length - 1];
+        const common = {
+            edgeThicknesses: padArray(edgeThicknesses, 0),
+            edgeThicknessKinds: padArray(edgeThicknessKinds, "constant" as ShapeEdgeThicknessKind),
+            joinKinds: padArray(joinKinds, "round" as ShapeJoinKind),
+        };
 
-        const getRadius = (index: number) =>
-            !joinRadii?.length ? 0 : index < joinRadii.length ? joinRadii[index] : joinRadii[joinRadii.length - 1];
+        const outer = {
+            vertices: [] as Point2d[],
+            joinRadii: padArray(joinRadii, 0),
+        };
 
-        const getEdgeThicknessType = (index: number) =>
-            !edgeThicknessKinds?.length
-                ? "constant"
-                : index < edgeThicknessKinds.length
-                  ? edgeThicknessKinds[index]
-                  : edgeThicknessKinds[edgeThicknessKinds.length - 1];
+        const inner = {
+            vertices: [] as Point2d[],
+            joinRadii: [] as number[],
+        };
 
-        const getJoinType = (index: number) =>
-            !joinKinds?.length
-                ? "round"
-                : index < joinKinds.length
-                  ? joinKinds[index]
-                  : joinKinds[joinKinds.length - 1];
+        const vectors = {
+            unitTangents: [] as Point2d[],
+            unitNormals: [] as Point2d[],
+            crossChecks: [] as number[],
+        };
 
-        const unitTangents: Point2d[] = [];
-        const unitNormals: Point2d[] = [];
+        if (vertexCount < 3) return { outer, inner, common, vectors };
 
         const { totalX, totalY } = vertices.reduce(
             (acc, curr) => ({ totalX: acc.totalX + curr.x, totalY: acc.totalY + curr.y }),
@@ -151,26 +155,99 @@ export namespace ShapeUtils {
         const polygonCenter = { x: totalX / vertexCount, y: totalY / vertexCount };
 
         for (let i = 0; i < vertexCount; i++) {
-            const currentVertex = vertices[i];
-            const nextVertex = vertices[(i + 1) % vertexCount];
-            const deltaX = nextVertex.x - currentVertex.x;
-            const deltaY = nextVertex.y - currentVertex.y;
+            const curr = vertices[i];
+            const next = vertices[(i + 1) % vertexCount];
+            const deltaX = next.x - curr.x;
+            const deltaY = next.y - curr.y;
             const edgeLength = Math.hypot(deltaX, deltaY);
-            const edgeMidpointX = (currentVertex.x + nextVertex.x) * 0.5;
-            const edgeMidpointY = (currentVertex.y + nextVertex.y) * 0.5;
-            const vectorToMidpoint = { x: edgeMidpointX - polygonCenter.x, y: edgeMidpointY - polygonCenter.y };
+            const vectorToMidpoint = {
+                x: (curr.x + next.x) * 0.5 - polygonCenter.x,
+                y: (curr.y + next.y) * 0.5 - polygonCenter.y,
+            };
             const tangent = { x: deltaX / edgeLength, y: deltaY / edgeLength };
 
-            unitTangents.push(tangent);
+            vectors.unitTangents.push(tangent);
 
             let normal = { x: -tangent.y, y: tangent.x };
-
             if (normal.x * vectorToMidpoint.x + normal.y * vectorToMidpoint.y < 0) {
                 normal = { x: tangent.y, y: -tangent.x };
             }
-
-            unitNormals.push(normal);
+            vectors.unitNormals.push(normal);
         }
+
+        for (let i = 0; i < vertexCount; i++) {
+            const prevIndex = (i - 1 + vertexCount) % vertexCount;
+            const vertex = vertices[i];
+            const prevTangent = vectors.unitTangents[prevIndex];
+            const currTangent = vectors.unitTangents[i];
+            const prevNormal = vectors.unitNormals[prevIndex];
+            const currNormal = vectors.unitNormals[i];
+            const crossProduct = prevTangent.x * currTangent.y - prevTangent.y * currTangent.x;
+            const crossCheck = crossProduct || 0.001;
+            vectors.crossChecks.push(crossCheck);
+
+            const prevOuterWall = { x: vertex.x + offset * prevNormal.x, y: vertex.y + offset * prevNormal.y };
+            const currOuterWall = { x: vertex.x + offset * currNormal.x, y: vertex.y + offset * currNormal.y };
+            const outerScale =
+                ((currOuterWall.x - prevOuterWall.x) * currTangent.y -
+                    (currOuterWall.y - prevOuterWall.y) * currTangent.x) /
+                crossCheck;
+
+            outer.vertices.push({
+                x: prevOuterWall.x + outerScale * prevTangent.x,
+                y: prevOuterWall.y + outerScale * prevTangent.y,
+            });
+
+            const prevThickness = common.edgeThicknesses[prevIndex];
+            const currThickness = common.edgeThicknesses[i];
+            const isConstant = common.edgeThicknessKinds[i] === "constant";
+            const arcThicknessPrev = isConstant ? prevThickness : Math.max(prevThickness, currThickness);
+            const arcThicknessCurr = isConstant ? currThickness : Math.max(prevThickness, currThickness);
+            const prevInnerWall = {
+                x: vertex.x - arcThicknessPrev * prevNormal.x,
+                y: vertex.y - arcThicknessPrev * prevNormal.y,
+            };
+            const currInnerWall = {
+                x: vertex.x - arcThicknessCurr * currNormal.x,
+                y: vertex.y - arcThicknessCurr * currNormal.y,
+            };
+            const innerScale =
+                ((currInnerWall.x - prevInnerWall.x) * currTangent.y -
+                    (currInnerWall.y - prevInnerWall.y) * currTangent.x) /
+                crossCheck;
+
+            inner.vertices.push({
+                x: prevInnerWall.x + innerScale * prevTangent.x,
+                y: prevInnerWall.y + innerScale * prevTangent.y,
+            });
+
+            inner.joinRadii.push(outer.joinRadii[i] - Math.max(arcThicknessPrev, arcThicknessCurr));
+        }
+
+        return { outer, inner, common, vectors };
+    };
+
+    export const getPaths = (
+        vertices: Point2d[],
+        edgeThicknesses: number[],
+        edgeThicknessKinds?: ShapeEdgeThicknessKind[],
+        joinRadii?: number[],
+        joinKinds?: ShapeJoinKind[],
+        offset: number = 0,
+    ) => {
+        const vertexCount = vertices.length;
+
+        if (vertexCount < 3) return { outerPath: "", innerPath: "", outerPoints: [], innerPoints: [] };
+
+        const { outer, inner, common, vectors } = setupPaths(
+            vertices,
+            edgeThicknesses,
+            edgeThicknessKinds,
+            joinRadii,
+            joinKinds,
+            offset,
+        );
+        const { unitTangents, unitNormals, crossChecks } = vectors;
 
         const outerStartPoints: Point2d[] = [];
         const outerEndPoints: Point2d[] = [];
@@ -181,20 +258,16 @@ export namespace ShapeUtils {
 
         for (let i = 0; i < vertexCount; i++) {
             const prevIndex = (i - 1 + vertexCount) % vertexCount;
-            const currIndex = i;
-            const vertex = vertices[currIndex];
-            const outerRadius = getRadius(currIndex);
-            const prevThickness = getThickness(prevIndex);
-            const currThickness = getThickness(currIndex);
+            const vertex = vertices[i];
+            const outerRadius = outer.joinRadii[i];
+            const prevThickness = common.edgeThicknesses[prevIndex];
+            const currThickness = common.edgeThicknesses[i];
+            const currentJoinType = common.joinKinds[i];
             const prevTangent = unitTangents[prevIndex];
-            const currTangent = unitTangents[currIndex];
+            const currTangent = unitTangents[i];
             const prevNormal = unitNormals[prevIndex];
-            const currNormal = unitNormals[currIndex];
-            const currentJoinType = getJoinType(currIndex);
-            const currentEdgeThicknessType = getEdgeThicknessType(currIndex);
-            const crossProduct = prevTangent.x * currTangent.y - prevTangent.y * currTangent.x;
-            const crossCheck = crossProduct || 0.001;
-
+            const currNormal = unitNormals[i];
+            const crossCheck = crossChecks[i];
             const prevArcRefPt = {
                 x: vertex.x + (offset - outerRadius) * prevNormal.x,
                 y: vertex.y + (offset - outerRadius) * prevNormal.y,
@@ -226,39 +299,30 @@ export namespace ShapeUtils {
             const startVector = { x: outerArcStart.x - cornerArcCenter.x, y: outerArcStart.y - cornerArcCenter.y };
             const endVector = { x: outerArcEnd.x - cornerArcCenter.x, y: outerArcEnd.y - cornerArcCenter.y };
             const sweepFlag = startVector.x * endVector.y - startVector.y * endVector.x > 0 ? 1 : 0;
-
             outerSweepFlags.push(sweepFlag);
 
-            const arcThicknessPrev =
-                currentEdgeThicknessType === "constant" ? prevThickness : Math.max(prevThickness, currThickness);
-            const arcThicknessCurr =
-                currentEdgeThicknessType === "constant" ? currThickness : Math.max(prevThickness, currThickness);
+            const isConstant = common.edgeThicknessKinds[i] === "constant";
+            const arcThicknessPrev = isConstant ? prevThickness : Math.max(prevThickness, currThickness);
+            const arcThicknessCurr = isConstant ? currThickness : Math.max(prevThickness, currThickness);
             const prevInnerRadius = outerRadius - arcThicknessPrev;
             const currInnerRadius = outerRadius - arcThicknessCurr;
-            const innerRadius = outerRadius - Math.max(arcThicknessPrev, arcThicknessCurr);
-            const prevInnerWallPt = {
-                x: vertex.x - arcThicknessPrev * prevNormal.x,
-                y: vertex.y - arcThicknessPrev * prevNormal.y,
-            };
-            const currInnerWallPt = {
-                x: vertex.x - arcThicknessCurr * currNormal.x,
-                y: vertex.y - arcThicknessCurr * currNormal.y,
-            };
-            const innerIntersectionScale =
-                ((currInnerWallPt.x - prevInnerWallPt.x) * currTangent.y -
-                    (currInnerWallPt.y - prevInnerWallPt.y) * currTangent.x) /
-                crossCheck;
-            const sharpInnerIntersection = {
-                x: prevInnerWallPt.x + innerIntersectionScale * prevTangent.x,
-                y: prevInnerWallPt.y + innerIntersectionScale * prevTangent.y,
-            };
+            const innerRadius = inner.joinRadii[i];
+            const sharpInnerIntersection = inner.vertices[i];
 
             let cornerString = "";
-            let finalSegmentStart = { x: 0, y: 0 };
-            let finalSegmentEnd = { x: 0, y: 0 };
+            let finalSegmentStart: Point2d = { x: 0, y: 0 };
+            let finalSegmentEnd: Point2d = { x: 0, y: 0 };
 
             if (currentJoinType === "scoop") {
                 const scoopRadius = outerRadius + Math.abs(arcThicknessPrev - arcThicknessCurr);
+                const prevInnerWallPt = {
+                    x: vertex.x - arcThicknessPrev * prevNormal.x,
+                    y: vertex.y - arcThicknessPrev * prevNormal.y,
+                };
+                const currInnerWallPt = {
+                    x: vertex.x - arcThicknessCurr * currNormal.x,
+                    y: vertex.y - arcThicknessCurr * currNormal.y,
+                };
                 const pA = {
                     x: prevInnerWallPt.x - scoopRadius * prevNormal.x,
                     y: prevInnerWallPt.y - scoopRadius * prevNormal.y,
@@ -268,10 +332,7 @@ export namespace ShapeUtils {
                     y: currInnerWallPt.y - scoopRadius * currNormal.y,
                 };
                 const centerScale = ((pB.x - pA.x) * currTangent.y - (pB.y - pA.y) * currTangent.x) / crossCheck;
-                const scoopCenter = {
-                    x: pA.x + centerScale * prevTangent.x,
-                    y: pA.y + centerScale * prevTangent.y,
-                };
+                const scoopCenter = { x: pA.x + centerScale * prevTangent.x, y: pA.y + centerScale * prevTangent.y };
                 const scoopStart = {
                     x: scoopCenter.x + scoopRadius * prevNormal.x,
                     y: scoopCenter.y + scoopRadius * prevNormal.y,
@@ -303,6 +364,14 @@ export namespace ShapeUtils {
                 finalSegmentStart = innerArcStart;
                 finalSegmentEnd = innerArcEnd;
             } else {
+                const prevInnerWallPt = {
+                    x: vertex.x - arcThicknessPrev * prevNormal.x,
+                    y: vertex.y - arcThicknessPrev * prevNormal.y,
+                };
+                const currInnerWallPt = {
+                    x: vertex.x - arcThicknessCurr * currNormal.x,
+                    y: vertex.y - arcThicknessCurr * currNormal.y,
+                };
                 const pA = {
                     x: prevInnerWallPt.x - innerRadius * prevNormal.x,
                     y: prevInnerWallPt.y - innerRadius * prevNormal.y,
@@ -312,10 +381,7 @@ export namespace ShapeUtils {
                     y: currInnerWallPt.y - innerRadius * currNormal.y,
                 };
                 const centerScale = ((pB.x - pA.x) * currTangent.y - (pB.y - pA.y) * currTangent.x) / crossCheck;
-                const innerArcCenter = {
-                    x: pA.x + centerScale * prevTangent.x,
-                    y: pA.y + centerScale * prevTangent.y,
-                };
+                const innerArcCenter = { x: pA.x + centerScale * prevTangent.x, y: pA.y + centerScale * prevTangent.y };
                 const innerArcStart = {
                     x: innerArcCenter.x + innerRadius * prevNormal.x,
                     y: innerArcCenter.y + innerRadius * prevNormal.y,
@@ -335,19 +401,19 @@ export namespace ShapeUtils {
             innerEndPoints.push(finalSegmentEnd);
         }
 
-        let outerPath = `M ${outerEndPoints[vertexCount - 1].x} ${outerEndPoints[vertexCount - 1].y}`;
         const outerPoints: Point2d[] = [];
         const innerPoints: Point2d[] = [];
 
+        let outerPath = `M ${outerEndPoints[vertexCount - 1].x} ${outerEndPoints[vertexCount - 1].y}`;
         for (let i = 0; i < vertexCount; i++) {
-            const currentJoinType = getJoinType(i);
+            const currentJoinType = common.joinKinds[i];
 
             outerPath += ` L ${outerStartPoints[i].x} ${outerStartPoints[i].y}`;
             if (currentJoinType === "bevel") {
                 outerPath += ` L ${outerEndPoints[i].x} ${outerEndPoints[i].y}`;
             } else {
                 const sweep = currentJoinType === "scoop" ? (outerSweepFlags[i] === 1 ? 0 : 1) : outerSweepFlags[i];
-                outerPath += ` A ${getRadius(i)} ${getRadius(i)} 0 0 ${sweep} ${outerEndPoints[i].x} ${outerEndPoints[i].y}`;
+                outerPath += ` A ${outer.joinRadii[i]} ${outer.joinRadii[i]} 0 0 ${sweep} ${outerEndPoints[i].x} ${outerEndPoints[i].y}`;
             }
 
             outerPoints.push(outerStartPoints[i]);
@@ -361,9 +427,7 @@ export namespace ShapeUtils {
             }
         }
 
-        const finalInnerEnd = innerEndPoints[vertexCount - 1];
-        let innerPath = `M ${finalInnerEnd.x} ${finalInnerEnd.y}`;
-
+        let innerPath = `M ${innerEndPoints[vertexCount - 1].x} ${innerEndPoints[vertexCount - 1].y}`;
         for (let i = 0; i < vertexCount; i++) {
             innerPath += " " + innerPathSegments[i];
         }
