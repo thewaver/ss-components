@@ -1,28 +1,15 @@
 import type { JSX } from "solid-js";
 
+import type { ExternalInteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
 import type { TooltipProps } from "../Tooltip/Tooltip.types";
 
 export type ButtonSizing = "fit-content" | "fill";
 
-export type ExternalButtonFlags = {
-    isDisabled?: boolean;
-    isPressed?: boolean;
-    hasError?: boolean;
-};
-
-export type InternalButtonFlags = {
-    isHovered?: boolean;
-    isActive?: boolean;
-    isFocused?: boolean;
-};
-
 export type ButtonOutlineDefs = {
     color: string;
     width: number;
 };
-
-export type ButtonFlags = InternalButtonFlags & ExternalButtonFlags;
 
 export type ButtonCbs = {
     onClick?: (e: MouseEvent | KeyboardEvent) => Promise<void>;
@@ -32,7 +19,7 @@ export type ButtonCbs = {
 
 export type ButtonProps = AccessorProps<
     ButtonCbs &
-        ExternalButtonFlags & {
+        ExternalInteractionFlags & {
             id?: string;
             sizing?: ButtonSizing;
             tooltipDefs?: Omit<TooltipProps, "getAnchorRef">;

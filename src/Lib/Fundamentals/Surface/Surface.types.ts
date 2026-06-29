@@ -3,7 +3,6 @@ import type { JSX } from "solid-js";
 import type { Size2d } from "@thewaver/ss-utils";
 
 import type { CSSBorderRadius, CSSBorderWidth, CSSPadding } from "../../Abstracts/CSS/CSS.types";
-import type { InteractionStates } from "../../Abstracts/Interaction/Interaction.types";
 import type { SVGDefs } from "../../Abstracts/SVG/Defs/SVGDefs.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
 
@@ -11,11 +10,6 @@ export type SurfaceProps = AccessorProps<{
     borderWidths: CSSBorderWidth;
     borderRadii: CSSBorderRadius;
     paddings?: CSSPadding;
-    getStrokeDefs?: (
-        getSize: () => Size2d,
-        getBorderWidths: () => CSSBorderWidth,
-        getBorderRadii: () => CSSBorderRadius,
-        getInteractionStates: () => InteractionStates,
-    ) => SVGDefs[];
+    getStrokeDefs?: (getSize: () => Size2d) => SVGDefs[];
     renderChildren: (outerClass: string, innerClass: string) => JSX.Element;
 }>;

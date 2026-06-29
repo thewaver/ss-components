@@ -26,11 +26,9 @@ export const AsymmetricalExample = (props: Props) => {
                 borderLeftWidth: props.getBorderWidth(),
             })}
             getPaddings={() => CSSUtils.spreadPadding(20)}
-            getStrokeDefs={(getSize, getBorderWidths, getBorderRadii, getState) =>
-                props.getStrokeConfig().getSVGDefs(strokeId, getState, {
+            getStrokeDefs={(getSize) =>
+                props.getStrokeConfig().getSVGDefs(strokeId, undefined, {
                     getSize,
-                    getBorderWidths,
-                    getBorderRadii,
                     getAnimationDurationMs: props.getAnimationDurationMs,
                     getColors: props.getColors,
                     getBlurWidth: props.getBlurWidth,

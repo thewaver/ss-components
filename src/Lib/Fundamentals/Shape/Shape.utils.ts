@@ -1,6 +1,13 @@
-import type { Point2d } from "@thewaver/ss-utils";
+import type { JSX } from "solid-js";
 
-import type { ShapeEdgeThicknessKind, ShapeJoinKind, ShapePaths } from "./Shape.types";
+import type { Point2d, Size2d } from "@thewaver/ss-utils";
+
+import type { ShapeEdgeThicknessKind, ShapeJoinKind } from "./Shape.types";
+
+const padArray = <T>(arr: T[] | undefined, defaultVal: T, count: number): T[] => {
+    if (!arr || !arr.length) return Array(count).fill(defaultVal);
+    return Array.from({ length: count }, (_, i) => (i < arr.length ? arr[i] : arr[arr.length - 1]));
+};
 
 export namespace ShapeUtils {
     const INNER_RECT_ITERATIONS = 5;
@@ -119,20 +126,15 @@ export namespace ShapeUtils {
     ) => {
         const vertexCount = vertices.length;
 
-        const padArray = <T>(arr: T[] | undefined, defaultVal: T): T[] => {
-            if (!arr || !arr.length) return Array(vertexCount).fill(defaultVal);
-            return Array.from({ length: vertexCount }, (_, i) => (i < arr.length ? arr[i] : arr[arr.length - 1]));
-        };
-
         const common = {
-            edgeThicknesses: padArray(edgeThicknesses, 0),
-            edgeThicknessKinds: padArray(edgeThicknessKinds, "constant" as ShapeEdgeThicknessKind),
-            joinKinds: padArray(joinKinds, "round" as ShapeJoinKind),
+            edgeThicknesses: padArray(edgeThicknesses, 0, vertexCount),
+            edgeThicknessKinds: padArray(edgeThicknessKinds, "constant" as ShapeEdgeThicknessKind, vertexCount),
+            joinKinds: padArray(joinKinds, "round" as ShapeJoinKind, vertexCount),
         };
 
         const outer = {
             vertices: [] as Point2d[],
-            joinRadii: padArray(joinRadii, 0),
+            joinRadii: padArray(joinRadii, 0, vertexCount),
         };
 
         const inner = {
@@ -437,6 +439,48 @@ export namespace ShapeUtils {
             innerPath: `${innerPath} Z`,
             outerPoints,
             innerPoints,
+        };
+    };
+
+    export const getRectPadding = (
+        edgeThicknesses: number[],
+        edgeThicknessKinds?: ShapeEdgeThicknessKind[],
+        joinRadii?: number[],
+        joinKinds?: ShapeJoinKind[],
+    ): JSX.CSSProperties => {
+        const count = 4;
+
+        const t = padArray(edgeThicknesses, 0, count);
+        const tk = padArray(edgeThicknessKinds, "constant" as ShapeEdgeThicknessKind, count);
+        const jr = padArray(joinRadii, 0, count);
+        const jk = padArray(joinKinds, "round" as ShapeJoinKind, count);
+
+        const getEdgePadding = (index: number) => {
+            const thickness = tk[index] === "constant" ? t[index] : Math.max(t[index], t[(index + 1) % 4]);
+            const thicknessMult = jk[index] === "round" ? 0.7 : jk[index] === "scoop" ? 1 : 0.5;
+            const joinMult = jk[index] === "round" ? 0.3 : jk[index] === "scoop" ? 0.7 : 0.5;
+
+            return Math.max(thickness, thickness * thicknessMult + jr[index] * joinMult);
+        };
+
+        const edgePadding = Array.from({ length: count }, (_, idx) => getEdgePadding(idx));
+
+        return {
+            "padding-top": `${Math.max(edgePadding[0], edgePadding[1])}px`,
+            "padding-right": `${Math.max(edgePadding[1], edgePadding[2])}px`,
+            "padding-bottom": `${Math.max(edgePadding[2], edgePadding[3])}px`,
+            "padding-left": `${Math.max(edgePadding[3], edgePadding[0])}px`,
+        };
+    };
+
+    export const getPolygonPadding = (size: Size2d, innerPoints: Point2d[]): JSX.CSSProperties => {
+        const innerRect = ShapeUtils.getInnerRect(innerPoints);
+
+        return {
+            "padding-top": `${innerRect.y}px`,
+            "padding-left": `${innerRect.x}px`,
+            "padding-bottom": `${size.height - innerRect.y - innerRect.height}px`,
+            "padding-right": `${size.width - innerRect.x - innerRect.width}px`,
         };
     };
 }

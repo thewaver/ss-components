@@ -67,11 +67,9 @@ const StressTestWrapper = (props: SurfaceExampleProps) => {
                     getBorderRadii={() => CSSUtils.spreadRadius(10)}
                     getBorderWidths={() => CSSUtils.spreadWidth(4)}
                     getPaddings={() => CSSUtils.spreadPadding(10)}
-                    getStrokeDefs={(getSize, getBorderWidths, getBorderRadii, getState) =>
-                        props.getStrokeConfig().getSVGDefs("stress-stroke", getState, {
+                    getStrokeDefs={(getSize) =>
+                        props.getStrokeConfig().getSVGDefs("stress-stroke", undefined, {
                             getSize,
-                            getBorderWidths,
-                            getBorderRadii,
                             getAnimationDurationMs: props.getAnimationDurationMs,
                             getColors: props.getColors,
                             getBlurWidth: props.getBlurWidth,

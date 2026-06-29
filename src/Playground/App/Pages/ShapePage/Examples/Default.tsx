@@ -1,5 +1,6 @@
-import { type JSX, createMemo, createUniqueId } from "solid-js";
+import { createMemo, createSignal, createUniqueId } from "solid-js";
 
+import { InteractionUtils } from "../../../../../Lib/Abstracts/Interaction/Interaction.utils";
 import { Shape } from "../../../../../Lib/Fundamentals/Shape/Shape";
 import { ShapeConst } from "../../../../../Lib/Fundamentals/Shape/Shape.const";
 import { ShapeUtils } from "../../../../../Lib/Fundamentals/Shape/Shape.utils";
@@ -19,50 +20,46 @@ export const DefaultExample = ({
 }: ShapeExampleProps) => {
     const strokeId = createUniqueId();
 
+    const [getRootRef, setRootRef] = createSignal<HTMLElement>();
+
+    const { getFlags } = InteractionUtils.wrapElement(getRootRef, () => false);
+
     return (
         <Shape
             {...otherProps}
-            getPoints={(size) => ShapeConst.getDefaultShapePoints(getShapeKind(), size)}
-            getStrokeDefs={(size, interactionState) =>
-                getStrokeConfig().getSVGDefs(strokeId, () => interactionState, {
-                    getSize: () => size,
+            getPoints={(getSize) => ShapeConst.getDefaultShapePoints(getShapeKind(), getSize())}
+            getStrokeDefs={(getSize) =>
+                getStrokeConfig().getSVGDefs(strokeId, getFlags, {
+                    getSize,
                     getAnimationDurationMs,
                     getColors,
                     getBlurWidth,
                 })
             }
-            renderChildren={(getSize, getInnerPath, getInnerPoints) => {
+            renderChildren={(getSize, getPaths) => {
                 const getStyle = createMemo(() => {
                     const size = getSize();
-                    const innerPath = getInnerPath();
-                    const innerPoints = getInnerPoints();
-                    const isSquare = getShapeKind() === "square";
+                    const { innerPath, innerPoints } = getPaths();
+                    const shape = getShapeKind();
                     const clipStyle = getShouldClipChildren?.() ? { "clip-path": `path("${innerPath}")` } : {};
 
                     if (!getShouldPadChildren?.()) return clipStyle;
 
-                    const innerRect = isSquare
-                        ? { x: 0, y: 0, width: 0, height: 0 }
-                        : ShapeUtils.getInnerRect(innerPoints);
-                    const paddingStyle = isSquare
-                        ? {
-                              "padding-top": `${Math.max(otherProps.edgeThicknesses[0], otherProps.joinRadii?.[0] ?? 0)}px`,
-                              "padding-right": `${Math.max(otherProps.edgeThicknesses[1], otherProps.joinRadii?.[1] ?? 0)}px`,
-                              "padding-bottom": `${Math.max(otherProps.edgeThicknesses[2], otherProps.joinRadii?.[2] ?? 0)}px`,
-                              "padding-left": `${Math.max(otherProps.edgeThicknesses[3], otherProps.joinRadii?.[3] ?? 0)}px`,
-                          }
-                        : {
-                              "padding-top": `${innerRect.y}px`,
-                              "padding-left": `${innerRect.x}px`,
-                              "padding-bottom": `${size.height - innerRect.y - innerRect.height}px`,
-                              "padding-right": `${size.width - innerRect.x - innerRect.width}px`,
-                          };
+                    const paddingStyle =
+                        shape === "square"
+                            ? ShapeUtils.getRectPadding(
+                                  otherProps.edgeThicknesses,
+                                  otherProps.edgeThicknessKinds,
+                                  otherProps.joinRadii,
+                                  otherProps.joinKinds,
+                              )
+                            : ShapeUtils.getPolygonPadding(size, innerPoints);
 
                     return { ...clipStyle, ...paddingStyle };
                 });
 
                 return (
-                    <div class={styles.example} style={getStyle()}>
+                    <div ref={setRootRef} class={styles.example} style={getStyle()}>
                         <div class={styles.exampleInner}>I have a border</div>
                     </div>
                 );

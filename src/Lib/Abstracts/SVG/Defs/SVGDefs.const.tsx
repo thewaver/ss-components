@@ -1,7 +1,6 @@
 import { MathUtils, ObjectUtils, type Size2d } from "@thewaver/ss-utils";
 
-import type { CSSBorderRadius, CSSBorderWidth } from "../../CSS/CSS.types";
-import type { InteractionStates } from "../../Interaction/Interaction.types";
+import type { InteractionFlags } from "../../Interaction/Interaction.types";
 import type { SVGAnimationDefs } from "./Animation/SVGAnimationDefs.types";
 import { SVGAnimationUtils } from "./Animation/SVGAnimationDefs.utils";
 import { SVGFilterDefsFactory } from "./Filter/SVGFilterDefs.factory";
@@ -13,14 +12,16 @@ export namespace SVGDefsSamples {
 
     type ElementDefs = SVGAnimationDefs & {
         getSize: () => Size2d;
-        getBorderWidths?: () => CSSBorderWidth;
-        getBorderRadii?: () => CSSBorderRadius;
         getColors: () => ColorDefs;
         getBlurWidth?: () => number;
     };
 
     export type ConfigDefs = {
-        getSVGDefs: (id: string, getInteractionStates: () => InteractionStates, defs: ElementDefs) => SVGDefs[];
+        getSVGDefs: (
+            id: string,
+            getInteractionFlags: (() => InteractionFlags) | undefined,
+            defs: ElementDefs,
+        ) => SVGDefs[];
     };
 
     const getBaseBorderColor = (defs: ElementDefs) =>

@@ -4,7 +4,6 @@ import { type Size2d } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { CSSUtils } from "../../Abstracts/CSS/CSS.utils";
-import type { InteractionStates } from "../../Abstracts/Interaction/Interaction.types";
 import type { SurfaceProps } from "./Surface.types";
 import { SurfaceUtils } from "./Surface.utils";
 
@@ -15,20 +14,10 @@ type StyleVar = keyof typeof styles;
 export const Surface = (props: SurfaceProps) => {
     let rootRef: HTMLElement | undefined;
 
-    const [getHovered, setHovered] = createSignal(false);
-    const [getPressedByMouse, setPressedByMouse] = createSignal(false);
-    const [getPressedByKey, setPressedByKey] = createSignal(false);
     const [getRootSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
 
-    const getInteractionState = createMemo(
-        (): InteractionStates => ({
-            hover: getHovered(),
-            press: getPressedByKey() || getPressedByMouse(),
-        }),
-    );
-
     const getStrokeDefs = createMemo(() => {
-        return props.getStrokeDefs?.(getRootSize, props.getBorderWidths, props.getBorderRadii, getInteractionState);
+        return props.getStrokeDefs?.(getRootSize);
     });
 
     const getPaddings = createMemo(() => {
@@ -72,15 +61,6 @@ export const Surface = (props: SurfaceProps) => {
                 ...CSSUtils.spreadableToStyle(props.getBorderWidths(), (key) => styles[key as StyleVar]),
                 ...CSSUtils.spreadableToStyle(getPaddings(), (key) => styles[key as StyleVar]),
             })}
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => {
-                setHovered(false);
-                setPressedByMouse(false);
-            }}
-            onMouseDown={() => setPressedByMouse(true)}
-            onMouseUp={() => setPressedByMouse(false)}
-            onKeyDown={() => setPressedByKey(true)}
-            onKeyUp={() => setPressedByKey(false)}
         >
             {getStrokeDefs() && (
                 <svg

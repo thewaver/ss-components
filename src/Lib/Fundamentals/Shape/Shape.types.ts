@@ -1,12 +1,9 @@
-import type { Accessor, JSX } from "solid-js";
+import type { JSX } from "solid-js";
 
 import type { Point2d, Size2d } from "@thewaver/ss-utils";
 
-import type { InteractionStates } from "../../Abstracts/Interaction/Interaction.types";
 import type { SVGDefs } from "../../Abstracts/SVG/Defs/SVGDefs.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
-import type { ButtonOutlineDefs } from "../Button/Button.types";
-import type { SVGInteractionWrapperProps } from "../SVGInteractible/SVGInteractionWrapper.types";
 
 export const SHAPE_EDGE_THICKNESS_KINDS = ["linear", "constant"] as const;
 export type ShapeEdgeThicknessKind = (typeof SHAPE_EDGE_THICKNESS_KINDS)[number];
@@ -26,15 +23,8 @@ export type ShapeProps = AccessorProps<{
     edgeThicknessKinds?: ShapeEdgeThicknessKind[];
     joinRadii?: number[];
     joinKinds?: ShapeJoinKind[];
-    getPoints: (size: Size2d) => Point2d[];
-    getStrokeDefs?: (size: Size2d, interactionStates: InteractionStates) => SVGDefs[];
-    getFillDefs?: (size: Size2d, interactionStates: InteractionStates) => SVGDefs[];
-    renderChildren: (getSize: () => Size2d, getInnerPath: () => string, getInnerPoints: () => Point2d[]) => JSX.Element;
-}> &
-    (
-        | ({ isInteractible: true; getOutlineDefs?: Accessor<ButtonOutlineDefs> } & Omit<
-              SVGInteractionWrapperProps,
-              "renderChildren"
-          >)
-        | { isInteractible?: false | never }
-    );
+    getPoints: (getSize: () => Size2d) => Point2d[];
+    getStrokeDefs?: (getSize: () => Size2d) => SVGDefs[];
+    getFillDefs?: (getSize: () => Size2d) => SVGDefs[];
+    renderChildren: (getSize: () => Size2d, getPaths: () => ShapePaths) => JSX.Element;
+}>;

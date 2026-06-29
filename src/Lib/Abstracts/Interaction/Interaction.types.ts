@@ -1,3 +1,13 @@
-export type InteractionState = "hover" | "press";
+export type ExternalInteractionFlags = {
+    isDisabled?: boolean;
+    isPressed?: boolean;
+    hasError?: boolean;
+};
 
-export type InteractionStates = { [k in InteractionState]?: boolean };
+export type InternalInteractionFlags = {
+    isHovered?: boolean;
+    isActive?: boolean;
+    isFocused?: boolean;
+};
+
+export type InteractionFlags = InternalInteractionFlags & ExternalInteractionFlags;
