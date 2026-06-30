@@ -7,9 +7,7 @@ import { SVGDefsSamples } from "../../../../Lib/Abstracts/SVG/Defs/SVGDefs.const
 import { ShapeConst } from "../../../../Lib/Fundamentals/Shape/Shape.const";
 import {
     SHAPE_EDGE_THICKNESS_KINDS,
-    SHAPE_JOIN_KINDS,
     type ShapeEdgeThicknessKind,
-    type ShapeJoinKind,
 } from "../../../../Lib/Fundamentals/Shape/Shape.types";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
@@ -49,14 +47,7 @@ export const ShapePage = () => {
         "constant",
     ]);
     const [getJoinRadii, setJoinRadii] = createSignal<number[]>([20, 20, 20, 20, 20, 20]);
-    const [getJoinKind, setJoinKind] = createSignal<ShapeJoinKind[]>([
-        "round",
-        "round",
-        "round",
-        "round",
-        "round",
-        "round",
-    ]);
+    const [getJoinKappas, setJoinKappas] = createSignal<number[]>([1, 1, 1, 1, 1, 1]);
     const [getStrokeConfigKey, setStrokeConfigKey] =
         createSignal<keyof typeof SVGDefsSamples.SAMPLE_CONFIGS>("sweepDiagonal_1v1");
     const [colors, setColors] = createStore(STARTING_COLORS);
@@ -89,7 +80,7 @@ export const ShapePage = () => {
             edgeThicknesses: getEdgeThicknesses().slice(0, getShapePointCount()),
             edgeThicknessKinds: getEdgeThicknessKind().slice(0, getShapePointCount()),
             joinRadii: getJoinRadii().slice(0, getShapePointCount()),
-            joinKinds: getJoinKind().slice(0, getShapePointCount()),
+            joinKappas: getJoinKappas().slice(0, getShapePointCount()),
         };
 
         return [
@@ -162,15 +153,19 @@ export const ShapePage = () => {
                 </div>
 
                 <div class={pageStyles.propContainer}>
-                    <div>{"Join Kind"}</div>
+                    <div>{"Join K"}</div>
                     <div class={styles.valueList} style={{ "grid-template-columns": getTemplateColumns() }}>
                         <For each={getPointIterator()}>
                             {(_, getIndex) => (
-                                <select
-                                    value={getJoinKind()[getIndex()]}
-                                    onChange={(e) =>
-                                        setJoinKind((prev) => {
-                                            const value = e.target.value as ShapeJoinKind;
+                                <input
+                                    type="number"
+                                    min={-4}
+                                    max={4}
+                                    step={0.5}
+                                    value={getJoinKappas()[getIndex()]}
+                                    onInput={(e) =>
+                                        setJoinKappas((prev) => {
+                                            const value = Math.min(Math.max(Number(e.target.value) ?? prev, -4), 4);
 
                                             if (!getHasIndividualCorners())
                                                 return [value, value, value, value, value, value];
@@ -181,11 +176,7 @@ export const ShapePage = () => {
                                             return next;
                                         })
                                     }
-                                >
-                                    <For each={SHAPE_JOIN_KINDS}>
-                                        {(config) => <option value={config}>{config}</option>}
-                                    </For>
-                                </select>
+                                />
                             )}
                         </For>
                     </div>

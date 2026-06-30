@@ -4,7 +4,11 @@ import { createStore } from "solid-js/store";
 import type { InternalInteractionFlags } from "./Interaction.types";
 
 export namespace InteractionUtils {
-    export const wrapElement = (getRef: () => HTMLElement | undefined, getIsDisabled: () => boolean) => {
+    export const wrapElement = (
+        getRef: () => HTMLElement | undefined,
+        getIsDisabled: () => boolean,
+        skipAriaSettings?: boolean,
+    ) => {
         const [internalFlags, setInternalFlags] = createStore<InternalInteractionFlags>({});
         const [getActiveByMouse, setActiveByMouse] = createSignal(false);
         const [getActiveByKey, setActiveByKey] = createSignal(false);
@@ -17,8 +21,6 @@ export namespace InteractionUtils {
 
             return flags;
         });
-
-        const getTabIndex = createMemo(() => (!getIsDisabled?.() ? 0 : -1));
 
         const onFocus = () => {
             setInternalFlags("isFocused", true);
@@ -57,11 +59,16 @@ export namespace InteractionUtils {
             const ref = getRef();
             const isDisabled = getIsDisabled();
 
-            if (!ref || isDisabled) return;
+            if (!ref) return;
 
-            ref.role = "button";
-            ref.tabIndex = getTabIndex();
-            ref.style.cursor = "pointer";
+            if (!skipAriaSettings) {
+                ref.role = "button";
+                ref.tabIndex = !isDisabled ? 0 : -1;
+                ref.ariaDisabled = String(isDisabled);
+                ref.style.cursor = "pointer";
+            }
+
+            if (isDisabled) return;
 
             ref.addEventListener("focus", onFocus);
             ref.addEventListener("blur", onBlur);

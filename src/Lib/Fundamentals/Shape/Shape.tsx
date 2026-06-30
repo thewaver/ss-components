@@ -20,7 +20,7 @@ export const Shape = (props: ShapeProps) => {
             props.edgeThicknesses,
             props.edgeThicknessKinds,
             props.joinRadii,
-            props.joinKinds,
+            props.joinKappas,
         );
     });
 
@@ -102,6 +102,8 @@ export const Shape = (props: ShapeProps) => {
                         />
                     )}
                 </For>
+
+                {props.renderInternals?.(getRootSize, getStrokePaths)}
             </svg>
 
             {props.renderChildren(getRootSize, getStrokePaths)}

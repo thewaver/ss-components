@@ -2,8 +2,6 @@ import type { JSX } from "solid-js";
 
 import type { Point2d, Size2d } from "@thewaver/ss-utils";
 
-import type { ShapeEdgeThicknessKind, ShapeJoinKind } from "./Shape.types";
-
 const padArray = <T>(arr: T[] | undefined, defaultVal: T, count: number): T[] => {
     if (!arr || !arr.length) return Array(count).fill(defaultVal);
     return Array.from({ length: count }, (_, i) => (i < arr.length ? arr[i] : arr[arr.length - 1]));
@@ -12,6 +10,8 @@ const padArray = <T>(arr: T[] | undefined, defaultVal: T, count: number): T[] =>
 export namespace ShapeUtils {
     const INNER_RECT_ITERATIONS = 5;
     const INNER_RECT_SAMPLES = 50;
+    const CIRCLE_KAPPA = 1;
+    const HALF_PI = Math.PI / 2;
 
     export const getInnerRect = (pts: Point2d[]) => {
         if (pts.length < 3) return { x: 0, y: 0, width: 0, height: 0 };
@@ -119,22 +119,55 @@ export namespace ShapeUtils {
     export const setupPaths = (
         vertices: Point2d[],
         edgeThicknesses: number[],
-        edgeThicknessKinds?: ShapeEdgeThicknessKind[],
+        edgeThicknessKinds?: string[],
         joinRadii?: number[],
-        joinKinds?: ShapeJoinKind[],
+        joinKappas?: number[],
         offset: number = 0,
     ) => {
         const vertexCount = vertices.length;
 
         const common = {
             edgeThicknesses: padArray(edgeThicknesses, 0, vertexCount),
-            edgeThicknessKinds: padArray(edgeThicknessKinds, "constant" as ShapeEdgeThicknessKind, vertexCount),
-            joinKinds: padArray(joinKinds, "round" as ShapeJoinKind, vertexCount),
+            edgeThicknessKinds: padArray(edgeThicknessKinds ?? [], "constant", vertexCount),
+            joinKappas: padArray(joinKappas ?? [], CIRCLE_KAPPA, vertexCount),
         };
+
+        // --- EDGE CLEARANCE CLAMPING LOOP ---
+        const rawJoinRadii = padArray(joinRadii ?? [], 0, vertexCount);
+        const finalJoinRadii = [...rawJoinRadii];
+
+        for (let i = 0; i < vertexCount; i++) {
+            const nextIndex = (i + 1) % vertexCount;
+            const edgeLength = Math.hypot(vertices[nextIndex].x - vertices[i].x, vertices[nextIndex].y - vertices[i].y);
+
+            const isConstant = common.edgeThicknessKinds[i] === "constant";
+            const thickness = isConstant
+                ? common.edgeThicknesses[i]
+                : Math.max(common.edgeThicknesses[i], common.edgeThicknesses[nextIndex]);
+
+            const rCurrent = finalJoinRadii[i];
+            const rNext = finalJoinRadii[nextIndex];
+            const kCurrent = common.joinKappas[i];
+            const kNext = common.joinKappas[nextIndex];
+
+            // Isolate immutable wall thickness overhead from scalable radius room
+            const thicknessOverhead = (kCurrent < 0 ? thickness : 0) + (kNext < 0 ? thickness : 0);
+            const availableRadiusSpace = Math.max(0, edgeLength - thicknessOverhead);
+            const rawRadiiSum = rCurrent + rNext;
+
+            if (availableRadiusSpace === 0) {
+                finalJoinRadii[i] = 0;
+                finalJoinRadii[nextIndex] = 0;
+            } else if (rawRadiiSum > availableRadiusSpace && rawRadiiSum > 0) {
+                const scaleFactor = availableRadiusSpace / rawRadiiSum;
+                finalJoinRadii[i] = rCurrent * scaleFactor;
+                finalJoinRadii[nextIndex] = rNext * scaleFactor;
+            }
+        }
 
         const outer = {
             vertices: [] as Point2d[],
-            joinRadii: padArray(joinRadii, 0, vertexCount),
+            joinRadii: finalJoinRadii,
         };
 
         const inner = {
@@ -184,8 +217,7 @@ export namespace ShapeUtils {
             const currTangent = vectors.unitTangents[i];
             const prevNormal = vectors.unitNormals[prevIndex];
             const currNormal = vectors.unitNormals[i];
-            const crossProduct = prevTangent.x * currTangent.y - prevTangent.y * currTangent.x;
-            const crossCheck = crossProduct || 0.001;
+            const crossCheck = prevTangent.x * currTangent.y - prevTangent.y * currTangent.x || 0.001;
             vectors.crossChecks.push(crossCheck);
 
             const prevOuterWall = { x: vertex.x + offset * prevNormal.x, y: vertex.y + offset * prevNormal.y };
@@ -232,13 +264,64 @@ export namespace ShapeUtils {
     export const getPaths = (
         vertices: Point2d[],
         edgeThicknesses: number[],
-        edgeThicknessKinds?: ShapeEdgeThicknessKind[],
+        edgeThicknessKinds?: string[],
         joinRadii?: number[],
-        joinKinds?: ShapeJoinKind[],
+        joinKappas?: number[],
         offset: number = 0,
     ) => {
-        const vertexCount = vertices.length;
+        const generatePolylineCorner = (
+            arcStart: Point2d,
+            arcEnd: Point2d,
+            prevTangent: Point2d,
+            currTangent: Point2d,
+            crossCheck: number,
+            radius: number,
+            exponent: number,
+            resolution: number = 12,
+        ): Point2d[] => {
+            const cssExponent = exponent >= 0 ? exponent + 1 : 1 / (1 - exponent);
+            const superelipsePow = 2 / cssExponent;
 
+            if (radius <= 0 || cssExponent === Infinity) {
+                const dx = arcEnd.x - arcStart.x;
+                const dy = arcEnd.y - arcStart.y;
+                const intersectionDist = (dx * currTangent.y - dy * currTangent.x) / crossCheck;
+                const W = {
+                    x: arcStart.x + intersectionDist * prevTangent.x,
+                    y: arcStart.y + intersectionDist * prevTangent.y,
+                };
+                return [arcStart, W, arcEnd];
+            }
+
+            const dx = arcEnd.x - arcStart.x;
+            const dy = arcEnd.y - arcStart.y;
+            const tIntersect = (dx * currTangent.y - dy * currTangent.x) / crossCheck;
+            const W = { x: arcStart.x + tIntersect * prevTangent.x, y: arcStart.y + tIntersect * prevTangent.y };
+
+            if (cssExponent <= 0) {
+                const innerCenter = { x: arcStart.x + arcEnd.x - W.x, y: arcStart.y + arcEnd.y - W.y };
+                return [arcStart, innerCenter, arcEnd];
+            }
+
+            const C = { x: arcStart.x + arcEnd.x - W.x, y: arcStart.y + arcEnd.y - W.y };
+            const vecX = { x: arcStart.x - C.x, y: arcStart.y - C.y };
+            const vecY = { x: arcEnd.x - C.x, y: arcEnd.y - C.y };
+
+            const pts: Point2d[] = [arcStart];
+            for (let i = 1; i < resolution; i++) {
+                const t = (i / resolution) * HALF_PI;
+                const xFactor = Math.pow(Math.cos(t), superelipsePow);
+                const yFactor = Math.pow(Math.sin(t), superelipsePow);
+                pts.push({
+                    x: C.x + xFactor * vecX.x + yFactor * vecY.x,
+                    y: C.y + xFactor * vecX.y + yFactor * vecY.y,
+                });
+            }
+            pts.push(arcEnd);
+            return pts;
+        };
+
+        const vertexCount = vertices.length;
         if (vertexCount < 3) return { outerPath: "", innerPath: "", outerPoints: [], innerPoints: [] };
 
         const { outer, inner, common, vectors } = setupPaths(
@@ -246,14 +329,15 @@ export namespace ShapeUtils {
             edgeThicknesses,
             edgeThicknessKinds,
             joinRadii,
-            joinKinds,
+            joinKappas,
             offset,
         );
         const { unitTangents, unitNormals, crossChecks } = vectors;
 
+        const outerPathSegments: string[] = [];
         const outerStartPoints: Point2d[] = [];
         const outerEndPoints: Point2d[] = [];
-        const outerSweepFlags: number[] = [];
+
         const innerPathSegments: string[] = [];
         const innerStartPoints: Point2d[] = [];
         const innerEndPoints: Point2d[] = [];
@@ -261,15 +345,17 @@ export namespace ShapeUtils {
         for (let i = 0; i < vertexCount; i++) {
             const prevIndex = (i - 1 + vertexCount) % vertexCount;
             const vertex = vertices[i];
-            const outerRadius = outer.joinRadii[i];
+            const kappa = common.joinKappas[i];
             const prevThickness = common.edgeThicknesses[prevIndex];
             const currThickness = common.edgeThicknesses[i];
-            const currentJoinType = common.joinKinds[i];
             const prevTangent = unitTangents[prevIndex];
             const currTangent = unitTangents[i];
             const prevNormal = unitNormals[prevIndex];
             const currNormal = unitNormals[i];
             const crossCheck = crossChecks[i];
+
+            // --- OUTER CORNER CALCULATION ---
+            const outerRadius = outer.joinRadii[i];
             const prevArcRefPt = {
                 x: vertex.x + (offset - outerRadius) * prevNormal.x,
                 y: vertex.y + (offset - outerRadius) * prevNormal.y,
@@ -295,128 +381,96 @@ export namespace ShapeUtils {
                 y: cornerArcCenter.y + outerRadius * currNormal.y,
             };
 
-            outerStartPoints.push(outerArcStart);
-            outerEndPoints.push(outerArcEnd);
+            const outerPts = generatePolylineCorner(
+                outerArcStart,
+                outerArcEnd,
+                prevTangent,
+                currTangent,
+                crossCheck,
+                outerRadius,
+                kappa,
+            );
+            outerPathSegments.push(outerPts.map((p) => `L ${p.x.toFixed(3)} ${p.y.toFixed(3)}`).join(" "));
+            outerStartPoints.push(outerPts[0]);
+            outerEndPoints.push(outerPts[outerPts.length - 1]);
 
-            const startVector = { x: outerArcStart.x - cornerArcCenter.x, y: outerArcStart.y - cornerArcCenter.y };
-            const endVector = { x: outerArcEnd.x - cornerArcCenter.x, y: outerArcEnd.y - cornerArcCenter.y };
-            const sweepFlag = startVector.x * endVector.y - startVector.y * endVector.x > 0 ? 1 : 0;
-            outerSweepFlags.push(sweepFlag);
-
+            // --- INNER CORNER CALCULATION ---
             const isConstant = common.edgeThicknessKinds[i] === "constant";
             const arcThicknessPrev = isConstant ? prevThickness : Math.max(prevThickness, currThickness);
             const arcThicknessCurr = isConstant ? currThickness : Math.max(prevThickness, currThickness);
-            const prevInnerRadius = outerRadius - arcThicknessPrev;
-            const currInnerRadius = outerRadius - arcThicknessCurr;
-            const innerRadius = inner.joinRadii[i];
+
+            const maxThickness = Math.max(arcThicknessPrev, arcThicknessCurr);
+            const isConcave = kappa < 0;
+
+            const innerRadius = outerRadius - maxThickness;
+            const fallbackInnerRadius = inner.joinRadii[i];
             const sharpInnerIntersection = inner.vertices[i];
 
-            let cornerString = "";
-            let finalSegmentStart: Point2d = { x: 0, y: 0 };
-            let finalSegmentEnd: Point2d = { x: 0, y: 0 };
-
-            if (currentJoinType === "scoop") {
-                const scoopRadius = outerRadius + Math.abs(arcThicknessPrev - arcThicknessCurr);
-                const prevInnerWallPt = {
-                    x: vertex.x - arcThicknessPrev * prevNormal.x,
-                    y: vertex.y - arcThicknessPrev * prevNormal.y,
-                };
-                const currInnerWallPt = {
-                    x: vertex.x - arcThicknessCurr * currNormal.x,
-                    y: vertex.y - arcThicknessCurr * currNormal.y,
-                };
-                const pA = {
-                    x: prevInnerWallPt.x - scoopRadius * prevNormal.x,
-                    y: prevInnerWallPt.y - scoopRadius * prevNormal.y,
-                };
-                const pB = {
-                    x: currInnerWallPt.x - scoopRadius * currNormal.x,
-                    y: currInnerWallPt.y - scoopRadius * currNormal.y,
-                };
-                const centerScale = ((pB.x - pA.x) * currTangent.y - (pB.y - pA.y) * currTangent.x) / crossCheck;
-                const scoopCenter = { x: pA.x + centerScale * prevTangent.x, y: pA.y + centerScale * prevTangent.y };
-                const scoopStart = {
-                    x: scoopCenter.x + scoopRadius * prevNormal.x,
-                    y: scoopCenter.y + scoopRadius * prevNormal.y,
-                };
-                const scoopEnd = {
-                    x: scoopCenter.x + scoopRadius * currNormal.x,
-                    y: scoopCenter.y + scoopRadius * currNormal.y,
-                };
-                const scoopSweep = sweepFlag === 1 ? 0 : 1;
-
-                cornerString = `L ${scoopStart.x} ${scoopStart.y} A ${scoopRadius} ${scoopRadius} 0 0 ${scoopSweep} ${scoopEnd.x} ${scoopEnd.y}`;
-                finalSegmentStart = scoopStart;
-                finalSegmentEnd = scoopEnd;
-            } else if (prevInnerRadius <= 0 || currInnerRadius <= 0) {
-                cornerString = `L ${sharpInnerIntersection.x} ${sharpInnerIntersection.y}`;
-                finalSegmentStart = sharpInnerIntersection;
-                finalSegmentEnd = sharpInnerIntersection;
-            } else if (currentJoinType === "bevel") {
-                const innerArcStart = {
-                    x: outerArcStart.x - arcThicknessPrev * prevNormal.x,
-                    y: outerArcStart.y - arcThicknessPrev * prevNormal.y,
-                };
-                const innerArcEnd = {
-                    x: outerArcEnd.x - arcThicknessCurr * currNormal.x,
-                    y: outerArcEnd.y - arcThicknessCurr * currNormal.y,
-                };
-
-                cornerString = `L ${innerArcStart.x} ${innerArcStart.y} L ${innerArcEnd.x} ${innerArcEnd.y}`;
-                finalSegmentStart = innerArcStart;
-                finalSegmentEnd = innerArcEnd;
+            if (!isConcave && (innerRadius <= 0 || fallbackInnerRadius <= 0)) {
+                // Collapsed Convex Corner (Sharp apex)
+                innerPathSegments.push(
+                    `L ${sharpInnerIntersection.x.toFixed(3)} ${sharpInnerIntersection.y.toFixed(3)}`,
+                );
+                innerStartPoints.push(sharpInnerIntersection);
+                innerEndPoints.push(sharpInnerIntersection);
             } else {
-                const prevInnerWallPt = {
-                    x: vertex.x - arcThicknessPrev * prevNormal.x,
-                    y: vertex.y - arcThicknessPrev * prevNormal.y,
+                // UNIVERSAL ROBUST INNER CORNER (Sliding Anchors)
+                // Completely bypasses the point-by-point true normal loop to prevent swallowtails/loops
+                const layoutRadius = isConcave ? outerRadius : innerRadius;
+
+                const prevInnerArcRefPt = {
+                    x: vertex.x + (offset - arcThicknessPrev - layoutRadius) * prevNormal.x,
+                    y: vertex.y + (offset - arcThicknessPrev - layoutRadius) * prevNormal.y,
                 };
-                const currInnerWallPt = {
-                    x: vertex.x - arcThicknessCurr * currNormal.x,
-                    y: vertex.y - arcThicknessCurr * currNormal.y,
+                const currInnerArcRefPt = {
+                    x: vertex.x + (offset - arcThicknessCurr - layoutRadius) * currNormal.x,
+                    y: vertex.y + (offset - arcThicknessCurr - layoutRadius) * currNormal.y,
                 };
-                const pA = {
-                    x: prevInnerWallPt.x - innerRadius * prevNormal.x,
-                    y: prevInnerWallPt.y - innerRadius * prevNormal.y,
+
+                const innerIntersectionScale =
+                    ((currInnerArcRefPt.x - prevInnerArcRefPt.x) * currTangent.y -
+                        (currInnerArcRefPt.y - prevInnerArcRefPt.y) * currTangent.x) /
+                    crossCheck;
+                const innerCornerArcCenter = {
+                    x: prevInnerArcRefPt.x + innerIntersectionScale * prevTangent.x,
+                    y: prevInnerArcRefPt.y + innerIntersectionScale * prevTangent.y,
                 };
-                const pB = {
-                    x: currInnerWallPt.x - innerRadius * currNormal.x,
-                    y: currInnerWallPt.y - innerRadius * currNormal.y,
-                };
-                const centerScale = ((pB.x - pA.x) * currTangent.y - (pB.y - pA.y) * currTangent.x) / crossCheck;
-                const innerArcCenter = { x: pA.x + centerScale * prevTangent.x, y: pA.y + centerScale * prevTangent.y };
+
                 const innerArcStart = {
-                    x: innerArcCenter.x + innerRadius * prevNormal.x,
-                    y: innerArcCenter.y + innerRadius * prevNormal.y,
+                    x: innerCornerArcCenter.x + layoutRadius * prevNormal.x,
+                    y: innerCornerArcCenter.y + layoutRadius * prevNormal.y,
                 };
                 const innerArcEnd = {
-                    x: innerArcCenter.x + innerRadius * currNormal.x,
-                    y: innerArcCenter.y + innerRadius * currNormal.y,
+                    x: innerCornerArcCenter.x + layoutRadius * currNormal.x,
+                    y: innerCornerArcCenter.y + layoutRadius * currNormal.y,
                 };
 
-                cornerString = `L ${innerArcStart.x} ${innerArcStart.y} A ${innerRadius} ${innerRadius} 0 0 ${sweepFlag} ${innerArcEnd.x} ${innerArcEnd.y}`;
-                finalSegmentStart = innerArcStart;
-                finalSegmentEnd = innerArcEnd;
-            }
+                const innerPts = generatePolylineCorner(
+                    innerArcStart,
+                    innerArcEnd,
+                    prevTangent,
+                    currTangent,
+                    crossCheck,
+                    layoutRadius,
+                    kappa,
+                );
 
-            innerStartPoints.push(finalSegmentStart);
-            innerPathSegments.push(cornerString);
-            innerEndPoints.push(finalSegmentEnd);
+                innerPathSegments.push(innerPts.map((p) => `L ${p.x.toFixed(3)} ${p.y.toFixed(3)}`).join(" "));
+                innerStartPoints.push(innerPts[0]);
+                innerEndPoints.push(innerPts[innerPts.length - 1]);
+            }
         }
 
+        // --- FINAL ASSEMBLY ---
         const outerPoints: Point2d[] = [];
         const innerPoints: Point2d[] = [];
 
-        let outerPath = `M ${outerEndPoints[vertexCount - 1].x} ${outerEndPoints[vertexCount - 1].y}`;
-        for (let i = 0; i < vertexCount; i++) {
-            const currentJoinType = common.joinKinds[i];
+        let outerPath = `M ${outerEndPoints[vertexCount - 1].x.toFixed(3)} ${outerEndPoints[vertexCount - 1].y.toFixed(3)}`;
+        let innerPath = `M ${innerEndPoints[vertexCount - 1].x.toFixed(3)} ${innerEndPoints[vertexCount - 1].y.toFixed(3)}`;
 
-            outerPath += ` L ${outerStartPoints[i].x} ${outerStartPoints[i].y}`;
-            if (currentJoinType === "bevel") {
-                outerPath += ` L ${outerEndPoints[i].x} ${outerEndPoints[i].y}`;
-            } else {
-                const sweep = currentJoinType === "scoop" ? (outerSweepFlags[i] === 1 ? 0 : 1) : outerSweepFlags[i];
-                outerPath += ` A ${outer.joinRadii[i]} ${outer.joinRadii[i]} 0 0 ${sweep} ${outerEndPoints[i].x} ${outerEndPoints[i].y}`;
-            }
+        for (let i = 0; i < vertexCount; i++) {
+            outerPath += " " + outerPathSegments[i];
+            innerPath += " " + innerPathSegments[i];
 
             outerPoints.push(outerStartPoints[i]);
             if (outerStartPoints[i].x !== outerEndPoints[i].x || outerStartPoints[i].y !== outerEndPoints[i].y) {
@@ -429,11 +483,6 @@ export namespace ShapeUtils {
             }
         }
 
-        let innerPath = `M ${innerEndPoints[vertexCount - 1].x} ${innerEndPoints[vertexCount - 1].y}`;
-        for (let i = 0; i < vertexCount; i++) {
-            innerPath += " " + innerPathSegments[i];
-        }
-
         return {
             outerPath: `${outerPath} Z`,
             innerPath: `${innerPath} Z`,
@@ -444,32 +493,36 @@ export namespace ShapeUtils {
 
     export const getRectPadding = (
         edgeThicknesses: number[],
-        edgeThicknessKinds?: ShapeEdgeThicknessKind[],
+        edgeThicknessKinds?: string[],
         joinRadii?: number[],
-        joinKinds?: ShapeJoinKind[],
-    ): JSX.CSSProperties => {
+        joinKappas?: number[],
+    ): Record<string, string> => {
         const count = 4;
 
         const t = padArray(edgeThicknesses, 0, count);
-        const tk = padArray(edgeThicknessKinds, "constant" as ShapeEdgeThicknessKind, count);
-        const jr = padArray(joinRadii, 0, count);
-        const jk = padArray(joinKinds, "round" as ShapeJoinKind, count);
+        const tk = padArray(edgeThicknessKinds ?? [], "constant", count);
+        const jr = padArray(joinRadii ?? [], 0, count);
+        const jk = padArray(joinKappas ?? [], CIRCLE_KAPPA, count);
 
-        const getEdgePadding = (index: number) => {
-            const thickness = tk[index] === "constant" ? t[index] : Math.max(t[index], t[(index + 1) % 4]);
-            const thicknessMult = jk[index] === "round" ? 0.7 : jk[index] === "scoop" ? 1 : 0.5;
-            const joinMult = jk[index] === "round" ? 0.3 : jk[index] === "scoop" ? 0.7 : 0.5;
+        const getCornerPadding = (index: number) => {
+            const thickness = tk[index] === "constant" ? t[index] : Math.max(t[index], t[(index + 1) % count]);
 
-            return Math.max(thickness, thickness * thicknessMult + jr[index] * joinMult);
+            const kappa = jk[index];
+            const radius = jr[index];
+            const cssExponent = kappa >= 0 ? kappa + 1 : 1 / (1 - kappa);
+            const fOut = Math.pow(0.5, 1 / cssExponent);
+            const cornerIntrusion = radius * (1 - fOut) + thickness * Math.SQRT1_2;
+
+            return Math.max(thickness, cornerIntrusion);
         };
 
-        const edgePadding = Array.from({ length: count }, (_, idx) => getEdgePadding(idx));
+        const cornerPadding = Array.from({ length: count }, (_, idx) => getCornerPadding(idx));
 
         return {
-            "padding-top": `${Math.max(edgePadding[0], edgePadding[1])}px`,
-            "padding-right": `${Math.max(edgePadding[1], edgePadding[2])}px`,
-            "padding-bottom": `${Math.max(edgePadding[2], edgePadding[3])}px`,
-            "padding-left": `${Math.max(edgePadding[3], edgePadding[0])}px`,
+            "padding-top": `${Math.max(cornerPadding[0], cornerPadding[1])}px`,
+            "padding-right": `${Math.max(cornerPadding[1], cornerPadding[2])}px`,
+            "padding-bottom": `${Math.max(cornerPadding[2], cornerPadding[3])}px`,
+            "padding-left": `${Math.max(cornerPadding[3], cornerPadding[0])}px`,
         };
     };
 

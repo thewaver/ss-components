@@ -36,11 +36,28 @@ export const DefaultExample = ({
                     getBlurWidth,
                 })
             }
+            renderInternals={(getSize) => {
+                const getOutlinePaths = createMemo(() => {
+                    const pts = ShapeConst.getDefaultShapePoints(getShapeKind(), getSize());
+
+                    return ShapeUtils.getPaths(pts, [2], ["constant"], otherProps.joinRadii, otherProps.joinKappas);
+                });
+
+                return (
+                    getFlags().isFocused && (
+                        <path
+                            d={`${getOutlinePaths().outerPath} ${getOutlinePaths().innerPath}`}
+                            fill-rule="evenodd"
+                            fill="#FF00FF"
+                        />
+                    )
+                );
+            }}
             renderChildren={(getSize, getPaths) => {
                 const getStyle = createMemo(() => {
                     const size = getSize();
-                    const { innerPath, innerPoints } = getPaths();
                     const shape = getShapeKind();
+                    const { innerPath, innerPoints } = getPaths();
                     const clipStyle = getShouldClipChildren?.() ? { "clip-path": `path("${innerPath}")` } : {};
 
                     if (!getShouldPadChildren?.()) return clipStyle;
@@ -51,7 +68,7 @@ export const DefaultExample = ({
                                   otherProps.edgeThicknesses,
                                   otherProps.edgeThicknessKinds,
                                   otherProps.joinRadii,
-                                  otherProps.joinKinds,
+                                  otherProps.joinKappas,
                               )
                             : ShapeUtils.getPolygonPadding(size, innerPoints);
 
