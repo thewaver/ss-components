@@ -28,8 +28,8 @@ export const example = style({
     backgroundColor: `rgb(from ${backgroundColor} r g b / 50%)`,
     resize: "both",
     overflow: "auto",
-    width: 360,
-    height: 240,
+    width: 320,
+    height: 320,
 });
 
 export const exampleInner = style({

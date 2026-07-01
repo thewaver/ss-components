@@ -232,12 +232,12 @@ export const ShapePage = () => {
                                 <input
                                     type="number"
                                     min={0}
-                                    max={80}
+                                    max={160}
                                     step={5}
                                     value={getJoinRadii()[getIndex()]}
                                     onInput={(e) =>
                                         setJoinRadii((prev) => {
-                                            const value = Math.min(Math.max(Number(e.target.value) ?? prev, 0), 80);
+                                            const value = Math.min(Math.max(Number(e.target.value) ?? prev, 0), 160);
 
                                             if (!getHasIndividualCorners())
                                                 return [value, value, value, value, value, value];
