@@ -121,7 +121,7 @@ export namespace ShapeUtils {
         edgeThicknesses: number[],
         edgeThicknessKinds?: string[],
         joinRadii?: number[],
-        joinKappas?: number[],
+        joinSuperellipse?: number[],
         offset: number = 0,
     ) => {
         const vertexCount = vertices.length;
@@ -129,28 +129,23 @@ export namespace ShapeUtils {
         const common = {
             edgeThicknesses: padArray(edgeThicknesses, 0, vertexCount),
             edgeThicknessKinds: padArray(edgeThicknessKinds ?? [], "constant", vertexCount),
-            joinKappas: padArray(joinKappas ?? [], CIRCLE_KAPPA, vertexCount),
+            joinSuperellipse: padArray(joinSuperellipse ?? [], CIRCLE_KAPPA, vertexCount),
         };
 
-        // --- EDGE CLEARANCE CLAMPING LOOP ---
         const rawJoinRadii = padArray(joinRadii ?? [], 0, vertexCount);
         const finalJoinRadii = [...rawJoinRadii];
 
         for (let i = 0; i < vertexCount; i++) {
             const nextIndex = (i + 1) % vertexCount;
             const edgeLength = Math.hypot(vertices[nextIndex].x - vertices[i].x, vertices[nextIndex].y - vertices[i].y);
-
             const isConstant = common.edgeThicknessKinds[i] === "constant";
             const thickness = isConstant
                 ? common.edgeThicknesses[i]
                 : Math.max(common.edgeThicknesses[i], common.edgeThicknesses[nextIndex]);
-
             const rCurrent = finalJoinRadii[i];
             const rNext = finalJoinRadii[nextIndex];
-            const kCurrent = common.joinKappas[i];
-            const kNext = common.joinKappas[nextIndex];
-
-            // Isolate immutable wall thickness overhead from scalable radius room
+            const kCurrent = common.joinSuperellipse[i];
+            const kNext = common.joinSuperellipse[nextIndex];
             const thicknessOverhead = (kCurrent < 0 ? thickness : 0) + (kNext < 0 ? thickness : 0);
             const availableRadiusSpace = Math.max(0, edgeLength - thicknessOverhead);
             const rawRadiiSum = rCurrent + rNext;
@@ -266,7 +261,7 @@ export namespace ShapeUtils {
         edgeThicknesses: number[],
         edgeThicknessKinds?: string[],
         joinRadii?: number[],
-        joinKappas?: number[],
+        joinSuperellipse?: number[],
         offset: number = 0,
     ) => {
         const generatePolylineCorner = (
@@ -306,8 +301,8 @@ export namespace ShapeUtils {
             const C = { x: arcStart.x + arcEnd.x - W.x, y: arcStart.y + arcEnd.y - W.y };
             const vecX = { x: arcStart.x - C.x, y: arcStart.y - C.y };
             const vecY = { x: arcEnd.x - C.x, y: arcEnd.y - C.y };
-
             const pts: Point2d[] = [arcStart];
+
             for (let i = 1; i < resolution; i++) {
                 const t = (i / resolution) * HALF_PI;
                 const xFactor = Math.pow(Math.cos(t), superelipsePow);
@@ -318,6 +313,7 @@ export namespace ShapeUtils {
                 });
             }
             pts.push(arcEnd);
+
             return pts;
         };
 
@@ -329,7 +325,7 @@ export namespace ShapeUtils {
             edgeThicknesses,
             edgeThicknessKinds,
             joinRadii,
-            joinKappas,
+            joinSuperellipse,
             offset,
         );
         const { unitTangents, unitNormals, crossChecks } = vectors;
@@ -345,7 +341,7 @@ export namespace ShapeUtils {
         for (let i = 0; i < vertexCount; i++) {
             const prevIndex = (i - 1 + vertexCount) % vertexCount;
             const vertex = vertices[i];
-            const kappa = common.joinKappas[i];
+            const kappa = common.joinSuperellipse[i];
             const prevThickness = common.edgeThicknesses[prevIndex];
             const currThickness = common.edgeThicknesses[i];
             const prevTangent = unitTangents[prevIndex];
@@ -353,8 +349,6 @@ export namespace ShapeUtils {
             const prevNormal = unitNormals[prevIndex];
             const currNormal = unitNormals[i];
             const crossCheck = crossChecks[i];
-
-            // --- OUTER CORNER CALCULATION ---
             const outerRadius = outer.joinRadii[i];
             const prevArcRefPt = {
                 x: vertex.x + (offset - outerRadius) * prevNormal.x,
@@ -394,7 +388,6 @@ export namespace ShapeUtils {
             outerStartPoints.push(outerPts[0]);
             outerEndPoints.push(outerPts[outerPts.length - 1]);
 
-            // --- INNER CORNER CALCULATION ---
             const isConstant = common.edgeThicknessKinds[i] === "constant";
             const arcThicknessPrev = isConstant ? prevThickness : Math.max(prevThickness, currThickness);
             const arcThicknessCurr = isConstant ? currThickness : Math.max(prevThickness, currThickness);
@@ -407,17 +400,13 @@ export namespace ShapeUtils {
             const sharpInnerIntersection = inner.vertices[i];
 
             if (!isConcave && (innerRadius <= 0 || fallbackInnerRadius <= 0)) {
-                // Collapsed Convex Corner (Sharp apex)
                 innerPathSegments.push(
                     `L ${sharpInnerIntersection.x.toFixed(3)} ${sharpInnerIntersection.y.toFixed(3)}`,
                 );
                 innerStartPoints.push(sharpInnerIntersection);
                 innerEndPoints.push(sharpInnerIntersection);
             } else {
-                // UNIVERSAL ROBUST INNER CORNER (Sliding Anchors)
-                // Completely bypasses the point-by-point true normal loop to prevent swallowtails/loops
                 const layoutRadius = isConcave ? outerRadius : innerRadius;
-
                 const prevInnerArcRefPt = {
                     x: vertex.x + (offset - arcThicknessPrev - layoutRadius) * prevNormal.x,
                     y: vertex.y + (offset - arcThicknessPrev - layoutRadius) * prevNormal.y,
@@ -426,7 +415,6 @@ export namespace ShapeUtils {
                     x: vertex.x + (offset - arcThicknessCurr - layoutRadius) * currNormal.x,
                     y: vertex.y + (offset - arcThicknessCurr - layoutRadius) * currNormal.y,
                 };
-
                 const innerIntersectionScale =
                     ((currInnerArcRefPt.x - prevInnerArcRefPt.x) * currTangent.y -
                         (currInnerArcRefPt.y - prevInnerArcRefPt.y) * currTangent.x) /
@@ -435,7 +423,6 @@ export namespace ShapeUtils {
                     x: prevInnerArcRefPt.x + innerIntersectionScale * prevTangent.x,
                     y: prevInnerArcRefPt.y + innerIntersectionScale * prevTangent.y,
                 };
-
                 const innerArcStart = {
                     x: innerCornerArcCenter.x + layoutRadius * prevNormal.x,
                     y: innerCornerArcCenter.y + layoutRadius * prevNormal.y,
@@ -461,7 +448,6 @@ export namespace ShapeUtils {
             }
         }
 
-        // --- FINAL ASSEMBLY ---
         const outerPoints: Point2d[] = [];
         const innerPoints: Point2d[] = [];
 
@@ -495,25 +481,24 @@ export namespace ShapeUtils {
         edgeThicknesses: number[],
         edgeThicknessKinds?: string[],
         joinRadii?: number[],
-        joinKappas?: number[],
+        joinSuperellipse?: number[],
     ): Record<string, string> => {
         const count = 4;
 
         const t = padArray(edgeThicknesses, 0, count);
         const tk = padArray(edgeThicknessKinds ?? [], "constant", count);
         const jr = padArray(joinRadii ?? [], 0, count);
-        const jk = padArray(joinKappas ?? [], CIRCLE_KAPPA, count);
+        const js = padArray(joinSuperellipse ?? [], CIRCLE_KAPPA, count);
 
         const getCornerPadding = (index: number) => {
             const thickness = tk[index] === "constant" ? t[index] : Math.max(t[index], t[(index + 1) % count]);
-
-            const kappa = jk[index];
+            const kappa = js[index];
             const radius = jr[index];
             const cssExponent = kappa >= 0 ? kappa + 1 : 1 / (1 - kappa);
             const fOut = Math.pow(0.5, 1 / cssExponent);
             const cornerIntrusion = radius * (1 - fOut) + thickness * Math.SQRT1_2;
 
-            return Math.max(thickness, cornerIntrusion);
+            return Math.max(thickness, Math.round(cornerIntrusion));
         };
 
         const cornerPadding = Array.from({ length: count }, (_, idx) => getCornerPadding(idx));

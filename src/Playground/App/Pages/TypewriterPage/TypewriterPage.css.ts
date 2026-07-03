@@ -39,6 +39,36 @@ export const typewriterGlow = keyframes({
     },
 });
 
+export const typewriterDrop = keyframes({
+    "0%": {
+        opacity: 0,
+        transform: "translateY(-240px)",
+    },
+    "25%": {
+        opacity: 1,
+        transform: "translateY(-240px)",
+    },
+    "100%": {
+        opacity: 1,
+        transform: "translateY(0)",
+    },
+});
+
+export const typewriterSlide = keyframes({
+    "0%": {
+        opacity: 0,
+        transform: "translateX(240px)",
+    },
+    "25%": {
+        opacity: 1,
+        transform: "translateX(240px)",
+    },
+    "100%": {
+        opacity: 1,
+        transform: "translateX(0)",
+    },
+});
+
 export const root = style({
     display: "flex",
     flexDirection: "column",

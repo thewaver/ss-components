@@ -1,5 +1,7 @@
 import { createVar, style } from "@vanilla-extract/css";
 
+export const exampleSize = 320;
+
 export const backgroundColor = createVar();
 
 export const root = style({
@@ -24,12 +26,17 @@ export const colorList = style({
     gap: 10,
 });
 
+export const stressExample = style({
+    backgroundColor: `rgb(from ${backgroundColor} r g b / 50%)`,
+    padding: 20,
+});
+
 export const example = style({
     backgroundColor: `rgb(from ${backgroundColor} r g b / 50%)`,
     resize: "both",
     overflow: "auto",
-    width: 320,
-    height: 320,
+    width: exampleSize,
+    height: exampleSize,
 });
 
 export const exampleInner = style({

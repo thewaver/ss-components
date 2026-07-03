@@ -1,9 +1,10 @@
-import { For, createMemo, createSignal } from "solid-js";
+import { For, createMemo, createSignal, createUniqueId } from "solid-js";
 import { createStore } from "solid-js/store";
 
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { SVGDefsSamples } from "../../../../Lib/Abstracts/SVG/Defs/SVGDefs.const";
+import { Shape } from "../../../../Lib/Fundamentals/Shape/Shape";
 import { ShapeConst } from "../../../../Lib/Fundamentals/Shape/Shape.const";
 import {
     SHAPE_EDGE_THICKNESS_KINDS,
@@ -11,12 +12,35 @@ import {
 } from "../../../../Lib/Fundamentals/Shape/Shape.types";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
+import { StressTest } from "../../PageComponents/StressTest/StressTest";
+import type { StressTestDefs } from "../../PageComponents/StressTest/StressText.types";
 import { DefaultExample } from "./Examples/Default";
 import DefaultExampleRaw from "./Examples/Default.tsx?raw";
 import type { ShapeExampleProps } from "./ShapePage.types";
 
 import * as pageStyles from "../Pages.css";
 import * as styles from "./ShapePage.css";
+
+const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
+    {
+        count: 40,
+        cols: 8,
+        gap: 20,
+        size: 160,
+    },
+    {
+        count: 160,
+        cols: 16,
+        gap: 10,
+        size: 80,
+    },
+    {
+        count: 640,
+        cols: 32,
+        gap: 5,
+        size: 40,
+    },
+];
 
 const STARTING_COLORS: SVGDefsSamples.ColorDefs = {
     background: "#282018",
@@ -25,6 +49,56 @@ const STARTING_COLORS: SVGDefsSamples.ColorDefs = {
     tertiary: "#FF00FF",
 };
 const DEFAULT_SOURCE = highlighter.codeToHtml(DefaultExampleRaw, getDefaultHighlighterConfig());
+
+const StressTestWrapper = ({
+    getShouldClipChildren,
+    getShouldPadChildren,
+    getShapeKind,
+    getStrokeConfig,
+    getAnimationDurationMs,
+    getColors,
+    getBlurWidth,
+    ...otherProps
+}: ShapeExampleProps) => {
+    const strokeId = createUniqueId();
+
+    return (
+        <StressTest
+            getConfigs={() => STRESS_ITEMS}
+            renderLabel={(getConfigIndex) => `Render ${STRESS_ITEMS[getConfigIndex()].count} items`}
+            renderItem={(getConfigIndex, getItemIndex) => (
+                <Shape
+                    {...otherProps}
+                    joinRadii={otherProps.joinRadii?.map(
+                        (n) => (n * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
+                    )}
+                    getPoints={(getSize) => ShapeConst.getDefaultShapePoints(getShapeKind(), getSize())}
+                    getStrokeDefs={(getSize) =>
+                        getStrokeConfig().getSVGDefs(strokeId, undefined, {
+                            getSize,
+                            getAnimationDurationMs,
+                            getColors,
+                            getBlurWidth,
+                        })
+                    }
+                    renderChildren={() => {
+                        return (
+                            <div
+                                class={styles.stressExample}
+                                style={{
+                                    width: `${STRESS_ITEMS[getConfigIndex()].size}px`,
+                                    height: `${STRESS_ITEMS[getConfigIndex()].size}px`,
+                                }}
+                            >
+                                {getItemIndex()}
+                            </div>
+                        );
+                    }}
+                />
+            )}
+        />
+    );
+};
 
 const DefaultExampleWrapper = (props: ShapeExampleProps) => {
     return <DefaultExample {...props} />;
@@ -46,8 +120,8 @@ export const ShapePage = () => {
         "constant",
         "constant",
     ]);
-    const [getJoinRadii, setJoinRadii] = createSignal<number[]>([20, 20, 20, 20, 20, 20]);
-    const [getJoinKappas, setJoinKappas] = createSignal<number[]>([1, 1, 1, 1, 1, 1]);
+    const [getJoinRadii, setJoinRadii] = createSignal<number[]>([80, 80, 80, 80, 80, 80]);
+    const [getJoinSuperellipse, setJoinSuperellipse] = createSignal<number[]>([1, 1, 1, 1, 1, 1]);
     const [getStrokeConfigKey, setStrokeConfigKey] =
         createSignal<keyof typeof SVGDefsSamples.SAMPLE_CONFIGS>("sweepDiagonal_1v1");
     const [colors, setColors] = createStore(STARTING_COLORS);
@@ -80,7 +154,7 @@ export const ShapePage = () => {
             edgeThicknesses: getEdgeThicknesses().slice(0, getShapePointCount()),
             edgeThicknessKinds: getEdgeThicknessKind().slice(0, getShapePointCount()),
             joinRadii: getJoinRadii().slice(0, getShapePointCount()),
-            joinKappas: getJoinKappas().slice(0, getShapePointCount()),
+            joinSuperellipse: getJoinSuperellipse().slice(0, getShapePointCount()),
         };
 
         return [
@@ -88,6 +162,11 @@ export const ShapePage = () => {
                 name: "Default",
                 component: () => <DefaultExampleWrapper {...commonProps} />,
                 src: DEFAULT_SOURCE,
+            },
+            {
+                name: "Stress Test",
+                component: () => <StressTestWrapper {...commonProps} />,
+                src: "",
             },
         ];
     });
@@ -153,19 +232,19 @@ export const ShapePage = () => {
                 </div>
 
                 <div class={pageStyles.propContainer}>
-                    <div>{"Join K"}</div>
+                    <div>{"Join Superellipse (n)"}</div>
                     <div class={styles.valueList} style={{ "grid-template-columns": getTemplateColumns() }}>
                         <For each={getPointIterator()}>
                             {(_, getIndex) => (
                                 <input
                                     type="number"
-                                    min={-4}
-                                    max={4}
+                                    min={-5}
+                                    max={5}
                                     step={0.5}
-                                    value={getJoinKappas()[getIndex()]}
+                                    value={getJoinSuperellipse()[getIndex()]}
                                     onInput={(e) =>
-                                        setJoinKappas((prev) => {
-                                            const value = Math.min(Math.max(Number(e.target.value) ?? prev, -4), 4);
+                                        setJoinSuperellipse((prev) => {
+                                            const value = Math.min(Math.max(Number(e.target.value) ?? prev, -5), 5);
 
                                             if (!getHasIndividualCorners())
                                                 return [value, value, value, value, value, value];

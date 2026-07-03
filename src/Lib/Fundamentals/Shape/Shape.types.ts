@@ -19,7 +19,7 @@ export type ShapeProps = AccessorProps<{
     edgeThicknesses: number[];
     edgeThicknessKinds?: ShapeEdgeThicknessKind[];
     joinRadii?: number[];
-    joinKappas?: number[];
+    joinSuperellipse?: number[];
     getPoints: (getSize: () => Size2d) => Point2d[];
     getStrokeDefs?: (getSize: () => Size2d) => SVGDefs[];
     getFillDefs?: (getSize: () => Size2d) => SVGDefs[];

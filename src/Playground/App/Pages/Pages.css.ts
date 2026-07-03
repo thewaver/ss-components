@@ -22,7 +22,7 @@ export const globalPropsContainer = style([
     exampleContainer,
     {
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fill, minmax(400px, 1fr))",
         gap: 10,
         width: "100%",
     },

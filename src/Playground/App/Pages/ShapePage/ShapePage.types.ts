@@ -5,7 +5,7 @@ import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
 export type ShapeExampleProps = Pick<
     ShapeProps,
-    "edgeThicknessKinds" | "edgeThicknesses" | "joinKappas" | "joinRadii"
+    "edgeThicknessKinds" | "edgeThicknesses" | "joinSuperellipse" | "joinRadii"
 > &
     AccessorProps<{
         shouldClipChildren?: boolean;

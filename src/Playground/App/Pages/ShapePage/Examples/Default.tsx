@@ -40,7 +40,13 @@ export const DefaultExample = ({
                 const getOutlinePaths = createMemo(() => {
                     const pts = ShapeConst.getDefaultShapePoints(getShapeKind(), getSize());
 
-                    return ShapeUtils.getPaths(pts, [2], ["constant"], otherProps.joinRadii, otherProps.joinKappas);
+                    return ShapeUtils.getPaths(
+                        pts,
+                        [2],
+                        ["constant"],
+                        otherProps.joinRadii,
+                        otherProps.joinSuperellipse,
+                    );
                 });
 
                 return (
@@ -68,7 +74,7 @@ export const DefaultExample = ({
                                   otherProps.edgeThicknesses,
                                   otherProps.edgeThicknessKinds,
                                   otherProps.joinRadii,
-                                  otherProps.joinKappas,
+                                  otherProps.joinSuperellipse,
                               )
                             : ShapeUtils.getPolygonPadding(size, innerPoints);
 

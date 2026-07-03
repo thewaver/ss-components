@@ -12,11 +12,13 @@ import type { TypewriterExampleProps } from "./TypewriterPage.types";
 import * as pageStyles from "../Pages.css";
 import * as styles from "./TypewriterPage.css";
 
-const TEXT_EFFECTS = ["fade", "scale", "glow"] as const;
+const TEXT_EFFECTS = ["fade", "scale", "glow", "drop", "slide"] as const;
 const TEXT_EFFECT_MAP: Record<(typeof TEXT_EFFECTS)[number], string> = {
     fade: styles.typewriterFade,
     scale: styles.typewriterScale,
     glow: styles.typewriterGlow,
+    drop: styles.typewriterDrop,
+    slide: styles.typewriterSlide,
 };
 
 const STARTING_WIDTH = 240;

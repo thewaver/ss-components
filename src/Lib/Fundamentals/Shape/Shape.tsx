@@ -20,7 +20,7 @@ export const Shape = (props: ShapeProps) => {
             props.edgeThicknesses,
             props.edgeThicknessKinds,
             props.joinRadii,
-            props.joinKappas,
+            props.joinSuperellipse,
         );
     });
 
