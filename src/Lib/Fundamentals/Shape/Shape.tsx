@@ -15,13 +15,7 @@ export const Shape = (props: ShapeProps) => {
     const getStrokePaths = createMemo(() => {
         const pts = props.getPoints(getRootSize);
 
-        return ShapeUtils.getPaths(
-            pts,
-            props.edgeThicknesses,
-            props.edgeThicknessKinds,
-            props.joinRadii,
-            props.joinSuperellipse,
-        );
+        return ShapeUtils.getPaths(pts, props.edgeThicknesses, props.joinRadii, props.lameExponents);
     });
 
     const getStrokeDefs = createMemo(() => {

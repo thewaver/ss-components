@@ -6,10 +6,6 @@ import { assignInlineVars } from "@vanilla-extract/dynamic";
 import { SVGDefsSamples } from "../../../../Lib/Abstracts/SVG/Defs/SVGDefs.const";
 import { Shape } from "../../../../Lib/Fundamentals/Shape/Shape";
 import { ShapeConst } from "../../../../Lib/Fundamentals/Shape/Shape.const";
-import {
-    SHAPE_EDGE_THICKNESS_KINDS,
-    type ShapeEdgeThicknessKind,
-} from "../../../../Lib/Fundamentals/Shape/Shape.types";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { StressTest } from "../../PageComponents/StressTest/StressTest";
@@ -112,16 +108,8 @@ export const ShapePage = () => {
     const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
     const [getShapeKind, setShapeKind] = createSignal<ShapeConst.DefaultShape>("square");
     const [getEdgeThicknesses, setEdgeThicknesses] = createSignal<number[]>([4, 4, 4, 4, 4, 4]);
-    const [getEdgeThicknessKind, setEdgeThicknessKind] = createSignal<ShapeEdgeThicknessKind[]>([
-        "constant",
-        "constant",
-        "constant",
-        "constant",
-        "constant",
-        "constant",
-    ]);
     const [getJoinRadii, setJoinRadii] = createSignal<number[]>([80, 80, 80, 80, 80, 80]);
-    const [getJoinSuperellipse, setJoinSuperellipse] = createSignal<number[]>([1, 1, 1, 1, 1, 1]);
+    const [getLameExponent, setLameExponent] = createSignal<number[]>([1, 1, 1, 1, 1, 1]);
     const [getStrokeConfigKey, setStrokeConfigKey] =
         createSignal<keyof typeof SVGDefsSamples.SAMPLE_CONFIGS>("sweepDiagonal_1v1");
     const [colors, setColors] = createStore(STARTING_COLORS);
@@ -152,9 +140,8 @@ export const ShapePage = () => {
             getShapeKind,
             getStrokeConfig: () => SVGDefsSamples.SAMPLE_CONFIGS[getStrokeConfigKey()],
             edgeThicknesses: getEdgeThicknesses().slice(0, getShapePointCount()),
-            edgeThicknessKinds: getEdgeThicknessKind().slice(0, getShapePointCount()),
             joinRadii: getJoinRadii().slice(0, getShapePointCount()),
-            joinSuperellipse: getJoinSuperellipse().slice(0, getShapePointCount()),
+            lameExponents: getLameExponent().slice(0, getShapePointCount()),
         };
 
         return [
@@ -199,78 +186,6 @@ export const ShapePage = () => {
                         checked={getShouldPadChildren()}
                         onChange={() => setShouldPadChildren((prev) => !prev)}
                     />
-                </div>
-
-                <div class={pageStyles.propContainer}>
-                    <div>{"Edge Thickness Kind"}</div>
-                    <div class={styles.valueList} style={{ "grid-template-columns": getTemplateColumns() }}>
-                        <For each={getPointIterator()}>
-                            {(_, getIndex) => (
-                                <select
-                                    value={getEdgeThicknessKind()[getIndex()]}
-                                    onChange={(e) =>
-                                        setEdgeThicknessKind((prev) => {
-                                            const value = e.target.value as ShapeEdgeThicknessKind;
-
-                                            if (!getHasIndividualCorners())
-                                                return [value, value, value, value, value, value];
-
-                                            const next = [...prev];
-                                            next[getIndex()] = value;
-
-                                            return next;
-                                        })
-                                    }
-                                >
-                                    <For each={SHAPE_EDGE_THICKNESS_KINDS}>
-                                        {(config) => <option value={config}>{config}</option>}
-                                    </For>
-                                </select>
-                            )}
-                        </For>
-                    </div>
-                </div>
-
-                <div class={pageStyles.propContainer}>
-                    <div>{"Join Superellipse (n)"}</div>
-                    <div class={styles.valueList} style={{ "grid-template-columns": getTemplateColumns() }}>
-                        <For each={getPointIterator()}>
-                            {(_, getIndex) => (
-                                <input
-                                    type="number"
-                                    min={-5}
-                                    max={5}
-                                    step={0.5}
-                                    value={getJoinSuperellipse()[getIndex()]}
-                                    onInput={(e) =>
-                                        setJoinSuperellipse((prev) => {
-                                            const value = Math.min(Math.max(Number(e.target.value) ?? prev, -5), 5);
-
-                                            if (!getHasIndividualCorners())
-                                                return [value, value, value, value, value, value];
-
-                                            const next = [...prev];
-                                            next[getIndex()] = value;
-
-                                            return next;
-                                        })
-                                    }
-                                />
-                            )}
-                        </For>
-                    </div>
-                </div>
-
-                <div class={pageStyles.propContainer}>
-                    <div>{"Shape"}</div>
-                    <select
-                        value={getShapeKind()}
-                        onChange={(e) => setShapeKind(e.target.value as ShapeConst.DefaultShape)}
-                    >
-                        <For each={ShapeConst.DEFAULT_SHAPES}>
-                            {(config) => <option value={config}>{config}</option>}
-                        </For>
-                    </select>
                 </div>
 
                 <div class={pageStyles.propContainer}>
@@ -331,6 +246,48 @@ export const ShapePage = () => {
                             )}
                         </For>
                     </div>
+                </div>
+
+                <div class={pageStyles.propContainer}>
+                    <div>{"Lamé Exponent"}</div>
+                    <div class={styles.valueList} style={{ "grid-template-columns": getTemplateColumns() }}>
+                        <For each={getPointIterator()}>
+                            {(_, getIndex) => (
+                                <input
+                                    type="number"
+                                    min={-5}
+                                    max={5}
+                                    step={0.5}
+                                    value={getLameExponent()[getIndex()]}
+                                    onInput={(e) =>
+                                        setLameExponent((prev) => {
+                                            const value = Math.min(Math.max(Number(e.target.value) ?? prev, -5), 5);
+
+                                            if (!getHasIndividualCorners())
+                                                return [value, value, value, value, value, value];
+
+                                            const next = [...prev];
+                                            next[getIndex()] = value;
+
+                                            return next;
+                                        })
+                                    }
+                                />
+                            )}
+                        </For>
+                    </div>
+                </div>
+
+                <div class={pageStyles.propContainer}>
+                    <div>{"Shape"}</div>
+                    <select
+                        value={getShapeKind()}
+                        onChange={(e) => setShapeKind(e.target.value as ShapeConst.DefaultShape)}
+                    >
+                        <For each={ShapeConst.DEFAULT_SHAPES}>
+                            {(config) => <option value={config}>{config}</option>}
+                        </For>
+                    </select>
                 </div>
 
                 <div class={pageStyles.propContainer}>
