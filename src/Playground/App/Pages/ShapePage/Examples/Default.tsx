@@ -16,6 +16,7 @@ export const DefaultExample = ({
     getAnimationDurationMs,
     getColors,
     getBlurWidth,
+    edgeThicknesses,
     ...otherProps
 }: ShapeExampleProps) => {
     const strokeId = createUniqueId();
@@ -28,48 +29,36 @@ export const DefaultExample = ({
         <Shape
             {...otherProps}
             getPoints={(getSize) => ShapeConst.getDefaultShapePoints(getShapeKind(), getSize())}
-            getStrokeDefs={(getSize) =>
-                getStrokeConfig().getSVGDefs(strokeId, getFlags, {
-                    getSize,
-                    getAnimationDurationMs,
-                    getColors,
-                    getBlurWidth,
-                })
-            }
-            renderInternals={(getSize) => {
-                const getOutlinePaths = createMemo(() => {
-                    const pts = ShapeConst.getDefaultShapePoints(getShapeKind(), getSize());
+            getStrokeDefs={(getSize) => {
+                const strokes = getStrokeConfig()
+                    .getSVGDefs(strokeId, getFlags, {
+                        getSize,
+                        getAnimationDurationMs,
+                        getColors,
+                        getBlurWidth,
+                    })
+                    .map((config) => ({ ...config, thicknesses: edgeThicknesses }));
 
-                    return ShapeUtils.getPaths(pts, [2], otherProps.joinRadii, otherProps.lameExponents);
-                });
+                if (getFlags().isFocused)
+                    strokes.push({
+                        color: "#FF00FF",
+                        thicknesses: [2],
+                    });
 
-                return (
-                    getFlags().isFocused && (
-                        <path
-                            d={`${getOutlinePaths().outerPath} ${getOutlinePaths().innerPath}`}
-                            fill-rule="evenodd"
-                            fill="#FF00FF"
-                        />
-                    )
-                );
+                return strokes;
             }}
-            renderChildren={(getSize, getPaths) => {
+            renderChildren={(getSize, getClipPath, getClipPoints) => {
                 const getStyle = createMemo(() => {
                     const size = getSize();
                     const shape = getShapeKind();
-                    const { innerPath, innerPoints } = getPaths();
-                    const clipStyle = getShouldClipChildren?.() ? { "clip-path": `path("${innerPath}")` } : {};
+                    const clipStyle = getShouldClipChildren?.() ? { "clip-path": `path("${getClipPath()}")` } : {};
 
                     if (!getShouldPadChildren?.()) return clipStyle;
 
                     const paddingStyle =
                         shape === "square"
-                            ? ShapeUtils.getRectPadding(
-                                  otherProps.edgeThicknesses,
-                                  otherProps.joinRadii,
-                                  otherProps.lameExponents,
-                              )
-                            : ShapeUtils.getPolygonPadding(size, innerPoints);
+                            ? ShapeUtils.getRectPadding(edgeThicknesses, otherProps.joinRadii, otherProps.lameExponents)
+                            : ShapeUtils.getPolygonPadding(size, getClipPoints());
 
                     return { ...clipStyle, ...paddingStyle };
                 });

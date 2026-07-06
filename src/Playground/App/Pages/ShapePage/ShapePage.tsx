@@ -54,6 +54,7 @@ const StressTestWrapper = ({
     getAnimationDurationMs,
     getColors,
     getBlurWidth,
+    edgeThicknesses,
     ...otherProps
 }: ShapeExampleProps) => {
     const strokeId = createUniqueId();
@@ -70,12 +71,14 @@ const StressTestWrapper = ({
                     )}
                     getPoints={(getSize) => ShapeConst.getDefaultShapePoints(getShapeKind(), getSize())}
                     getStrokeDefs={(getSize) =>
-                        getStrokeConfig().getSVGDefs(strokeId, undefined, {
-                            getSize,
-                            getAnimationDurationMs,
-                            getColors,
-                            getBlurWidth,
-                        })
+                        getStrokeConfig()
+                            .getSVGDefs(strokeId, undefined, {
+                                getSize,
+                                getAnimationDurationMs,
+                                getColors,
+                                getBlurWidth,
+                            })
+                            .map((config) => ({ ...config, thicknesses: edgeThicknesses }))
                     }
                     renderChildren={() => {
                         return (

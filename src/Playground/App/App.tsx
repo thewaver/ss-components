@@ -81,6 +81,9 @@ const TAB_CONFIGS: TabConfig[] = [
         name: "TypeWriter",
         component: () => <TypewriterPage />,
     },
+    {
+        name: "Elements",
+    },
 ];
 
 const TAB_CONFIG_INDEXES = Object.fromEntries(TAB_CONFIGS.map((c, idx) => [componentToRouteName(c.name), idx]));

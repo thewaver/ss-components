@@ -13,12 +13,10 @@ export type ShapePaths = {
 };
 
 export type ShapeProps = AccessorProps<{
-    edgeThicknesses: number[];
     joinRadii?: number[];
     lameExponents?: number[];
     getPoints: (getSize: () => Size2d) => Point2d[];
-    getStrokeDefs?: (getSize: () => Size2d) => SVGDefs[];
+    getStrokeDefs?: (getSize: () => Size2d) => (SVGDefs & { thicknesses: number[]; offset?: number })[];
     getFillDefs?: (getSize: () => Size2d) => SVGDefs[];
-    renderInternals?: (getSize: () => Size2d, getPaths: () => ShapePaths) => JSX.Element;
-    renderChildren: (getSize: () => Size2d, getPaths: () => ShapePaths) => JSX.Element;
+    renderChildren: (getSize: () => Size2d, getClipPath: () => string, getClipPoints: () => Point2d[]) => JSX.Element;
 }>;

@@ -12,18 +12,30 @@ export const Shape = (props: ShapeProps) => {
 
     const [getRootSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
 
-    const getStrokePaths = createMemo(() => {
-        const pts = props.getPoints(getRootSize);
-
-        return ShapeUtils.getPaths(pts, props.edgeThicknesses, props.joinRadii, props.lameExponents);
+    const getFillDefs = createMemo(() => {
+        return props.getFillDefs?.(getRootSize);
     });
 
     const getStrokeDefs = createMemo(() => {
         return props.getStrokeDefs?.(getRootSize);
     });
 
-    const getFillDefs = createMemo(() => {
-        return props.getFillDefs?.(getRootSize);
+    const getPaths = createMemo(() => {
+        const pts = props.getPoints(getRootSize);
+        const cache: Record<string, ReturnType<typeof ShapeUtils.getPaths>> = {};
+
+        return (
+            getStrokeDefs()?.map(({ thicknesses, offset }) => {
+                const key = thicknesses.map((t) => Math.floor(t)).join("_");
+
+                if (cache[key]) return cache[key];
+
+                const paths = ShapeUtils.getPaths(pts, thicknesses, props.joinRadii, props.lameExponents, offset);
+                cache[key] = paths;
+
+                return paths;
+            }) ?? []
+        );
     });
 
     onMount(() => {
@@ -75,7 +87,7 @@ export const Shape = (props: ShapeProps) => {
                 <For each={getFillDefs()}>
                     {(def) => (
                         <path
-                            d={getStrokePaths().outerPath}
+                            d={getPaths()[0].outerPath}
                             fill={def.gradient ? `url(#${def.gradient?.id})` : def.color}
                             filter={def.filter ? `url(#${def.filter?.id})` : undefined}
                             clip-path={def.clipPath ? `url(#${def.clipPath?.id})` : undefined}
@@ -85,9 +97,9 @@ export const Shape = (props: ShapeProps) => {
                 </For>
 
                 <For each={getStrokeDefs()}>
-                    {(def) => (
+                    {(def, getIndex) => (
                         <path
-                            d={`${getStrokePaths().outerPath} ${getStrokePaths().innerPath}`}
+                            d={`${getPaths()[getIndex()].outerPath} ${getPaths()[getIndex()].innerPath}`}
                             fill-rule="evenodd"
                             fill={def.gradient ? `url(#${def.gradient?.id})` : def.color}
                             filter={def.filter ? `url(#${def.filter?.id})` : undefined}
@@ -96,11 +108,13 @@ export const Shape = (props: ShapeProps) => {
                         />
                     )}
                 </For>
-
-                {props.renderInternals?.(getRootSize, getStrokePaths)}
             </svg>
 
-            {props.renderChildren(getRootSize, getStrokePaths)}
+            {props.renderChildren(
+                getRootSize,
+                () => getPaths()[0].innerPath,
+                () => getPaths()[0].innerPoints,
+            )}
         </div>
     );
 };
