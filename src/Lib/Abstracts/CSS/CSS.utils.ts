@@ -1,6 +1,13 @@
-import type { CSSBorderRadius, CSSBorderWidth, CSSMargin, CSSPadding } from "./CSS.types";
+import type { CSSBorderRadius, CSSBorderWidth, CSSCornerShape, CSSMargin, CSSPadding } from "./CSS.types";
 
 export namespace CSSUtils {
+    export const spreadCornerShape = (lameExponent: number): CSSCornerShape => ({
+        cornerBottomLeftShape: lameExponent,
+        cornerBottomRightShape: lameExponent,
+        cornerTopLeftShape: lameExponent,
+        cornerTopRightShape: lameExponent,
+    });
+
     export const spreadRadius = (radius: number): CSSBorderRadius => ({
         borderBottomLeftRadius: radius,
         borderBottomRightRadius: radius,

@@ -12,6 +12,7 @@ import { ModalPage } from "./Pages/ModalPage/ModalPage";
 import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
 import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
 import { ShapePage } from "./Pages/ShapePage/ShapePage";
+import { SurfacePage } from "./Pages/SurfacePage/SurfacePage";
 import { TypewriterPage } from "./Pages/TypewriterPage/TypewriterPage";
 
 import * as styles from "./App.css";
@@ -83,6 +84,10 @@ const TAB_CONFIGS: TabConfig[] = [
     },
     {
         name: "Elements",
+    },
+    {
+        name: "Surface",
+        component: () => <SurfacePage />,
     },
 ];
 

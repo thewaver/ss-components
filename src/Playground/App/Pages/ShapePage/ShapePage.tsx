@@ -112,7 +112,7 @@ export const ShapePage = () => {
     const [getShapeKind, setShapeKind] = createSignal<ShapeConst.DefaultShape>("square");
     const [getEdgeThicknesses, setEdgeThicknesses] = createSignal<number[]>([4, 4, 4, 4, 4, 4]);
     const [getJoinRadii, setJoinRadii] = createSignal<number[]>([80, 80, 80, 80, 80, 80]);
-    const [getLameExponent, setLameExponent] = createSignal<number[]>([1, 1, 1, 1, 1, 1]);
+    const [getLameExponents, setLameExponents] = createSignal<number[]>([1, 1, 1, 1, 1, 1]);
     const [getStrokeConfigKey, setStrokeConfigKey] =
         createSignal<keyof typeof SVGDefsSamples.SAMPLE_CONFIGS>("sweepDiagonal_1v1");
     const [colors, setColors] = createStore(STARTING_COLORS);
@@ -144,7 +144,7 @@ export const ShapePage = () => {
             getStrokeConfig: () => SVGDefsSamples.SAMPLE_CONFIGS[getStrokeConfigKey()],
             edgeThicknesses: getEdgeThicknesses().slice(0, getShapePointCount()),
             joinRadii: getJoinRadii().slice(0, getShapePointCount()),
-            lameExponents: getLameExponent().slice(0, getShapePointCount()),
+            lameExponents: getLameExponents().slice(0, getShapePointCount()),
         };
 
         return [
@@ -261,9 +261,9 @@ export const ShapePage = () => {
                                     min={-5}
                                     max={5}
                                     step={0.5}
-                                    value={getLameExponent()[getIndex()]}
+                                    value={getLameExponents()[getIndex()]}
                                     onInput={(e) =>
-                                        setLameExponent((prev) => {
+                                        setLameExponents((prev) => {
                                             const value = Math.min(Math.max(Number(e.target.value) ?? prev, -5), 5);
 
                                             if (!getHasIndividualCorners())

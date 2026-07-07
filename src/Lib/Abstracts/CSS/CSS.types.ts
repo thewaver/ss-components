@@ -18,6 +18,10 @@ export type CSSBorderRadius = {
     [k in `border${Capitalize<Corner>}Radius`]: number;
 };
 
+export type CSSCornerShape = {
+    [k in `corner${Capitalize<Corner>}Shape`]: number;
+};
+
 export const CSS_TRANSFORM_KEYS = ["rotate", "scaleX", "scaleY", "skewX", "skewY", "translateX", "translateY"] as const;
 export type CSSTransformKey = (typeof CSS_TRANSFORM_KEYS)[number];
 export const CSS_FILTER_KEYS = [

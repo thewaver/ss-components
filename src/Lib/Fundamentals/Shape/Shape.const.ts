@@ -4,6 +4,15 @@ export namespace ShapeConst {
     export const DEFAULT_SHAPES = ["square", "lozenge", "hexagon"] as const;
     export type DefaultShape = (typeof DEFAULT_SHAPES)[number];
 
+    export const CORNER_SHAPE_LAME_EXPONENTS = {
+        square: Infinity,
+        squircle: 2,
+        round: 1,
+        bevel: 0,
+        scoop: -1,
+        notch: -Infinity,
+    };
+
     export const getDefaultShapePoints = (shape: DefaultShape, { width, height }: Size2d): Point2d[] => {
         switch (shape) {
             case "square":
