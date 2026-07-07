@@ -1,7 +1,12 @@
 import type { JSX } from "solid-js";
 
-import type { Point2d, Size2d } from "@thewaver/ss-utils";
-// import { ShapeConst } from "./Shape.const";
+import { Point2d, type Size2d } from "@thewaver/ss-utils";
+
+import type { ShapePaths } from "./Shape.types";
+
+const getNextIndex = (currentIndex: number, length: number) => (currentIndex < length - 1 ? currentIndex + 1 : 0);
+
+const getPrevIndex = (currentIndex: number, length: number) => (currentIndex > 0 ? currentIndex - 1 : length - 1);
 
 const padArray = <T>(arr: T[] | undefined, defaultVal: T, count: number): T[] => {
     if (!arr || !arr.length) return Array(count).fill(defaultVal);
@@ -13,6 +18,8 @@ export namespace ShapeUtils {
     const INNER_RECT_SAMPLES = 50;
     const CIRCLE_KAPPA = 1;
     const HALF_PI = Math.PI * 0.5;
+
+    export const PATH_CACHE: Record<string, ShapePaths> = {};
 
     export const getInnerRect = (pts: Point2d[]) => {
         if (pts.length < 3) return { x: 0, y: 0, width: 0, height: 0 };
@@ -157,12 +164,12 @@ export namespace ShapeUtils {
             outer.joinRadii = rawJoinRadii;
         } else {
             const edgeScaleFactors = new Array(vertexCount).fill(1);
-            
+
             for (let i = 0; i < vertexCount; i++) {
-                const nextIndex = (i + 1) % vertexCount;
+                const nextIndex = getNextIndex(i, vertexCount);
                 const edgeLength = Math.hypot(
                     vertices[nextIndex].x - vertices[i].x,
-                    vertices[nextIndex].y - vertices[i].y
+                    vertices[nextIndex].y - vertices[i].y,
                 );
                 const thickness = common.edgeThicknesses[i];
                 const rCurrent = rawJoinRadii[i];
@@ -184,6 +191,7 @@ export namespace ShapeUtils {
                 const prevEdgeIndex = (i - 1 + vertexCount) % vertexCount;
                 const currEdgeIndex = i;
                 const strictFactor = Math.min(edgeScaleFactors[prevEdgeIndex], edgeScaleFactors[currEdgeIndex]);
+
                 return r * strictFactor;
             });
         }
@@ -196,7 +204,7 @@ export namespace ShapeUtils {
 
         for (let i = 0; i < vertexCount; i++) {
             const curr = vertices[i];
-            const next = vertices[(i + 1) % vertexCount];
+            const next = vertices[getNextIndex(i, vertexCount)];
             const deltaX = next.x - curr.x;
             const deltaY = next.y - curr.y;
             const edgeLength = Math.hypot(deltaX, deltaY);
@@ -216,7 +224,7 @@ export namespace ShapeUtils {
         }
 
         for (let i = 0; i < vertexCount; i++) {
-            const prevIndex = (i - 1 + vertexCount) % vertexCount;
+            const prevIndex = getPrevIndex(i, vertexCount);
             const vertex = vertices[i];
             const prevTangent = vectors.unitTangents[prevIndex];
             const currTangent = vectors.unitTangents[i];
@@ -274,7 +282,11 @@ export namespace ShapeUtils {
         joinRadii?: number[],
         lameExponents?: number[],
         offset: number = 0,
-    ) => {
+    ): ShapePaths => {
+        const cacheKey = JSON.stringify({ vertices, edgeThicknesses, joinRadii, lameExponents, offset });
+
+        if (PATH_CACHE[cacheKey]) return PATH_CACHE[cacheKey];
+
         const generatePolylineCorner = (
             arcStart: Point2d,
             arcEnd: Point2d,
@@ -367,7 +379,7 @@ export namespace ShapeUtils {
         const innerEndPoints: Point2d[] = [];
 
         for (let i = 0; i < vertexCount; i++) {
-            const prevIndex = (i - 1 + vertexCount) % vertexCount;
+            const prevIndex = getPrevIndex(i, vertexCount);
             const vertex = vertices[i];
             const kappa = common.lameExponents[i];
             const prevTangent = unitTangents[prevIndex];
@@ -376,7 +388,7 @@ export namespace ShapeUtils {
             const currNormal = unitNormals[i];
             const crossCheck = crossChecks[i];
             const outerRadius = outer.joinRadii[i];
-            
+
             const prevArcRefPt = {
                 x: vertex.x + (offset - outerRadius) * prevNormal.x,
                 y: vertex.y + (offset - outerRadius) * prevNormal.y,
@@ -411,7 +423,7 @@ export namespace ShapeUtils {
                 outerRadius,
                 kappa,
             );
-            
+
             const outerStr = outerPts.map((p) => `L ${p.x.toFixed(3)} ${p.y.toFixed(3)}`).join(" ");
             outerPathSegments.push(outerStr);
             outerStartPoints.push(outerPts[0]);
@@ -421,6 +433,7 @@ export namespace ShapeUtils {
                 innerPathSegments.push(outerStr);
                 innerStartPoints.push(outerPts[0]);
                 innerEndPoints.push(outerPts[outerPts.length - 1]);
+
                 continue;
             }
 
@@ -502,12 +515,16 @@ export namespace ShapeUtils {
             }
         }
 
-        return {
+        const result = {
             outerPath: `${outerPath} Z`,
             innerPath: `${innerPath} Z`,
             outerPoints,
             innerPoints,
         };
+
+        PATH_CACHE[cacheKey] = result;
+
+        return result;
     };
 
     export const getRectPadding = (
@@ -556,7 +573,22 @@ export namespace ShapeUtils {
 
 /*
 const t0 = performance.now();
-for (let i = 0; i < 100_000; i++) ShapeUtils.getPaths(ShapeConst.getDefaultShapePoints("square", { width: 320, height: 320 }), [4], [20], [1]); 
+const pts = ShapeConst.getDefaultShapePoints("square", { width: 320, height: 320 });
+const testParams = Array.from({ length: 1_000_000 }, () => ({
+    pts,
+    edgeThicknesses: [(Math.floor(Math.random() * 10) + 1) * 4],
+    joinRadii: [(Math.floor(Math.random() * 16) + 1) * 10],
+    lameExponents: [Math.floor(Math.random() * 5) - 2],
+}));
 const t1 = performance.now();
-console.log(`Call took ${t1 - t0} milliseconds.`);
+testParams.map(({ pts, edgeThicknesses, joinRadii, lameExponents }) =>
+    ShapeUtils.getPaths(pts, edgeThicknesses, joinRadii, lameExponents),
+);
+const t2 = performance.now();
+console.log(`Testbed generation: ${t1 - t0} ms.`);
+console.log(`Path computation: ${t2 - t1} ms.`);
+console.log({
+    computations: testParams.length,
+    variations: Object.keys(ShapeUtils.PATH_CACHE).length,
+});
 */

@@ -11,8 +11,6 @@ type Props = SurfaceExampleProps;
 export const WideExample = (props: Props) => {
     const strokeId = createUniqueId();
 
-    return null;
-
     return (
         <Surface
             getBorderRadii={() => CSSUtils.spreadRadius(props.getBorderRadius())}
