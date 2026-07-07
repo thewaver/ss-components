@@ -1,6 +1,7 @@
 import type { JSX } from "solid-js";
 
 import type { Point2d, Size2d } from "@thewaver/ss-utils";
+// import { ShapeConst } from "./Shape.const";
 
 const padArray = <T>(arr: T[] | undefined, defaultVal: T, count: number): T[] => {
     if (!arr || !arr.length) return Array(count).fill(defaultVal);
@@ -11,7 +12,7 @@ export namespace ShapeUtils {
     const INNER_RECT_ITERATIONS = 5;
     const INNER_RECT_SAMPLES = 50;
     const CIRCLE_KAPPA = 1;
-    const HALF_PI = Math.PI / 2;
+    const HALF_PI = Math.PI * 0.5;
 
     export const getInnerRect = (pts: Point2d[]) => {
         if (pts.length < 3) return { x: 0, y: 0, width: 0, height: 0 };
@@ -130,34 +131,13 @@ export namespace ShapeUtils {
             lameExponents: padArray(lameExponents ?? [], CIRCLE_KAPPA, vertexCount),
         };
 
+        const hasThickness = common.edgeThicknesses.some((t) => t !== 0);
         const rawJoinRadii = padArray(joinRadii ?? [], 0, vertexCount);
-        const finalJoinRadii = [...rawJoinRadii];
-
-        for (let i = 0; i < vertexCount; i++) {
-            const nextIndex = (i + 1) % vertexCount;
-            const edgeLength = Math.hypot(vertices[nextIndex].x - vertices[i].x, vertices[nextIndex].y - vertices[i].y);
-            const thickness = common.edgeThicknesses[i];
-            const rCurrent = finalJoinRadii[i];
-            const rNext = finalJoinRadii[nextIndex];
-            const kCurrent = common.lameExponents[i];
-            const kNext = common.lameExponents[nextIndex];
-            const thicknessOverhead = (kCurrent < 0 ? thickness : 0) + (kNext < 0 ? thickness : 0);
-            const availableRadiusSpace = Math.max(0, edgeLength - thicknessOverhead);
-            const rawRadiiSum = rCurrent + rNext;
-
-            if (availableRadiusSpace === 0) {
-                finalJoinRadii[i] = 0;
-                finalJoinRadii[nextIndex] = 0;
-            } else if (rawRadiiSum > availableRadiusSpace && rawRadiiSum > 0) {
-                const scaleFactor = availableRadiusSpace / rawRadiiSum;
-                finalJoinRadii[i] = rCurrent * scaleFactor;
-                finalJoinRadii[nextIndex] = rNext * scaleFactor;
-            }
-        }
+        const hasRadii = rawJoinRadii.some((r) => r > 0);
 
         const outer = {
             vertices: [] as Point2d[],
-            joinRadii: finalJoinRadii,
+            joinRadii: [] as number[],
         };
 
         const inner = {
@@ -171,7 +151,42 @@ export namespace ShapeUtils {
             crossChecks: [] as number[],
         };
 
-        if (vertexCount < 3) return { outer, inner, common, vectors };
+        if (vertexCount < 3) return { outer, inner, common, vectors, hasThickness, hasRadii };
+
+        if (!hasRadii) {
+            outer.joinRadii = rawJoinRadii;
+        } else {
+            const edgeScaleFactors = new Array(vertexCount).fill(1);
+            
+            for (let i = 0; i < vertexCount; i++) {
+                const nextIndex = (i + 1) % vertexCount;
+                const edgeLength = Math.hypot(
+                    vertices[nextIndex].x - vertices[i].x,
+                    vertices[nextIndex].y - vertices[i].y
+                );
+                const thickness = common.edgeThicknesses[i];
+                const rCurrent = rawJoinRadii[i];
+                const rNext = rawJoinRadii[nextIndex];
+                const kCurrent = common.lameExponents[i];
+                const kNext = common.lameExponents[nextIndex];
+                const thicknessOverhead = (kCurrent < 0 ? thickness : 0) + (kNext < 0 ? thickness : 0);
+                const availableRadiusSpace = Math.max(0, edgeLength - thicknessOverhead);
+                const rawRadiiSum = rCurrent + rNext;
+
+                if (availableRadiusSpace === 0) {
+                    edgeScaleFactors[i] = 0;
+                } else if (rawRadiiSum > availableRadiusSpace && rawRadiiSum > 0) {
+                    edgeScaleFactors[i] = availableRadiusSpace / rawRadiiSum;
+                }
+            }
+
+            outer.joinRadii = rawJoinRadii.map((r, i) => {
+                const prevEdgeIndex = (i - 1 + vertexCount) % vertexCount;
+                const currEdgeIndex = i;
+                const strictFactor = Math.min(edgeScaleFactors[prevEdgeIndex], edgeScaleFactors[currEdgeIndex]);
+                return r * strictFactor;
+            });
+        }
 
         const { totalX, totalY } = vertices.reduce(
             (acc, curr) => ({ totalX: acc.totalX + curr.x, totalY: acc.totalY + curr.y }),
@@ -222,30 +237,35 @@ export namespace ShapeUtils {
                 y: prevOuterWall.y + outerScale * prevTangent.y,
             });
 
-            const prevThickness = common.edgeThicknesses[prevIndex];
-            const currThickness = common.edgeThicknesses[i];
-            const prevInnerWall = {
-                x: vertex.x - prevThickness * prevNormal.x,
-                y: vertex.y - prevThickness * prevNormal.y,
-            };
-            const currInnerWall = {
-                x: vertex.x - currThickness * currNormal.x,
-                y: vertex.y - currThickness * currNormal.y,
-            };
-            const innerScale =
-                ((currInnerWall.x - prevInnerWall.x) * currTangent.y -
-                    (currInnerWall.y - prevInnerWall.y) * currTangent.x) /
-                crossCheck;
+            if (!hasThickness && offset === 0) {
+                inner.vertices.push({ x: vertex.x, y: vertex.y });
+                inner.joinRadii.push(outer.joinRadii[i]);
+            } else {
+                const prevThickness = common.edgeThicknesses[prevIndex];
+                const currThickness = common.edgeThicknesses[i];
+                const prevInnerWall = {
+                    x: vertex.x - prevThickness * prevNormal.x,
+                    y: vertex.y - prevThickness * prevNormal.y,
+                };
+                const currInnerWall = {
+                    x: vertex.x - currThickness * currNormal.x,
+                    y: vertex.y - currThickness * currNormal.y,
+                };
+                const innerScale =
+                    ((currInnerWall.x - prevInnerWall.x) * currTangent.y -
+                        (currInnerWall.y - prevInnerWall.y) * currTangent.x) /
+                    crossCheck;
 
-            inner.vertices.push({
-                x: prevInnerWall.x + innerScale * prevTangent.x,
-                y: prevInnerWall.y + innerScale * prevTangent.y,
-            });
+                inner.vertices.push({
+                    x: prevInnerWall.x + innerScale * prevTangent.x,
+                    y: prevInnerWall.y + innerScale * prevTangent.y,
+                });
 
-            inner.joinRadii.push(outer.joinRadii[i] - Math.max(prevThickness, currThickness));
+                inner.joinRadii.push(outer.joinRadii[i] - Math.max(prevThickness, currThickness));
+            }
         }
 
-        return { outer, inner, common, vectors };
+        return { outer, inner, common, vectors, hasThickness, hasRadii };
     };
 
     export const getPaths = (
@@ -312,15 +332,33 @@ export namespace ShapeUtils {
 
         if (vertexCount < 3) return { outerPath: "", innerPath: "", outerPoints: [], innerPoints: [] };
 
-        const { outer, inner, common, vectors } = setupPaths(
+        const { outer, inner, common, vectors, hasThickness, hasRadii } = setupPaths(
             vertices,
             edgeThicknesses,
             joinRadii,
             lameExponents,
             offset,
         );
-        const { unitTangents, unitNormals, crossChecks } = vectors;
 
+        if (!hasRadii) {
+            const outerPathSegments = outer.vertices.map((v) => `L ${v.x.toFixed(3)} ${v.y.toFixed(3)}`);
+            const outerPath = `M ${outer.vertices[vertexCount - 1].x.toFixed(3)} ${outer.vertices[vertexCount - 1].y.toFixed(3)} ${outerPathSegments.join(" ")} Z`;
+
+            let innerPath = "";
+            let innerPoints = inner.vertices;
+
+            if (!hasThickness) {
+                innerPath = outerPath;
+                innerPoints = outer.vertices;
+            } else {
+                const innerPathSegments = inner.vertices.map((v) => `L ${v.x.toFixed(3)} ${v.y.toFixed(3)}`);
+                innerPath = `M ${inner.vertices[vertexCount - 1].x.toFixed(3)} ${inner.vertices[vertexCount - 1].y.toFixed(3)} ${innerPathSegments.join(" ")} Z`;
+            }
+
+            return { outerPath, innerPath, outerPoints: outer.vertices, innerPoints };
+        }
+
+        const { unitTangents, unitNormals, crossChecks } = vectors;
         const outerPathSegments: string[] = [];
         const outerStartPoints: Point2d[] = [];
         const outerEndPoints: Point2d[] = [];
@@ -332,14 +370,13 @@ export namespace ShapeUtils {
             const prevIndex = (i - 1 + vertexCount) % vertexCount;
             const vertex = vertices[i];
             const kappa = common.lameExponents[i];
-            const prevThickness = common.edgeThicknesses[prevIndex];
-            const currThickness = common.edgeThicknesses[i];
             const prevTangent = unitTangents[prevIndex];
             const currTangent = unitTangents[i];
             const prevNormal = unitNormals[prevIndex];
             const currNormal = unitNormals[i];
             const crossCheck = crossChecks[i];
             const outerRadius = outer.joinRadii[i];
+            
             const prevArcRefPt = {
                 x: vertex.x + (offset - outerRadius) * prevNormal.x,
                 y: vertex.y + (offset - outerRadius) * prevNormal.y,
@@ -374,10 +411,21 @@ export namespace ShapeUtils {
                 outerRadius,
                 kappa,
             );
-            outerPathSegments.push(outerPts.map((p) => `L ${p.x.toFixed(3)} ${p.y.toFixed(3)}`).join(" "));
+            
+            const outerStr = outerPts.map((p) => `L ${p.x.toFixed(3)} ${p.y.toFixed(3)}`).join(" ");
+            outerPathSegments.push(outerStr);
             outerStartPoints.push(outerPts[0]);
             outerEndPoints.push(outerPts[outerPts.length - 1]);
 
+            if (!hasThickness) {
+                innerPathSegments.push(outerStr);
+                innerStartPoints.push(outerPts[0]);
+                innerEndPoints.push(outerPts[outerPts.length - 1]);
+                continue;
+            }
+
+            const prevThickness = common.edgeThicknesses[prevIndex];
+            const currThickness = common.edgeThicknesses[i];
             const maxThickness = Math.max(prevThickness, currThickness);
             const isConcave = kappa < 0;
             const innerRadius = outerRadius - maxThickness;
@@ -505,3 +553,10 @@ export namespace ShapeUtils {
         };
     };
 }
+
+/*
+const t0 = performance.now();
+for (let i = 0; i < 100_000; i++) ShapeUtils.getPaths(ShapeConst.getDefaultShapePoints("square", { width: 320, height: 320 }), [4], [20], [1]); 
+const t1 = performance.now();
+console.log(`Call took ${t1 - t0} milliseconds.`);
+*/

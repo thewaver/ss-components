@@ -14,7 +14,7 @@ export const AsymmetricalExample = (props: Props) => {
         <Surface
             getBorderRadii={() => ({
                 borderBottomLeftRadius: props.getBorderRadius() * 2,
-                borderBottomRightRadius: props.getBorderRadius(),
+                borderBottomRightRadius: props.getBorderRadius() * 4,
                 borderTopLeftRadius: props.getBorderRadius(),
                 borderTopRightRadius: props.getBorderRadius() * 2,
             })}
