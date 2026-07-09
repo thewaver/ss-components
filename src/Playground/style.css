@@ -1,13 +1,15 @@
 :root {
-    --clr-bkg-primary: rgb(48, 40, 32);
-    --clr-bkg-secondary: rgb(12, 10, 8);
+    --clr-bkg-primary: rgb(64, 56, 48);
+    --clr-bkg-secondary: rgb(32, 28, 24);
 
     --clr-text: rgb(255, 240, 224);
     --clr-text-secondary: rgb(224, 208, 192);
     --clr-text-contrast: rgb(0, 0, 0);
 
     --clr-primary: rgb(96, 240, 192);
+    --clr-primary-contrast: rgb(24, 60, 48);
     --clr-secondary: rgb(96, 192, 240);
+    --clr-secondary-contrast: rgb(24, 48, 60);
 
     --clr-highlight: rgb(255, 0, 255);
 

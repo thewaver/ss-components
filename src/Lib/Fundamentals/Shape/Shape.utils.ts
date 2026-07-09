@@ -295,8 +295,9 @@ export namespace ShapeUtils {
             crossCheck: number,
             radius: number,
             exponent: number,
-            resolution: number = 12,
+            resolutionRatio: number = 1,
         ): Point2d[] => {
+            const resolution = Math.max(1, Math.ceil(Math.sqrt(radius))) * 4 * resolutionRatio;
             const cssExponent = exponent >= 0 ? exponent + 1 : 1 / (1 - exponent);
             const superelipsePow = 2 / cssExponent;
 

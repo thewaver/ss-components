@@ -39,7 +39,7 @@ const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
 ];
 
 const STARTING_COLORS: SVGDefsSamples.ColorDefs = {
-    background: "#282018",
+    background: "#282420",
     primary: "#FFFF00",
     secondary: "#00FFFF",
     tertiary: "#FF00FF",

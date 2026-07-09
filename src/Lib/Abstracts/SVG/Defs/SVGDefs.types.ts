@@ -10,6 +10,7 @@ export type SVGDefs = {
         defsElement: JSX.Element;
     };
     blend?: boolean;
+    opacity?: number;
 } & (
     | {
           color?: never;

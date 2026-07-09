@@ -1,10 +1,10 @@
-import { createMemo } from "solid-js";
+import { type ParentProps, createMemo } from "solid-js";
 
 import { Shape } from "../../Fundamentals/Shape/Shape";
 import { ShapeConst } from "../../Fundamentals/Shape/Shape.const";
 import type { SurfaceProps } from "./Surface.types";
 
-export const Surface = (props: SurfaceProps) => {
+export const Surface = (props: ParentProps<SurfaceProps>) => {
     const getBorderWidths = createMemo(() => {
         const namedWidths = props.getBorderWidths();
 
@@ -44,15 +44,20 @@ export const Surface = (props: SurfaceProps) => {
         <Shape
             getPoints={(getSize) => ShapeConst.getDefaultShapePoints("square", getSize())}
             getFillDefs={props.getFillDefs}
-            getStrokeDefs={(getSize) => {
-                const strokeDefs = props.getStrokeDefs?.(getSize);
+            getStrokeDefs={
+                props.getStrokeDefs
+                    ? (getSize) => {
+                          const strokeDefs = props.getStrokeDefs!(getSize);
 
-                if (!strokeDefs) return [];
-                return strokeDefs.map((def) => ({ ...def, thicknesses: getBorderWidths() }));
-            }}
+                          return strokeDefs.map((def) => ({ ...def, thicknesses: getBorderWidths() }));
+                      }
+                    : undefined
+            }
             joinRadii={getJoinRadii()}
             lameExponents={getLameExponents()}
-            renderChildren={props.renderChildren}
+            renderChildren={(_, getClipPath) => (
+                <div style={{ "clip-path": `path("${getClipPath()}")` }}>{props.children}</div>
+            )}
         />
     );
 };

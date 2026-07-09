@@ -83,7 +83,7 @@ const TAB_CONFIGS: TabConfig[] = [
         component: () => <TypewriterPage />,
     },
     {
-        name: "Elements",
+        name: "Composites",
     },
     {
         name: "Surface",

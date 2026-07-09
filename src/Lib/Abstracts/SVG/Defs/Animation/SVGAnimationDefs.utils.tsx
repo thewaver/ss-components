@@ -9,8 +9,6 @@ export namespace SVGAnimationUtils {
         repeatCount: "indefinite" as const,
     });
 
-    const DIAGONAL_RAD = (45 * Math.PI) / 180;
-
     export namespace Linear {
         export const grow = (vName: "x" | "y", v1: number, v2: number, sArr: number[], defs: SVGAnimationDefs) => {
             const commonDefs = getCommonAnimDefs(defs);
@@ -62,6 +60,7 @@ export namespace SVGAnimationUtils {
             y1: number,
             x2: number,
             y2: number,
+            angle: number,
             oArr: [oX: number, oY: number][],
             defs: SVGAnimationDefs,
         ) => {
@@ -70,6 +69,7 @@ export namespace SVGAnimationUtils {
                 [x2, y2],
             ];
             const commonDefs = getCommonAnimDefs(defs);
+            const diagonalRad = (angle * Math.PI) / 180;
 
             return (
                 <For each={points}>
@@ -81,12 +81,12 @@ export namespace SVGAnimationUtils {
                             <>
                                 <animate
                                     attributeName={`x${getIndex() + 1}`}
-                                    values={oArr.map((o) => `${x + o[0] * Math.cos(DIAGONAL_RAD)}`).join(";")}
+                                    values={oArr.map((o) => `${x + o[0] * Math.cos(diagonalRad)}`).join(";")}
                                     {...commonDefs}
                                 />
                                 <animate
                                     attributeName={`y${getIndex() + 1}`}
-                                    values={oArr.map((o) => `${y + o[1] * Math.sin(DIAGONAL_RAD)}`).join(";")}
+                                    values={oArr.map((o) => `${y + o[1] * Math.sin(diagonalRad)}`).join(";")}
                                     {...commonDefs}
                                 />
                             </>
@@ -128,21 +128,23 @@ export namespace SVGAnimationUtils {
         export const sweepDiagonal = (
             cx: number,
             cy: number,
+            angle: number,
             oArr: [x: number, y: number][],
             defs: SVGAnimationDefs,
         ) => {
             const commonDefs = getCommonAnimDefs(defs);
+            const diagonalRad = (angle * Math.PI) / 180;
 
             return (
                 <>
                     <animate
                         attributeName="cx"
-                        values={oArr.map((o) => `${cx + o[0] * Math.cos(DIAGONAL_RAD)}`).join(";")}
+                        values={oArr.map((o) => `${cx + o[0] * Math.cos(diagonalRad)}`).join(";")}
                         {...commonDefs}
                     />
                     <animate
                         attributeName="cy"
-                        values={oArr.map((o) => `${cy + o[1] * Math.sin(DIAGONAL_RAD)}`).join(";")}
+                        values={oArr.map((o) => `${cy + o[1] * Math.sin(diagonalRad)}`).join(";")}
                         {...commonDefs}
                     />
                 </>

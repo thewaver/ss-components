@@ -7,6 +7,19 @@ import { SVGFilterDefsFactory } from "./Filter/SVGFilterDefs.factory";
 import { SVGGradientDefsUtils } from "./Gradient/SVGGradientDefs.utils";
 import type { SVGDefs } from "./SVGDefs.types";
 
+const unwarpAngle = (angle: number, size: Size2d): number => {
+    if (size.width === 0 || size.height === 0) return angle;
+
+    const radians = angle * (Math.PI / 180);
+    const visualX = Math.cos(radians);
+    const visualY = Math.sin(radians);
+    const boxX = visualX / size.height;
+    const boxY = visualY / size.width;
+    const unwarpedRadians = Math.atan2(boxY, boxX);
+
+    return unwarpedRadians * (180 / Math.PI);
+};
+
 export namespace SVGDefsSamples {
     export type ColorDefs = { [K in "primary" | "secondary" | "tertiary" | "background"]: string };
 
@@ -148,6 +161,10 @@ export namespace SVGDefsSamples {
                                     { value: defs.getColors().primary },
                                     { value: defs.getColors().secondary },
                                     { value: defs.getColors().primary },
+                                    { value: defs.getColors().secondary },
+                                    { value: defs.getColors().primary },
+                                    { value: defs.getColors().secondary },
+                                    { value: defs.getColors().primary },
                                 ],
                                 spreadKind: "banded",
                                 scale: { width: 2, height: 1 },
@@ -189,6 +206,41 @@ export namespace SVGDefsSamples {
             ],
         },
 
+        flow_3s: {
+            getSVGDefs: (id, __, defs) => [
+                {
+                    gradient: {
+                        id: `gradient1-${id}`,
+                        defsElement: SVGGradientDefsUtils.getLinearGradient(
+                            {
+                                id: `gradient1-${id}`,
+                                colors: [
+                                    { value: defs.getColors().primary },
+                                    { value: defs.getColors().secondary },
+                                    { value: defs.getColors().tertiary },
+                                    { value: defs.getColors().primary },
+                                    { value: defs.getColors().secondary },
+                                    { value: defs.getColors().tertiary },
+                                    { value: defs.getColors().primary },
+                                    { value: defs.getColors().secondary },
+                                    { value: defs.getColors().tertiary },
+                                    { value: defs.getColors().primary },
+                                    { value: defs.getColors().secondary },
+                                    { value: defs.getColors().tertiary },
+                                    { value: defs.getColors().primary },
+                                ],
+                                spreadKind: "banded",
+                                scale: { width: 2, height: 1 },
+                            },
+                            (x1, y1, x2, y2) =>
+                                SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0.5, -0.5], defs),
+                        ),
+                    },
+                    filter: getBaseBlur(id, defs),
+                },
+            ],
+        },
+
         flowDiagonal_2s: {
             getSVGDefs: (id, __, defs) => [
                 {
@@ -211,10 +263,14 @@ export namespace SVGDefsSamples {
                                     { value: defs.getColors().primary },
                                     { value: defs.getColors().secondary },
                                     { value: defs.getColors().primary },
+                                    { value: defs.getColors().secondary },
+                                    { value: defs.getColors().primary },
+                                    { value: defs.getColors().secondary },
+                                    { value: defs.getColors().primary },
                                 ],
                                 spreadKind: "banded",
-                                angle: 45,
-                                scale: { width: 3, height: 3 },
+                                angle: unwarpAngle(45, defs.getSize()),
+                                scale: { width: 2, height: 2 },
                             },
                             (x1, y1, x2, y2) =>
                                 SVGAnimationUtils.Linear.sweepDiagonal(
@@ -222,9 +278,10 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    unwarpAngle(45, defs.getSize()),
                                     [
-                                        [0.75, 0.75],
-                                        [-0.75, -0.75],
+                                        [0.5, 0.5],
+                                        [-0.5, -0.5],
                                     ],
                                     defs,
                                 ),
@@ -252,8 +309,8 @@ export namespace SVGDefsSamples {
                                     { value: defs.getColors().tertiary },
                                     { value: defs.getColors().primary },
                                 ],
-                                angle: 45,
-                                scale: { width: 3, height: 3 },
+                                angle: unwarpAngle(45, defs.getSize()),
+                                scale: { width: 2, height: 2 },
                             },
                             (x1, y1, x2, y2) =>
                                 SVGAnimationUtils.Linear.sweepDiagonal(
@@ -261,9 +318,57 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    unwarpAngle(45, defs.getSize()),
                                     [
-                                        [0.75, 0.75],
-                                        [-0.75, -0.75],
+                                        [0.5, 0.5],
+                                        [-0.5, -0.5],
+                                    ],
+                                    defs,
+                                ),
+                        ),
+                    },
+                    filter: getBaseBlur(id, defs),
+                },
+            ],
+        },
+
+        flowDiagonal_3s: {
+            getSVGDefs: (id, __, defs) => [
+                {
+                    gradient: {
+                        id: `gradient1-${id}`,
+                        defsElement: SVGGradientDefsUtils.getLinearGradient(
+                            {
+                                id: `gradient1-${id}`,
+                                colors: [
+                                    { value: defs.getColors().primary },
+                                    { value: defs.getColors().secondary },
+                                    { value: defs.getColors().tertiary },
+                                    { value: defs.getColors().primary },
+                                    { value: defs.getColors().secondary },
+                                    { value: defs.getColors().tertiary },
+                                    { value: defs.getColors().primary },
+                                    { value: defs.getColors().secondary },
+                                    { value: defs.getColors().tertiary },
+                                    { value: defs.getColors().primary },
+                                    { value: defs.getColors().secondary },
+                                    { value: defs.getColors().tertiary },
+                                    { value: defs.getColors().primary },
+                                ],
+                                spreadKind: "banded",
+                                angle: unwarpAngle(45, defs.getSize()),
+                                scale: { width: 2, height: 2 },
+                            },
+                            (x1, y1, x2, y2) =>
+                                SVGAnimationUtils.Linear.sweepDiagonal(
+                                    x1,
+                                    y1,
+                                    x2,
+                                    y2,
+                                    unwarpAngle(45, defs.getSize()),
+                                    [
+                                        [0.5, 0.5],
+                                        [-0.5, -0.5],
                                     ],
                                     defs,
                                 ),
@@ -343,6 +448,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [-1.25, -1.25],
                                         [1.25, 1.25],
@@ -373,6 +479,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [1.25, 1.25],
                                         [-1.25, -1.25],
@@ -411,6 +518,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [-1.25, -1.25],
                                         [0, 0],
@@ -445,6 +553,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [1.25, 1.25],
                                         [1.25, 1.25],
@@ -479,6 +588,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [1.25, -1.25],
                                         [1.25, -1.25],
@@ -513,6 +623,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [-1.25, 1.25],
                                         [-1.25, 1.25],
@@ -846,6 +957,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [-1.25, -1.25],
                                         [1.25, 1.25],
@@ -884,6 +996,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [-1.25, -1.25],
                                         [1.25, 1.25],
@@ -914,6 +1027,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [1.25, -1.25],
                                         [-1.25, 1.25],
@@ -1679,6 +1793,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [-1.25, -1.25],
                                         [1.25, 1.25],
@@ -1716,6 +1831,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [-1.25, -1.25],
                                         [1.25, 1.25],
@@ -1745,6 +1861,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [1.25, 1.25],
                                         [-1.25, -1.25],
@@ -1782,6 +1899,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [-1.25, -1.25],
                                         [0, 0],
@@ -1815,6 +1933,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [1.25, 1.25],
                                         [1.25, 1.25],
@@ -1848,6 +1967,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [1.25, -1.25],
                                         [1.25, -1.25],
@@ -1881,6 +2001,7 @@ export namespace SVGDefsSamples {
                                     y1,
                                     x2,
                                     y2,
+                                    45,
                                     [
                                         [-1.25, 1.25],
                                         [-1.25, 1.25],

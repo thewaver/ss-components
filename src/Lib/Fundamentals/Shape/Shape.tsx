@@ -23,19 +23,20 @@ export const Shape = (props: ShapeProps) => {
     const getPaths = createMemo(() => {
         const pts = props.getPoints(getRootSize);
         const cache: Record<string, ReturnType<typeof ShapeUtils.getPaths>> = {};
+        const defs = getStrokeDefs();
 
-        return (
-            getStrokeDefs()?.map(({ thicknesses, offset }) => {
-                const key = thicknesses.map((t) => Math.floor(t)).join("_");
+        return defs?.length
+            ? defs.map(({ thicknesses, offset }) => {
+                  const key = thicknesses.map((t) => Math.floor(t)).join("_");
 
-                if (cache[key]) return cache[key];
+                  if (cache[key]) return cache[key];
 
-                const paths = ShapeUtils.getPaths(pts, thicknesses, props.joinRadii, props.lameExponents, offset);
-                cache[key] = paths;
+                  const paths = ShapeUtils.getPaths(pts, thicknesses, props.joinRadii, props.lameExponents, offset);
+                  cache[key] = paths;
 
-                return paths;
-            }) ?? []
-        );
+                  return paths;
+              })
+            : [ShapeUtils.getPaths(pts, [0], props.joinRadii, props.lameExponents)];
     });
 
     onMount(() => {
@@ -89,6 +90,7 @@ export const Shape = (props: ShapeProps) => {
                         <path
                             d={getPaths()[0].outerPath}
                             fill={def.gradient ? `url(#${def.gradient?.id})` : def.color}
+                            fill-opacity={def.opacity}
                             filter={def.filter ? `url(#${def.filter?.id})` : undefined}
                             clip-path={def.clipPath ? `url(#${def.clipPath?.id})` : undefined}
                             style={def.blend ? { "mix-blend-mode": "screen" } : undefined}
@@ -102,6 +104,7 @@ export const Shape = (props: ShapeProps) => {
                             d={`${getPaths()[getIndex()].outerPath} ${getPaths()[getIndex()].innerPath}`}
                             fill-rule="evenodd"
                             fill={def.gradient ? `url(#${def.gradient?.id})` : def.color}
+                            fill-opacity={def.opacity}
                             filter={def.filter ? `url(#${def.filter?.id})` : undefined}
                             clip-path={def.clipPath ? `url(#${def.clipPath?.id})` : undefined}
                             style={def.blend ? { "mix-blend-mode": "screen" } : undefined}
