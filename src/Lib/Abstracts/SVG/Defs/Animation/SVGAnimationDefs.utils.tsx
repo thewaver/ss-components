@@ -61,7 +61,7 @@ export namespace SVGAnimationUtils {
             x2: number,
             y2: number,
             angle: number,
-            oArr: [oX: number, oY: number][],
+            oArr: number[],
             defs: SVGAnimationDefs,
         ) => {
             const points = [
@@ -81,12 +81,12 @@ export namespace SVGAnimationUtils {
                             <>
                                 <animate
                                     attributeName={`x${getIndex() + 1}`}
-                                    values={oArr.map((o) => `${x + o[0] * Math.cos(diagonalRad)}`).join(";")}
+                                    values={oArr.map((o) => `${x + o * Math.cos(diagonalRad)}`).join(";")}
                                     {...commonDefs}
                                 />
                                 <animate
                                     attributeName={`y${getIndex() + 1}`}
-                                    values={oArr.map((o) => `${y + o[1] * Math.sin(diagonalRad)}`).join(";")}
+                                    values={oArr.map((o) => `${y + o * Math.sin(diagonalRad)}`).join(";")}
                                     {...commonDefs}
                                 />
                             </>
@@ -129,7 +129,7 @@ export namespace SVGAnimationUtils {
             cx: number,
             cy: number,
             angle: number,
-            oArr: [x: number, y: number][],
+            oArr: number[],
             defs: SVGAnimationDefs,
         ) => {
             const commonDefs = getCommonAnimDefs(defs);
@@ -139,12 +139,12 @@ export namespace SVGAnimationUtils {
                 <>
                     <animate
                         attributeName="cx"
-                        values={oArr.map((o) => `${cx + o[0] * Math.cos(diagonalRad)}`).join(";")}
+                        values={oArr.map((o) => `${cx + o * Math.cos(diagonalRad)}`).join(";")}
                         {...commonDefs}
                     />
                     <animate
                         attributeName="cy"
-                        values={oArr.map((o) => `${cy + o[1] * Math.sin(diagonalRad)}`).join(";")}
+                        values={oArr.map((o) => `${cy + o * Math.sin(diagonalRad)}`).join(";")}
                         {...commonDefs}
                     />
                 </>

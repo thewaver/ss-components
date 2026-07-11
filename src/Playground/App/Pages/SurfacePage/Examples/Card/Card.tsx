@@ -7,12 +7,7 @@ import * as styles from "./Card.css";
 
 const config: SurfaceProps = {
     getBorderRadii: () => CSSUtils.spreadRadius(styles.borderRadius),
-    getBorderWidths: () => ({
-        borderBottomWidth: 4,
-        borderLeftWidth: 2,
-        borderRightWidth: 2,
-        borderTopWidth: 2,
-    }),
+    getBorderWidths: () => CSSUtils.spreadWidth(2),
     getStrokeDefs: () => [
         {
             color: "var(--clr-primary)",
