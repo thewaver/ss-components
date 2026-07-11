@@ -14,13 +14,13 @@ export type SVGDefs = {
 } & (
     | {
           color?: never;
-          gradient: {
-              defsElement: JSX.Element;
+          gradientOrPattern: {
               id: string;
+              defsElement: JSX.Element;
           };
       }
     | {
           color: string;
-          gradient?: never;
+          gradientOrPattern?: never;
       }
 );

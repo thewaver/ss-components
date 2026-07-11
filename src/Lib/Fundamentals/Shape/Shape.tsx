@@ -71,14 +71,14 @@ export const Shape = (props: ShapeProps) => {
                 <defs>
                     {getStrokeDefs()?.map((def) => (
                         <>
-                            {def.gradient?.defsElement}
+                            {def.gradientOrPattern?.defsElement}
                             {def.filter?.defsElement}
                             {def.clipPath?.defsElement}
                         </>
                     ))}
                     {getFillDefs()?.map((def) => (
                         <>
-                            {def.gradient?.defsElement}
+                            {def.gradientOrPattern?.defsElement}
                             {def.filter?.defsElement}
                             {def.clipPath?.defsElement}
                         </>
@@ -89,7 +89,7 @@ export const Shape = (props: ShapeProps) => {
                     {(def) => (
                         <path
                             d={getPaths()[0].outerPath}
-                            fill={def.gradient ? `url(#${def.gradient?.id})` : def.color}
+                            fill={def.gradientOrPattern ? `url(#${def.gradientOrPattern?.id})` : def.color}
                             fill-opacity={def.opacity}
                             filter={def.filter ? `url(#${def.filter?.id})` : undefined}
                             clip-path={def.clipPath ? `url(#${def.clipPath?.id})` : undefined}
@@ -103,7 +103,7 @@ export const Shape = (props: ShapeProps) => {
                         <path
                             d={`${getPaths()[getIndex()].outerPath} ${getPaths()[getIndex()].innerPath}`}
                             fill-rule="evenodd"
-                            fill={def.gradient ? `url(#${def.gradient?.id})` : def.color}
+                            fill={def.gradientOrPattern ? `url(#${def.gradientOrPattern?.id})` : def.color}
                             fill-opacity={def.opacity}
                             filter={def.filter ? `url(#${def.filter?.id})` : undefined}
                             clip-path={def.clipPath ? `url(#${def.clipPath?.id})` : undefined}

@@ -5,6 +5,7 @@ import type { SVGAnimationDefs } from "./Animation/SVGAnimationDefs.types";
 import { SVGAnimationUtils } from "./Animation/SVGAnimationDefs.utils";
 import { SVGFilterDefsFactory } from "./Filter/SVGFilterDefs.factory";
 import { SVGGradientDefsUtils } from "./Gradient/SVGGradientDefs.utils";
+import { SVGPatternDefsUtils } from "./Pattern/SVGPatternDefs.utils";
 import type { SVGDefs } from "./SVGDefs.types";
 
 const unwarpAngle = (angle: number, size: Size2d): number => {
@@ -59,6 +60,62 @@ export namespace SVGDefsSamples {
             ],
         },
 
+        // TRIANGLE
+
+        triangle_2: {
+            getSVGDefs: (id, __, defs) => {
+                const cellSize: Size2d = { width: 40, height: 40 };
+
+                const upTriangle = (
+                    <path
+                        id={`${id}-triangle-up`}
+                        d={`M ${cellSize.width * 0.5} 0 L ${cellSize.width} ${cellSize.height} L 0 ${cellSize.height} Z`}
+                    />
+                );
+
+                const downTriangle = (
+                    <path
+                        id={`${id}-triangle-down`}
+                        d={`M 0 0 L ${cellSize.width} 0 L ${cellSize.width * 0.5} ${cellSize.height} Z`}
+                    />
+                );
+
+                return [
+                    {
+                        gradientOrPattern: {
+                            id: `pattern1-${id}`,
+                            defsElement: (
+                                <>
+                                    {upTriangle}
+                                    {downTriangle}
+                                    {SVGPatternDefsUtils.getPattern(
+                                        `pattern1-${id}`,
+                                        { rows: 2, cols: 3 },
+                                        cellSize,
+                                        (index) => ({ x: (index.col + 1) * -0.5, y: 0 }),
+                                        (cellId, index) => {
+                                            const isEven = MathUtils.isEven(index.col + index.row);
+                                            const shapeId = isEven ? `${id}-triangle-up` : `${id}-triangle-down`;
+
+                                            return (
+                                                <use
+                                                    id={cellId}
+                                                    href={`#${shapeId}`}
+                                                    fill={
+                                                        isEven ? defs.getColors().primary : defs.getColors().secondary
+                                                    }
+                                                />
+                                            );
+                                        },
+                                    )}
+                                </>
+                            ),
+                        },
+                    },
+                ];
+            },
+        },
+
         // CORNY
 
         cornyDesync_4x: {
@@ -67,7 +124,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getRadialGradient(
                             {
@@ -84,7 +141,7 @@ export namespace SVGDefsSamples {
                     filter: getBaseBlur(id, defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient3-${id}`,
                         defsElement: SVGGradientDefsUtils.getRadialGradient(
                             {
@@ -101,7 +158,7 @@ export namespace SVGDefsSamples {
                     filter: getBaseBlur(id, defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getRadialGradient(
                             {
@@ -118,7 +175,7 @@ export namespace SVGDefsSamples {
                     filter: getBaseBlur(id, defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient4-${id}`,
                         defsElement: SVGGradientDefsUtils.getRadialGradient(
                             {
@@ -142,7 +199,7 @@ export namespace SVGDefsSamples {
         flow_2s: {
             getSVGDefs: (id, __, defs) => [
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -180,7 +237,7 @@ export namespace SVGDefsSamples {
         flow_3: {
             getSVGDefs: (id, __, defs) => [
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -208,7 +265,7 @@ export namespace SVGDefsSamples {
         flow_3s: {
             getSVGDefs: (id, __, defs) => [
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -242,7 +299,7 @@ export namespace SVGDefsSamples {
         flowDiagonal_2s: {
             getSVGDefs: (id, __, defs) => [
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -289,7 +346,7 @@ export namespace SVGDefsSamples {
         flowDiagonal_3: {
             getSVGDefs: (id, __, defs) => [
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -326,7 +383,7 @@ export namespace SVGDefsSamples {
         flowDiagonal_3s: {
             getSVGDefs: (id, __, defs) => [
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -374,7 +431,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -392,7 +449,7 @@ export namespace SVGDefsSamples {
                     blend: true,
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -418,7 +475,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -437,7 +494,7 @@ export namespace SVGDefsSamples {
                     blend: true,
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -464,7 +521,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -491,7 +548,7 @@ export namespace SVGDefsSamples {
                     blend: true,
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -518,7 +575,7 @@ export namespace SVGDefsSamples {
                     blend: true,
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient3-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -545,7 +602,7 @@ export namespace SVGDefsSamples {
                     blend: true,
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient4-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -582,7 +639,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -607,7 +664,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -624,7 +681,7 @@ export namespace SVGDefsSamples {
                     filter: getBaseBlur(id, defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -649,7 +706,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -662,7 +719,7 @@ export namespace SVGDefsSamples {
                     filter: getBaseBlur(id, defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -686,7 +743,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -707,7 +764,7 @@ export namespace SVGDefsSamples {
                     blend: true,
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -725,7 +782,7 @@ export namespace SVGDefsSamples {
                     blend: true,
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient3-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -756,7 +813,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getRadialGradient(
                             {
@@ -799,7 +856,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -825,7 +882,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -843,7 +900,7 @@ export namespace SVGDefsSamples {
                     filter: getBaseBlur(id, defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -870,7 +927,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -897,7 +954,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -916,7 +973,7 @@ export namespace SVGDefsSamples {
                     filter: getBaseBlur(id, defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -945,7 +1002,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -979,7 +1036,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1005,7 +1062,7 @@ export namespace SVGDefsSamples {
                     },
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1039,7 +1096,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1065,7 +1122,7 @@ export namespace SVGDefsSamples {
                     },
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1099,7 +1156,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1126,7 +1183,7 @@ export namespace SVGDefsSamples {
                     },
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1153,7 +1210,7 @@ export namespace SVGDefsSamples {
                     },
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient3-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1180,7 +1237,7 @@ export namespace SVGDefsSamples {
                     },
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient4-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1215,7 +1272,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1241,7 +1298,7 @@ export namespace SVGDefsSamples {
                     },
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1267,7 +1324,7 @@ export namespace SVGDefsSamples {
                     },
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient3-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1307,7 +1364,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1357,7 +1414,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1398,7 +1455,7 @@ export namespace SVGDefsSamples {
                     },
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1437,7 +1494,7 @@ export namespace SVGDefsSamples {
                     },
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient3-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1472,7 +1529,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1519,7 +1576,7 @@ export namespace SVGDefsSamples {
                     },
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1562,7 +1619,7 @@ export namespace SVGDefsSamples {
                     },
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient3-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1599,7 +1656,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1625,7 +1682,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1643,7 +1700,7 @@ export namespace SVGDefsSamples {
                     filter: getBaseBlur(id, defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1670,7 +1727,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1697,7 +1754,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1716,7 +1773,7 @@ export namespace SVGDefsSamples {
                     filter: getBaseBlur(id, defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1743,7 +1800,7 @@ export namespace SVGDefsSamples {
                     color: getBaseBorderColor(defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient1-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1770,7 +1827,7 @@ export namespace SVGDefsSamples {
                     filter: getBaseBlur(id, defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient2-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1797,7 +1854,7 @@ export namespace SVGDefsSamples {
                     filter: getBaseBlur(id, defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient3-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
@@ -1824,7 +1881,7 @@ export namespace SVGDefsSamples {
                     filter: getBaseBlur(id, defs),
                 },
                 {
-                    gradient: {
+                    gradientOrPattern: {
                         id: `gradient4-${id}`,
                         defsElement: SVGGradientDefsUtils.getLinearGradient(
                             {
