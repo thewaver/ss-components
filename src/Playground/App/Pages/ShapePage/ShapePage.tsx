@@ -111,7 +111,7 @@ export const ShapePage = () => {
     const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
     const [getShapeKind, setShapeKind] = createSignal<ShapeConst.DefaultShape>("square");
     const [getEdgeThicknesses, setEdgeThicknesses] = createSignal<number[]>([4, 4, 4, 4, 4, 4]);
-    const [getJoinRadii, setJoinRadii] = createSignal<number[]>([80, 80, 80, 80, 80, 80]);
+    const [getJoinRadii, setJoinRadii] = createSignal<number[]>([40, 40, 40, 40, 40, 40]);
     const [getLameExponents, setLameExponents] = createSignal<number[]>([1, 1, 1, 1, 1, 1]);
     const [getStrokeConfigKey, setStrokeConfigKey] =
         createSignal<keyof typeof SVGDefsSamples.SAMPLE_CONFIGS>("sweepDiagonal_1v1");

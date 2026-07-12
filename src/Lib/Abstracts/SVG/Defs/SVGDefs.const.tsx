@@ -21,6 +21,13 @@ const unwarpAngle = (angle: number, size: Size2d): number => {
     return unwarpedRadians * (180 / Math.PI);
 };
 
+const getRandom01Values = (maxLength: number) => {
+    const pattern = Math.random() >= 0.5 ? "0;1;" : "1;0;";
+    const result = pattern.repeat(Math.ceil(Math.random() * maxLength)) + pattern[0];
+
+    return result;
+};
+
 export namespace SVGDefsSamples {
     export type ColorDefs = { [K in "primary" | "secondary" | "tertiary" | "background"]: string };
 
@@ -60,11 +67,69 @@ export namespace SVGDefsSamples {
             ],
         },
 
-        // TRIANGLE
+        // PATTERN
 
-        triangle_2: {
+        pattern_circle_1: {
             getSVGDefs: (id, __, defs) => {
-                const cellSize: Size2d = { width: 40, height: 40 };
+                const cellCount = { rows: 4, cols: 4 }; // 1:1
+                const cellSize = { width: 40, height: 40 };
+                const patternSize = {
+                    width: cellSize.width * cellCount.cols,
+                    height: cellSize.height * cellCount.rows,
+                };
+                const r = Math.min(cellSize.width, cellSize.height) * 0.5;
+
+                return [
+                    {
+                        gradientOrPattern: {
+                            id: `pattern1-${id}`,
+                            defsElement: SVGPatternDefsUtils.getPattern(
+                                `pattern1-${id}`,
+                                cellCount,
+                                cellSize,
+                                patternSize,
+                                (index) => ({
+                                    x: index.col * cellSize.width,
+                                    y: index.row * cellSize.height,
+                                }),
+                                (cellId, index) => {
+                                    const isEven = MathUtils.isEven(index.col + index.row);
+
+                                    return (
+                                        <circle
+                                            id={cellId}
+                                            r={r}
+                                            cx={cellSize.width * 0.5}
+                                            cy={cellSize.height * 0.5}
+                                            fill={isEven ? defs.getColors().primary : defs.getColors().secondary}
+                                        >
+                                            <animate
+                                                attributeName="r"
+                                                values={getRandom01Values(8)
+                                                    .split(";")
+                                                    .map((v) => `${Number(v) * r}`)
+                                                    .join(";")}
+                                                dur={`${defs.getAnimationDurationMs() * 4}ms`}
+                                                repeatCount="indefinite"
+                                            />
+                                        </circle>
+                                    );
+                                },
+                            ),
+                        },
+                    },
+                ];
+            },
+        },
+
+        pattern_triangle_2: {
+            getSVGDefs: (id, __, defs) => {
+                const cellCount = { rows: 6, cols: 9 }; // 2:3
+                const cellSize = { width: 40, height: 40 };
+                const patternSize = {
+                    width: cellSize.width * Math.round((cellCount.cols - 1) * 0.5),
+                    height: cellSize.height * cellCount.rows,
+                };
 
                 const upTriangle = (
                     <path
@@ -90,10 +155,15 @@ export namespace SVGDefsSamples {
                                     {downTriangle}
                                     {SVGPatternDefsUtils.getPattern(
                                         `pattern1-${id}`,
-                                        { rows: 2, cols: 3 },
+                                        cellCount,
                                         cellSize,
-                                        (index) => ({ x: (index.col + 1) * -0.5, y: 0 }),
+                                        patternSize,
+                                        (index) => ({
+                                            x: (index.col - 1) * cellSize.width * 0.5,
+                                            y: index.row * cellSize.height,
+                                        }),
                                         (cellId, index) => {
+                                            const isSplit = index.col === 0 || index.col === cellCount.cols - 1;
                                             const isEven = MathUtils.isEven(index.col + index.row);
                                             const shapeId = isEven ? `${id}-triangle-up` : `${id}-triangle-down`;
 
@@ -104,7 +174,14 @@ export namespace SVGDefsSamples {
                                                     fill={
                                                         isEven ? defs.getColors().primary : defs.getColors().secondary
                                                     }
-                                                />
+                                                >
+                                                    <animate
+                                                        attributeName="fill-opacity"
+                                                        values={isSplit ? "0;1;0" : getRandom01Values(8)}
+                                                        dur={`${defs.getAnimationDurationMs() * 4}ms`}
+                                                        repeatCount="indefinite"
+                                                    />
+                                                </use>
                                             );
                                         },
                                     )}
