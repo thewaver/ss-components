@@ -2,9 +2,8 @@ import { For, createEffect, createMemo, createSignal, createUniqueId, onCleanup,
 
 import { Size2d } from "@thewaver/ss-utils";
 
-import { CSSConst } from "../../Abstracts/CSS/CSS.const";
-import { type CSSAnimationKey, CSS_TRANSFORM_KEYS } from "../../Abstracts/CSS/CSS.types";
 import type { ScanlineAnimationProps } from "./ScanlineAnimation.types";
+import { ScanlineAnimationUtils } from "./ScanlineAnimation.utils";
 
 import * as styles from "./ScanlineAnimation.css";
 
@@ -81,34 +80,22 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
         const tick = (now: number) => {
             const t = (now - start) / duration; // 0..1
 
-            for (let i = 0; i < lines.length; i++) {
-                const el = lines[i];
-                const evalResult = props.evaluateScanlineAnimation(
-                    () => i,
-                    () => lines.length,
-                    () => t,
+            if (props.evaluateRootAnimation) {
+                ScanlineAnimationUtils.assignAnimationProps(
+                    rootRef,
+                    props.evaluateRootAnimation(() => t),
                 );
-                const transforms: string[] = [];
-                const filters: string[] = [];
+            }
 
-                for (const [key, value] of Object.entries(evalResult)) {
-                    const k = key as CSSAnimationKey;
-                    const prop = `${k}(${value}${CSSConst.ANIMATION_UNITS[k]})`;
-
-                    if (CSS_TRANSFORM_KEYS.includes(k as any)) {
-                        transforms.push(prop);
-                    } else {
-                        filters.push(prop);
-                    }
-                }
-
-                if (transforms.length) {
-                    el.style.transform = transforms.join(" ");
-                }
-
-                if (filters.length) {
-                    el.style.filter = filters.join(" ");
-                }
+            for (let i = 0; i < lines.length; i++) {
+                ScanlineAnimationUtils.assignAnimationProps(
+                    lines[i],
+                    props.evaluateScanlineAnimation(
+                        () => i,
+                        () => lines.length,
+                        () => t,
+                    ),
+                );
             }
 
             if (t >= 1) {

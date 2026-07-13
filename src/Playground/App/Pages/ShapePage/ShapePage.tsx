@@ -78,7 +78,12 @@ const StressTestWrapper = ({
                                 getColors,
                                 getBlurWidth,
                             })
-                            .map((config) => ({ ...config, thicknesses: edgeThicknesses }))
+                            .map((config) => ({
+                                ...config,
+                                thicknesses: edgeThicknesses.map(
+                                    (t) => (t * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
+                                ),
+                            }))
                     }
                     renderChildren={() => {
                         return (

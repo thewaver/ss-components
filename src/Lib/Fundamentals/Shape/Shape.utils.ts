@@ -21,6 +21,18 @@ export namespace ShapeUtils {
 
     export const PATH_CACHE: Record<string, ShapePaths> = {};
 
+    export const pointsToPath = (pts: Point2d[]) => {
+        if (pts.length < 3) return "";
+
+        let path = `M ${pts[0].x} ${pts[0].y}`;
+
+        for (let idx = 1; idx < pts.length; idx++) {
+            path += `L ${pts[idx].x} ${pts[idx].y}`;
+        }
+
+        return path + "Z";
+    };
+
     export const getInnerRect = (pts: Point2d[]) => {
         if (pts.length < 3) return { x: 0, y: 0, width: 0, height: 0 };
 

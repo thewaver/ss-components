@@ -1,5 +1,7 @@
 import { MathUtils, ObjectUtils, type Size2d } from "@thewaver/ss-utils";
 
+import { ShapeConst } from "../../../Fundamentals/Shape/Shape.const";
+import { ShapeUtils } from "../../../Fundamentals/Shape/Shape.utils";
 import type { InteractionFlags } from "../../Interaction/Interaction.types";
 import type { SVGAnimationDefs } from "./Animation/SVGAnimationDefs.types";
 import { SVGAnimationUtils } from "./Animation/SVGAnimationDefs.utils";
@@ -69,29 +71,20 @@ export namespace SVGDefsSamples {
 
         // PATTERN
 
-        pattern_circle_1: {
+        pattern_circle_g_2: {
             getSVGDefs: (id, __, defs) => {
-                const cellCount = { rows: 4, cols: 4 }; // 1:1
                 const cellSize = { width: 40, height: 40 };
-                const patternSize = {
-                    width: cellSize.width * cellCount.cols,
-                    height: cellSize.height * cellCount.rows,
-                };
+                const cellCount = { rows: Math.ceil(defs.getSize().height / cellSize.height) * 2, cols: Math.ceil(defs.getSize().width / cellSize.width) * 2 };
                 const r = Math.min(cellSize.width, cellSize.height) * 0.5;
 
                 return [
                     {
                         gradientOrPattern: {
                             id: `pattern1-${id}`,
-                            defsElement: SVGPatternDefsUtils.getPattern(
+                            defsElement: SVGPatternDefsUtils.getGridPattern(
                                 `pattern1-${id}`,
                                 cellCount,
                                 cellSize,
-                                patternSize,
-                                (index) => ({
-                                    x: index.col * cellSize.width,
-                                    y: index.row * cellSize.height,
-                                }),
                                 (cellId, index) => {
                                     const isEven = MathUtils.isEven(index.col + index.row);
 
@@ -122,26 +115,116 @@ export namespace SVGDefsSamples {
             },
         },
 
-        pattern_triangle_2: {
+        pattern_circle_hd_2: {
             getSVGDefs: (id, __, defs) => {
-                const cellCount = { rows: 6, cols: 9 }; // 2:3
                 const cellSize = { width: 40, height: 40 };
-                const patternSize = {
-                    width: cellSize.width * Math.round((cellCount.cols - 1) * 0.5),
-                    height: cellSize.height * cellCount.rows,
-                };
+                const cellCount = { rows: Math.ceil(defs.getSize().height / cellSize.height) * 2, cols: Math.ceil(defs.getSize().width / cellSize.width) * 2 };
+                const r = Math.min(cellSize.width, cellSize.height) * 0.5;
+
+                return [
+                    {
+                        gradientOrPattern: {
+                            id: `pattern1-${id}`,
+                            defsElement: SVGPatternDefsUtils.getHalfDropPattern(
+                                `pattern1-${id}`,
+                                cellCount,
+                                cellSize,
+                                (cellId, index) => {
+                                    const isEven = MathUtils.isEven(index.col + index.row);
+
+                                    return (
+                                        <circle
+                                            id={cellId}
+                                            r={r}
+                                            cx={cellSize.width * 0.5}
+                                            cy={cellSize.height * 0.5}
+                                            fill={isEven
+                                                      ? defs.getColors().primary
+                                                      : defs.getColors().secondary
+                                            }
+                                        >
+                                            <animate
+                                                attributeName="r"
+                                                values={(getRandom01Values(8))
+                                                    .split(";")
+                                                    .map((v) => `${Number(v) * r}`)
+                                                    .join(";")}
+                                                dur={`${defs.getAnimationDurationMs() * 4}ms`}
+                                                repeatCount="indefinite"
+                                            />
+                                        </circle>
+                                    );
+                                },
+                            ),
+                        },
+                    },
+                ];
+            },
+        },
+
+        pattern_circle_hs_2: {
+            getSVGDefs: (id, __, defs) => {
+                const cellSize = { width: 40, height: 40 };
+                const cellCount = { rows: Math.ceil(defs.getSize().height / cellSize.height) * 2, cols: Math.ceil(defs.getSize().width / cellSize.width) * 2 };
+                const r = Math.min(cellSize.width, cellSize.height) * 0.5;
+
+                return [
+                    {
+                        gradientOrPattern: {
+                            id: `pattern1-${id}`,
+                            defsElement: SVGPatternDefsUtils.getHalfShiftPattern(
+                                `pattern1-${id}`,
+                                cellCount,
+                                cellSize,
+                                (cellId, index) => {
+                                    const isEven = MathUtils.isEven(index.col + index.row);
+
+                                    return (
+                                        <circle
+                                            id={cellId}
+                                            r={r}
+                                            cx={cellSize.width * 0.5}
+                                            cy={cellSize.height * 0.5}
+                                            fill={isEven
+                                                      ? defs.getColors().primary
+                                                      : defs.getColors().secondary
+                                            }
+                                        >
+                                            <animate
+                                                attributeName="r"
+                                                values={(getRandom01Values(8))
+                                                    .split(";")
+                                                    .map((v) => `${Number(v) * r}`)
+                                                    .join(";")}
+                                                dur={`${defs.getAnimationDurationMs() * 4}ms`}
+                                                repeatCount="indefinite"
+                                            />
+                                        </circle>
+                                    );
+                                },
+                            ),
+                        },
+                    },
+                ];
+            },
+        },
+
+        pattern_triangle_t_2: {
+            getSVGDefs: (id, __, defs) => {
+                const cellSize = { width: 40, height: 40 };
+                const cellCount = { rows: Math.ceil(defs.getSize().height / cellSize.height) * 2, cols: Math.ceil(defs.getSize().width / cellSize.width) * 2 };
 
                 const upTriangle = (
                     <path
                         id={`${id}-triangle-up`}
-                        d={`M ${cellSize.width * 0.5} 0 L ${cellSize.width} ${cellSize.height} L 0 ${cellSize.height} Z`}
+                        d={ShapeUtils.pointsToPath(ShapeConst.getDefaultShapePoints("triangle-up", cellSize))}
                     />
                 );
 
                 const downTriangle = (
                     <path
                         id={`${id}-triangle-down`}
-                        d={`M 0 0 L ${cellSize.width} 0 L ${cellSize.width * 0.5} ${cellSize.height} Z`}
+                        d={ShapeUtils.pointsToPath(ShapeConst.getDefaultShapePoints("triangle-down", cellSize))}
                     />
                 );
 
@@ -153,17 +236,11 @@ export namespace SVGDefsSamples {
                                 <>
                                     {upTriangle}
                                     {downTriangle}
-                                    {SVGPatternDefsUtils.getPattern(
+                                    {SVGPatternDefsUtils.getTrianglePattern(
                                         `pattern1-${id}`,
                                         cellCount,
                                         cellSize,
-                                        patternSize,
-                                        (index) => ({
-                                            x: (index.col - 1) * cellSize.width * 0.5,
-                                            y: index.row * cellSize.height,
-                                        }),
                                         (cellId, index) => {
-                                            const isSplit = index.col === 0 || index.col === cellCount.cols - 1;
                                             const isEven = MathUtils.isEven(index.col + index.row);
                                             const shapeId = isEven ? `${id}-triangle-up` : `${id}-triangle-down`;
 
@@ -171,13 +248,176 @@ export namespace SVGDefsSamples {
                                                 <use
                                                     id={cellId}
                                                     href={`#${shapeId}`}
-                                                    fill={
-                                                        isEven ? defs.getColors().primary : defs.getColors().secondary
+                                                    fill={isEven
+                                                              ? defs.getColors().primary
+                                                              : defs.getColors().secondary
                                                     }
                                                 >
                                                     <animate
                                                         attributeName="fill-opacity"
-                                                        values={isSplit ? "0;1;0" : getRandom01Values(8)}
+                                                        values={getRandom01Values(8)}
+                                                        dur={`${defs.getAnimationDurationMs() * 4}ms`}
+                                                        repeatCount="indefinite"
+                                                    />
+                                                </use>
+                                            );
+                                        },
+                                    )}
+                                </>
+                            ),
+                        },
+                    },
+                ];
+            },
+        },
+
+        pattern_lozenge_d_2: {
+            getSVGDefs: (id, __, defs) => {
+                const cellSize = { width: 40, height: 40 };
+                const cellCount = { rows: Math.ceil(defs.getSize().height / cellSize.height) * 2, cols: Math.ceil(defs.getSize().width / cellSize.width) * 2 };
+
+                const lozenge = (
+                    <path
+                        id={`${id}-lozenge`}
+                        d={ShapeUtils.pointsToPath(ShapeConst.getDefaultShapePoints("lozenge", cellSize))}
+                    />
+                );
+
+                return [
+                    {
+                        gradientOrPattern: {
+                            id: `pattern1-${id}`,
+                            defsElement: (
+                                <>
+                                    {lozenge}
+                                    {SVGPatternDefsUtils.getDiagonalPattern(
+                                        `pattern1-${id}`,
+                                        cellCount,
+                                        cellSize,
+                                        (cellId, index) => {
+                                            const isEven = MathUtils.isEven(index.row);
+                                            const shapeId = `${id}-lozenge`;
+
+                                            return (
+                                                <use
+                                                    id={cellId}
+                                                    href={`#${shapeId}`}
+                                                    fill={isEven
+                                                              ? defs.getColors().primary
+                                                              : defs.getColors().secondary
+                                                    }
+                                                >
+                                                    <animate
+                                                        attributeName="fill-opacity"
+                                                        values={getRandom01Values(8)}
+                                                        dur={`${defs.getAnimationDurationMs() * 4}ms`}
+                                                        repeatCount="indefinite"
+                                                    />
+                                                </use>
+                                            );
+                                        },
+                                    )}
+                                </>
+                            ),
+                        },
+                    },
+                ];
+            },
+        },
+
+        pattern_hexagon_ft_2: {
+            getSVGDefs: (id, __, defs) => {
+                const cellSize = { width: 40, height: 40 };
+                const cellCount = { rows: Math.ceil(defs.getSize().height / cellSize.height) * 2, cols: Math.ceil(defs.getSize().width / cellSize.width) * 2 };
+
+                const lozenge = (
+                    <path
+                        id={`${id}-lozenge`}
+                        d={ShapeUtils.pointsToPath(ShapeConst.getDefaultShapePoints("hexagon-flat-top", cellSize))}
+                    />
+                );
+
+                return [
+                    {
+                        gradientOrPattern: {
+                            id: `pattern1-${id}`,
+                            defsElement: (
+                                <>
+                                    {lozenge}
+                                    {SVGPatternDefsUtils.getHexFlatTopPattern(
+                                        `pattern1-${id}`,
+                                        cellCount,
+                                        cellSize,
+                                        (cellId, index) => {
+                                            const isEven = MathUtils.isEven(index.row);
+                                            const shapeId = `${id}-lozenge`;
+
+                                            return (
+                                                <use
+                                                    id={cellId}
+                                                    href={`#${shapeId}`}
+                                                    fill={isEven
+                                                              ? defs.getColors().primary
+                                                              : defs.getColors().secondary
+                                                    }
+                                                >
+                                                    <animate
+                                                        attributeName="fill-opacity"
+                                                        values={getRandom01Values(8)}
+                                                        dur={`${defs.getAnimationDurationMs() * 4}ms`}
+                                                        repeatCount="indefinite"
+                                                    />
+                                                </use>
+                                            );
+                                        },
+                                    )}
+                                </>
+                            ),
+                        },
+                    },
+                ];
+            },
+        },
+
+        pattern_hexagon_pt_2: {
+            getSVGDefs: (id, __, defs) => {
+                const cellSize = { width: 40, height: 40 };
+                const cellCount = { rows: Math.ceil(defs.getSize().height / cellSize.height) * 2, cols: Math.ceil(defs.getSize().width / cellSize.width) * 2 };
+
+                const lozenge = (
+                    <path
+                        id={`${id}-lozenge`}
+                        d={ShapeUtils.pointsToPath(ShapeConst.getDefaultShapePoints("hexagon-pointy-top", cellSize))}
+                    />
+                );
+
+                return [
+                    {
+                        gradientOrPattern: {
+                            id: `pattern1-${id}`,
+                            defsElement: (
+                                <>
+                                    {lozenge}
+                                    {SVGPatternDefsUtils.getHexPointyTopPattern(
+                                        `pattern1-${id}`,
+                                        cellCount,
+                                        cellSize,
+                                        (cellId, index) => {
+                                            const isEven = MathUtils.isEven(index.row);
+                                            const shapeId = `${id}-lozenge`;
+
+                                            return (
+                                                <use
+                                                    id={cellId}
+                                                    href={`#${shapeId}`}
+                                                    fill={isEven
+                                                              ? defs.getColors().primary
+                                                              : defs.getColors().secondary
+                                                    }
+                                                >
+                                                    <animate
+                                                        attributeName="fill-opacity"
+                                                        values={getRandom01Values(8)}
                                                         dur={`${defs.getAnimationDurationMs() * 4}ms`}
                                                         repeatCount="indefinite"
                                                     />
@@ -411,7 +651,7 @@ export namespace SVGDefsSamples {
                                     x2,
                                     y2,
                                     unwarpAngle(45, defs.getSize()),
-                                    [0.5, -0.5],
+                                    [0.25, -0.25],
                                     defs,
                                 ),
                         ),
@@ -491,7 +731,7 @@ export namespace SVGDefsSamples {
                                     x2,
                                     y2,
                                     unwarpAngle(45, defs.getSize()),
-                                    [0.5, -0.5],
+                                    [0.25, -0.25],
                                     defs,
                                 ),
                         ),

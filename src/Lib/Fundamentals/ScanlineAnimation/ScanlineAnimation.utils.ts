@@ -1,5 +1,7 @@
 import { MathUtils } from "@thewaver/ss-utils";
 
+import { CSSConst } from "../../Abstracts/CSS/CSS.const";
+import { type CSSAnimationKey, CSS_TRANSFORM_KEYS } from "../../Abstracts/CSS/CSS.types";
 import type { ScanlineAnimationEvaluationResult } from "./ScanlineAnimation.types";
 
 const reverseBits = (n: number, bits: number) => {
@@ -193,5 +195,31 @@ export namespace ScanlineAnimationKeyframes {
         return {
             grayscale: 180 * p,
         };
+    };
+}
+
+export namespace ScanlineAnimationUtils {
+    export const assignAnimationProps = (el: HTMLElement, evalResult: Partial<Record<CSSAnimationKey, number>>) => {
+        const transforms: string[] = [];
+        const filters: string[] = [];
+
+        for (const [key, value] of Object.entries(evalResult)) {
+            const k = key as CSSAnimationKey;
+            const prop = `${k}(${value}${CSSConst.ANIMATION_UNITS[k]})`;
+
+            if (CSS_TRANSFORM_KEYS.includes(k as any)) {
+                transforms.push(prop);
+            } else {
+                filters.push(prop);
+            }
+        }
+
+        if (transforms.length) {
+            el.style.transform = transforms.join(" ");
+        }
+
+        if (filters.length) {
+            el.style.filter = filters.join(" ");
+        }
     };
 }
