@@ -51,13 +51,15 @@ const StressTestWrapper = ({
     getShouldPadChildren,
     getShapeKind,
     getStrokeConfig,
+    getFillConfig,
+    getCellSize,
     getAnimationDurationMs,
     getColors,
     getBlurWidth,
     edgeThicknesses,
     ...otherProps
 }: ShapeExampleProps) => {
-    const strokeId = createUniqueId();
+    const id = createUniqueId();
 
     return (
         <StressTest
@@ -72,7 +74,7 @@ const StressTestWrapper = ({
                     getPoints={(getSize) => ShapeConst.getDefaultShapePoints(getShapeKind(), getSize())}
                     getStrokeDefs={(getSize) =>
                         getStrokeConfig()
-                            .getSVGDefs(strokeId, undefined, {
+                            .getSVGDefs(`stroke-${id}`, undefined, {
                                 getSize,
                                 getAnimationDurationMs,
                                 getColors,
@@ -84,6 +86,19 @@ const StressTestWrapper = ({
                                     (t) => (t * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
                                 ),
                             }))
+                    }
+                    getFillDefs={(getSize) =>
+                        getFillConfig().getSVGDefs(`fill-${id}`, undefined, {
+                            getSize,
+                            getCellSize: () => ({
+                                width: (getCellSize().width * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
+                                height:
+                                    (getCellSize().height * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
+                            }),
+                            getAnimationDurationMs,
+                            getColors,
+                            getBlurWidth,
+                        })
                     }
                     renderChildren={() => {
                         return (
@@ -119,7 +134,10 @@ export const ShapePage = () => {
     const [getJoinRadii, setJoinRadii] = createSignal<number[]>([40, 40, 40, 40, 40, 40]);
     const [getLameExponents, setLameExponents] = createSignal<number[]>([1, 1, 1, 1, 1, 1]);
     const [getStrokeConfigKey, setStrokeConfigKey] =
-        createSignal<keyof typeof SVGDefsSamples.SAMPLE_CONFIGS>("sweepDiagonal_1v1");
+        createSignal<keyof typeof SVGDefsSamples.Gradient.SAMPLE_CONFIGS>("sweepDiagonal_1v1");
+    const [getFillConfigKey, setFillConfigKey] =
+        createSignal<keyof typeof SVGDefsSamples.Pattern.SAMPLE_CONFIGS>("plain");
+    const [getCellSize, setCellSize] = createSignal(40);
     const [colors, setColors] = createStore(STARTING_COLORS);
 
     const getShapePointCount = createMemo(
@@ -146,7 +164,9 @@ export const ShapePage = () => {
             getAnimationDurationMs,
             getColors: () => colors,
             getShapeKind,
-            getStrokeConfig: () => SVGDefsSamples.SAMPLE_CONFIGS[getStrokeConfigKey()],
+            getStrokeConfig: () => SVGDefsSamples.Gradient.SAMPLE_CONFIGS[getStrokeConfigKey()],
+            getFillConfig: () => SVGDefsSamples.Pattern.SAMPLE_CONFIGS[getFillConfigKey()],
+            getCellSize: () => ({ width: getCellSize(), height: getCellSize() }),
             edgeThicknesses: getEdgeThicknesses().slice(0, getShapePointCount()),
             joinRadii: getJoinRadii().slice(0, getShapePointCount()),
             lameExponents: getLameExponents().slice(0, getShapePointCount()),
@@ -303,13 +323,43 @@ export const ShapePage = () => {
                     <select
                         value={getStrokeConfigKey()}
                         onChange={(e) =>
-                            setStrokeConfigKey(e.target.value as keyof typeof SVGDefsSamples.SAMPLE_CONFIGS)
+                            setStrokeConfigKey(e.target.value as keyof typeof SVGDefsSamples.Gradient.SAMPLE_CONFIGS)
                         }
                     >
-                        <For each={Object.keys(SVGDefsSamples.SAMPLE_CONFIGS)}>
+                        <For each={Object.keys(SVGDefsSamples.Gradient.SAMPLE_CONFIGS)}>
                             {(config) => <option value={config}>{config}</option>}
                         </For>
                     </select>
+                </div>
+
+                <div class={pageStyles.propContainer}>
+                    <div>{"Fill Pattern"}</div>
+                    <select
+                        value={getFillConfigKey()}
+                        onChange={(e) =>
+                            setFillConfigKey(e.target.value as keyof typeof SVGDefsSamples.Pattern.SAMPLE_CONFIGS)
+                        }
+                    >
+                        <For each={Object.keys(SVGDefsSamples.Pattern.SAMPLE_CONFIGS)}>
+                            {(config) => <option value={config}>{config}</option>}
+                        </For>
+                    </select>
+                </div>
+
+                <div class={pageStyles.propContainer}>
+                    <div>{"Fill Cell Size (px)"}</div>
+                    <div class={styles.valueList} style={{ "grid-template-columns": "repeat(2, 1fr)" }}>
+                        <input
+                            type="number"
+                            min={10}
+                            max={160}
+                            step={10}
+                            value={getCellSize()}
+                            onInput={(e) =>
+                                setCellSize((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 10), 160))
+                            }
+                        />
+                    </div>
                 </div>
 
                 <div class={pageStyles.propContainer}>

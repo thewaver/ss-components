@@ -27,12 +27,12 @@ export const colorList = style({
 });
 
 export const stressExample = style({
-    backgroundColor: `rgb(from ${backgroundColor} r g b / 50%)`,
+    backgroundImage: "linear-gradient(#000000C0, #00000040)",
     padding: 20,
 });
 
 export const example = style({
-    backgroundColor: `rgb(from ${backgroundColor} r g b / 50%)`,
+    backgroundImage: "linear-gradient(#000000C0, #00000040)",
     resize: "both",
     overflow: "auto",
     width: exampleSize,
@@ -40,7 +40,7 @@ export const example = style({
 });
 
 export const exampleInner = style({
-    border: "2px dashed #FFFFFF20",
+    border: "2px dashed #FFFFFF40",
     width: "100%",
     height: "100%",
 });

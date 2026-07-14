@@ -33,7 +33,7 @@ export namespace SVGPatternDefsUtils {
         id: string,
         cellCountIn: { rows: number; cols: number },
         cellSize: Size2d,
-        renderCell: (id: string, index: { row: number; col: number }) => JSX.Element,
+        renderCell: (id: string, index: { row: number; col: number }, isSplit: boolean) => JSX.Element,
     ) => {
         const cellCount = cellCountIn;
         const patternSize = {
@@ -49,7 +49,7 @@ export namespace SVGPatternDefsUtils {
                 x: index.col * cellSize.width,
                 y: index.row * cellSize.height,
             }),
-            renderCell,
+            (id, index) => renderCell(id, index, false),
         );
     };
 

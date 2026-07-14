@@ -61,62 +61,77 @@ export const Shape = (props: ShapeProps) => {
             }}
             class={styles.shapeRoot}
         >
-            <svg
-                class={styles.shapeStrokeSVG}
-                width={getRootSize().width}
-                height={getRootSize().height}
-                viewBox={`0 0 ${getRootSize().width} ${getRootSize().height}`}
-                overflow="visible"
-            >
-                <defs>
-                    {getStrokeDefs()?.map((def) => (
-                        <>
-                            {def.gradientOrPattern?.defsElement}
-                            {def.filter?.defsElement}
-                            {def.clipPath?.defsElement}
-                        </>
-                    ))}
-                    {getFillDefs()?.map((def) => (
-                        <>
-                            {def.gradientOrPattern?.defsElement}
-                            {def.filter?.defsElement}
-                            {def.clipPath?.defsElement}
-                        </>
-                    ))}
-                </defs>
+            {getFillDefs() && (
+                <svg
+                    class={styles.shapeFillSVG}
+                    width={getRootSize().width}
+                    height={getRootSize().height}
+                    viewBox={`0 0 ${getRootSize().width} ${getRootSize().height}`}
+                    overflow="visible"
+                >
+                    <defs>
+                        {getFillDefs()?.map((def) => (
+                            <>
+                                {def.gradientOrPattern?.defsElement}
+                                {def.filter?.defsElement}
+                                {def.clipPath?.defsElement}
+                            </>
+                        ))}
+                    </defs>
 
-                <For each={getFillDefs()}>
-                    {(def) => (
-                        <path
-                            d={getPaths()[0].outerPath}
-                            fill={def.gradientOrPattern ? `url(#${def.gradientOrPattern?.id})` : def.color}
-                            fill-opacity={def.opacity}
-                            filter={def.filter ? `url(#${def.filter?.id})` : undefined}
-                            clip-path={def.clipPath ? `url(#${def.clipPath?.id})` : undefined}
-                            style={def.blend ? { "mix-blend-mode": "screen" } : undefined}
-                        />
-                    )}
-                </For>
-
-                <For each={getStrokeDefs()}>
-                    {(def, getIndex) => (
-                        <path
-                            d={`${getPaths()[getIndex()].outerPath} ${getPaths()[getIndex()].innerPath}`}
-                            fill-rule="evenodd"
-                            fill={def.gradientOrPattern ? `url(#${def.gradientOrPattern?.id})` : def.color}
-                            fill-opacity={def.opacity}
-                            filter={def.filter ? `url(#${def.filter?.id})` : undefined}
-                            clip-path={def.clipPath ? `url(#${def.clipPath?.id})` : undefined}
-                            style={def.blend ? { "mix-blend-mode": "screen" } : undefined}
-                        />
-                    )}
-                </For>
-            </svg>
+                    <For each={getFillDefs()}>
+                        {(def) => (
+                            <path
+                                d={getPaths()[0].outerPath}
+                                fill={def.gradientOrPattern ? `url(#${def.gradientOrPattern?.id})` : def.color}
+                                fill-opacity={def.opacity}
+                                filter={def.filter ? `url(#${def.filter?.id})` : undefined}
+                                clip-path={def.clipPath ? `url(#${def.clipPath?.id})` : undefined}
+                                style={def.blend ? { "mix-blend-mode": "screen" } : undefined}
+                            />
+                        )}
+                    </For>
+                </svg>
+            )}
 
             {props.renderChildren(
                 getRootSize,
-                () => getPaths()[0].innerPath,
-                () => getPaths()[0].innerPoints,
+                () => getPaths()[0].outerPath,
+                () => getPaths()[0].outerPoints,
+            )}
+
+            {getStrokeDefs() && (
+                <svg
+                    class={styles.shapeStrokeSVG}
+                    width={getRootSize().width}
+                    height={getRootSize().height}
+                    viewBox={`0 0 ${getRootSize().width} ${getRootSize().height}`}
+                    overflow="visible"
+                >
+                    <defs>
+                        {getStrokeDefs()?.map((def) => (
+                            <>
+                                {def.gradientOrPattern?.defsElement}
+                                {def.filter?.defsElement}
+                                {def.clipPath?.defsElement}
+                            </>
+                        ))}
+                    </defs>
+
+                    <For each={getStrokeDefs()}>
+                        {(def, getIndex) => (
+                            <path
+                                d={`${getPaths()[getIndex()].outerPath} ${getPaths()[getIndex()].innerPath}`}
+                                fill-rule="evenodd"
+                                fill={def.gradientOrPattern ? `url(#${def.gradientOrPattern?.id})` : def.color}
+                                fill-opacity={def.opacity}
+                                filter={def.filter ? `url(#${def.filter?.id})` : undefined}
+                                clip-path={def.clipPath ? `url(#${def.clipPath?.id})` : undefined}
+                                style={def.blend ? { "mix-blend-mode": "screen" } : undefined}
+                            />
+                        )}
+                    </For>
+                </svg>
             )}
         </div>
     );

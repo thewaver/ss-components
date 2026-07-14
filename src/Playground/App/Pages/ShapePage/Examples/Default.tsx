@@ -13,13 +13,15 @@ export const DefaultExample = ({
     getShouldPadChildren,
     getShapeKind,
     getStrokeConfig,
+    getFillConfig,
+    getCellSize,
     getAnimationDurationMs,
     getColors,
     getBlurWidth,
     edgeThicknesses,
     ...otherProps
 }: ShapeExampleProps) => {
-    const strokeId = createUniqueId();
+    const id = createUniqueId();
 
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
 
@@ -31,7 +33,7 @@ export const DefaultExample = ({
             getPoints={(getSize) => ShapeConst.getDefaultShapePoints(getShapeKind(), getSize())}
             getStrokeDefs={(getSize) => {
                 const strokes = getStrokeConfig()
-                    .getSVGDefs(strokeId, getFlags, {
+                    .getSVGDefs(`stroke-${id}`, getFlags, {
                         getSize,
                         getAnimationDurationMs,
                         getColors,
@@ -47,6 +49,15 @@ export const DefaultExample = ({
 
                 return strokes;
             }}
+            getFillDefs={(getSize) =>
+                getFillConfig().getSVGDefs(`fill-${id}`, undefined, {
+                    getSize,
+                    getCellSize,
+                    getAnimationDurationMs,
+                    getColors,
+                    getBlurWidth,
+                })
+            }
             renderChildren={(getSize, getClipPath, getClipPoints) => {
                 const getStyle = createMemo(() => {
                     const size = getSize();

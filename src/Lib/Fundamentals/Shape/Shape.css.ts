@@ -5,8 +5,22 @@ export const shapeRoot = style({
     pointerEvents: "visiblePainted",
 });
 
-export const shapeStrokeSVG = style({
+const shapeSVG = style({
     position: "absolute",
-    zIndex: -1,
-    pointerEvents: "none",
+    inset: 0,
 });
+
+export const shapeStrokeSVG = style([
+    shapeSVG,
+    {
+        zIndex: 1,
+        pointerEvents: "none",
+    },
+]);
+
+export const shapeFillSVG = style([
+    shapeSVG,
+    {
+        zIndex: -1,
+    },
+]);

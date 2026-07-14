@@ -167,10 +167,13 @@ export namespace SVGAnimationUtils {
         export const getRotatingWedges = (
             wedgeCount: number,
             wedgeThickness: number,
+            curvature: number,
             aArray: number[],
             defs: SVGAnimationDefs,
         ) => {
-            const paths = aArray.map((rotation) => SVGUtils.getWedgesPath(wedgeCount, wedgeThickness, rotation));
+            const paths = aArray.map((rotation) =>
+                SVGUtils.getWedgesPath(wedgeCount, wedgeThickness, rotation, curvature),
+            );
             const commonDefs = getCommonAnimDefs(defs);
 
             return (

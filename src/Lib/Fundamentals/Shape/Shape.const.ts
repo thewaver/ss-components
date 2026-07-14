@@ -1,7 +1,14 @@
 import type { Point2d, Size2d } from "@thewaver/ss-utils";
 
 export namespace ShapeConst {
-    export const DEFAULT_SHAPES = ["triangle-up", "triangle-down", "square", "lozenge", "hexagon-pointy-top", "hexagon-flat-top"] as const;
+    export const DEFAULT_SHAPES = [
+        "triangle-up",
+        "triangle-down",
+        "square",
+        "lozenge",
+        "hexagon-pointy-top",
+        "hexagon-flat-top",
+    ] as const;
     export type DefaultShape = (typeof DEFAULT_SHAPES)[number];
 
     export const CORNER_SHAPE_LAME_EXPONENTS = {
@@ -22,12 +29,12 @@ export namespace ShapeConst {
                     { x: 0, y: height },
                 ];
 
-                case "triangle-down":
-                    return [
-                        { x: 0, y: 0 },
-                        { x: width, y: 0 },
-                        { x: width * 0.5, y: height },
-                    ];
+            case "triangle-down":
+                return [
+                    { x: 0, y: 0 },
+                    { x: width, y: 0 },
+                    { x: width * 0.5, y: height },
+                ];
 
             case "square":
                 return [

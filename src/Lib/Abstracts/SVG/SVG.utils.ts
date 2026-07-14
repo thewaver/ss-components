@@ -55,14 +55,15 @@ export namespace SVGUtils {
 
     export const getWedgesPath = (
         count: number,
-        thickness: number = 1, // 0 - 2
+        thickness: number = 0.5, // 0 - 1
         rotation: number = 0,
+        curvature: number = 0,
     ) => {
         if (thickness <= 0) {
             return "";
         }
 
-        if (thickness >= 2) {
+        if (thickness >= 1) {
             return [
                 `M ${CIRCLE_CENTER.x + CIRCLE_RADIUS} ${CIRCLE_CENTER.y}`,
                 `A ${CIRCLE_RADIUS} ${CIRCLE_RADIUS} 0 1 1 ${CIRCLE_CENTER.x - CIRCLE_RADIUS} ${CIRCLE_CENTER.y}`,
@@ -73,24 +74,30 @@ export namespace SVGUtils {
 
         const rad = (rotation * Math.PI) / 180;
         const sectorAngle = (Math.PI * 2) / count;
-        const wedgeAngle = sectorAngle * thickness;
+        const wedgeAngle = sectorAngle * thickness * 2;
 
         return Array.from({ length: count * 0.5 }, (_, i) => {
             const start = rad + i * 2 * sectorAngle;
             const end = start + wedgeAngle;
-
-            const x0 = CIRCLE_CENTER.x + Math.cos(start) * CIRCLE_RADIUS;
-            const y0 = CIRCLE_CENTER.y + Math.sin(start) * CIRCLE_RADIUS;
-
-            const x1 = CIRCLE_CENTER.x + Math.cos(end) * CIRCLE_RADIUS;
-            const y1 = CIRCLE_CENTER.y + Math.sin(end) * CIRCLE_RADIUS;
-
+            const x0 = CIRCLE_CENTER.x + Math.cos(start + curvature) * CIRCLE_RADIUS;
+            const y0 = CIRCLE_CENTER.y + Math.sin(start + curvature) * CIRCLE_RADIUS;
+            const x1 = CIRCLE_CENTER.x + Math.cos(end + curvature) * CIRCLE_RADIUS;
+            const y1 = CIRCLE_CENTER.y + Math.sin(end + curvature) * CIRCLE_RADIUS;
+            const cp0_1x = CIRCLE_CENTER.x + Math.cos(start + curvature * 0.33) * (CIRCLE_RADIUS * 0.33);
+            const cp0_1y = CIRCLE_CENTER.y + Math.sin(start + curvature * 0.33) * (CIRCLE_RADIUS * 0.33);
+            const cp0_2x = CIRCLE_CENTER.x + Math.cos(start + curvature * 0.66) * (CIRCLE_RADIUS * 0.66);
+            const cp0_2y = CIRCLE_CENTER.y + Math.sin(start + curvature * 0.66) * (CIRCLE_RADIUS * 0.66);
+            const cp1_1x = CIRCLE_CENTER.x + Math.cos(end + curvature * 0.66) * (CIRCLE_RADIUS * 0.66);
+            const cp1_1y = CIRCLE_CENTER.y + Math.sin(end + curvature * 0.66) * (CIRCLE_RADIUS * 0.66);
+            const cp1_2x = CIRCLE_CENTER.x + Math.cos(end + curvature * 0.33) * (CIRCLE_RADIUS * 0.33);
+            const cp1_2y = CIRCLE_CENTER.y + Math.sin(end + curvature * 0.33) * (CIRCLE_RADIUS * 0.33);
             const largeArc = wedgeAngle > Math.PI ? 1 : 0;
 
             return [
                 `M ${CIRCLE_CENTER.x} ${CIRCLE_CENTER.y}`,
-                `L ${x0} ${y0}`,
+                `C ${cp0_1x} ${cp0_1y} ${cp0_2x} ${cp0_2y} ${x0} ${y0}`,
                 `A ${CIRCLE_RADIUS} ${CIRCLE_RADIUS} 0 ${largeArc} 1 ${x1} ${y1}`,
+                `C ${cp1_1x} ${cp1_1y} ${cp1_2x} ${cp1_2y} ${CIRCLE_CENTER.x} ${CIRCLE_CENTER.y}`,
                 "Z",
             ].join(" ");
         }).join(" ");
