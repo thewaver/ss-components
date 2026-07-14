@@ -348,18 +348,16 @@ export const ShapePage = () => {
 
                 <div class={pageStyles.propContainer}>
                     <div>{"Fill Cell Size (px)"}</div>
-                    <div class={styles.valueList} style={{ "grid-template-columns": "repeat(2, 1fr)" }}>
-                        <input
-                            type="number"
-                            min={10}
-                            max={160}
-                            step={10}
-                            value={getCellSize()}
-                            onInput={(e) =>
-                                setCellSize((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 10), 160))
-                            }
-                        />
-                    </div>
+                    <input
+                        type="number"
+                        min={10}
+                        max={160}
+                        step={10}
+                        value={getCellSize()}
+                        onInput={(e) =>
+                            setCellSize((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 10), 160))
+                        }
+                    />
                 </div>
 
                 <div class={pageStyles.propContainer}>

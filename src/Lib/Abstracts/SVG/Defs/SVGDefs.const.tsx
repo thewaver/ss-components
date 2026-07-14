@@ -50,7 +50,7 @@ export namespace SVGDefsSamples {
             : undefined;
 
     export namespace Pattern {
-        const DEBUG_EDGES = false;
+        const DEBUG_SEAMS = false;
 
         type ElementDefs = SVGAnimationDefs & {
             getSize: () => Size2d;
@@ -70,15 +70,39 @@ export namespace SVGDefsSamples {
         const getBaseBackgroundColor = (defs: { getColors: () => ColorDefs }) =>
             `hsl(from ${defs.getColors().background} h s calc(l * 1.5) / 25%)`;
 
+        const getRandomValuesWithSplitControl = (
+            mutableSplitValuesCache: Record<string, string>,
+            index: { row: number; col: number },
+            cellCount: { rows: number; cols: number },
+            isSplit: boolean,
+        ) => {
+            let values = getRandom01Values(8);
+
+            if (isSplit) {
+                if (index.col === cellCount.cols - 1) {
+                    values = mutableSplitValuesCache[`row${index.row}`] ?? values;
+                }
+                if (index.row === cellCount.rows - 1) {
+                    values = mutableSplitValuesCache[`col${index.col}`] ?? values;
+                }
+                if (index.col === 0) {
+                    mutableSplitValuesCache[`row${index.row}`] = values;
+                }
+                if (index.row === 0) {
+                    mutableSplitValuesCache[`col${index.col}`] = values;
+                }
+            }
+
+            return values;
+        };
+
         // GENERICS
 
         const circle = (variant: "grid" | "drop" | "shift"): ConfigDefs => ({
             getSVGDefs: (id, __, defs) => {
+                const splitValuesCache: Record<string, string> = {};
                 const cellSize = defs.getCellSize();
-                const cellCount = {
-                    rows: Math.ceil(defs.getSize().height / cellSize.height) + (variant === "drop" ? 1 : 0),
-                    cols: Math.ceil(defs.getSize().width / cellSize.width) + (variant === "shift" ? 1 : 0),
-                };
+                const cellCount = { rows: 8, cols: 8 };
                 const r = Math.min(cellSize.width, cellSize.height) * 0.5;
 
                 const cb =
@@ -92,35 +116,46 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `pattern1-${id}`,
-                            defsElement: cb(`pattern1-${id}`, cellCount, cellSize, (cellId, index, isSplit) => {
-                                const isEven = MathUtils.isEven(index.col + index.row);
+                            defsElement: cb(
+                                `pattern1-${id}`,
+                                cellCount,
+                                cellSize,
+                                (cellId, index, cellCount, isSplit) => {
+                                    const isEven = MathUtils.isEven(index.col + index.row);
+                                    const values = getRandomValuesWithSplitControl(
+                                        splitValuesCache,
+                                        index,
+                                        cellCount,
+                                        isSplit,
+                                    );
 
-                                return (
-                                    <circle
-                                        id={cellId}
-                                        r={r}
-                                        cx={cellSize.width * 0.5}
-                                        cy={cellSize.height * 0.5}
-                                        fill={
-                                            DEBUG_EDGES && isSplit
-                                                ? defs.getColors().tertiary
-                                                : isEven
-                                                  ? defs.getColors().primary
-                                                  : defs.getColors().secondary
-                                        }
-                                    >
-                                        <animate
-                                            attributeName="r"
-                                            values={getRandom01Values(8)
-                                                .split(";")
-                                                .map((v) => `${Number(v) * r}`)
-                                                .join(";")}
-                                            dur={`${defs.getAnimationDurationMs() * 4}ms`}
-                                            repeatCount="indefinite"
-                                        />
-                                    </circle>
-                                );
-                            }),
+                                    return (
+                                        <circle
+                                            id={cellId}
+                                            r={r}
+                                            cx={cellSize.width * 0.5}
+                                            cy={cellSize.height * 0.5}
+                                            fill={
+                                                DEBUG_SEAMS && isSplit
+                                                    ? defs.getColors().tertiary
+                                                    : isEven
+                                                      ? defs.getColors().primary
+                                                      : defs.getColors().secondary
+                                            }
+                                        >
+                                            <animate
+                                                attributeName="r"
+                                                values={values
+                                                    .split(";")
+                                                    .map((v) => `${Number(v) * r}`)
+                                                    .join(";")}
+                                                dur={`${defs.getAnimationDurationMs() * 4}ms`}
+                                                repeatCount="indefinite"
+                                            />
+                                        </circle>
+                                    );
+                                },
+                            ),
                         },
                     },
                 ];
@@ -131,17 +166,9 @@ export namespace SVGDefsSamples {
             variant: Extract<ShapeConst.DefaultShape, "hexagon-pointy-top" | "hexagon-flat-top">,
         ): ConfigDefs => ({
             getSVGDefs: (id, __, defs) => {
+                const splitValuesCache: Record<string, string> = {};
                 const cellSize = defs.getCellSize();
-                const cellCount = {
-                    rows:
-                        Math.ceil(
-                            (defs.getSize().height / cellSize.height) * (variant === "hexagon-pointy-top" ? 1.5 : 1),
-                        ) + 1,
-                    cols:
-                        Math.ceil(
-                            (defs.getSize().width / cellSize.width) * (variant === "hexagon-pointy-top" ? 1 : 1.5),
-                        ) + 1,
-                };
+                const cellCount = { rows: 8, cols: 8 };
                 const cb =
                     variant === "hexagon-pointy-top"
                         ? SVGPatternDefsUtils.getHexPointyTopPattern
@@ -161,16 +188,22 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <>
                                     {lozenge}
-                                    {cb(`pattern1-${id}`, cellCount, cellSize, (cellId, index, isSplit) => {
+                                    {cb(`pattern1-${id}`, cellCount, cellSize, (cellId, index, cellCount, isSplit) => {
                                         const isEven = MathUtils.isEven(index.row);
                                         const shapeId = `${id}-lozenge`;
+                                        const values = getRandomValuesWithSplitControl(
+                                            splitValuesCache,
+                                            index,
+                                            cellCount,
+                                            isSplit,
+                                        );
 
                                         return (
                                             <use
                                                 id={cellId}
                                                 href={`#${shapeId}`}
                                                 fill={
-                                                    DEBUG_EDGES && isSplit
+                                                    DEBUG_SEAMS && isSplit
                                                         ? defs.getColors().tertiary
                                                         : isEven
                                                           ? defs.getColors().primary
@@ -179,7 +212,7 @@ export namespace SVGDefsSamples {
                                             >
                                                 <animate
                                                     attributeName="fill-opacity"
-                                                    values={getRandom01Values(8)}
+                                                    values={values}
                                                     dur={`${defs.getAnimationDurationMs() * 4}ms`}
                                                     repeatCount="indefinite"
                                                 />
@@ -196,11 +229,9 @@ export namespace SVGDefsSamples {
 
         const lozenge = (): ConfigDefs => ({
             getSVGDefs: (id, __, defs) => {
+                const splitValuesCache: Record<string, string> = {};
                 const cellSize = defs.getCellSize();
-                const cellCount = {
-                    rows: Math.ceil((defs.getSize().height / cellSize.height) * 2) + 1,
-                    cols: Math.ceil(defs.getSize().width / cellSize.width) + 1,
-                };
+                const cellCount = { rows: 8, cols: 8 };
 
                 const lozenge = (
                     <path
@@ -220,16 +251,22 @@ export namespace SVGDefsSamples {
                                         `pattern1-${id}`,
                                         cellCount,
                                         cellSize,
-                                        (cellId, index, isSplit) => {
+                                        (cellId, index, cellCount, isSplit) => {
                                             const isEven = MathUtils.isEven(index.row);
                                             const shapeId = `${id}-lozenge`;
+                                            const values = getRandomValuesWithSplitControl(
+                                                splitValuesCache,
+                                                index,
+                                                cellCount,
+                                                isSplit,
+                                            );
 
                                             return (
                                                 <use
                                                     id={cellId}
                                                     href={`#${shapeId}`}
                                                     fill={
-                                                        DEBUG_EDGES && isSplit
+                                                        DEBUG_SEAMS && isSplit
                                                             ? defs.getColors().tertiary
                                                             : isEven
                                                               ? defs.getColors().primary
@@ -238,7 +275,7 @@ export namespace SVGDefsSamples {
                                                 >
                                                     <animate
                                                         attributeName="fill-opacity"
-                                                        values={getRandom01Values(8)}
+                                                        values={values}
                                                         dur={`${defs.getAnimationDurationMs() * 4}ms`}
                                                         repeatCount="indefinite"
                                                     />
@@ -256,11 +293,9 @@ export namespace SVGDefsSamples {
 
         const triangle = (): ConfigDefs => ({
             getSVGDefs: (id, __, defs) => {
+                const splitValuesCache: Record<string, string> = {};
                 const cellSize = defs.getCellSize();
-                const cellCount = {
-                    rows: Math.ceil(defs.getSize().height / cellSize.height),
-                    cols: Math.ceil((defs.getSize().width / cellSize.width) * 2) + 1,
-                };
+                const cellCount = { rows: 8, cols: 8 };
 
                 const upTriangle = (
                     <path
@@ -288,16 +323,22 @@ export namespace SVGDefsSamples {
                                         `pattern1-${id}`,
                                         cellCount,
                                         cellSize,
-                                        (cellId, index, isSplit) => {
+                                        (cellId, index, cellCount, isSplit) => {
                                             const isEven = MathUtils.isEven(index.col + index.row);
                                             const shapeId = isEven ? `${id}-triangle-up` : `${id}-triangle-down`;
+                                            const values = getRandomValuesWithSplitControl(
+                                                splitValuesCache,
+                                                index,
+                                                cellCount,
+                                                isSplit,
+                                            );
 
                                             return (
                                                 <use
                                                     id={cellId}
                                                     href={`#${shapeId}`}
                                                     fill={
-                                                        DEBUG_EDGES && isSplit
+                                                        DEBUG_SEAMS && isSplit
                                                             ? defs.getColors().tertiary
                                                             : isEven
                                                               ? defs.getColors().primary
@@ -306,7 +347,7 @@ export namespace SVGDefsSamples {
                                                 >
                                                     <animate
                                                         attributeName="fill-opacity"
-                                                        values={getRandom01Values(8)}
+                                                        values={values}
                                                         dur={`${defs.getAnimationDurationMs() * 4}ms`}
                                                         repeatCount="indefinite"
                                                     />

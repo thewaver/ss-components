@@ -8,7 +8,11 @@ export namespace SVGPatternDefsUtils {
         cellCount: { rows: number; cols: number },
         patternSize: Size2d,
         getCellPos: (index: { row: number; col: number }) => Point2d,
-        renderCell: (id: string, index: { row: number; col: number }) => JSX.Element,
+        renderCell: (
+            id: string,
+            index: { row: number; col: number },
+            cellCount: { rows: number; cols: number },
+        ) => JSX.Element,
     ) => {
         return (
             <pattern id={id} width={patternSize.width} height={patternSize.height} patternUnits="userSpaceOnUse">
@@ -18,7 +22,7 @@ export namespace SVGPatternDefsUtils {
                         const pos = getCellPos(index);
                         const cellId = `${id}_X${col}_Y${row}`;
 
-                        return <g transform={`translate(${pos.x},${pos.y})`}>{renderCell(cellId, index)}</g>;
+                        return <g transform={`translate(${pos.x},${pos.y})`}>{renderCell(cellId, index, cellCount)}</g>;
                     }),
                 )}
             </pattern>
@@ -33,7 +37,12 @@ export namespace SVGPatternDefsUtils {
         id: string,
         cellCountIn: { rows: number; cols: number },
         cellSize: Size2d,
-        renderCell: (id: string, index: { row: number; col: number }, isSplit: boolean) => JSX.Element,
+        renderCell: (
+            id: string,
+            index: { row: number; col: number },
+            cellCount: { rows: number; cols: number },
+            isSplit: boolean,
+        ) => JSX.Element,
     ) => {
         const cellCount = cellCountIn;
         const patternSize = {
@@ -49,7 +58,7 @@ export namespace SVGPatternDefsUtils {
                 x: index.col * cellSize.width,
                 y: index.row * cellSize.height,
             }),
-            (id, index) => renderCell(id, index, false),
+            (id, index, cellCount) => renderCell(id, index, cellCount, false),
         );
     };
 
@@ -63,7 +72,12 @@ export namespace SVGPatternDefsUtils {
         id: string,
         cellCountIn: { rows: number; cols: number },
         cellSize: Size2d,
-        renderCell: (id: string, index: { row: number; col: number }, isSplit: boolean) => JSX.Element,
+        renderCell: (
+            id: string,
+            index: { row: number; col: number },
+            cellCount: { rows: number; cols: number },
+            isSplit: boolean,
+        ) => JSX.Element,
     ) => {
         const cellCount = {
             rows: cellCountIn.rows + (MathUtils.isOdd(cellCountIn.rows) ? 0 : 1),
@@ -82,13 +96,13 @@ export namespace SVGPatternDefsUtils {
                 x: cellSize.width * index.col - (MathUtils.isEven(index.row) ? cellSize.width * 0.5 : 0),
                 y: cellSize.height * (index.row - 1) * 0.5,
             }),
-            (id, index) => {
+            (id, index, cellCount) => {
                 const isSplit =
                     (MathUtils.isEven(index.row) && (index.col === 0 || index.col === cellCount.cols - 1)) ||
                     index.row === 0 ||
                     index.row === cellCount.rows - 1;
 
-                return renderCell(id, index, isSplit);
+                return renderCell(id, index, cellCount, isSplit);
             },
         );
     };
@@ -102,7 +116,12 @@ export namespace SVGPatternDefsUtils {
         id: string,
         cellCountIn: { rows: number; cols: number },
         cellSize: Size2d,
-        renderCell: (id: string, index: { row: number; col: number }, isSplit: boolean) => JSX.Element,
+        renderCell: (
+            id: string,
+            index: { row: number; col: number },
+            cellCount: { rows: number; cols: number },
+            isSplit: boolean,
+        ) => JSX.Element,
     ) => {
         const cellCount = {
             rows: cellCountIn.rows + (MathUtils.isEven(cellCountIn.rows) ? 0 : 1),
@@ -121,10 +140,10 @@ export namespace SVGPatternDefsUtils {
                 x: index.col * cellSize.width - (MathUtils.isEven(index.row) ? cellSize.width * 0.5 : 0),
                 y: index.row * cellSize.height,
             }),
-            (id, index) => {
+            (id, index, cellCount) => {
                 const isSplit = (index.col === 0 || index.col === cellCount.cols - 1) && MathUtils.isEven(index.row);
 
-                return renderCell(id, index, isSplit);
+                return renderCell(id, index, cellCount, isSplit);
             },
         );
     };
@@ -138,7 +157,12 @@ export namespace SVGPatternDefsUtils {
         id: string,
         cellCountIn: { rows: number; cols: number },
         cellSize: Size2d,
-        renderCell: (id: string, index: { row: number; col: number }, isSplit: boolean) => JSX.Element,
+        renderCell: (
+            id: string,
+            index: { row: number; col: number },
+            cellCount: { rows: number; cols: number },
+            isSplit: boolean,
+        ) => JSX.Element,
     ) => {
         const cellCount = {
             rows: cellCountIn.rows + (MathUtils.isOdd(cellCountIn.rows) ? 0 : 1),
@@ -157,10 +181,10 @@ export namespace SVGPatternDefsUtils {
                 x: index.col * cellSize.width,
                 y: index.row * cellSize.height - (MathUtils.isEven(index.col) ? cellSize.height * 0.5 : 0),
             }),
-            (id, index) => {
+            (id, index, cellCount) => {
                 const isSplit = MathUtils.isEven(index.col) && (index.row === 0 || index.row === cellCount.rows - 1);
 
-                return renderCell(id, index, isSplit);
+                return renderCell(id, index, cellCount, isSplit);
             },
         );
     };
@@ -173,7 +197,12 @@ export namespace SVGPatternDefsUtils {
         id: string,
         cellCountIn: { rows: number; cols: number },
         cellSize: Size2d,
-        renderCell: (id: string, index: { row: number; col: number }, isSplit: boolean) => JSX.Element,
+        renderCell: (
+            id: string,
+            index: { row: number; col: number },
+            cellCount: { rows: number; cols: number },
+            isSplit: boolean,
+        ) => JSX.Element,
     ) => {
         const cellCount = {
             rows: cellCountIn.rows + (MathUtils.isEven(cellCountIn.rows) ? 0 : 1),
@@ -192,10 +221,10 @@ export namespace SVGPatternDefsUtils {
                 x: (index.col - 1) * cellSize.width * 0.5,
                 y: index.row * cellSize.height,
             }),
-            (id, index) => {
+            (id, index, cellCount) => {
                 const isSplit = index.col === 0 || index.col === cellCount.cols - 1;
 
-                return renderCell(id, index, isSplit);
+                return renderCell(id, index, cellCount, isSplit);
             },
         );
     };
@@ -210,7 +239,12 @@ export namespace SVGPatternDefsUtils {
         id: string,
         cellCountIn: { rows: number; cols: number },
         cellSize: Size2d,
-        renderCell: (id: string, index: { row: number; col: number }, isSplit: boolean) => JSX.Element,
+        renderCell: (
+            id: string,
+            index: { row: number; col: number },
+            cellCount: { rows: number; cols: number },
+            isSplit: boolean,
+        ) => JSX.Element,
     ) => {
         const cellCount = {
             rows: cellCountIn.rows + (MathUtils.isOdd(cellCountIn.rows) ? 0 : 1),
@@ -229,13 +263,13 @@ export namespace SVGPatternDefsUtils {
                 x: index.col * cellSize.width - (MathUtils.isEven(index.row) ? cellSize.width * 0.5 : 0),
                 y: index.row * cellSize.height * 0.75 - cellSize.height * 0.5,
             }),
-            (id, index) => {
+            (id, index, cellCount) => {
                 const isSplit =
                     (MathUtils.isEven(index.row) && (index.col === 0 || index.col === cellCount.cols - 1)) ||
                     index.row === 0 ||
                     index.row === cellCount.rows - 1;
 
-                return renderCell(id, index, isSplit);
+                return renderCell(id, index, cellCount, isSplit);
             },
         );
     };
@@ -250,7 +284,12 @@ export namespace SVGPatternDefsUtils {
         id: string,
         cellCountIn: { rows: number; cols: number },
         cellSize: Size2d,
-        renderCell: (id: string, index: { row: number; col: number }, isSplit: boolean) => JSX.Element,
+        renderCell: (
+            id: string,
+            index: { row: number; col: number },
+            cellCount: { rows: number; cols: number },
+            isSplit: boolean,
+        ) => JSX.Element,
     ) => {
         const cellCount = {
             rows: cellCountIn.rows + (MathUtils.isOdd(cellCountIn.rows) ? 0 : 1),
@@ -269,13 +308,13 @@ export namespace SVGPatternDefsUtils {
                 x: index.col * cellSize.width * 0.75 - cellSize.width * 0.5,
                 y: index.row * cellSize.height - (MathUtils.isEven(index.col) ? cellSize.height * 0.5 : 0),
             }),
-            (id, index) => {
+            (id, index, cellCount) => {
                 const isSplit =
                     (MathUtils.isEven(index.col) && (index.row === 0 || index.row === cellCount.rows - 1)) ||
                     index.col === 0 ||
                     index.col === cellCount.cols - 1;
 
-                return renderCell(id, index, isSplit);
+                return renderCell(id, index, cellCount, isSplit);
             },
         );
     };
