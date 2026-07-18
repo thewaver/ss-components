@@ -29,7 +29,7 @@ import type { ScanlineAnimationExampleProps } from "./ScanlineAnimationPage.type
 import * as pageStyles from "../Pages.css";
 import * as styles from "./ScanlineAnimationPage.css";
 
-const STRESS_LINE_COUNT = 160;
+const STRESS_LINE_COUNT = 120;
 const STRESS_ITEMS: (StressTestDefs & { size: number; kind: "transform" | "filter" })[] = (
     ["transform", "filter"] as const
 )
@@ -38,28 +38,28 @@ const STRESS_ITEMS: (StressTestDefs & { size: number; kind: "transform" | "filte
             count: 8,
             cols: 4,
             gap: 10,
-            size: STRESS_LINE_COUNT,
+            size: STRESS_LINE_COUNT + styles.IMAGE_CONTAINER_PADDING * 2,
             kind,
         },
         {
             count: 18,
             cols: 6,
             gap: 10,
-            size: STRESS_LINE_COUNT,
+            size: STRESS_LINE_COUNT + styles.IMAGE_CONTAINER_PADDING * 2,
             kind,
         },
         {
             count: 32,
             cols: 8,
             gap: 10,
-            size: STRESS_LINE_COUNT,
+            size: STRESS_LINE_COUNT + styles.IMAGE_CONTAINER_PADDING * 2,
             kind,
         },
         {
             count: 50,
             cols: 10,
             gap: 10,
-            size: STRESS_LINE_COUNT,
+            size: STRESS_LINE_COUNT + styles.IMAGE_CONTAINER_PADDING * 2,
             kind,
         },
     ])
@@ -75,7 +75,7 @@ const HUE_SOURCE = highlighter.codeToHtml(HueExampleRaw, getDefaultHighlighterCo
 const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers: ScanlineAnimationController[] }) => {
     return (
         <>
-            <div>{"160 lines"}</div>
+            <div>{"120 lines"}</div>
 
             <StressTest
                 getConfigs={() => STRESS_ITEMS}
@@ -111,6 +111,7 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
                         >
                             <ScanlineAnimation
                                 {...props}
+                                getLineCount={() => STRESS_LINE_COUNT}
                                 getAnimationIterationDelayMs={() => 0}
                                 evaluateScanlineAnimation={(getIndex, getLineCount, getTimeline) =>
                                     foo(

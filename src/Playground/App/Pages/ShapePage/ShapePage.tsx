@@ -100,13 +100,14 @@ const StressTestWrapper = ({
                             getBlurWidth,
                         })
                     }
-                    renderChildren={() => {
+                    renderChildren={(_, getClipPath) => {
                         return (
                             <div
                                 class={styles.stressExample}
                                 style={{
-                                    width: `${STRESS_ITEMS[getConfigIndex()].size}px`,
-                                    height: `${STRESS_ITEMS[getConfigIndex()].size}px`,
+                                    "width": `${STRESS_ITEMS[getConfigIndex()].size}px`,
+                                    "height": `${STRESS_ITEMS[getConfigIndex()].size}px`,
+                                    "clip-path": `path("${getClipPath()}")`,
                                 }}
                             >
                                 {getItemIndex()}

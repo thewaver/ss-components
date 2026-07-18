@@ -1,4 +1,4 @@
-import { For, createEffect, createMemo, createSignal, createUniqueId, onCleanup, onMount } from "solid-js";
+import { For, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
 import { Size2d } from "@thewaver/ss-utils";
 
@@ -13,8 +13,6 @@ const DEFAULT_SCANLINE_ANIMATION_ITERATION_DELAY_MS = 0;
 const DEFAULT_SCANLINE_ANIMATION_SIZE_ANCHOR = "width";
 
 export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
-    let id = createUniqueId();
-
     const getAnimationDurationMs = createMemo(
         () => props.getAnimationDurationMs?.() ?? DEFAULT_SCANLINE_ANIMATION_DURATION_MS,
     );
@@ -31,13 +29,27 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
 
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
     const [getImgRef, setImgRef] = createSignal<HTMLElement>();
-    const [getSvgRef, setSvgRef] = createSignal<SVGSVGElement>();
+    const [getContainerRef, setContainerRef] = createSignal<SVGSVGElement>();
     const [getIsWindowVisible, setIsWindowVisible] = createSignal(true);
     const [getIsPlaying, setIsPlaying] = createSignal(true);
     const [getCurrentIteration, setCurrentIteration] = createSignal(0);
     const [getRootSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
 
-    const getLineCount = createMemo(() => Math.min(props.getLineCount(), getRootSize().height));
+    const getLineCount = createMemo(() => {
+        const height = Math.round(getRootSize().height);
+        const lineCount = Math.round(props.getLineCount());
+
+        if (height <= 0 || lineCount <= 0) return 1;
+        if (height === lineCount) return lineCount;
+
+        for (let count = Math.min(lineCount, height); count > 0; count--) {
+            if (height % count === 0) {
+                return count;
+            }
+        }
+
+        return 1;
+    });
 
     const getLineHeight = createMemo(() => getRootSize().height / getLineCount());
 
@@ -64,7 +76,7 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
         getLineCount();
 
         const rootRef = getRootRef();
-        const svgRef = getSvgRef();
+        const containerRef = getContainerRef();
         const duration = getAnimationDurationMs();
         const iterationDelay = getAnimationIterationDelayMs();
         const maxIterations = getAnimationIterationCount();
@@ -72,9 +84,9 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
         const isWindowVisible = getIsWindowVisible();
         const isPlaying = getIsPlaying();
 
-        if (!isWindowVisible || !isPlaying || !rootRef || !svgRef || currentIteration >= maxIterations) return;
+        if (!isWindowVisible || !isPlaying || !rootRef || !containerRef || currentIteration >= maxIterations) return;
 
-        const lines = Array.from(svgRef.querySelectorAll(":scope > image")) as HTMLElement[];
+        const lines = Array.from(containerRef.querySelectorAll(":scope > div")) as HTMLElement[];
         const start = performance.now();
 
         const tick = (now: number) => {
@@ -162,33 +174,36 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
                 aria-hidden="true"
             />
 
-            <svg ref={setSvgRef} width={getRootSize().width} height={getRootSize().height} aria-hidden="true">
-                <defs>
-                    <For each={getLineArray()}>
-                        {(_, getIndex) => {
-                            const y = () => getIndex() * getLineHeight();
-
-                            return (
-                                <clipPath id={`${id}-slice-${getIndex()}`}>
-                                    <rect x="0" y={y()} width={getRootSize().width} height={getLineHeight() + 1} />
-                                </clipPath>
-                            );
-                        }}
-                    </For>
-                </defs>
-
+            <div
+                ref={setContainerRef}
+                style={{
+                    width: `${getRootSize().width}px`,
+                    height: `${getRootSize().height}px`,
+                }}
+            >
                 <For each={getLineArray()}>
-                    {(_, getIndex) => (
-                        <image
-                            class={styles.scanlineAnimationLine}
-                            href={props.getSrc()}
-                            width={getRootSize().width}
-                            height={getRootSize().height}
-                            clip-path={`url(#${id}-slice-${getIndex()})`}
-                        />
-                    )}
+                    {(_, getIndex) => {
+                        const y = () => getIndex() * getLineHeight();
+
+                        return (
+                            <div
+                                class={styles.scanlineAnimationLine}
+                                style={{
+                                    "position": "absolute",
+                                    "left": 0,
+                                    "top": `${y()}px`,
+                                    "width": `${getRootSize().width}px`,
+                                    "height": `${getLineHeight() + 1}px`,
+                                    "background-image": `url(${props.getSrc()})`,
+                                    "background-size": `${getRootSize().width}px ${getRootSize().height}px`,
+                                    "background-position": `0 -${y()}px`,
+                                }}
+                                aria-hidden="true"
+                            />
+                        );
+                    }}
                 </For>
-            </svg>
+            </div>
         </div>
     );
 };

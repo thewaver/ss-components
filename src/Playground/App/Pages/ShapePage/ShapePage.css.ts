@@ -28,7 +28,7 @@ export const colorList = style({
 
 export const stressExample = style({
     backgroundImage: "linear-gradient(#000000C0, #00000040)",
-    padding: 20,
+    padding: 10,
 });
 
 export const example = style({

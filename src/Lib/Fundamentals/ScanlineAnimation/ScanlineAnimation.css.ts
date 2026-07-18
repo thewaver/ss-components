@@ -13,5 +13,6 @@ export const scanlineAnimationAnchor = style({
 });
 
 export const scanlineAnimationLine = style({
+    backgroundRepeat: "no-repeat",
     transformOrigin: "center center",
 });
