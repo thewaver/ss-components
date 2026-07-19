@@ -1,11 +1,11 @@
 import { For, createMemo, createSignal, createUniqueId } from "solid-js";
 import { createStore } from "solid-js/store";
 
+import { ShapeConst } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { SVGDefsSamples } from "../../../../Lib/Abstracts/SVG/Defs/SVGDefs.const";
 import { Shape } from "../../../../Lib/Fundamentals/Shape/Shape";
-import { ShapeConst } from "../../../../Lib/Fundamentals/Shape/Shape.const";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { StressTest } from "../../PageComponents/StressTest/StressTest";

@@ -1,6 +1,7 @@
 import type { JSX } from "solid-js";
 
-import type { CSSMargin } from "../../Abstracts/CSS/CSS.types";
+import type { CSSMargin } from "@thewaver/ss-utils";
+
 import type { AccessorProps } from "../../Utils/typeUtils";
 
 export type ModalProps = AccessorProps<{

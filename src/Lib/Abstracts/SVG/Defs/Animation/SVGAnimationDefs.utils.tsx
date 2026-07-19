@@ -1,6 +1,7 @@
 import { For } from "solid-js";
 
-import { SVGUtils } from "../../SVG.utils";
+import { SVGUtils } from "@thewaver/ss-utils";
+
 import type { SVGAnimationDefs } from "./SVGAnimationDefs.types";
 
 export namespace SVGAnimationUtils {

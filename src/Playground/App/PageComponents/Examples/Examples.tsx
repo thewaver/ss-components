@@ -1,6 +1,7 @@
 import { For, createSignal } from "solid-js";
 
-import { CSSUtils } from "../../../../Lib/Abstracts/CSS/CSS.utils";
+import { CSSUtils } from "@thewaver/ss-utils";
+
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
 import type { ExamplesProps } from "./Examples.types";

@@ -1,10 +1,11 @@
-import { type Accessor, createEffect, createSignal, onCleanup } from "solid-js";
+import { type Accessor, createEffect, createSignal, onCleanup, onMount } from "solid-js";
 
 const FPS_INTERVAL_MS = 1000;
 
 export namespace FPSUtils {
     export const createMonitor = (getIsEnabled: Accessor<boolean>, startupTimeMs: number = 0) => {
         const [getFPS, setFPS] = createSignal({ current: 0, average: 0 });
+        const [getIsWindowVisible, setIsWindowVisible] = createSignal(true);
 
         createEffect(() => {
             let cycleFrameCount = 0;
@@ -20,7 +21,10 @@ export namespace FPSUtils {
                 setFPS({ current: 0, average: 0 });
             });
 
-            if (!getIsEnabled()) return;
+            const isVisible = getIsWindowVisible();
+            const isEnabled = getIsEnabled();
+
+            if (!isVisible || !isEnabled) return;
 
             const updateFPS = () => {
                 const now = performance.now();
@@ -47,6 +51,18 @@ export namespace FPSUtils {
 
                 rafId = requestAnimationFrame(updateFPS);
             }, startupTimeMs);
+        });
+
+        onMount(() => {
+            const handleVisibilityChange = () => {
+                setIsWindowVisible(document.visibilityState === "visible");
+            };
+
+            document.addEventListener("visibilitychange", handleVisibilityChange);
+
+            onCleanup(() => {
+                document.removeEventListener("visibilitychange", handleVisibilityChange);
+            });
         });
 
         return { getFPS };

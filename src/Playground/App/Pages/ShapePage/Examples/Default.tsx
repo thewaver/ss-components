@@ -1,9 +1,9 @@
 import { createMemo, createSignal, createUniqueId } from "solid-js";
 
+import { ShapeConst, ShapeUtils } from "@thewaver/ss-utils";
+
 import { InteractionUtils } from "../../../../../Lib/Abstracts/Interaction/Interaction.utils";
 import { Shape } from "../../../../../Lib/Fundamentals/Shape/Shape";
-import { ShapeConst } from "../../../../../Lib/Fundamentals/Shape/Shape.const";
-import { ShapeUtils } from "../../../../../Lib/Fundamentals/Shape/Shape.utils";
 import type { ShapeExampleProps } from "../ShapePage.types";
 
 import * as styles from "../ShapePage.css";

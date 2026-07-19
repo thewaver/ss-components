@@ -1,7 +1,8 @@
 import { type ParentProps, createMemo } from "solid-js";
 
+import { ShapeConst } from "@thewaver/ss-utils";
+
 import { Shape } from "../../Fundamentals/Shape/Shape";
-import { ShapeConst } from "../../Fundamentals/Shape/Shape.const";
 import type { SurfaceProps } from "./Surface.types";
 
 export const Surface = (props: ParentProps<SurfaceProps>) => {

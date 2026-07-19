@@ -1,9 +1,8 @@
 import { For, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
-import type { Size2d } from "@thewaver/ss-utils";
+import { ShapeUtils, type Size2d } from "@thewaver/ss-utils";
 
 import type { ShapeProps } from "./Shape.types";
-import { ShapeUtils } from "./Shape.utils";
 
 import * as styles from "./Shape.css";
 

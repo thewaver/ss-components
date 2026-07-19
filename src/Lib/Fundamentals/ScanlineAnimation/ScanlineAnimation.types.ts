@@ -1,4 +1,5 @@
-import type { CSSAnimationKey } from "../../Abstracts/CSS/CSS.types";
+import type { CSSAnimationKey } from "@thewaver/ss-utils";
+
 import type { AccessorProps } from "../../Utils/typeUtils";
 
 export type ScanlineAnimationEvaluationResult = Partial<Record<CSSAnimationKey, number>>;

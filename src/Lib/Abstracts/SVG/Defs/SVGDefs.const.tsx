@@ -1,7 +1,5 @@
-import { MathUtils, ObjectUtils, type Size2d } from "@thewaver/ss-utils";
+import { MathUtils, ObjectUtils, RandomUtils, ShapeConst, ShapeUtils, type Size2d } from "@thewaver/ss-utils";
 
-import { ShapeConst } from "../../../Fundamentals/Shape/Shape.const";
-import { ShapeUtils } from "../../../Fundamentals/Shape/Shape.utils";
 import type { InteractionFlags } from "../../Interaction/Interaction.types";
 import type { SVGAnimationDefs } from "./Animation/SVGAnimationDefs.types";
 import { SVGAnimationUtils } from "./Animation/SVGAnimationDefs.utils";
@@ -9,26 +7,6 @@ import { SVGFilterDefsFactory } from "./Filter/SVGFilterDefs.factory";
 import { SVGGradientDefsUtils } from "./Gradient/SVGGradientDefs.utils";
 import { SVGPatternDefsUtils } from "./Pattern/SVGPatternDefs.utils";
 import type { SVGDefs } from "./SVGDefs.types";
-
-const unwarpAngle = (angle: number, size: Size2d): number => {
-    if (size.width === 0 || size.height === 0) return angle;
-
-    const radians = angle * (Math.PI / 180);
-    const visualX = Math.cos(radians);
-    const visualY = Math.sin(radians);
-    const boxX = visualX / size.height;
-    const boxY = visualY / size.width;
-    const unwarpedRadians = Math.atan2(boxY, boxX);
-
-    return unwarpedRadians * (180 / Math.PI);
-};
-
-const getRandom01Values = (maxLength: number) => {
-    const pattern = Math.random() >= 0.5 ? "0;1;" : "1;0;";
-    const result = pattern.repeat(Math.ceil(Math.random() * maxLength)) + pattern[0];
-
-    return result;
-};
 
 export namespace SVGDefsSamples {
     export type ColorDefs = { [K in "primary" | "secondary" | "tertiary" | "background"]: string };
@@ -76,7 +54,7 @@ export namespace SVGDefsSamples {
             cellCount: { rows: number; cols: number },
             isSplit: boolean,
         ) => {
-            let values = getRandom01Values(8);
+            let values = RandomUtils.get01ValueString(8);
 
             if (isSplit) {
                 if (index.col === cellCount.cols - 1) {
@@ -585,7 +563,7 @@ export namespace SVGDefsSamples {
                                         { value: defs.getColors().primary },
                                     ],
                                     spreadKind: "banded",
-                                    angle: unwarpAngle(45, defs.getSize()),
+                                    angle: MathUtils.unwarpAngle(45, defs.getSize()),
                                     scale: { width: 2, height: 2 },
                                 },
                                 (x1, y1, x2, y2) =>
@@ -594,7 +572,7 @@ export namespace SVGDefsSamples {
                                         y1,
                                         x2,
                                         y2,
-                                        unwarpAngle(45, defs.getSize()),
+                                        MathUtils.unwarpAngle(45, defs.getSize()),
                                         [0.25, -0.25],
                                         defs,
                                     ),
@@ -621,7 +599,7 @@ export namespace SVGDefsSamples {
                                         { value: defs.getColors().tertiary },
                                         { value: defs.getColors().primary },
                                     ],
-                                    angle: unwarpAngle(45, defs.getSize()),
+                                    angle: MathUtils.unwarpAngle(45, defs.getSize()),
                                     scale: { width: 2, height: 2 },
                                 },
                                 (x1, y1, x2, y2) =>
@@ -630,7 +608,7 @@ export namespace SVGDefsSamples {
                                         y1,
                                         x2,
                                         y2,
-                                        unwarpAngle(45, defs.getSize()),
+                                        MathUtils.unwarpAngle(45, defs.getSize()),
                                         [0.5, -0.5],
                                         defs,
                                     ),
@@ -665,7 +643,7 @@ export namespace SVGDefsSamples {
                                         { value: defs.getColors().primary },
                                     ],
                                     spreadKind: "banded",
-                                    angle: unwarpAngle(45, defs.getSize()),
+                                    angle: MathUtils.unwarpAngle(45, defs.getSize()),
                                     scale: { width: 2, height: 2 },
                                 },
                                 (x1, y1, x2, y2) =>
@@ -674,7 +652,7 @@ export namespace SVGDefsSamples {
                                         y1,
                                         x2,
                                         y2,
-                                        unwarpAngle(45, defs.getSize()),
+                                        MathUtils.unwarpAngle(45, defs.getSize()),
                                         [0.25, -0.25],
                                         defs,
                                     ),

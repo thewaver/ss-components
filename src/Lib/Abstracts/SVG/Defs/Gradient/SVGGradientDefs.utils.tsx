@@ -1,6 +1,7 @@
 import type { JSX } from "solid-js";
 
-import { SVGUtils } from "../../SVG.utils";
+import { SVGUtils } from "@thewaver/ss-utils";
+
 import type { SVGLinearGradientDefs, SVGRadialGradientDefs } from "./SVGGradientDefs.types";
 
 export namespace SVGGradientDefsUtils {

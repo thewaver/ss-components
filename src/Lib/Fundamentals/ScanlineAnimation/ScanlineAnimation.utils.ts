@@ -1,18 +1,6 @@
-import { MathUtils } from "@thewaver/ss-utils";
+import { type CSSAnimationKey, CSSConst, CSS_TRANSFORM_KEYS, MathUtils } from "@thewaver/ss-utils";
 
-import { CSSConst } from "../../Abstracts/CSS/CSS.const";
-import { type CSSAnimationKey, CSS_TRANSFORM_KEYS } from "../../Abstracts/CSS/CSS.types";
 import type { ScanlineAnimationEvaluationResult } from "./ScanlineAnimation.types";
-
-const reverseBits = (n: number, bits: number) => {
-    let r = 0;
-
-    for (let i = 0; i < bits; i++) {
-        r = (r << 1) | ((n >> i) & 1);
-    }
-
-    return r;
-};
 
 export namespace ScanlineAnimationBreakpoints {
     export const DIRECTIONS = ["asc", "desc"] as const;
@@ -63,7 +51,7 @@ export namespace ScanlineAnimationBreakpoints {
         reverseBinary: (idx, lineCount) => {
             const bits = Math.ceil(Math.log2(lineCount));
 
-            return reverseBits(idx, bits) % lineCount;
+            return MathUtils.reverseBits(idx, bits) % lineCount;
         },
     };
 

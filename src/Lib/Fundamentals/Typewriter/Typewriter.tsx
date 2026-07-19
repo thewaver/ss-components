@@ -1,10 +1,8 @@
 import { For, createEffect, createMemo, createSignal, on, onCleanup, onMount } from "solid-js";
 import type { ParentProps } from "solid-js";
 
-import { EMPTY_ARRAY } from "@thewaver/ss-utils";
+import { EMPTY_ARRAY, type ElementSegment, JSXTextParser } from "@thewaver/ss-utils";
 
-import type { ElementSegment } from "../../Abstracts/JSX/Text/Parser/JSXTextParser.utils";
-import { JSXTextParser } from "../../Abstracts/JSX/Text/Parser/JSXTextParser.utils";
 import type { TypewriterProps, TypewriterUpdateCause } from "./Typewriter.types";
 
 import * as styles from "./Typewriter.css";

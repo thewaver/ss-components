@@ -166,7 +166,7 @@ export function App() {
             <Router>
                 <Route
                     path="/"
-                    component={(props) => (
+                    component={(props: RouteSectionProps) => (
                         <Viewport getSize={() => ({ width: 1920, height: 1080 })}>
                             <AppContent {...props} />
                         </Viewport>

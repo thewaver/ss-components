@@ -1,8 +1,7 @@
 import { createUniqueId } from "solid-js";
 
-import type { Size2d } from "@thewaver/ss-utils";
+import { CSSUtils, type Size2d } from "@thewaver/ss-utils";
 
-import { CSSUtils } from "../../../../../../Lib/Abstracts/CSS/CSS.utils";
 import { SVGDefsSamples } from "../../../../../../Lib/Abstracts/SVG/Defs/SVGDefs.const";
 import { Surface } from "../../../../../../Lib/Composites/Surface/Surface";
 import type { SurfaceProps } from "../../../../../../Lib/Composites/Surface/Surface.types";
