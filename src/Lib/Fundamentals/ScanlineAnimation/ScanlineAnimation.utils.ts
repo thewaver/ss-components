@@ -108,12 +108,9 @@ export namespace ScanlineAnimationKeyframes {
         opts?: HorizontalSnakeOpts,
     ): ScanlineAnimationEvaluationResult => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_SNAKE_OPTS, ...opts };
-        const leftWave = peak(b0, b1, t) * -mergedOpts.shiftPercent;
-        const rightWave = peak(b1, b2, t) * mergedOpts.shiftPercent;
+        const p = peak(b1, b2, t) - peak(b0, b1, t);
 
-        return {
-            translateX: leftWave + rightWave,
-        };
+        return { translateX: mergedOpts.shiftPercent * p };
     };
 
     export type HorizontalSplitOpts = {
@@ -134,9 +131,7 @@ export namespace ScanlineAnimationKeyframes {
         const dir = MathUtils.isEven(idx) ? -1 : 1;
         const p = peak(b0, b2, t);
 
-        return {
-            translateX: dir * mergedOpts.shiftPercent * p,
-        };
+        return { translateX: dir * mergedOpts.shiftPercent * p };
     };
 
     export type HorizontalStretchOpts = {
@@ -156,9 +151,7 @@ export namespace ScanlineAnimationKeyframes {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_STRETCH_OPTS, ...opts };
         const p = peak(b0, b2, t);
 
-        return {
-            scaleX: 100 + p * (mergedOpts.peakScalePercent - 100),
-        };
+        return { scaleX: 100 + (mergedOpts.peakScalePercent - 100) * p };
     };
 
     export type HorizontalHueOpts = {};
@@ -174,9 +167,23 @@ export namespace ScanlineAnimationKeyframes {
         // const mergedOpts = { ...DEFAULT_HORIZONTAL_HUE_OPTS, ...opts };
         const p = peak(b0, b2, t);
 
-        return {
-            "hue-rotate": 180 * p,
-        };
+        return { "hue-rotate": 180 * p };
+    };
+
+    export type HorizontalBrightnessOpts = {};
+
+    // const DEFAULT_HORIZONTAL_BRIGHTNESS_OPTS: Required<HorizontalBrightnessOpts> = {};
+
+    export const evaluateHorizontalBrightness = (
+        [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
+        idx: number,
+        t: number,
+        opts?: HorizontalBrightnessOpts,
+    ): ScanlineAnimationEvaluationResult => {
+        // const mergedOpts = { ...DEFAULT_HORIZONTAL_BRIGHTNESS_OPTS, ...opts };
+        const p = peak(b0, b2, t);
+
+        return { brightness: 150 * p };
     };
 
     export type HorizontalGrayscaleOpts = {};
@@ -192,9 +199,7 @@ export namespace ScanlineAnimationKeyframes {
         // const mergedOpts = { ...DEFAULT_HORIZONTAL_GRAYSCALE_OPTS, ...opts };
         const p = peak(b0, b2, t);
 
-        return {
-            grayscale: 180 * p,
-        };
+        return { grayscale: 100 * p };
     };
 }
 

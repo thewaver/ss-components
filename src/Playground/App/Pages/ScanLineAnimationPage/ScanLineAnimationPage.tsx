@@ -12,6 +12,8 @@ import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { StressTest } from "../../PageComponents/StressTest/StressTest";
 import type { StressTestDefs } from "../../PageComponents/StressTest/StressText.types";
 import knight from "../../knight.png";
+import { BrightnessExample } from "./Examples/Brightness";
+import BrightnessExampleRaw from "./Examples/Brightness.tsx?raw";
 import { GlitchExample } from "./Examples/Glitch";
 import GlitchExampleRaw from "./Examples/Glitch.tsx?raw";
 import { GrayscaleExample } from "./Examples/Grayscale";
@@ -69,6 +71,7 @@ const GLITCH_SOURCE = highlighter.codeToHtml(GlitchExampleRaw, getDefaultHighlig
 const SURGE_SOURCE = highlighter.codeToHtml(SurgeExampleRaw, getDefaultHighlighterConfig());
 const SNAKE_SOURCE = highlighter.codeToHtml(SnakeExampleRaw, getDefaultHighlighterConfig());
 const SPLIT_SOURCE = highlighter.codeToHtml(SplitExampleRaw, getDefaultHighlighterConfig());
+const BRIGHTNESS_SOURCE = highlighter.codeToHtml(BrightnessExampleRaw, getDefaultHighlighterConfig());
 const GRAYSCALE_SOURCE = highlighter.codeToHtml(GrayscaleExampleRaw, getDefaultHighlighterConfig());
 const HUE_SOURCE = highlighter.codeToHtml(HueExampleRaw, getDefaultHighlighterConfig());
 
@@ -98,8 +101,10 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
                                   ? ScanlineAnimationKeyframes.evaluateHorizontalSplit
                                   : ScanlineAnimationKeyframes.evaluateHorizontalStretch
                             : random < 1
-                              ? ScanlineAnimationKeyframes.evaluateHorizontalHue
-                              : ScanlineAnimationKeyframes.evaluateHorizontalGrayscale;
+                              ? ScanlineAnimationKeyframes.evaluateHorizontalBrightness
+                              : random < 2
+                                ? ScanlineAnimationKeyframes.evaluateHorizontalHue
+                                : ScanlineAnimationKeyframes.evaluateHorizontalGrayscale;
 
                     return (
                         <div
@@ -384,6 +389,37 @@ const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
     );
 };
 
+const BrightnessExampleWrapper = (props: ScanlineAnimationExampleProps) => {
+    const [getOrder, setOrder] = createSignal(props.getOrder());
+    const [keyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalBrightnessOpts>({});
+    const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
+        dir: "asc",
+        smoothness: 0.5,
+    });
+
+    return (
+        <>
+            <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
+                <BrightnessExample
+                    {...props}
+                    getKeyframeOpts={() => keyframeOpts}
+                    getBreakpointOpts={() => breakpointOpts}
+                    getOrder={getOrder}
+                />
+            </div>
+
+            <div class={pageStyles.localPropsContainer}>
+                <SmoothnessInput
+                    getter={() => breakpointOpts.smoothness!}
+                    setter={(value) => setBreakpointOpts("smoothness", value)}
+                />
+                <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
+                <OrdererInput getter={getOrder} setter={setOrder} />
+            </div>
+        </>
+    );
+};
+
 const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) => {
     const [getOrder, setOrder] = createSignal(props.getOrder());
     const [keyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalGrayscaleOpts>({});
@@ -450,7 +486,7 @@ export const ScanlineAnimationPage = () => {
     let controllers: ScanlineAnimationController[] = [];
 
     const [getSrc, setSrc] = createSignal(knight);
-    const [getLineCount, setLineCount] = createSignal(160);
+    const [getLineCount, setLineCount] = createSignal(120);
     const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
     const [getAnimationIterationDelayMs, setAnimationIterationDelayMs] = createSignal(1000);
 
@@ -496,6 +532,11 @@ export const ScanlineAnimationPage = () => {
                 name: "Split",
                 component: () => <SplitExampleWrapper {...commonProps} />,
                 src: SPLIT_SOURCE,
+            },
+            {
+                name: "Brightness",
+                component: () => <BrightnessExampleWrapper {...commonProps} />,
+                src: BRIGHTNESS_SOURCE,
             },
             {
                 name: "Grayscale",
