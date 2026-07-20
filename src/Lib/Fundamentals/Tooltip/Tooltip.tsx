@@ -5,7 +5,7 @@ import { Rect, Size2d } from "@thewaver/ss-utils";
 
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { ElementObserver } from "../../Abstracts/ElementObserver/ElementObserver";
-import { useViewportContext } from "../Viewport/Viewpoer.context";
+import { useViewportContext } from "../Viewport/Viewport.context";
 import type { TooltipHPlacement, TooltipPlacement, TooltipProps, TooltipVPlacement } from "./Tooltip.types";
 import { TooltipUtils } from "./Tooltip.utils";
 

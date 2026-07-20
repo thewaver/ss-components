@@ -4,7 +4,7 @@ import { Portal } from "solid-js/web";
 import { MathUtils, Size2d } from "@thewaver/ss-utils";
 
 import type { AnimDirection } from "../../Abstracts/Anim/Anim.types";
-import { useViewportContext } from "../Viewport/Viewpoer.context";
+import { useViewportContext } from "../Viewport/Viewport.context";
 import type { ScreenWiperProps, ScreenWiperShape } from "./ScreenWiper.types";
 
 import * as styles from "./ScreenWiper.css";

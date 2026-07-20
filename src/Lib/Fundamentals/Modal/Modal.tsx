@@ -5,7 +5,7 @@ import { CSSUtils, StringUtils } from "@thewaver/ss-utils";
 
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { FocusUtils } from "../../Abstracts/Focus/Focus.utils";
-import { useViewportContext } from "../Viewport/Viewpoer.context";
+import { useViewportContext } from "../Viewport/Viewport.context";
 import type { ModalProps } from "./Modal.types";
 
 import * as styles from "./Modal.css";

@@ -1,6 +1,6 @@
 import { DOMUtils } from "@thewaver/ss-utils";
 
-import type { ViewportContextType } from "./Viewpoer.context";
+import type { ViewportContextType } from "./Viewport.context.types";
 
 export namespace ViewportUtils {
     export const getAdjustedBoundingClientRect = (child: Element, viewportContext: ViewportContextType) => {

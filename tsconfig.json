@@ -8,10 +8,10 @@
         "strict": true,
         "verbatimModuleSyntax": true,
         "skipLibCheck": true,
-
         "noUnusedParameters": false,
         "noUnusedLocals": true,
-        "noEmit": true
+        "noEmit": true,
+        "ignoreDeprecations": "6.0"
     },
     "include": ["src"]
 }

@@ -3,7 +3,7 @@ import { createEffect, onCleanup, onMount } from "solid-js";
 
 import { Bounds, type Point2d, type Rect } from "@thewaver/ss-utils";
 
-import { useViewportContext } from "../../Fundamentals/Viewport/Viewpoer.context";
+import { useViewportContext } from "../../Fundamentals/Viewport/Viewport.context";
 import { ViewportUtils } from "../../Fundamentals/Viewport/Viewport.utils";
 
 export namespace ElementObserver {

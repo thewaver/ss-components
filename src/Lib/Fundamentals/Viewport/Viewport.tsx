@@ -3,7 +3,7 @@ import { createSignal, onCleanup, onMount } from "solid-js";
 
 import { Rect, RectUtils, Size2d } from "@thewaver/ss-utils";
 
-import { ViewportContextProvider } from "./Viewpoer.context";
+import { ViewportContextProvider } from "./Viewport.context";
 import type { ViewportProps } from "./Viewport.types";
 
 import * as styles from "./Viewport.css";

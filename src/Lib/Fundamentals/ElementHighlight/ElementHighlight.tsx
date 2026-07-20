@@ -5,7 +5,7 @@ import { Rect } from "@thewaver/ss-utils";
 
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { ElementObserver } from "../../Abstracts/ElementObserver/ElementObserver";
-import { useViewportContext } from "../Viewport/Viewpoer.context";
+import { useViewportContext } from "../Viewport/Viewport.context";
 import type { ElementHighlightProps } from "./ElementHighlight.types";
 import { ElementHighlightUtils } from "./ElementHighlight.utils";
 

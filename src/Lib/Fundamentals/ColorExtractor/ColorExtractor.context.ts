@@ -1,13 +1,8 @@
 import { getColor, getPalette } from "colorthief";
 import type { Color } from "colorthief";
 import { createContext, createEffect, createSignal, onCleanup, useContext } from "solid-js";
-import type { Accessor } from "solid-js";
 
-export type ColorExtractorContextType = {
-    getSrc: Accessor<string>;
-    getColorCount?: Accessor<number>;
-    getSamplePercentile?: Accessor<number>;
-};
+import type { ColorExtractorContextType } from "./ColorExtractor.context.types";
 
 const ColorExtractorContext = createContext<ColorExtractorContextType>();
 

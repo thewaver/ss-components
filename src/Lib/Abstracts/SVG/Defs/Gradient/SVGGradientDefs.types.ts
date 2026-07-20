@@ -23,15 +23,3 @@ export type SVGRadialGradientDefs = SVGGradientDefs & {
     origin?: Point2d;
     scale?: number;
 };
-
-export type SVGDropShadowFilterDefs = SVGBaseGradientDefs & {
-    dx: number;
-    dy: number;
-    stdDeviation: number;
-    floodColor: string;
-    floodOpacity: number;
-};
-
-export type SVGGaussianBlurFilterDefs = SVGBaseGradientDefs & {
-    stdDeviation: number;
-};
