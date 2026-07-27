@@ -25,6 +25,7 @@ export const content = style({
 
 export const pic = style({
     position: "relative",
+    zIndex: 0,
 });
 
 export const picContent = style([

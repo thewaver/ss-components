@@ -12,6 +12,7 @@ const config: SurfaceProps = {
     getStrokeDefs: () => [
         {
             color: "var(--clr-primary)",
+            opacity: 0.5,
         },
     ],
     getFillDefs: () => [
