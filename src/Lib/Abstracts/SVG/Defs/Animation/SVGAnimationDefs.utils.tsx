@@ -1,47 +1,51 @@
-import { For, type JSX, createMemo, createSignal } from "solid-js";
+import { For, type JSX, createSignal } from "solid-js";
 
 import { SVGUtils } from "@thewaver/ss-utils";
 
 import type { SVGAnimationDefs } from "./SVGAnimationDefs.types";
 
 export namespace SVGAnimationUtils {
-    const useCommonAnimDefs = (defs: SVGAnimationDefs): JSX.AnimateSVGAttributes<SVGAnimateElement> => {
+    export const useCommonAnimDefs = (defs: SVGAnimationDefs): JSX.AnimateSVGAttributes<SVGAnimateElement> => {
         const [getPatternIndex, setPatternIndex] = createSignal(0);
-
-        const getRepeatCount = createMemo(() => {
-            const pattern = defs.getAnimationIterationPattern?.()[getPatternIndex()];
-
-            if (!pattern || pattern.count === Infinity) {
-                return "indefinite" as const;
-            }
-            return pattern.count;
-        });
-
+    
         return {
-            get id() {
-                return defs.getId?.();
+            id: defs.id,
+            ref: (el: SVGAnimateElement) => {
+                el.addEventListener("endEvent", () => {
+                    const currentIndex = getPatternIndex();
+                    const nextIndex = defs.animationIterationPatterns?.[currentIndex]?.nextIndex;
+                    
+                    defs.onAnimationIteration?.(currentIndex);
+    
+                    if (nextIndex !== undefined) {
+                        if (nextIndex === currentIndex) {
+                            console.warn("An Animation Iteration Pattern cannot reference its own index in its 'nextIndex'.");
+                        } else {
+                            setPatternIndex(nextIndex);
+    
+                            const nextPattern = defs.animationIterationPatterns?.[nextIndex];
+                            const delaySecs = (nextPattern?.beginDelayMs ?? 0) / 1000;
+                            
+                            el.beginElementAt(delaySecs);
+                        }
+                    } else {
+                        defs.onAnimationEnd?.();
+                    }
+                });
             },
-            get dur() {
-                return `${defs.getAnimationDurationMs()}ms`;
-            },
+            dur: `${defs.animationDurationMs}ms`,
+            fill: "freeze" as const,
             get repeatCount() {
-                return getRepeatCount();
+                const pattern = defs.animationIterationPatterns?.[getPatternIndex()];
+                return !pattern || pattern.count === Infinity ? "indefinite" : pattern.count;
             },
             get begin() {
-                return defs.getAnimationIterationPattern?.()[getPatternIndex()]?.begin;
-            },
-            onEnd: () => {
-                const pattern = defs.getAnimationIterationPattern?.();
+                if (getPatternIndex() === 0) {
+                    const delay = defs.animationIterationPatterns?.[0]?.beginDelayMs ?? 0;
 
-                if (pattern && getPatternIndex() < pattern.length) {
-                    setPatternIndex((prev) => prev + 1);
-                    defs.onAnimationIteration?.(getPatternIndex());
-                } else if (defs.getShouldRepeatAnimationPattern?.()) {
-                    setPatternIndex(0);
-                    defs.onAnimationIteration?.(0);
-                } else {
-                    defs.onAnimationEnd?.();
+                    return `${delay}ms`;
                 }
+                return "indefinite";
             },
         };
     };

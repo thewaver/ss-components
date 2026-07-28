@@ -14,6 +14,7 @@ export const DefaultExample = ({
     getShapeKind,
     getStrokeConfig,
     getFillConfig,
+    getIterationConfig,
     getCellSize,
     getAnimationDurationMs,
     getColors,
@@ -33,11 +34,12 @@ export const DefaultExample = ({
             getPoints={(getSize) => ShapeConst.getDefaultShapePoints(getShapeKind(), getSize())}
             getStrokeDefs={(getSize) => {
                 const strokes = getStrokeConfig()
-                    .getSVGDefs(`stroke-${id}`, getFlags, {
-                        getSize,
-                        getAnimationDurationMs,
-                        getColors,
-                        getBlurWidth,
+                    .getSVGDefs(`stroke-${id}`, getFlags(), {
+                        size: getSize(),
+                        animationDurationMs: getAnimationDurationMs(),
+                        colors: getColors(),
+                        blurWidth: getBlurWidth?.(),
+                        ...getIterationConfig().getDefs(getAnimationDurationMs()),
                     })
                     .map((config) => ({ ...config, thicknesses: edgeThicknesses }));
 
@@ -51,11 +53,12 @@ export const DefaultExample = ({
             }}
             getFillDefs={(getSize) =>
                 getFillConfig().getSVGDefs(`fill-${id}`, undefined, {
-                    getSize,
-                    getCellSize,
-                    getAnimationDurationMs,
-                    getColors,
-                    getBlurWidth,
+                    size: getSize(),
+                    cellSize: getCellSize(),
+                    animationDurationMs: getAnimationDurationMs(),
+                    colors: getColors(),
+                    blurWidth: getBlurWidth?.(),
+                    ...getIterationConfig().getDefs(getAnimationDurationMs()),
                 })
             }
             renderChildren={(getSize, getClipPath, getClipPoints) => {

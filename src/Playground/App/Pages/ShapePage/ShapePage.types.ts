@@ -14,6 +14,7 @@ export type ShapeExampleProps = Pick<ShapeProps, "lameExponents" | "joinRadii"> 
         shapeKind: ShapeConst.DefaultShape;
         strokeConfig: SVGDefsSamples.Gradient.ConfigDefs;
         fillConfig: SVGDefsSamples.Pattern.ConfigDefs;
+        iterationConfig: SVGDefsSamples.Iteration.ConfigDefs;
         cellSize: Size2d;
         edgeThicknesses: number[];
     }>;

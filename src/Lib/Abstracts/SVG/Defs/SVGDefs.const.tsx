@@ -14,39 +14,70 @@ export namespace SVGDefsSamples {
     const getBaseBlur = (
         id: string,
         defs: {
-            getSize: () => Size2d;
-            getBlurWidth?: () => number;
+            size: Size2d;
+            blurWidth?: number;
         },
     ) =>
-        defs.getBlurWidth
+        defs.blurWidth
             ? {
                   id: `border-blur-filter-${id}`,
                   defsElement: new SVGFilterDefsFactory(`border-blur-filter-${id}`)
-                      .addGaussianBlurFilter({ stdDeviation: defs.getBlurWidth() })
-                      .getFilterPrimitives({ method: "isolate", elementSize: defs.getSize() }),
+                      .addGaussianBlurFilter({ stdDeviation: defs.blurWidth })
+                      .getFilterPrimitives({ method: "isolate", elementSize: defs.size }),
               }
             : undefined;
+
+    export namespace Iteration {
+        export type ConfigDefs = {
+            getDefs: (animationDurationMs: number) => Pick<SVGAnimationDefs, "animationIterationPatterns">,
+        }
+
+        export const SAMPLE_CONFIGS = {
+            constant: {
+                getDefs: () => ({}),
+            },
+            threes: {
+                getDefs: (animationDurationMs) => ({
+                    animationIterationPatterns: [{
+                        count: 3,
+                        nextIndex: 1,
+                    },
+                    {
+                        beginDelayMs: animationDurationMs * 3,
+                        count: 3,
+                        nextIndex: 2,
+                    },
+                    {
+                        beginDelayMs: animationDurationMs * 3,
+                        count: 3,
+                        nextIndex: 1,
+                    },
+                ],
+                }),
+            },
+        } as const satisfies Record<string, ConfigDefs>;
+    }
 
     export namespace Pattern {
         const DEBUG_SEAMS = false;
 
         type ElementDefs = SVGAnimationDefs & {
-            getSize: () => Size2d;
-            getCellSize: () => Size2d;
-            getColors: () => ColorDefs;
-            getBlurWidth?: () => number;
+            size: Size2d;
+            cellSize: Size2d;
+            colors: ColorDefs;
+            blurWidth?: number;
         };
 
         export type ConfigDefs = {
             getSVGDefs: (
                 id: string,
-                getInteractionFlags: (() => InteractionFlags) | undefined,
+                interactionFlags: InteractionFlags | undefined,
                 defs: ElementDefs,
             ) => SVGDefs[];
         };
 
-        const getBaseBackgroundColor = (defs: { getColors: () => ColorDefs }) =>
-            `hsl(from ${defs.getColors().background} h s calc(l * 1.5) / 25%)`;
+        const getBaseBackgroundColor = (defs: { colors: ColorDefs }) =>
+            `hsl(from ${defs.colors.background} h s calc(l * 1.5) / 25%)`;
 
         const getRandomValuesWithSplitControl = (
             mutableSplitValuesCache: Record<string, string>,
@@ -79,7 +110,7 @@ export namespace SVGDefsSamples {
         const circle = (variant: "grid" | "drop" | "shift"): ConfigDefs => ({
             getSVGDefs: (id, __, defs) => {
                 const splitValuesCache: Record<string, string> = {};
-                const cellSize = defs.getCellSize();
+                const cellSize = defs.cellSize;
                 const cellCount = { rows: 8, cols: 8 };
                 const r = Math.min(cellSize.width, cellSize.height) * 0.5;
 
@@ -115,10 +146,10 @@ export namespace SVGDefsSamples {
                                             cy={cellSize.height * 0.5}
                                             fill={
                                                 DEBUG_SEAMS && isSplit
-                                                    ? defs.getColors().tertiary
+                                                    ? defs.colors.tertiary
                                                     : isEven
-                                                      ? defs.getColors().primary
-                                                      : defs.getColors().secondary
+                                                      ? defs.colors.primary
+                                                      : defs.colors.secondary
                                             }
                                         >
                                             <animate
@@ -127,7 +158,7 @@ export namespace SVGDefsSamples {
                                                     .split(";")
                                                     .map((v) => `${Number(v) * r}`)
                                                     .join(";")}
-                                                dur={`${defs.getAnimationDurationMs() * 4}ms`}
+                                                dur={`${defs.animationDurationMs * 4}ms`}
                                                 repeatCount="indefinite"
                                             />
                                         </circle>
@@ -145,7 +176,7 @@ export namespace SVGDefsSamples {
         ): ConfigDefs => ({
             getSVGDefs: (id, __, defs) => {
                 const splitValuesCache: Record<string, string> = {};
-                const cellSize = defs.getCellSize();
+                const cellSize = defs.cellSize;
                 const cellCount = { rows: 8, cols: 8 };
                 const cb =
                     variant === "hexagon-pointy-top"
@@ -182,16 +213,16 @@ export namespace SVGDefsSamples {
                                                 href={`#${shapeId}`}
                                                 fill={
                                                     DEBUG_SEAMS && isSplit
-                                                        ? defs.getColors().tertiary
+                                                        ? defs.colors.tertiary
                                                         : isEven
-                                                          ? defs.getColors().primary
-                                                          : defs.getColors().secondary
+                                                          ? defs.colors.primary
+                                                          : defs.colors.secondary
                                                 }
                                             >
                                                 <animate
                                                     attributeName="fill-opacity"
                                                     values={values}
-                                                    dur={`${defs.getAnimationDurationMs() * 4}ms`}
+                                                    dur={`${defs.animationDurationMs * 4}ms`}
                                                     repeatCount="indefinite"
                                                 />
                                             </use>
@@ -208,7 +239,7 @@ export namespace SVGDefsSamples {
         const lozenge = (): ConfigDefs => ({
             getSVGDefs: (id, __, defs) => {
                 const splitValuesCache: Record<string, string> = {};
-                const cellSize = defs.getCellSize();
+                const cellSize = defs.cellSize;
                 const cellCount = { rows: 8, cols: 8 };
 
                 const lozenge = (
@@ -245,16 +276,16 @@ export namespace SVGDefsSamples {
                                                     href={`#${shapeId}`}
                                                     fill={
                                                         DEBUG_SEAMS && isSplit
-                                                            ? defs.getColors().tertiary
+                                                            ? defs.colors.tertiary
                                                             : isEven
-                                                              ? defs.getColors().primary
-                                                              : defs.getColors().secondary
+                                                              ? defs.colors.primary
+                                                              : defs.colors.secondary
                                                     }
                                                 >
                                                     <animate
                                                         attributeName="fill-opacity"
                                                         values={values}
-                                                        dur={`${defs.getAnimationDurationMs() * 4}ms`}
+                                                        dur={`${defs.animationDurationMs * 4}ms`}
                                                         repeatCount="indefinite"
                                                     />
                                                 </use>
@@ -272,7 +303,7 @@ export namespace SVGDefsSamples {
         const triangle = (): ConfigDefs => ({
             getSVGDefs: (id, __, defs) => {
                 const splitValuesCache: Record<string, string> = {};
-                const cellSize = defs.getCellSize();
+                const cellSize = defs.cellSize;
                 const cellCount = { rows: 8, cols: 8 };
 
                 const upTriangle = (
@@ -317,16 +348,16 @@ export namespace SVGDefsSamples {
                                                     href={`#${shapeId}`}
                                                     fill={
                                                         DEBUG_SEAMS && isSplit
-                                                            ? defs.getColors().tertiary
+                                                            ? defs.colors.tertiary
                                                             : isEven
-                                                              ? defs.getColors().primary
-                                                              : defs.getColors().secondary
+                                                              ? defs.colors.primary
+                                                              : defs.colors.secondary
                                                     }
                                                 >
                                                     <animate
                                                         attributeName="fill-opacity"
                                                         values={values}
-                                                        dur={`${defs.getAnimationDurationMs() * 4}ms`}
+                                                        dur={`${defs.animationDurationMs * 4}ms`}
                                                         repeatCount="indefinite"
                                                     />
                                                 </use>
@@ -353,15 +384,15 @@ export namespace SVGDefsSamples {
                             {
                                 id: `gradient1-${id}`,
                                 colors: [
-                                    { value: defs.getColors().primary },
-                                    { value: defs.getColors().primary },
-                                    { value: defs.getColors().secondary },
-                                    { value: defs.getColors().primary },
+                                    { value: defs.colors.primary },
+                                    { value: defs.colors.primary },
+                                    { value: defs.colors.secondary },
+                                    { value: defs.colors.primary },
                                 ],
                             },
                             SVGAnimationUtils.Radial.grow([0, 2], {
                                 ...defs,
-                                getAnimationDurationMs: () => defs.getAnimationDurationMs() * 0.5,
+                                animationDurationMs: defs.animationDurationMs * 0.5,
                             }),
                         ),
                     },
@@ -370,7 +401,7 @@ export namespace SVGDefsSamples {
                         defsElement: (
                             <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
                                 {SVGAnimationUtils.Path.getRotatingWedges(
-                                    Math.max(defs.getCellSize().width, defs.getCellSize().height),
+                                    Math.max(defs.cellSize.width, defs.cellSize.height),
                                     0.75,
                                     curvature,
                                     MathUtils.getIntermediateValues(0, 360, 12),
@@ -408,21 +439,21 @@ export namespace SVGDefsSamples {
 
     export namespace Gradient {
         type ElementDefs = SVGAnimationDefs & {
-            getSize: () => Size2d;
-            getColors: () => ColorDefs;
-            getBlurWidth?: () => number;
+            size: Size2d;
+            colors: ColorDefs;
+            blurWidth?: number;
         };
 
         export type ConfigDefs = {
             getSVGDefs: (
                 id: string,
-                getInteractionFlags: (() => InteractionFlags) | undefined,
+                interactionFlags: InteractionFlags | undefined,
                 defs: ElementDefs,
             ) => SVGDefs[];
         };
 
-        const getBaseBorderColor = (defs: { getColors: () => ColorDefs }) =>
-            `hsl(from ${defs.getColors().background} h s calc(l * 1.5) / 50%)`;
+        const getBaseBorderColor = (defs: { colors: ColorDefs }) =>
+            `hsl(from ${defs.colors.background} h s calc(l * 1.5) / 50%)`;
 
         export const SAMPLE_CONFIGS = {
             plain: {
@@ -444,23 +475,23 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
                                     ],
                                     spreadKind: "banded",
                                     scale: { width: 2, height: 1 },
@@ -482,13 +513,13 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().tertiary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().tertiary },
-                                        { value: defs.getColors().primary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.tertiary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.tertiary },
+                                        { value: defs.colors.primary },
                                     ],
                                     scale: { width: 2, height: 1 },
                                 },
@@ -510,19 +541,19 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().tertiary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().tertiary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().tertiary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().tertiary },
-                                        { value: defs.getColors().primary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.tertiary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.tertiary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.tertiary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.tertiary },
+                                        { value: defs.colors.primary },
                                     ],
                                     spreadKind: "banded",
                                     scale: { width: 2, height: 1 },
@@ -544,26 +575,26 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().primary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.primary },
                                     ],
                                     spreadKind: "banded",
-                                    angle: MathUtils.unwarpAngle(45, defs.getSize()),
+                                    angle: MathUtils.unwarpAngle(45, defs.size),
                                     scale: { width: 2, height: 2 },
                                 },
                                 (x1, y1, x2, y2) =>
@@ -572,7 +603,7 @@ export namespace SVGDefsSamples {
                                         y1,
                                         x2,
                                         y2,
-                                        MathUtils.unwarpAngle(45, defs.getSize()),
+                                        MathUtils.unwarpAngle(45, defs.size),
                                         [0.25, -0.25],
                                         defs,
                                     ),
@@ -591,15 +622,15 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().tertiary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().tertiary },
-                                        { value: defs.getColors().primary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.tertiary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.tertiary },
+                                        { value: defs.colors.primary },
                                     ],
-                                    angle: MathUtils.unwarpAngle(45, defs.getSize()),
+                                    angle: MathUtils.unwarpAngle(45, defs.size),
                                     scale: { width: 2, height: 2 },
                                 },
                                 (x1, y1, x2, y2) =>
@@ -608,7 +639,7 @@ export namespace SVGDefsSamples {
                                         y1,
                                         x2,
                                         y2,
-                                        MathUtils.unwarpAngle(45, defs.getSize()),
+                                        MathUtils.unwarpAngle(45, defs.size),
                                         [0.5, -0.5],
                                         defs,
                                     ),
@@ -628,22 +659,22 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().tertiary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().tertiary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().tertiary },
-                                        { value: defs.getColors().primary },
-                                        { value: defs.getColors().secondary },
-                                        { value: defs.getColors().tertiary },
-                                        { value: defs.getColors().primary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.tertiary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.tertiary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.tertiary },
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.tertiary },
+                                        { value: defs.colors.primary },
                                     ],
                                     spreadKind: "banded",
-                                    angle: MathUtils.unwarpAngle(45, defs.getSize()),
+                                    angle: MathUtils.unwarpAngle(45, defs.size),
                                     scale: { width: 2, height: 2 },
                                 },
                                 (x1, y1, x2, y2) =>
@@ -652,7 +683,7 @@ export namespace SVGDefsSamples {
                                         y1,
                                         x2,
                                         y2,
-                                        MathUtils.unwarpAngle(45, defs.getSize()),
+                                        MathUtils.unwarpAngle(45, defs.size),
                                         [0.25, -0.25],
                                         defs,
                                     ),
@@ -676,8 +707,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: defs.getColors().primary },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                 },
                                 (x1, y1, x2, y2) =>
@@ -694,8 +725,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: defs.getColors().secondary },
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
                                     angle: 180,
                                 },
@@ -721,8 +752,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: defs.getColors().primary },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                     angle: 45,
                                 },
@@ -748,8 +779,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: defs.getColors().secondary },
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
                                     angle: 225,
                                 },
@@ -783,8 +814,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: defs.getColors().primary },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                     angle: 45,
                                 },
@@ -810,8 +841,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: defs.getColors().secondary },
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
                                     angle: 135,
                                 },
@@ -837,8 +868,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient3-${id}`,
                                     colors: [
-                                        { value: defs.getColors().primary },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                     angle: 225,
                                 },
@@ -864,8 +895,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient4-${id}`,
                                     colors: [
-                                        { value: defs.getColors().secondary },
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
                                     angle: 315,
                                 },
@@ -901,9 +932,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
@@ -926,9 +957,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
@@ -943,9 +974,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                        { value: defs.getColors().secondary },
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
@@ -968,8 +999,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: defs.getColors().tertiary },
-                                        { value: defs.getColors().secondary },
+                                        { value: defs.colors.tertiary },
+                                        { value: defs.colors.secondary },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
@@ -984,8 +1015,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
@@ -1008,14 +1039,14 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), {
                                     ...defs,
-                                    getAnimationDurationMs: () => defs.getAnimationDurationMs() * 0.5,
+                                    animationDurationMs: defs.animationDurationMs * 0.5,
                                 }),
                             ),
                         },
@@ -1029,9 +1060,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                        { value: defs.getColors().secondary },
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
@@ -1047,14 +1078,14 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient3-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().tertiary} r g b / 0)` },
-                                        { value: defs.getColors().tertiary },
-                                        { value: `rgb(from ${defs.getColors().tertiary} r g b / 0)` },
+                                        { value: `rgb(from ${defs.colors.tertiary} r g b / 0)` },
+                                        { value: defs.colors.tertiary },
+                                        { value: `rgb(from ${defs.colors.tertiary} r g b / 0)` },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), {
                                     ...defs,
-                                    getAnimationDurationMs: () => defs.getAnimationDurationMs() * 2,
+                                    animationDurationMs: defs.animationDurationMs * 2,
                                 }),
                             ),
                         },
@@ -1078,9 +1109,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                 },
                                 (x1, y1, x2, y2) =>
@@ -1104,9 +1135,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                 },
                                 (x1, y1, x2, y2) =>
@@ -1122,9 +1153,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                        { value: defs.getColors().secondary },
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
                                     angle: 90,
                                 },
@@ -1149,9 +1180,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                     angle: 45,
                                 },
@@ -1184,9 +1215,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                     angle: 45,
                                 },
@@ -1211,9 +1242,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                        { value: defs.getColors().secondary },
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
                                     angle: 135,
                                 },
@@ -1248,8 +1279,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
@@ -1282,8 +1313,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
@@ -1308,8 +1339,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: defs.getColors().secondary },
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
@@ -1342,8 +1373,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
@@ -1368,8 +1399,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                        { value: defs.getColors().secondary },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(180, 540, 12), defs),
@@ -1402,9 +1433,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                        { value: defs.getColors().secondary, stop: 75 },
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 75 },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary, stop: 75 },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)`, stop: 75 },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
@@ -1429,9 +1460,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary, stop: 75 },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 75 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary, stop: 75 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 75 },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
@@ -1456,9 +1487,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient3-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                        { value: defs.getColors().secondary, stop: 75 },
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 75 },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary, stop: 75 },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)`, stop: 75 },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(180, 540, 12), defs),
@@ -1483,9 +1514,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient4-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary, stop: 75 },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 75 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary, stop: 75 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 75 },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(270, 630, 12), defs),
@@ -1518,8 +1549,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
@@ -1544,8 +1575,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                        { value: defs.getColors().secondary },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(180, 540, 12), defs),
@@ -1570,13 +1601,13 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient3-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().tertiary} r g b / 0)` },
-                                        { value: defs.getColors().tertiary },
+                                        { value: `rgb(from ${defs.colors.tertiary} r g b / 0)` },
+                                        { value: defs.colors.tertiary },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), {
                                     ...defs,
-                                    getAnimationDurationMs: () => defs.getAnimationDurationMs() * 0.5,
+                                    animationDurationMs: defs.animationDurationMs * 0.5,
                                 }),
                             ),
                         },
@@ -1588,7 +1619,7 @@ export namespace SVGDefsSamples {
                                         ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
                                         {
                                             ...defs,
-                                            getAnimationDurationMs: () => defs.getAnimationDurationMs() * 0.5,
+                                            animationDurationMs: defs.animationDurationMs * 0.5,
                                         },
                                     )}
                                 </clipPath>
@@ -1610,8 +1641,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(
@@ -1660,8 +1691,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
                                     ],
                                     angle: 90,
                                 },
@@ -1701,8 +1732,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                        { value: defs.getColors().secondary },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
                                     ],
                                     angle: 90,
                                 },
@@ -1740,8 +1771,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient3-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().tertiary} r g b / 0)` },
-                                        { value: defs.getColors().tertiary },
+                                        { value: `rgb(from ${defs.colors.tertiary} r g b / 0)` },
+                                        { value: defs.colors.tertiary },
                                     ],
                                     angle: 90,
                                 },
@@ -1775,8 +1806,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
                                     ],
                                     angle: 90,
                                 },
@@ -1822,8 +1853,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                        { value: defs.getColors().secondary },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
                                     ],
                                     angle: 90,
                                 },
@@ -1865,8 +1896,8 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient3-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().tertiary} r g b / 0)` },
-                                        { value: defs.getColors().tertiary },
+                                        { value: `rgb(from ${defs.colors.tertiary} r g b / 0)` },
+                                        { value: defs.colors.tertiary },
                                     ],
                                     angle: 90,
                                 },
@@ -1902,9 +1933,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary, stop: 50 },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 50 },
                                     ],
                                 },
                                 (x1, y1, x2, y2) =>
@@ -1928,9 +1959,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary, stop: 50 },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 50 },
                                     ],
                                 },
                                 (x1, y1, x2, y2) =>
@@ -1946,9 +1977,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                        { value: defs.getColors().secondary, stop: 50 },
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 180,
                                 },
@@ -1973,9 +2004,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary, stop: 50 },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 45,
                                 },
@@ -2000,9 +2031,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary, stop: 50 },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 45,
                                 },
@@ -2019,9 +2050,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                        { value: defs.getColors().secondary, stop: 50 },
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 225,
                                 },
@@ -2046,9 +2077,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary, stop: 50 },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 45,
                                 },
@@ -2073,9 +2104,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                        { value: defs.getColors().secondary, stop: 50 },
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 225,
                                 },
@@ -2100,9 +2131,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient3-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)` },
-                                        { value: defs.getColors().primary, stop: 50 },
-                                        { value: `rgb(from ${defs.getColors().primary} r g b / 0)`, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 135,
                                 },
@@ -2127,9 +2158,9 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient4-${id}`,
                                     colors: [
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)` },
-                                        { value: defs.getColors().secondary, stop: 50 },
-                                        { value: `rgb(from ${defs.getColors().secondary} r g b / 0)`, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 315,
                                 },

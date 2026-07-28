@@ -1,13 +1,13 @@
-import type { AccessorProps } from "../../../../Utils/typeUtils";
+export type SVGAnimationIterationPattern = {
+    count: number;
+    beginDelayMs?: number;
+    nextIndex?: number;
+}
 
-export type SVGAnimationDefs = AccessorProps<{
+export type SVGAnimationDefs = {
     id?: string;
     animationDurationMs: number;
-    animationIterationPattern?: {
-        count: number;
-        begin: string;
-    }[];
-    shouldRepeatAnimationPattern?: boolean;
+    animationIterationPatterns?: SVGAnimationIterationPattern[];
     onAnimationEnd?: () => void;
     onAnimationIteration?: (next: number) => void;
-}>;
+};

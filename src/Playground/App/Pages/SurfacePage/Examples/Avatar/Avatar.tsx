@@ -14,15 +14,15 @@ const getConfig = (strokeId: string): SurfaceProps => ({
     getBorderWidths: () => CSSUtils.spreadWidth(4),
     getStrokeDefs: (getSize) =>
         SVGDefsSamples.Gradient.SAMPLE_CONFIGS["sweepDiagonalDesync_4x"].getSVGDefs(strokeId, undefined, {
-            getSize,
-            getAnimationDurationMs: () => 4000,
-            getColors: () => ({
+            size: getSize(),
+            animationDurationMs: 4000,
+            colors: ({
                 background: "#282420",
                 primary: "#FFFF00",
                 secondary: "#00FFFF",
                 tertiary: "#FF00FF",
             }),
-            getBlurWidth: () => 4,
+            blurWidth: 4,
         }),
 });
 

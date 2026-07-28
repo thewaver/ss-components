@@ -11,14 +11,14 @@ import * as styles from "./Banner.css";
 
 const getDefs = (getSize: () => Size2d, id: string) =>
     SVGDefsSamples.Gradient.SAMPLE_CONFIGS["flowDiagonal_2s"].getSVGDefs(id, undefined, {
-        getSize,
-        getAnimationDurationMs: () => 4000,
-        getColors: () => ({
+        size: getSize(),
+        animationDurationMs: 4000,
+        colors: {
             background: "#282420",
             primary: "#FFFF00",
             secondary: "#C0C000",
             tertiary: "#808000",
-        }),
+        },
     });
 
 const getConfig = (id: string): SurfaceProps => ({

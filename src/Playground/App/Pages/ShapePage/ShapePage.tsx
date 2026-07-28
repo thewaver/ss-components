@@ -52,6 +52,7 @@ const StressTestWrapper = ({
     getShapeKind,
     getStrokeConfig,
     getFillConfig,
+    getIterationConfig,
     getCellSize,
     getAnimationDurationMs,
     getColors,
@@ -75,10 +76,11 @@ const StressTestWrapper = ({
                     getStrokeDefs={(getSize) =>
                         getStrokeConfig()
                             .getSVGDefs(`stroke-${id}`, undefined, {
-                                getSize,
-                                getAnimationDurationMs,
-                                getColors,
-                                getBlurWidth,
+                                size: getSize(),
+                                animationDurationMs: getAnimationDurationMs(),
+                                colors: getColors(),
+                                blurWidth: getBlurWidth?.(),
+                                ...getIterationConfig().getDefs(getAnimationDurationMs()),
                             })
                             .map((config) => ({
                                 ...config,
@@ -89,15 +91,16 @@ const StressTestWrapper = ({
                     }
                     getFillDefs={(getSize) =>
                         getFillConfig().getSVGDefs(`fill-${id}`, undefined, {
-                            getSize,
-                            getCellSize: () => ({
+                            size: getSize(),
+                            cellSize: {
                                 width: (getCellSize().width * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
                                 height:
                                     (getCellSize().height * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
-                            }),
-                            getAnimationDurationMs,
-                            getColors,
-                            getBlurWidth,
+                            },
+                            animationDurationMs: getAnimationDurationMs(),
+                            colors: getColors(),
+                            blurWidth: getBlurWidth?.(),
+                            ...getIterationConfig().getDefs(getAnimationDurationMs()),
                         })
                     }
                     renderChildren={(_, getClipPath) => {
@@ -138,6 +141,8 @@ export const ShapePage = () => {
         createSignal<keyof typeof SVGDefsSamples.Gradient.SAMPLE_CONFIGS>("sweepDiagonal_1v1");
     const [getFillConfigKey, setFillConfigKey] =
         createSignal<keyof typeof SVGDefsSamples.Pattern.SAMPLE_CONFIGS>("plain");
+    const [getIterationConfigKey, setIterationConfigKey] =
+        createSignal<keyof typeof SVGDefsSamples.Iteration.SAMPLE_CONFIGS>("threes");
     const [getCellSize, setCellSize] = createSignal(40);
     const [colors, setColors] = createStore(STARTING_COLORS);
 
@@ -167,6 +172,7 @@ export const ShapePage = () => {
             getShapeKind,
             getStrokeConfig: () => SVGDefsSamples.Gradient.SAMPLE_CONFIGS[getStrokeConfigKey()],
             getFillConfig: () => SVGDefsSamples.Pattern.SAMPLE_CONFIGS[getFillConfigKey()],
+            getIterationConfig: () => SVGDefsSamples.Iteration.SAMPLE_CONFIGS[getIterationConfigKey()],
             getCellSize: () => ({ width: getCellSize(), height: getCellSize() }),
             edgeThicknesses: getEdgeThicknesses().slice(0, getShapePointCount()),
             joinRadii: getJoinRadii().slice(0, getShapePointCount()),
@@ -404,6 +410,18 @@ export const ShapePage = () => {
                             )
                         }
                     />
+                </div>
+
+                <div class={pageStyles.propContainer}>
+                    <div>{"Iteration Pattern"}</div>
+                    <select
+                        value={getIterationConfigKey()}
+                        onChange={(e) => setIterationConfigKey(e.target.value as keyof typeof SVGDefsSamples.Iteration.SAMPLE_CONFIGS)}
+                    >
+                        <For each={Object.keys(SVGDefsSamples.Iteration.SAMPLE_CONFIGS)}>
+                            {(config) => <option value={config}>{config}</option>}
+                        </For>
+                    </select>
                 </div>
             </div>
 
