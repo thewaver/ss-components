@@ -1,11 +1,11 @@
 export type SVGAnimationIterationPattern = {
     count: number;
+    beginEvent?: string;
     beginDelayMs?: number;
     nextIndex?: number;
-}
+};
 
 export type SVGAnimationDefs = {
-    id?: string;
     animationDurationMs: number;
     animationIterationPatterns?: SVGAnimationIterationPattern[];
     onAnimationEnd?: () => void;

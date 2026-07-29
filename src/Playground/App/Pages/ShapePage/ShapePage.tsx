@@ -142,7 +142,7 @@ export const ShapePage = () => {
     const [getFillConfigKey, setFillConfigKey] =
         createSignal<keyof typeof SVGDefsSamples.Pattern.SAMPLE_CONFIGS>("plain");
     const [getIterationConfigKey, setIterationConfigKey] =
-        createSignal<keyof typeof SVGDefsSamples.Iteration.SAMPLE_CONFIGS>("threes");
+        createSignal<keyof typeof SVGDefsSamples.Iteration.SAMPLE_CONFIGS>("repeat2_1");
     const [getCellSize, setCellSize] = createSignal(40);
     const [colors, setColors] = createStore(STARTING_COLORS);
 
@@ -416,7 +416,11 @@ export const ShapePage = () => {
                     <div>{"Iteration Pattern"}</div>
                     <select
                         value={getIterationConfigKey()}
-                        onChange={(e) => setIterationConfigKey(e.target.value as keyof typeof SVGDefsSamples.Iteration.SAMPLE_CONFIGS)}
+                        onChange={(e) =>
+                            setIterationConfigKey(
+                                e.target.value as keyof typeof SVGDefsSamples.Iteration.SAMPLE_CONFIGS,
+                            )
+                        }
                     >
                         <For each={Object.keys(SVGDefsSamples.Iteration.SAMPLE_CONFIGS)}>
                             {(config) => <option value={config}>{config}</option>}

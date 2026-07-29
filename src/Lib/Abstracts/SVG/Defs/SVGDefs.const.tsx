@@ -29,30 +29,56 @@ export namespace SVGDefsSamples {
 
     export namespace Iteration {
         export type ConfigDefs = {
-            getDefs: (animationDurationMs: number) => Pick<SVGAnimationDefs, "animationIterationPatterns">,
-        }
+            getDefs: (animationDurationMs: number) => Pick<SVGAnimationDefs, "animationIterationPatterns">;
+        };
 
         export const SAMPLE_CONFIGS = {
             constant: {
                 getDefs: () => ({}),
             },
-            threes: {
+            repeat1_1: {
                 getDefs: (animationDurationMs) => ({
-                    animationIterationPatterns: [{
-                        count: 3,
-                        nextIndex: 1,
-                    },
-                    {
-                        beginDelayMs: animationDurationMs * 3,
-                        count: 3,
-                        nextIndex: 2,
-                    },
-                    {
-                        beginDelayMs: animationDurationMs * 3,
-                        count: 3,
-                        nextIndex: 1,
-                    },
-                ],
+                    animationIterationPatterns: [
+                        {
+                            count: 1,
+                            nextIndex: 1,
+                        },
+                        {
+                            beginDelayMs: animationDurationMs,
+                            count: 1,
+                            nextIndex: 1,
+                        },
+                    ],
+                }),
+            },
+            repeat2_1: {
+                getDefs: (animationDurationMs) => ({
+                    animationIterationPatterns: [
+                        {
+                            count: 2,
+                            nextIndex: 1,
+                        },
+                        {
+                            beginDelayMs: animationDurationMs,
+                            count: 2,
+                            nextIndex: 1,
+                        },
+                    ],
+                }),
+            },
+            repeat3_3: {
+                getDefs: (animationDurationMs) => ({
+                    animationIterationPatterns: [
+                        {
+                            count: 3,
+                            nextIndex: 1,
+                        },
+                        {
+                            beginDelayMs: animationDurationMs * 3,
+                            count: 3,
+                            nextIndex: 1,
+                        },
+                    ],
                 }),
             },
         } as const satisfies Record<string, ConfigDefs>;
@@ -69,11 +95,7 @@ export namespace SVGDefsSamples {
         };
 
         export type ConfigDefs = {
-            getSVGDefs: (
-                id: string,
-                interactionFlags: InteractionFlags | undefined,
-                defs: ElementDefs,
-            ) => SVGDefs[];
+            getSVGDefs: (id: string, interactionFlags: InteractionFlags | undefined, defs: ElementDefs) => SVGDefs[];
         };
 
         const getBaseBackgroundColor = (defs: { colors: ColorDefs }) =>
@@ -445,11 +467,7 @@ export namespace SVGDefsSamples {
         };
 
         export type ConfigDefs = {
-            getSVGDefs: (
-                id: string,
-                interactionFlags: InteractionFlags | undefined,
-                defs: ElementDefs,
-            ) => SVGDefs[];
+            getSVGDefs: (id: string, interactionFlags: InteractionFlags | undefined, defs: ElementDefs) => SVGDefs[];
         };
 
         const getBaseBorderColor = (defs: { colors: ColorDefs }) =>
@@ -998,10 +1016,7 @@ export namespace SVGDefsSamples {
                             defsElement: SVGGradientDefsUtils.getLinearGradient(
                                 {
                                     id: `gradient1-${id}`,
-                                    colors: [
-                                        { value: defs.colors.tertiary },
-                                        { value: defs.colors.secondary },
-                                    ],
+                                    colors: [{ value: defs.colors.tertiary }, { value: defs.colors.secondary }],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                             ),

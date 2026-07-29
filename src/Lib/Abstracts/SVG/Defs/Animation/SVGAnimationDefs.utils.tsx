@@ -1,73 +1,93 @@
-import { For, type JSX, createSignal } from "solid-js";
+import { For, type JSX, Show, createMemo, createSignal } from "solid-js";
 
-import { SVGUtils } from "@thewaver/ss-utils";
+import { EMPTY_ARRAY, SVGUtils } from "@thewaver/ss-utils";
 
-import type { SVGAnimationDefs } from "./SVGAnimationDefs.types";
+import type { SVGAnimationDefs, SVGAnimationIterationPattern } from "./SVGAnimationDefs.types";
 
 export namespace SVGAnimationUtils {
-    export const useCommonAnimDefs = (defs: SVGAnimationDefs): JSX.AnimateSVGAttributes<SVGAnimateElement> => {
+    export const unrollSelfReferencingPatterns = (
+        patterns: SVGAnimationIterationPattern[],
+    ): SVGAnimationIterationPattern[] => {
+        if (patterns.length === 0) return patterns;
+
+        const result = patterns.map((p) => ({ ...p }));
+        const originalLength = result.length;
+
+        for (let i = 0; i < originalLength; i++) {
+            const pattern = result[i];
+
+            if (pattern.nextIndex === i) {
+                const duplicateIndex = result.length;
+
+                pattern.nextIndex = duplicateIndex;
+                result.push({ ...pattern, nextIndex: i });
+            }
+        }
+
+        return result;
+    };
+
+    export const useAnimateDefs = (defs: SVGAnimationDefs): JSX.AnimateSVGAttributes<SVGAnimateElement> => {
         const [getPatternIndex, setPatternIndex] = createSignal(0);
-    
+
+        const getPatterns = createMemo(() => unrollSelfReferencingPatterns(defs.animationIterationPatterns ?? []));
+
         return {
-            id: defs.id,
+            get dur() {
+                return `${defs.animationDurationMs}ms`;
+            },
+            get repeatCount() {
+                const pattern = getPatterns()[getPatternIndex()];
+                return !pattern || pattern.count === Infinity ? "indefinite" : pattern.count;
+            },
+            fill: "freeze",
+            begin: "indefinite",
             ref: (el: SVGAnimateElement) => {
+                requestAnimationFrame(() => {
+                    if (!el.isConnected) return;
+
+                    const svg = el.ownerSVGElement;
+                    const now = svg ? svg.getCurrentTime() : 0;
+                    const delaySecs = (getPatterns()[0]?.beginDelayMs ?? 0) / 1000;
+
+                    el.setAttribute("begin", `${now + delaySecs}s`);
+                });
+
                 el.addEventListener("endEvent", () => {
                     const currentIndex = getPatternIndex();
-                    const nextIndex = defs.animationIterationPatterns?.[currentIndex]?.nextIndex;
-                    
+                    const nextIndex = getPatterns()[currentIndex]?.nextIndex;
+
                     defs.onAnimationIteration?.(currentIndex);
-    
+
                     if (nextIndex !== undefined) {
-                        if (nextIndex === currentIndex) {
-                            console.warn("An Animation Iteration Pattern cannot reference its own index in its 'nextIndex'.");
-                        } else {
-                            setPatternIndex(nextIndex);
-    
-                            const nextPattern = defs.animationIterationPatterns?.[nextIndex];
-                            const delaySecs = (nextPattern?.beginDelayMs ?? 0) / 1000;
-                            
-                            el.beginElementAt(delaySecs);
-                        }
+                        setPatternIndex(nextIndex);
+                        const nextPattern = getPatterns()[nextIndex];
+                        el.beginElementAt((nextPattern?.beginDelayMs ?? 0) / 1000);
                     } else {
                         defs.onAnimationEnd?.();
                     }
                 });
-            },
-            dur: `${defs.animationDurationMs}ms`,
-            fill: "freeze" as const,
-            get repeatCount() {
-                const pattern = defs.animationIterationPatterns?.[getPatternIndex()];
-                return !pattern || pattern.count === Infinity ? "indefinite" : pattern.count;
-            },
-            get begin() {
-                if (getPatternIndex() === 0) {
-                    const delay = defs.animationIterationPatterns?.[0]?.beginDelayMs ?? 0;
-
-                    return `${delay}ms`;
-                }
-                return "indefinite";
             },
         };
     };
 
     export namespace Linear {
         export const grow = (vName: "x" | "y", v1: number, v2: number, sArr: number[], defs: SVGAnimationDefs) => {
-            const commonDefs = useCommonAnimDefs(defs);
             const halfDist = Math.abs(v2 - v1) * 0.5;
 
             return (
-                <>
+                <Show when={defs.animationIterationPatterns ?? EMPTY_ARRAY} keyed>
                     <animate
                         attributeName={`${vName}1`}
                         values={sArr.map((s) => `${v1 + halfDist - halfDist * s}`).join(";")}
-                        {...commonDefs}
+                        {...useAnimateDefs(defs)}
                     />
                     <animate
                         attributeName={`${vName}2`}
                         values={sArr.map((s) => `${v2 - halfDist + halfDist * s}`).join(";")}
-                        {...commonDefs}
+                        {...useAnimateDefs(defs)}
                     />
-                </>
+                </Show>
             );
         };
 
@@ -78,21 +98,19 @@ export namespace SVGAnimationUtils {
             oArr: number[],
             defs: SVGAnimationDefs,
         ) => {
-            const commonDefs = useCommonAnimDefs(defs);
-
             return (
-                <>
+                <Show when={defs.animationIterationPatterns ?? EMPTY_ARRAY} keyed>
                     <animate
                         attributeName={`${vName}1`}
                         values={oArr.map((o) => `${v1 + o}`).join(";")}
-                        {...commonDefs}
+                        {...useAnimateDefs(defs)}
                     />
                     <animate
                         attributeName={`${vName}2`}
                         values={oArr.map((o) => `${v2 + o}`).join(";")}
-                        {...commonDefs}
+                        {...useAnimateDefs(defs)}
                     />
-                </>
+                </Show>
             );
         };
 
@@ -109,31 +127,32 @@ export namespace SVGAnimationUtils {
                 [x1, y1],
                 [x2, y2],
             ];
-            const commonDefs = useCommonAnimDefs(defs);
             const diagonalRad = (angle * Math.PI) / 180;
 
             return (
-                <For each={points}>
-                    {(point, getIndex) => {
-                        const x = point[0];
-                        const y = point[1];
+                <Show when={defs.animationIterationPatterns ?? EMPTY_ARRAY} keyed>
+                    <For each={points}>
+                        {(point, getIndex) => {
+                            const x = point[0];
+                            const y = point[1];
 
-                        return (
-                            <>
-                                <animate
-                                    attributeName={`x${getIndex() + 1}`}
-                                    values={oArr.map((o) => `${x + o * Math.cos(diagonalRad)}`).join(";")}
-                                    {...commonDefs}
-                                />
-                                <animate
-                                    attributeName={`y${getIndex() + 1}`}
-                                    values={oArr.map((o) => `${y + o * Math.sin(diagonalRad)}`).join(";")}
-                                    {...commonDefs}
-                                />
-                            </>
-                        );
-                    }}
-                </For>
+                            return (
+                                <>
+                                    <animate
+                                        attributeName={`x${getIndex() + 1}`}
+                                        values={oArr.map((o) => `${x + o * Math.cos(diagonalRad)}`).join(";")}
+                                        {...useAnimateDefs(defs)}
+                                    />
+                                    <animate
+                                        attributeName={`y${getIndex() + 1}`}
+                                        values={oArr.map((o) => `${y + o * Math.sin(diagonalRad)}`).join(";")}
+                                        {...useAnimateDefs(defs)}
+                                    />
+                                </>
+                            );
+                        }}
+                    </For>
+                </Show>
             );
         };
 
@@ -141,29 +160,38 @@ export namespace SVGAnimationUtils {
 
         export const rotate = (aArray: number[], defs: SVGAnimationDefs) => {
             const steps = aArray.map((angle) => SVGUtils.getLinearCoords({ angle }));
-            const commonDefs = useCommonAnimDefs(defs);
 
             return (
-                <For each={V_KEYS}>
-                    {(vKey) => (
-                        <animate
-                            attributeName={vKey}
-                            values={steps.map((step) => step[vKey]).join(";")}
-                            {...commonDefs}
-                        />
-                    )}
-                </For>
+                <Show when={defs.animationIterationPatterns ?? EMPTY_ARRAY} keyed>
+                    <For each={V_KEYS}>
+                        {(vKey) => (
+                            <animate
+                                attributeName={vKey}
+                                values={steps.map((step) => step[vKey]).join(";")}
+                                {...useAnimateDefs(defs)}
+                            />
+                        )}
+                    </For>
+                </Show>
             );
         };
     }
 
     export namespace Radial {
         export const grow = (rArr: number[], defs: SVGAnimationDefs) => {
-            return <animate attributeName="r" values={rArr.join(";")} {...useCommonAnimDefs(defs)} />;
+            return (
+                <Show when={defs.animationIterationPatterns ?? EMPTY_ARRAY} keyed>
+                    <animate attributeName="r" values={rArr.join(";")} {...useAnimateDefs(defs)} />
+                </Show>
+            );
         };
 
         export const sweepOrthogonal = (vName: "cx" | "cy", vArr: number[], defs: SVGAnimationDefs) => {
-            return <animate attributeName={vName} values={vArr.join(";")} {...useCommonAnimDefs(defs)} />;
+            return (
+                <Show when={defs.animationIterationPatterns ?? EMPTY_ARRAY} keyed>
+                    <animate attributeName={vName} values={vArr.join(";")} {...useAnimateDefs(defs)} />
+                </Show>
+            );
         };
 
         export const sweepDiagonal = (
@@ -173,22 +201,21 @@ export namespace SVGAnimationUtils {
             oArr: number[],
             defs: SVGAnimationDefs,
         ) => {
-            const commonDefs = useCommonAnimDefs(defs);
             const diagonalRad = (angle * Math.PI) / 180;
 
             return (
-                <>
+                <Show when={defs.animationIterationPatterns ?? EMPTY_ARRAY} keyed>
                     <animate
                         attributeName="cx"
                         values={oArr.map((o) => `${cx + o * Math.cos(diagonalRad)}`).join(";")}
-                        {...commonDefs}
+                        {...useAnimateDefs(defs)}
                     />
                     <animate
                         attributeName="cy"
                         values={oArr.map((o) => `${cy + o * Math.sin(diagonalRad)}`).join(";")}
-                        {...commonDefs}
+                        {...useAnimateDefs(defs)}
                     />
-                </>
+                </Show>
             );
         };
     }
@@ -196,11 +223,12 @@ export namespace SVGAnimationUtils {
     export namespace Path {
         export const getRotatingArc = (aArray: [rotation: number, arcSize: number][], defs: SVGAnimationDefs) => {
             const paths = aArray.map(([rotation, arcSize]) => SVGUtils.getArcPath(arcSize, rotation));
-            const commonDefs = useCommonAnimDefs(defs);
 
             return (
                 <path d={paths[0]}>
-                    <animate attributeName="d" values={paths.join(";")} {...commonDefs} />
+                    <Show when={defs.animationIterationPatterns ?? EMPTY_ARRAY} keyed>
+                        <animate attributeName="d" values={paths.join(";")} {...useAnimateDefs(defs)} />
+                    </Show>
                 </path>
             );
         };
@@ -215,11 +243,12 @@ export namespace SVGAnimationUtils {
             const paths = aArray.map((rotation) =>
                 SVGUtils.getWedgesPath(wedgeCount, wedgeThickness, rotation, curvature),
             );
-            const commonDefs = useCommonAnimDefs(defs);
 
             return (
                 <path d={paths[0]}>
-                    <animate attributeName="d" values={paths.join(";")} {...commonDefs} />
+                    <Show when={defs.animationIterationPatterns ?? EMPTY_ARRAY} keyed>
+                        <animate attributeName="d" values={paths.join(";")} {...useAnimateDefs(defs)} />
+                    </Show>
                 </path>
             );
         };
