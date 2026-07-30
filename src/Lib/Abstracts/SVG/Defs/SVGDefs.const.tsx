@@ -473,6 +473,12 @@ export namespace SVGDefsSamples {
         const getBaseBorderColor = (defs: { colors: ColorDefs }) =>
             `hsl(from ${defs.colors.background} h s calc(l * 1.5) / 50%)`;
 
+        const offsetDiagonally = (v: number, angle: number) => {
+            const rad = (angle * Math.PI) / 180;
+
+            return { x: v * Math.cos(rad), y: v * Math.sin(rad) };
+        };
+
         export const SAMPLE_CONFIGS = {
             plain: {
                 getSVGDefs: (_, __, defs) => [
@@ -513,9 +519,10 @@ export namespace SVGDefsSamples {
                                     ],
                                     spreadKind: "banded",
                                     scale: { width: 2, height: 1 },
+                                    offset: { x: 0.5, y: 0 },
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0.5, -0.5], defs),
+                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0, -1], defs),
                             ),
                         },
                     },
@@ -540,9 +547,10 @@ export namespace SVGDefsSamples {
                                         { value: defs.colors.primary },
                                     ],
                                     scale: { width: 2, height: 1 },
+                                    offset: { x: 0.5, y: 0 },
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0.5, -0.5], defs),
+                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0, -1], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -575,9 +583,10 @@ export namespace SVGDefsSamples {
                                     ],
                                     spreadKind: "banded",
                                     scale: { width: 2, height: 1 },
+                                    offset: { x: 0.5, y: 0 },
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0.5, -0.5], defs),
+                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0, -1], defs),
                             ),
                         },
                     },
@@ -614,6 +623,7 @@ export namespace SVGDefsSamples {
                                     spreadKind: "banded",
                                     angle: MathUtils.unwarpAngle(45, defs.size),
                                     scale: { width: 2, height: 2 },
+                                    offset: offsetDiagonally(0.25, MathUtils.unwarpAngle(45, defs.size)),
                                 },
                                 (x1, y1, x2, y2) =>
                                     SVGAnimationUtils.Linear.sweepDiagonal(
@@ -622,7 +632,7 @@ export namespace SVGDefsSamples {
                                         x2,
                                         y2,
                                         MathUtils.unwarpAngle(45, defs.size),
-                                        [0.25, -0.25],
+                                        [0, -0.5],
                                         defs,
                                     ),
                             ),
@@ -650,6 +660,7 @@ export namespace SVGDefsSamples {
                                     ],
                                     angle: MathUtils.unwarpAngle(45, defs.size),
                                     scale: { width: 2, height: 2 },
+                                    offset: offsetDiagonally(0.5, MathUtils.unwarpAngle(45, defs.size)),
                                 },
                                 (x1, y1, x2, y2) =>
                                     SVGAnimationUtils.Linear.sweepDiagonal(
@@ -658,7 +669,7 @@ export namespace SVGDefsSamples {
                                         x2,
                                         y2,
                                         MathUtils.unwarpAngle(45, defs.size),
-                                        [0.5, -0.5],
+                                        [0, -1],
                                         defs,
                                     ),
                             ),
@@ -694,6 +705,7 @@ export namespace SVGDefsSamples {
                                     spreadKind: "banded",
                                     angle: MathUtils.unwarpAngle(45, defs.size),
                                     scale: { width: 2, height: 2 },
+                                    offset: offsetDiagonally(0.25, MathUtils.unwarpAngle(45, defs.size)),
                                 },
                                 (x1, y1, x2, y2) =>
                                     SVGAnimationUtils.Linear.sweepDiagonal(
@@ -702,7 +714,7 @@ export namespace SVGDefsSamples {
                                         x2,
                                         y2,
                                         MathUtils.unwarpAngle(45, defs.size),
-                                        [0.25, -0.25],
+                                        [0, -0.5],
                                         defs,
                                     ),
                             ),
@@ -728,9 +740,10 @@ export namespace SVGDefsSamples {
                                         { value: defs.colors.primary },
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
+                                    offset: { x: -1, y: 0 },
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
+                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0, 2, 0], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -743,13 +756,13 @@ export namespace SVGDefsSamples {
                                 {
                                     id: `gradient2-${id}`,
                                     colors: [
-                                        { value: defs.colors.secondary },
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
                                     ],
-                                    angle: 180,
+                                    offset: { x: 1, y: 0 },
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [1, -1, 1], defs),
+                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0, -2, 0], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -774,17 +787,10 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                     angle: 45,
+                                    offset: offsetDiagonally(-1.25, 45),
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepDiagonal(
-                                        x1,
-                                        y1,
-                                        x2,
-                                        y2,
-                                        45,
-                                        [-1.25, 1.25, -1.25],
-                                        defs,
-                                    ),
+                                    SVGAnimationUtils.Linear.sweepDiagonal(x1, y1, x2, y2, 45, [0, 2.5, 0], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -801,17 +807,10 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
                                     angle: 225,
+                                    offset: offsetDiagonally(-1.25, 225),
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepDiagonal(
-                                        x1,
-                                        y1,
-                                        x2,
-                                        y2,
-                                        225,
-                                        [-1.25, 1.25, -1.25],
-                                        defs,
-                                    ),
+                                    SVGAnimationUtils.Linear.sweepDiagonal(x1, y1, x2, y2, 225, [0, 2.5, 0], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -836,6 +835,7 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                     angle: 45,
+                                    offset: offsetDiagonally(-1.25, 45),
                                 },
                                 (x1, y1, x2, y2) =>
                                     SVGAnimationUtils.Linear.sweepDiagonal(
@@ -844,7 +844,7 @@ export namespace SVGDefsSamples {
                                         x2,
                                         y2,
                                         45,
-                                        [0, -1.25, -1.25, -1.25, 0],
+                                        [0, 1.25, 2.5, 1.25, 0, 0, 0, 0],
                                         defs,
                                     ),
                             ),
@@ -863,6 +863,7 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
                                     angle: 135,
+                                    offset: offsetDiagonally(-1.25, 135),
                                 },
                                 (x1, y1, x2, y2) =>
                                     SVGAnimationUtils.Linear.sweepDiagonal(
@@ -871,7 +872,7 @@ export namespace SVGDefsSamples {
                                         x2,
                                         y2,
                                         135,
-                                        [-1.25, 0, -1.25, -1.25, -1.25],
+                                        [0, 0, 0, 1.25, 2.5, 1.25, 0, 0],
                                         defs,
                                     ),
                             ),
@@ -890,6 +891,7 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                     angle: 225,
+                                    offset: offsetDiagonally(-1.25, 225),
                                 },
                                 (x1, y1, x2, y2) =>
                                     SVGAnimationUtils.Linear.sweepDiagonal(
@@ -898,7 +900,7 @@ export namespace SVGDefsSamples {
                                         x2,
                                         y2,
                                         225,
-                                        [-1.25, -1.25, 0, -1.25, -1.25],
+                                        [0, 0, 1.25, 2.5, 1.25, 0, 0, 0],
                                         defs,
                                     ),
                             ),
@@ -917,6 +919,7 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
                                     angle: 315,
+                                    offset: offsetDiagonally(-1.25, 315),
                                 },
                                 (x1, y1, x2, y2) =>
                                     SVGAnimationUtils.Linear.sweepDiagonal(
@@ -925,7 +928,7 @@ export namespace SVGDefsSamples {
                                         x2,
                                         y2,
                                         315,
-                                        [-1.25, -1.25, -1.25, 0, -1.25],
+                                        [0, 0, 0, 0, 1.25, 2.5, 1.25, 0],
                                         defs,
                                     ),
                             ),
@@ -996,6 +999,7 @@ export namespace SVGDefsSamples {
                                         { value: defs.colors.secondary },
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
+                                    angle: 360,
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
                             ),
@@ -1033,6 +1037,7 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                         { value: defs.colors.primary },
                                     ],
+                                    angle: 360,
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
                             ),
@@ -1059,10 +1064,7 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                 },
-                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), {
-                                    ...defs,
-                                    animationDurationMs: defs.animationDurationMs * 0.5,
-                                }),
+                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -1080,7 +1082,13 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
                                 },
-                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
+                                SVGAnimationUtils.Linear.rotate(
+                                    [
+                                        ...MathUtils.getIntermediateValues(0, 360, 12),
+                                        ...MathUtils.getIntermediateValues(0, 360, 12),
+                                    ],
+                                    defs,
+                                ),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -1098,10 +1106,14 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.tertiary} r g b / 0)` },
                                     ],
                                 },
-                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), {
-                                    ...defs,
-                                    animationDurationMs: defs.animationDurationMs * 2,
-                                }),
+                                SVGAnimationUtils.Linear.rotate(
+                                    [
+                                        ...MathUtils.getIntermediateValues(0, 360, 12),
+                                        ...MathUtils.getIntermediateValues(0, 360, 12),
+                                        ...MathUtils.getIntermediateValues(0, 360, 12),
+                                    ],
+                                    defs,
+                                ),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -1128,9 +1140,10 @@ export namespace SVGDefsSamples {
                                         { value: defs.colors.primary },
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
+                                    offset: { x: -1, y: 0 },
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
+                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0, 2, 0], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -1154,9 +1167,10 @@ export namespace SVGDefsSamples {
                                         { value: defs.colors.primary },
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
+                                    offset: { x: -1, y: 0 },
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1, 1, -1], defs),
+                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0, 2, 0], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -1173,9 +1187,10 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
                                     angle: 90,
+                                    offset: { x: 0, y: -1 },
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepOrthogonal("y", y1, y2, [-1, 1, -1], defs),
+                                    SVGAnimationUtils.Linear.sweepOrthogonal("y", y1, y2, [0, 2, 0], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -1200,17 +1215,10 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                     angle: 45,
+                                    offset: offsetDiagonally(-1.25, 45),
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepDiagonal(
-                                        x1,
-                                        y1,
-                                        x2,
-                                        y2,
-                                        45,
-                                        [-1.25, 1.25, -1.25],
-                                        defs,
-                                    ),
+                                    SVGAnimationUtils.Linear.sweepDiagonal(x1, y1, x2, y2, 45, [0, 2.5, 0], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -1235,17 +1243,10 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                     ],
                                     angle: 45,
+                                    offset: offsetDiagonally(-1.25, 45),
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepDiagonal(
-                                        x1,
-                                        y1,
-                                        x2,
-                                        y2,
-                                        45,
-                                        [-1.25, 1.25, -1.25],
-                                        defs,
-                                    ),
+                                    SVGAnimationUtils.Linear.sweepDiagonal(x1, y1, x2, y2, 45, [0, 2.5, 0], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -1262,17 +1263,10 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
                                     angle: 135,
+                                    offset: offsetDiagonally(-1.25, 135),
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepDiagonal(
-                                        x1,
-                                        y1,
-                                        x2,
-                                        y2,
-                                        135,
-                                        [-1.25, 1.25, -1.25],
-                                        defs,
-                                    ),
+                                    SVGAnimationUtils.Linear.sweepDiagonal(x1, y1, x2, y2, 135, [0, 2.5, 0], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -1297,8 +1291,9 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                         { value: defs.colors.primary },
                                     ],
+                                    angle: 90,
                                 },
-                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
+                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
                             ),
                         },
                         clipPath: {
@@ -1306,7 +1301,7 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
+                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1331,8 +1326,9 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                         { value: defs.colors.primary },
                                     ],
+                                    angle: 90,
                                 },
-                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
+                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
                             ),
                         },
                         clipPath: {
@@ -1340,7 +1336,7 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
+                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1357,8 +1353,9 @@ export namespace SVGDefsSamples {
                                         { value: defs.colors.secondary },
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                     ],
+                                    angle: 630,
                                 },
-                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
+                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(630, 270, 12), defs),
                             ),
                         },
                         clipPath: {
@@ -1366,7 +1363,7 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(360, 0, 12), 180),
+                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(630, 270, 12), 180),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1391,8 +1388,9 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                         { value: defs.colors.primary },
                                     ],
+                                    angle: 90,
                                 },
-                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
+                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
                             ),
                         },
                         clipPath: {
@@ -1400,7 +1398,7 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
+                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1417,8 +1415,9 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
                                         { value: defs.colors.secondary },
                                     ],
+                                    angle: 270,
                                 },
-                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(180, 540, 12), defs),
+                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(270, 630, 12), defs),
                             ),
                         },
                         clipPath: {
@@ -1426,7 +1425,7 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(180, 540, 12), 180),
+                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(270, 630, 12), 180),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1449,8 +1448,8 @@ export namespace SVGDefsSamples {
                                     id: `gradient1-${id}`,
                                     colors: [
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
-                                        { value: defs.colors.secondary, stop: 75 },
-                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)`, stop: 75 },
+                                        { value: defs.colors.secondary, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)`, stop: 50 },
                                     ],
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
@@ -1476,9 +1475,10 @@ export namespace SVGDefsSamples {
                                     id: `gradient2-${id}`,
                                     colors: [
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
-                                        { value: defs.colors.primary, stop: 75 },
-                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 75 },
+                                        { value: defs.colors.primary, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 50 },
                                     ],
+                                    angle: 90,
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
                             ),
@@ -1503,9 +1503,10 @@ export namespace SVGDefsSamples {
                                     id: `gradient3-${id}`,
                                     colors: [
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
-                                        { value: defs.colors.secondary, stop: 75 },
-                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)`, stop: 75 },
+                                        { value: defs.colors.secondary, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)`, stop: 50 },
                                     ],
+                                    angle: 180,
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(180, 540, 12), defs),
                             ),
@@ -1530,9 +1531,10 @@ export namespace SVGDefsSamples {
                                     id: `gradient4-${id}`,
                                     colors: [
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
-                                        { value: defs.colors.primary, stop: 75 },
-                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 75 },
+                                        { value: defs.colors.primary, stop: 50 },
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 50 },
                                     ],
+                                    angle: 270,
                                 },
                                 SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(270, 630, 12), defs),
                             ),
@@ -1543,6 +1545,80 @@ export namespace SVGDefsSamples {
                                 <clipPath id={`clip4-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
                                         ObjectUtils.zipArray(MathUtils.getIntermediateValues(270, 630, 12), 180),
+                                        defs,
+                                    )}
+                                </clipPath>
+                            ),
+                        },
+                    },
+                ],
+            },
+
+            snakeDesync_2x: {
+                getSVGDefs: (id, __, defs) => [
+                    {
+                        color: getBaseBorderColor(defs),
+                    },
+                    {
+                        gradientOrPattern: {
+                            id: `gradient1-${id}`,
+                            defsElement: SVGGradientDefsUtils.getLinearGradient(
+                                {
+                                    id: `gradient1-${id}`,
+                                    colors: [
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
+                                    ],
+                                    angle: 90,
+                                },
+                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
+                            ),
+                        },
+                        clipPath: {
+                            id: `clip1-${id}`,
+                            defsElement: (
+                                <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
+                                        defs,
+                                    )}
+                                </clipPath>
+                            ),
+                        },
+                    },
+                    {
+                        gradientOrPattern: {
+                            id: `gradient2-${id}`,
+                            defsElement: SVGGradientDefsUtils.getLinearGradient(
+                                {
+                                    id: `gradient2-${id}`,
+                                    colors: [
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
+                                    ],
+                                    angle: 90,
+                                },
+                                SVGAnimationUtils.Linear.rotate(
+                                    [
+                                        ...MathUtils.getIntermediateValues(90, 450, 12),
+                                        ...MathUtils.getIntermediateValues(90, 450, 12),
+                                    ],
+                                    defs,
+                                ),
+                            ),
+                        },
+                        clipPath: {
+                            id: `clip2-${id}`,
+                            defsElement: (
+                                <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
+                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                        ObjectUtils.zipArray(
+                                            [
+                                                ...MathUtils.getIntermediateValues(90, 450, 12),
+                                                ...MathUtils.getIntermediateValues(90, 450, 12),
+                                            ],
+                                            180,
+                                        ),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1567,158 +1643,9 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                                         { value: defs.colors.primary },
                                     ],
-                                },
-                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
-                            ),
-                        },
-                        clipPath: {
-                            id: `clip1-${id}`,
-                            defsElement: (
-                                <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
-                                        defs,
-                                    )}
-                                </clipPath>
-                            ),
-                        },
-                    },
-                    {
-                        gradientOrPattern: {
-                            id: `gradient2-${id}`,
-                            defsElement: SVGGradientDefsUtils.getLinearGradient(
-                                {
-                                    id: `gradient2-${id}`,
-                                    colors: [
-                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
-                                        { value: defs.colors.secondary },
-                                    ],
-                                },
-                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(180, 540, 12), defs),
-                            ),
-                        },
-                        clipPath: {
-                            id: `clip2-${id}`,
-                            defsElement: (
-                                <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(180, 540, 12), 180),
-                                        defs,
-                                    )}
-                                </clipPath>
-                            ),
-                        },
-                    },
-                    {
-                        gradientOrPattern: {
-                            id: `gradient3-${id}`,
-                            defsElement: SVGGradientDefsUtils.getLinearGradient(
-                                {
-                                    id: `gradient3-${id}`,
-                                    colors: [
-                                        { value: `rgb(from ${defs.colors.tertiary} r g b / 0)` },
-                                        { value: defs.colors.tertiary },
-                                    ],
-                                },
-                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), {
-                                    ...defs,
-                                    animationDurationMs: defs.animationDurationMs * 0.5,
-                                }),
-                            ),
-                        },
-                        clipPath: {
-                            id: `clip3-${id}`,
-                            defsElement: (
-                                <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
-                                        {
-                                            ...defs,
-                                            animationDurationMs: defs.animationDurationMs * 0.5,
-                                        },
-                                    )}
-                                </clipPath>
-                            ),
-                        },
-                    },
-                ],
-            },
-
-            snakeWait_1: {
-                getSVGDefs: (id, __, defs) => [
-                    {
-                        color: getBaseBorderColor(defs),
-                    },
-                    {
-                        gradientOrPattern: {
-                            id: `gradient1-${id}`,
-                            defsElement: SVGGradientDefsUtils.getLinearGradient(
-                                {
-                                    id: `gradient1-${id}`,
-                                    colors: [
-                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
-                                        { value: defs.colors.primary },
-                                    ],
-                                },
-                                SVGAnimationUtils.Linear.rotate(
-                                    [
-                                        ...MathUtils.getIntermediateValues(90, 270, 12),
-                                        ...MathUtils.getIntermediateValues(270, 270, 12),
-                                        ...MathUtils.getIntermediateValues(270, 450, 12),
-                                        ...MathUtils.getIntermediateValues(450, 450, 12),
-                                    ],
-                                    defs,
-                                ),
-                            ),
-                        },
-                        clipPath: {
-                            id: `clip1-${id}`,
-                            defsElement: (
-                                <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(
-                                            [
-                                                ...MathUtils.getIntermediateValues(90, 270, 12),
-                                                ...MathUtils.getIntermediateValues(270, 270, 12),
-                                                ...MathUtils.getIntermediateValues(270, 450, 12),
-                                                ...MathUtils.getIntermediateValues(450, 450, 12),
-                                            ],
-                                            180,
-                                        ),
-                                        defs,
-                                    )}
-                                </clipPath>
-                            ),
-                        },
-                    },
-                ],
-            },
-
-            snakeWait_3x1s: {
-                getSVGDefs: (id, __, defs) => [
-                    {
-                        color: getBaseBorderColor(defs),
-                    },
-                    {
-                        gradientOrPattern: {
-                            id: `gradient1-${id}`,
-                            defsElement: SVGGradientDefsUtils.getLinearGradient(
-                                {
-                                    id: `gradient1-${id}`,
-                                    colors: [
-                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
-                                        { value: defs.colors.primary },
-                                    ],
                                     angle: 90,
                                 },
-                                SVGAnimationUtils.Linear.rotate(
-                                    [
-                                        ...MathUtils.getIntermediateValues(90, 450, 12),
-                                        ...MathUtils.getIntermediateValues(450, 450, 12),
-                                        ...MathUtils.getIntermediateValues(450, 450, 12),
-                                    ],
-                                    defs,
-                                ),
+                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
                             ),
                         },
                         clipPath: {
@@ -1726,14 +1653,7 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(
-                                            [
-                                                ...MathUtils.getIntermediateValues(90, 450, 12),
-                                                ...MathUtils.getIntermediateValues(450, 450, 12),
-                                                ...MathUtils.getIntermediateValues(450, 450, 12),
-                                            ],
-                                            180,
-                                        ),
+                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1755,7 +1675,7 @@ export namespace SVGDefsSamples {
                                 SVGAnimationUtils.Linear.rotate(
                                     [
                                         ...MathUtils.getIntermediateValues(90, 450, 12),
-                                        ...MathUtils.getIntermediateValues(450, 450, 12),
+                                        ...MathUtils.getIntermediateValues(90, 450, 12),
                                     ],
                                     defs,
                                 ),
@@ -1769,7 +1689,7 @@ export namespace SVGDefsSamples {
                                         ObjectUtils.zipArray(
                                             [
                                                 ...MathUtils.getIntermediateValues(90, 450, 12),
-                                                ...MathUtils.getIntermediateValues(450, 450, 12),
+                                                ...MathUtils.getIntermediateValues(90, 450, 12),
                                             ],
                                             180,
                                         ),
@@ -1791,7 +1711,14 @@ export namespace SVGDefsSamples {
                                     ],
                                     angle: 90,
                                 },
-                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
+                                SVGAnimationUtils.Linear.rotate(
+                                    [
+                                        ...MathUtils.getIntermediateValues(90, 450, 12),
+                                        ...MathUtils.getIntermediateValues(90, 450, 12),
+                                        ...MathUtils.getIntermediateValues(90, 450, 12),
+                                    ],
+                                    defs,
+                                ),
                             ),
                         },
                         clipPath: {
@@ -1799,132 +1726,14 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
-                                        defs,
-                                    )}
-                                </clipPath>
-                            ),
-                        },
-                    },
-                ],
-            },
-
-            snakeWait_3x2s: {
-                getSVGDefs: (id, __, defs) => [
-                    {
-                        color: getBaseBorderColor(defs),
-                    },
-                    {
-                        gradientOrPattern: {
-                            id: `gradient1-${id}`,
-                            defsElement: SVGGradientDefsUtils.getLinearGradient(
-                                {
-                                    id: `gradient1-${id}`,
-                                    colors: [
-                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
-                                        { value: defs.colors.primary },
-                                    ],
-                                    angle: 90,
-                                },
-                                SVGAnimationUtils.Linear.rotate(
-                                    [
-                                        ...MathUtils.getIntermediateValues(90, 270, 12),
-                                        ...MathUtils.getIntermediateValues(270, 270, 12),
-                                        ...MathUtils.getIntermediateValues(270, 270, 12),
-                                        ...MathUtils.getIntermediateValues(270, 450, 12),
-                                        ...MathUtils.getIntermediateValues(450, 450, 12),
-                                        ...MathUtils.getIntermediateValues(450, 450, 12),
-                                    ],
-                                    defs,
-                                ),
-                            ),
-                        },
-                        clipPath: {
-                            id: `clip1-${id}`,
-                            defsElement: (
-                                <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
                                         ObjectUtils.zipArray(
                                             [
-                                                ...MathUtils.getIntermediateValues(90, 270, 12),
-                                                ...MathUtils.getIntermediateValues(270, 270, 12),
-                                                ...MathUtils.getIntermediateValues(270, 270, 12),
-                                                ...MathUtils.getIntermediateValues(270, 450, 12),
-                                                ...MathUtils.getIntermediateValues(450, 450, 12),
-                                                ...MathUtils.getIntermediateValues(450, 450, 12),
+                                                ...MathUtils.getIntermediateValues(90, 450, 12),
+                                                ...MathUtils.getIntermediateValues(90, 450, 12),
+                                                ...MathUtils.getIntermediateValues(90, 450, 12),
                                             ],
                                             180,
                                         ),
-                                        defs,
-                                    )}
-                                </clipPath>
-                            ),
-                        },
-                    },
-                    {
-                        gradientOrPattern: {
-                            id: `gradient2-${id}`,
-                            defsElement: SVGGradientDefsUtils.getLinearGradient(
-                                {
-                                    id: `gradient2-${id}`,
-                                    colors: [
-                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
-                                        { value: defs.colors.secondary },
-                                    ],
-                                    angle: 90,
-                                },
-                                SVGAnimationUtils.Linear.rotate(
-                                    [
-                                        ...MathUtils.getIntermediateValues(90, 270, 12),
-                                        ...MathUtils.getIntermediateValues(270, 270, 12),
-                                        ...MathUtils.getIntermediateValues(270, 450, 12),
-                                        ...MathUtils.getIntermediateValues(450, 450, 12),
-                                    ],
-                                    defs,
-                                ),
-                            ),
-                        },
-                        clipPath: {
-                            id: `clip2-${id}`,
-                            defsElement: (
-                                <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(
-                                            [
-                                                ...MathUtils.getIntermediateValues(90, 270, 12),
-                                                ...MathUtils.getIntermediateValues(270, 270, 12),
-                                                ...MathUtils.getIntermediateValues(270, 450, 12),
-                                                ...MathUtils.getIntermediateValues(450, 450, 12),
-                                            ],
-                                            180,
-                                        ),
-                                        defs,
-                                    )}
-                                </clipPath>
-                            ),
-                        },
-                    },
-                    {
-                        gradientOrPattern: {
-                            id: `gradient3-${id}`,
-                            defsElement: SVGGradientDefsUtils.getLinearGradient(
-                                {
-                                    id: `gradient3-${id}`,
-                                    colors: [
-                                        { value: `rgb(from ${defs.colors.tertiary} r g b / 0)` },
-                                        { value: defs.colors.tertiary },
-                                    ],
-                                    angle: 90,
-                                },
-                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
-                            ),
-                        },
-                        clipPath: {
-                            id: `clip3-${id}`,
-                            defsElement: (
-                                <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1952,9 +1761,10 @@ export namespace SVGDefsSamples {
                                         { value: defs.colors.primary, stop: 50 },
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 50 },
                                     ],
+                                    offset: { x: -1.25, y: 0 },
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1.25, 1.25], defs),
+                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0, 2.5], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -1978,9 +1788,10 @@ export namespace SVGDefsSamples {
                                         { value: defs.colors.primary, stop: 50 },
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 50 },
                                     ],
+                                    offset: { x: -1.25, y: 0 },
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [-1.25, 1.25], defs),
+                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0, 2.5], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -1997,9 +1808,10 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 180,
+                                    offset: { x: 1.25, y: 0 },
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [1.25, -1.25], defs),
+                                    SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0, -2.5], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -2024,9 +1836,10 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 45,
+                                    offset: offsetDiagonally(-1.25, 45),
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepDiagonal(x1, y1, x2, y2, 45, [-1.25, 1.25], defs),
+                                    SVGAnimationUtils.Linear.sweepDiagonal(x1, y1, x2, y2, 45, [0, 2.5], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -2051,9 +1864,10 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 45,
+                                    offset: offsetDiagonally(-1.25, 45),
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepDiagonal(x1, y1, x2, y2, 45, [-1.25, 1.25], defs),
+                                    SVGAnimationUtils.Linear.sweepDiagonal(x1, y1, x2, y2, 45, [0, 2.5], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -2070,9 +1884,10 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 225,
+                                    offset: offsetDiagonally(-1.25, 225),
                                 },
                                 (x1, y1, x2, y2) =>
-                                    SVGAnimationUtils.Linear.sweepDiagonal(x1, y1, x2, y2, 225, [-1.25, 1.25], defs),
+                                    SVGAnimationUtils.Linear.sweepDiagonal(x1, y1, x2, y2, 225, [0, 2.5], defs),
                             ),
                         },
                         filter: getBaseBlur(id, defs),
@@ -2097,6 +1912,7 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 45,
+                                    offset: offsetDiagonally(-1.25, 45),
                                 },
                                 (x1, y1, x2, y2) =>
                                     SVGAnimationUtils.Linear.sweepDiagonal(
@@ -2105,7 +1921,7 @@ export namespace SVGDefsSamples {
                                         x2,
                                         y2,
                                         45,
-                                        [-1.25, 0, 1.25, 1.25, 1.25, 1.25],
+                                        [0, 1.25, 2.5, 2.5, 2.5, 2.5],
                                         defs,
                                     ),
                             ),
@@ -2124,6 +1940,7 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 225,
+                                    offset: offsetDiagonally(-1.25, 225),
                                 },
                                 (x1, y1, x2, y2) =>
                                     SVGAnimationUtils.Linear.sweepDiagonal(
@@ -2132,7 +1949,7 @@ export namespace SVGDefsSamples {
                                         x2,
                                         y2,
                                         225,
-                                        [-1.25, -1.25, 0, 1.25, 1.25, 1.25],
+                                        [0, 0, 1.25, 2.5, 2.5, 2.5],
                                         defs,
                                     ),
                             ),
@@ -2151,6 +1968,7 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.primary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 135,
+                                    offset: offsetDiagonally(-1.25, 135),
                                 },
                                 (x1, y1, x2, y2) =>
                                     SVGAnimationUtils.Linear.sweepDiagonal(
@@ -2159,7 +1977,7 @@ export namespace SVGDefsSamples {
                                         x2,
                                         y2,
                                         135,
-                                        [-1.25, -1.25, -1.25, 0, 1.25, 1.25],
+                                        [0, 0, 0, 1.25, 2.5, 2.5],
                                         defs,
                                     ),
                             ),
@@ -2178,6 +1996,7 @@ export namespace SVGDefsSamples {
                                         { value: `rgb(from ${defs.colors.secondary} r g b / 0)`, stop: 50 },
                                     ],
                                     angle: 315,
+                                    offset: offsetDiagonally(-1.25, 315),
                                 },
                                 (x1, y1, x2, y2) =>
                                     SVGAnimationUtils.Linear.sweepDiagonal(
@@ -2186,7 +2005,7 @@ export namespace SVGDefsSamples {
                                         x2,
                                         y2,
                                         315,
-                                        [-1.25, -1.25, -1.25, -1.25, 0, 1.25],
+                                        [0, 0, 0, 0, 1.25, 2.5],
                                         defs,
                                     ),
                             ),

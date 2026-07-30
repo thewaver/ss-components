@@ -17,6 +17,30 @@ import type { ShapeExampleProps } from "./ShapePage.types";
 import * as pageStyles from "../Pages.css";
 import * as styles from "./ShapePage.css";
 
+const extractOptionGroupWord = (key: string) => {
+    const match = key.match(/^[a-z]+/);
+    return match ? match[0] : key;
+};
+
+const splitEntriesIntoGroups = <K, T extends Record<string, K>>(
+    o: T,
+    getGroupName: (key: string) => string = extractOptionGroupWord,
+) => {
+    const result: Record<string, Partial<T>> = {};
+
+    for (const [key, value] of Object.entries(o) as [keyof T, T[keyof T]][]) {
+        const group = getGroupName(key as string);
+
+        result[group] ??= {};
+        result[group][key] = value;
+    }
+
+    return result;
+};
+
+const GROUPPED_GRADIENTS = splitEntriesIntoGroups(SVGDefsSamples.Gradient.SAMPLE_CONFIGS);
+const GROUPPED_PATTERNS = splitEntriesIntoGroups(SVGDefsSamples.Pattern.SAMPLE_CONFIGS);
+
 const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
     {
         count: 40,
@@ -333,8 +357,14 @@ export const ShapePage = () => {
                             setStrokeConfigKey(e.target.value as keyof typeof SVGDefsSamples.Gradient.SAMPLE_CONFIGS)
                         }
                     >
-                        <For each={Object.keys(SVGDefsSamples.Gradient.SAMPLE_CONFIGS)}>
-                            {(config) => <option value={config}>{config}</option>}
+                        <For each={Object.entries(GROUPPED_GRADIENTS)}>
+                            {([groupKey, groupValue]) => (
+                                <optgroup label={groupKey}>
+                                    <For each={Object.keys(groupValue)}>
+                                        {(config) => <option value={config}>{config}</option>}
+                                    </For>
+                                </optgroup>
+                            )}
                         </For>
                     </select>
                 </div>
@@ -347,8 +377,14 @@ export const ShapePage = () => {
                             setFillConfigKey(e.target.value as keyof typeof SVGDefsSamples.Pattern.SAMPLE_CONFIGS)
                         }
                     >
-                        <For each={Object.keys(SVGDefsSamples.Pattern.SAMPLE_CONFIGS)}>
-                            {(config) => <option value={config}>{config}</option>}
+                        <For each={Object.entries(GROUPPED_PATTERNS)}>
+                            {([groupKey, groupValue]) => (
+                                <optgroup label={groupKey}>
+                                    <For each={Object.keys(groupValue)}>
+                                        {(config) => <option value={config}>{config}</option>}
+                                    </For>
+                                </optgroup>
+                            )}
                         </For>
                     </select>
                 </div>

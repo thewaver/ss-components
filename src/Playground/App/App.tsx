@@ -1,8 +1,8 @@
 import type { JSX } from "solid-js";
-import { createEffect, createMemo, createSignal } from "solid-js";
+import { createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
 import { Route, type RouteSectionProps, Router } from "@solidjs/router";
-import { StringUtils } from "@thewaver/ss-utils";
+import { FunctionUtils, Size2d, StringUtils } from "@thewaver/ss-utils";
 
 import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
@@ -160,14 +160,41 @@ export function AppContent(props: RouteSectionProps) {
     );
 }
 
+const SIZE_ANCHOR = 1200;
+
+const getWindowInnerSize = () => ({ width: window.innerWidth, height: window.innerHeight });
+
 export function App() {
+    const [getWindowSize, setWindowSize] = createSignal<Size2d>(getWindowInnerSize());
+
+    const getViewportSize = createMemo(() => {
+        const windowSize = getWindowSize();
+        const ratio = windowSize.width / windowSize.height;
+        const next =
+            ratio >= 1
+                ? { width: Math.round(SIZE_ANCHOR * ratio), height: SIZE_ANCHOR }
+                : { width: SIZE_ANCHOR, height: Math.round(SIZE_ANCHOR / ratio) };
+
+        return next;
+    });
+
+    const throttleResize = FunctionUtils.trailingThrottle(() => setWindowSize(getWindowInnerSize()), 10);
+
+    onMount(() => {
+        onCleanup(() => {
+            window.removeEventListener("resize", throttleResize);
+        });
+
+        window.addEventListener("resize", throttleResize);
+    });
+
     return (
         <div id="app">
             <Router>
                 <Route
                     path="/"
                     component={(props: RouteSectionProps) => (
-                        <Viewport getSize={() => ({ width: 1920, height: 1080 })}>
+                        <Viewport getSize={getViewportSize}>
                             <AppContent {...props} />
                         </Viewport>
                     )}

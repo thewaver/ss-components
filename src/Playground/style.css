@@ -130,6 +130,18 @@ input[type="number"] {
     width: 80px;
 }
 
+optgroup {
+    color: rgb(from var(--clr-text-secondary) r g b / 50%);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+option {
+    color: var(--clr-text);
+    font-size: 1rem;
+    text-transform: initial;
+}
+
 a,
 a:visited {
     color: var(--clr-primary);
