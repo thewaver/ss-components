@@ -13,7 +13,7 @@ const getConfig = (strokeId: string): SurfaceProps => ({
     getBorderRadii: () => CSSUtils.spreadRadius(styles.width * 0.5),
     getBorderWidths: () => CSSUtils.spreadWidth(4),
     getStrokeDefs: (getSize) =>
-        SVGDefsSamples.Gradient.SAMPLE_CONFIGS["sweepDiagonalDesync_4x"].getSVGDefs(strokeId, undefined, {
+        SVGDefsSamples.Gradient.SAMPLE_CONFIGS["sweep_da_4x"].getSVGDefs(strokeId, undefined, {
             size: getSize(),
             animationDurationMs: 4000,
             colors: {

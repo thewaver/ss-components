@@ -253,4 +253,23 @@ export namespace SVGAnimationUtils {
             );
         };
     }
+
+    export namespace Gradient {
+        export const cycleColors = (gradientId: string, sArray: string[][], defs: SVGAnimationDefs) => {
+            return (
+                <Show when={defs.animationIterationPatterns ?? EMPTY_ARRAY} keyed>
+                    <For each={sArray}>
+                        {(stop, getIndex) => (
+                            <animate
+                                {...{ href: `#${gradientId}-stop-${getIndex()}` }}
+                                attributeName="stop-color"
+                                values={stop.join(";")}
+                                {...useAnimateDefs(defs)}
+                            />
+                        )}
+                    </For>
+                </Show>
+            );
+        };
+    }
 }

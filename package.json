@@ -23,28 +23,29 @@
     },
     "devDependencies": {
         "@solidjs/router": "^1.0.0",
-        "@thewaver/ss-utils": "^0.0.15",
+        "@thewaver/ss-utils": "^0.0.17",
         "@trivago/prettier-plugin-sort-imports": "^6.0.2",
         "@vanilla-extract/css": "^1.21.2",
         "@vanilla-extract/dynamic": "^2.1.5",
-        "@vanilla-extract/vite-plugin": "^5.2.5",
-        "prettier": "^3.9.6",
+        "@vanilla-extract/vite-plugin": "^5.2.6",
+        "prettier": "^3.9.5",
         "solid-js": "^1.9.14",
         "tsup": "^8.5.1",
         "typescript": "^6.0.3",
-        "vite": "^8.1.5",
+        "vite": "^8.2.0",
         "vite-plugin-checker": "^0.14.5",
         "vite-plugin-solid": "^2.11.14"
     },
     "peerDependencies": {
         "@solidjs/router": "^1.0.0",
-        "@thewaver/ss-utils": "^0.0.15",
+        "@thewaver/ss-utils": "^0.0.17",
         "solid-js": "^1.9.14"
     },
     "prettier": {
         "tabWidth": 4,
         "printWidth": 120,
         "quoteProps": "consistent",
+        "endOfLine": "auto",
         "plugins": [
             "@trivago/prettier-plugin-sort-imports"
         ],

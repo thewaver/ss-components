@@ -488,6 +488,141 @@ export namespace SVGDefsSamples {
                 ],
             },
 
+            // ELASTIC
+
+            elastic_c_3: {
+                getSVGDefs: (id, __, defs) => [
+                    {
+                        color: getBaseBorderColor(defs),
+                    },
+                    {
+                        gradientOrPattern: {
+                            id: `gradient1-${id}`,
+                            defsElement: SVGGradientDefsUtils.getLinearGradient({
+                                id: `gradient1-${id}`,
+                                colors: [
+                                    { value: defs.colors.primary },
+                                    { value: defs.colors.secondary },
+                                    { value: defs.colors.tertiary },
+                                ],
+                                angle: 90,
+                            }),
+                        },
+                        clipPath: {
+                            id: `clip1-${id}`,
+                            defsElement: (
+                                <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            [
+                                                ...MathUtils.getIntermediateValues(90, 90, 12),
+                                                ...MathUtils.getIntermediateValues(90, 450, 12),
+                                            ],
+                                            [
+                                                ...MathUtils.getIntermediateValues(0, 360, 12),
+                                                ...MathUtils.getIntermediateValues(360, 0, 12),
+                                            ],
+                                        ),
+                                        defs,
+                                    )}
+                                </clipPath>
+                            ),
+                        },
+                    },
+                ],
+            },
+
+            elastic_isc_3: {
+                getSVGDefs: (id, __, defs) => [
+                    {
+                        color: getBaseBorderColor(defs),
+                    },
+                    {
+                        gradientOrPattern: {
+                            id: `gradient1-${id}`,
+                            defsElement: SVGGradientDefsUtils.getLinearGradient({
+                                id: `gradient1-${id}`,
+                                colors: [
+                                    { value: defs.colors.primary },
+                                    { value: defs.colors.secondary },
+                                    { value: defs.colors.tertiary },
+                                ],
+                                angle: 90,
+                            }),
+                        },
+                        clipPath: {
+                            id: `clip1-${id}`,
+                            defsElement: (
+                                <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            [
+                                                ...MathUtils.getIntermediateValues(0, 0, 12),
+                                                ...MathUtils.getIntermediateValues(0, 180, 12),
+                                                ...MathUtils.getIntermediateValues(180, 180, 12),
+                                                ...MathUtils.getIntermediateValues(180, 360, 12),
+                                            ],
+                                            [
+                                                ...MathUtils.getIntermediateValues(0, 180, 12),
+                                                ...MathUtils.getIntermediateValues(180, 0, 12),
+                                                ...MathUtils.getIntermediateValues(0, 180, 12),
+                                                ...MathUtils.getIntermediateValues(180, 0, 12),
+                                            ],
+                                        ),
+                                        defs,
+                                    )}
+                                </clipPath>
+                            ),
+                        },
+                    },
+                ],
+            },
+
+            elastic_td_3: {
+                getSVGDefs: (id, __, defs) => [
+                    {
+                        color: getBaseBorderColor(defs),
+                    },
+                    {
+                        gradientOrPattern: {
+                            id: `gradient1-${id}`,
+                            defsElement: SVGGradientDefsUtils.getLinearGradient({
+                                id: `gradient1-${id}`,
+                                colors: [
+                                    { value: defs.colors.primary },
+                                    { value: defs.colors.secondary },
+                                    { value: defs.colors.tertiary },
+                                ],
+                                angle: 90,
+                            }),
+                        },
+                        clipPath: {
+                            id: `clip1-${id}`,
+                            defsElement: (
+                                <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            [
+                                                ...MathUtils.getIntermediateValues(450, 270, 12),
+                                                ...MathUtils.getIntermediateValues(90, 270, 12),
+                                            ],
+                                            [
+                                                ...MathUtils.getIntermediateValues(0, 360, 12),
+                                                ...MathUtils.getIntermediateValues(360, 0, 12),
+                                            ],
+                                        ),
+                                        defs,
+                                    )}
+                                </clipPath>
+                            ),
+                        },
+                    },
+                ],
+            },
+
             // FLOW
 
             flow_2s: {
@@ -593,7 +728,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            flowDiagonal_2s: {
+            flow_d_2s: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         gradientOrPattern: {
@@ -641,7 +776,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            flowDiagonal_3: {
+            flow_d_3: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         gradientOrPattern: {
@@ -679,7 +814,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            flowDiagonal_3s: {
+            flow_d_3s: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         gradientOrPattern: {
@@ -717,6 +852,164 @@ export namespace SVGDefsSamples {
                                         [0, -0.5],
                                         defs,
                                     ),
+                            ),
+                        },
+                    },
+                ],
+            },
+
+            // HUE
+
+            hue_1: {
+                getSVGDefs: (id, __, defs) => [
+                    {
+                        color: getBaseBorderColor(defs),
+                    },
+                    {
+                        gradientOrPattern: {
+                            id: `gradient1-${id}`,
+                            defsElement: SVGGradientDefsUtils.getLinearGradient(
+                                {
+                                    id: `gradient1-${id}`,
+                                    colors: [{ value: defs.colors.primary }],
+                                    angle: 90,
+                                },
+                                SVGAnimationUtils.Gradient.cycleColors(
+                                    `gradient1-${id}`,
+                                    [
+                                        [
+                                            defs.colors.primary,
+                                            defs.colors.secondary,
+                                            defs.colors.tertiary,
+                                            defs.colors.primary,
+                                        ],
+                                    ],
+                                    defs,
+                                ),
+                            ),
+                        },
+                    },
+                ],
+            },
+
+            hue_p_2: {
+                getSVGDefs: (id, __, defs) => [
+                    {
+                        color: getBaseBorderColor(defs),
+                    },
+                    {
+                        gradientOrPattern: {
+                            id: `gradient1-${id}`,
+                            defsElement: SVGGradientDefsUtils.getLinearGradient(
+                                {
+                                    id: `gradient1-${id}`,
+                                    colors: [{ value: defs.colors.primary }],
+                                    angle: 90,
+                                },
+                                SVGAnimationUtils.Gradient.cycleColors(
+                                    `gradient1-${id}`,
+                                    [
+                                        [
+                                            defs.colors.primary,
+                                            defs.colors.secondary,
+                                            defs.colors.primary,
+                                            defs.colors.secondary,
+                                            defs.colors.primary,
+                                        ],
+                                    ],
+                                    defs,
+                                ),
+                            ),
+                        },
+                    },
+                ],
+            },
+
+            hue_di_2: {
+                getSVGDefs: (id, __, defs) => [
+                    {
+                        color: getBaseBorderColor(defs),
+                    },
+                    {
+                        gradientOrPattern: {
+                            id: `gradient1-${id}`,
+                            defsElement: SVGGradientDefsUtils.getLinearGradient(
+                                {
+                                    id: `gradient1-${id}`,
+                                    colors: [{ value: defs.colors.primary }, { value: defs.colors.secondary }],
+                                    angle: 45,
+                                },
+                                SVGAnimationUtils.Gradient.cycleColors(
+                                    `gradient1-${id}`,
+                                    [
+                                        [
+                                            defs.colors.primary,
+                                            defs.colors.secondary,
+                                            defs.colors.secondary,
+                                            defs.colors.primary,
+                                            defs.colors.primary,
+                                        ],
+                                        [
+                                            defs.colors.primary,
+                                            defs.colors.primary,
+                                            defs.colors.secondary,
+                                            defs.colors.secondary,
+                                            defs.colors.primary,
+                                        ],
+                                    ],
+                                    defs,
+                                ),
+                            ),
+                        },
+                    },
+                ],
+            },
+
+            hue_r_3: {
+                getSVGDefs: (id, __, defs) => [
+                    {
+                        color: getBaseBorderColor(defs),
+                    },
+                    {
+                        gradientOrPattern: {
+                            id: `gradient1-${id}`,
+                            defsElement: SVGGradientDefsUtils.getLinearGradient(
+                                {
+                                    id: `gradient1-${id}`,
+                                    colors: [
+                                        { value: defs.colors.primary },
+                                        { value: defs.colors.secondary },
+                                        { value: defs.colors.tertiary },
+                                    ],
+                                    angle: 0,
+                                },
+                                <>
+                                    {SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs)}
+                                    {SVGAnimationUtils.Gradient.cycleColors(
+                                        `gradient1-${id}`,
+                                        [
+                                            [
+                                                defs.colors.primary,
+                                                defs.colors.secondary,
+                                                defs.colors.tertiary,
+                                                defs.colors.primary,
+                                            ],
+                                            [
+                                                defs.colors.secondary,
+                                                defs.colors.tertiary,
+                                                defs.colors.primary,
+                                                defs.colors.secondary,
+                                            ],
+                                            [
+                                                defs.colors.tertiary,
+                                                defs.colors.primary,
+                                                defs.colors.secondary,
+                                                defs.colors.tertiary,
+                                            ],
+                                        ],
+                                        defs,
+                                    )}
+                                </>,
                             ),
                         },
                     },
@@ -771,7 +1064,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            mergeDiagonal_1v1: {
+            merge_d_1v1: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -819,7 +1112,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            mergeDiagonalDesync_4x: {
+            merge_da_4x: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1009,7 +1302,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            orbitDesync_2v1: {
+            orbit_a_2v1: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1047,7 +1340,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            orbitDesync_3x: {
+            orbit_a_3x: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1198,7 +1491,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            scanDiagonal_1: {
+            scan_d_1: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1226,7 +1519,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            scanDiagonal_1v1: {
+            scan_d_1v1: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1301,7 +1594,11 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            MathUtils.getIntermediateValues(90, 450, 12),
+                                            [180],
+                                        ),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1336,7 +1633,11 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            MathUtils.getIntermediateValues(90, 450, 12),
+                                            [180],
+                                        ),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1363,7 +1664,11 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(630, 270, 12), 180),
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            MathUtils.getIntermediateValues(630, 270, 12),
+                                            [180],
+                                        ),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1398,7 +1703,11 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            MathUtils.getIntermediateValues(90, 450, 12),
+                                            [180],
+                                        ),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1425,7 +1734,11 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(270, 630, 12), 180),
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            MathUtils.getIntermediateValues(270, 630, 12),
+                                            [180],
+                                        ),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1460,7 +1773,11 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(0, 360, 12), 180),
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            MathUtils.getIntermediateValues(0, 360, 12),
+                                            [180],
+                                        ),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1488,7 +1805,11 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            MathUtils.getIntermediateValues(90, 450, 12),
+                                            [180],
+                                        ),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1516,7 +1837,11 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(180, 540, 12), 180),
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            MathUtils.getIntermediateValues(180, 540, 12),
+                                            [180],
+                                        ),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1544,80 +1869,10 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip4-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(270, 630, 12), 180),
-                                        defs,
-                                    )}
-                                </clipPath>
-                            ),
-                        },
-                    },
-                ],
-            },
-
-            snakeDesync_2x: {
-                getSVGDefs: (id, __, defs) => [
-                    {
-                        color: getBaseBorderColor(defs),
-                    },
-                    {
-                        gradientOrPattern: {
-                            id: `gradient1-${id}`,
-                            defsElement: SVGGradientDefsUtils.getLinearGradient(
-                                {
-                                    id: `gradient1-${id}`,
-                                    colors: [
-                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
-                                        { value: defs.colors.primary },
-                                    ],
-                                    angle: 90,
-                                },
-                                SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
-                            ),
-                        },
-                        clipPath: {
-                            id: `clip1-${id}`,
-                            defsElement: (
-                                <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
-                                        defs,
-                                    )}
-                                </clipPath>
-                            ),
-                        },
-                    },
-                    {
-                        gradientOrPattern: {
-                            id: `gradient2-${id}`,
-                            defsElement: SVGGradientDefsUtils.getLinearGradient(
-                                {
-                                    id: `gradient2-${id}`,
-                                    colors: [
-                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
-                                        { value: defs.colors.secondary },
-                                    ],
-                                    angle: 90,
-                                },
-                                SVGAnimationUtils.Linear.rotate(
-                                    [
-                                        ...MathUtils.getIntermediateValues(90, 450, 12),
-                                        ...MathUtils.getIntermediateValues(90, 450, 12),
-                                    ],
-                                    defs,
-                                ),
-                            ),
-                        },
-                        clipPath: {
-                            id: `clip2-${id}`,
-                            defsElement: (
-                                <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
                                         ObjectUtils.zipArray(
-                                            [
-                                                ...MathUtils.getIntermediateValues(90, 450, 12),
-                                                ...MathUtils.getIntermediateValues(90, 450, 12),
-                                            ],
-                                            180,
+                                            "stretch",
+                                            MathUtils.getIntermediateValues(270, 630, 12),
+                                            [180],
                                         ),
                                         defs,
                                     )}
@@ -1628,7 +1883,119 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            snakeDesync_3x: {
+            snake_i_2x: {
+                getSVGDefs: (id, __, defs) => [
+                    {
+                        color: getBaseBorderColor(defs),
+                    },
+                    {
+                        gradientOrPattern: {
+                            id: `gradient1-${id}`,
+                            defsElement: SVGGradientDefsUtils.getLinearGradient(
+                                {
+                                    id: `gradient1-${id}`,
+                                    colors: [
+                                        { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
+                                        { value: defs.colors.primary },
+                                    ],
+                                    angle: 90,
+                                },
+                                SVGAnimationUtils.Linear.rotate(
+                                    [
+                                        ...MathUtils.getIntermediateValues(90, 90, 12),
+                                        ...MathUtils.getIntermediateValues(90, 90, 12),
+                                        ...MathUtils.getIntermediateValues(90, 180, 12),
+                                        ...MathUtils.getIntermediateValues(180, 270, 12),
+                                        ...MathUtils.getIntermediateValues(270, 360, 12),
+                                        ...MathUtils.getIntermediateValues(360, 450, 12),
+                                        ...MathUtils.getIntermediateValues(450, 450, 12),
+                                        ...MathUtils.getIntermediateValues(450, 450, 12),
+                                    ],
+                                    defs,
+                                ),
+                            ),
+                        },
+                        clipPath: {
+                            id: `clip1-${id}`,
+                            defsElement: (
+                                <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            [
+                                                ...MathUtils.getIntermediateValues(90, 90, 12),
+                                                ...MathUtils.getIntermediateValues(90, 90, 12),
+                                                ...MathUtils.getIntermediateValues(90, 180, 12),
+                                                ...MathUtils.getIntermediateValues(180, 270, 12),
+                                                ...MathUtils.getIntermediateValues(270, 360, 12),
+                                                ...MathUtils.getIntermediateValues(360, 450, 12),
+                                                ...MathUtils.getIntermediateValues(450, 450, 12),
+                                                ...MathUtils.getIntermediateValues(450, 450, 12),
+                                            ],
+                                            [180],
+                                        ),
+                                        defs,
+                                    )}
+                                </clipPath>
+                            ),
+                        },
+                    },
+                    {
+                        gradientOrPattern: {
+                            id: `gradient2-${id}`,
+                            defsElement: SVGGradientDefsUtils.getLinearGradient(
+                                {
+                                    id: `gradient2-${id}`,
+                                    colors: [
+                                        { value: `rgb(from ${defs.colors.secondary} r g b / 0)` },
+                                        { value: defs.colors.secondary },
+                                    ],
+                                    angle: 270,
+                                },
+                                SVGAnimationUtils.Linear.rotate(
+                                    [
+                                        ...MathUtils.getIntermediateValues(90, 180, 12),
+                                        ...MathUtils.getIntermediateValues(180, 270, 12),
+                                        ...MathUtils.getIntermediateValues(270, 270, 12),
+                                        ...MathUtils.getIntermediateValues(270, 270, 12),
+                                        ...MathUtils.getIntermediateValues(270, 270, 12),
+                                        ...MathUtils.getIntermediateValues(270, 270, 12),
+                                        ...MathUtils.getIntermediateValues(270, 360, 12),
+                                        ...MathUtils.getIntermediateValues(360, 450, 12),
+                                    ],
+                                    defs,
+                                ),
+                            ),
+                        },
+                        clipPath: {
+                            id: `clip2-${id}`,
+                            defsElement: (
+                                <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
+                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            [
+                                                ...MathUtils.getIntermediateValues(90, 180, 12),
+                                                ...MathUtils.getIntermediateValues(180, 270, 12),
+                                                ...MathUtils.getIntermediateValues(270, 270, 12),
+                                                ...MathUtils.getIntermediateValues(270, 270, 12),
+                                                ...MathUtils.getIntermediateValues(270, 270, 12),
+                                                ...MathUtils.getIntermediateValues(270, 270, 12),
+                                                ...MathUtils.getIntermediateValues(270, 360, 12),
+                                                ...MathUtils.getIntermediateValues(360, 450, 12),
+                                            ],
+                                            [180],
+                                        ),
+                                        defs,
+                                    )}
+                                </clipPath>
+                            ),
+                        },
+                    },
+                ],
+            },
+
+            snake_a_3x: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1653,7 +2020,11 @@ export namespace SVGDefsSamples {
                             defsElement: (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
-                                        ObjectUtils.zipArray(MathUtils.getIntermediateValues(90, 450, 12), 180),
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            MathUtils.getIntermediateValues(90, 450, 12),
+                                            [180],
+                                        ),
                                         defs,
                                     )}
                                 </clipPath>
@@ -1687,11 +2058,12 @@ export namespace SVGDefsSamples {
                                 <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
                                         ObjectUtils.zipArray(
+                                            "stretch",
                                             [
                                                 ...MathUtils.getIntermediateValues(90, 450, 12),
                                                 ...MathUtils.getIntermediateValues(90, 450, 12),
                                             ],
-                                            180,
+                                            [180],
                                         ),
                                         defs,
                                     )}
@@ -1727,12 +2099,13 @@ export namespace SVGDefsSamples {
                                 <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
                                     {SVGAnimationUtils.Path.getRotatingArc(
                                         ObjectUtils.zipArray(
+                                            "stretch",
                                             [
                                                 ...MathUtils.getIntermediateValues(90, 450, 12),
                                                 ...MathUtils.getIntermediateValues(90, 450, 12),
                                                 ...MathUtils.getIntermediateValues(90, 450, 12),
                                             ],
-                                            180,
+                                            [180],
                                         ),
                                         defs,
                                     )}
@@ -1819,7 +2192,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            sweepDiagonal_1: {
+            sweep_d_1: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1847,7 +2220,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            sweepDiagonal_1v1: {
+            sweep_d_1v1: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1895,7 +2268,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            sweepDiagonalDesync_4x: {
+            sweep_da_4x: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),

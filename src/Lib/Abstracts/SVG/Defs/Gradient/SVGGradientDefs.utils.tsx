@@ -5,7 +5,7 @@ import { SVGUtils } from "@thewaver/ss-utils";
 import type { SVGLinearGradientDefs, SVGRadialGradientDefs } from "./SVGGradientDefs.types";
 
 export namespace SVGGradientDefsUtils {
-    const renderSmoothGradientStops = (colors: (SVGLinearGradientDefs | SVGRadialGradientDefs)["colors"]) =>
+    const renderSmoothGradientStops = (colors: (SVGLinearGradientDefs | SVGRadialGradientDefs)["colors"], id: string) =>
         colors.map((c, i) => {
             const prevIdx = colors.findLastIndex((x, j) => j <= i && x.stop != null);
             const nextIdx = colors.findIndex((x, j) => j >= i && x.stop != null);
@@ -19,10 +19,13 @@ export namespace SVGGradientDefsUtils {
             const offset =
                 c.stop ?? (prev === next ? prevStop : prevStop + ((nextStop - prevStop) * (i - prev)) / (next - prev));
 
-            return <stop offset={`${offset}%`} stop-color={c.value} />;
+            return <stop id={`${id}-stop-${i}`} offset={`${offset}%`} stop-color={c.value} />;
         });
 
-    const renderBandedGradientStops = (colors: (SVGLinearGradientDefs | SVGRadialGradientDefs)["colors"]) => {
+    const renderBandedGradientStops = (
+        colors: (SVGLinearGradientDefs | SVGRadialGradientDefs)["colors"],
+        id: string,
+    ) => {
         const stops: JSX.Element[] = [];
 
         const resolvedStops = colors.map((c, i) => {
@@ -40,13 +43,17 @@ export namespace SVGGradientDefsUtils {
             );
         });
 
-        stops.push(<stop offset="0%" stop-color={colors[0].value} />);
+        stops.push(<stop id={`${id}-stop-${stops.length - 1}`} offset="0%" stop-color={colors[0].value} />);
 
         for (let i = 1; i < colors.length; i++) {
             const boundary = resolvedStops[i];
 
-            stops.push(<stop offset={`${boundary}%`} stop-color={colors[i - 1].value} />);
-            stops.push(<stop offset={`${boundary}%`} stop-color={colors[i].value} />);
+            stops.push(
+                <stop id={`${id}-stop-${stops.length - 1}`} offset={`${boundary}%`} stop-color={colors[i - 1].value} />,
+            );
+            stops.push(
+                <stop id={`${id}-stop-${stops.length - 1}`} offset={`${boundary}%`} stop-color={colors[i].value} />,
+            );
         }
 
         return stops;
@@ -62,7 +69,9 @@ export namespace SVGGradientDefsUtils {
         return (
             <linearGradient {...baseProps} id={id} x1={x1} y1={y1} x2={x2} y2={y2}>
                 {typeof custom === "function" ? custom(x1, y1, x2, y2) : custom}
-                {defs.spreadKind === "banded" ? renderBandedGradientStops(colors) : renderSmoothGradientStops(colors)}
+                {defs.spreadKind === "banded"
+                    ? renderBandedGradientStops(colors, id)
+                    : renderSmoothGradientStops(colors, id)}
             </linearGradient>
         );
     };
@@ -80,7 +89,9 @@ export namespace SVGGradientDefsUtils {
         return (
             <radialGradient {...baseProps} id={id} cx={o.x} cy={o.y} r={r}>
                 {typeof custom === "function" ? custom(o.x, o.y, r) : custom}
-                {defs.spreadKind === "banded" ? renderBandedGradientStops(colors) : renderSmoothGradientStops(colors)}
+                {defs.spreadKind === "banded"
+                    ? renderBandedGradientStops(colors, id)
+                    : renderSmoothGradientStops(colors, id)}
             </radialGradient>
         );
     };
