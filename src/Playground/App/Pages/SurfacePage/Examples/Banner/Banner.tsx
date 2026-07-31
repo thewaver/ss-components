@@ -10,7 +10,7 @@ import knight from "../../../../knight.png";
 import * as styles from "./Banner.css";
 
 const getDefs = (getSize: () => Size2d, id: string) =>
-    SVGDefsSamples.Gradient.SAMPLE_CONFIGS["flow_d_2s"].getSVGDefs(id, undefined, {
+    SVGDefsSamples.Gradient.SAMPLE_CONFIGS["flow_diag_2s"].getSVGDefs(id, undefined, {
         size: getSize(),
         animationDurationMs: 4000,
         colors: {

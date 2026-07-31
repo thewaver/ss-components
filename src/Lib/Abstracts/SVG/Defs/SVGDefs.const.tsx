@@ -490,7 +490,7 @@ export namespace SVGDefsSamples {
 
             // ELASTIC
 
-            elastic_c_3: {
+            elastic_circle_3: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -533,7 +533,64 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            elastic_isc_3: {
+            elastic_semicircle_3: {
+                getSVGDefs: (id, __, defs) => [
+                    {
+                        color: getBaseBorderColor(defs),
+                    },
+                    {
+                        gradientOrPattern: {
+                            id: `gradient1-${id}`,
+                            defsElement: SVGGradientDefsUtils.getLinearGradient({
+                                id: `gradient1-${id}`,
+                                colors: [
+                                    { value: defs.colors.primary },
+                                    { value: defs.colors.secondary },
+                                    { value: defs.colors.tertiary },
+                                ],
+                                angle: 90,
+                            }),
+                        },
+                        clipPath: {
+                            id: `clip1-${id}`,
+                            defsElement: (
+                                <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            [
+                                                ...MathUtils.getIntermediateValues(180, 90, 12),
+                                                ...MathUtils.getIntermediateValues(90, 180, 12),
+                                            ],
+                                            [
+                                                ...MathUtils.getIntermediateValues(0, 180, 12),
+                                                ...MathUtils.getIntermediateValues(180, 0, 12),
+                                            ],
+                                        ),
+                                        defs,
+                                    )}
+                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                        ObjectUtils.zipArray(
+                                            "stretch",
+                                            [
+                                                ...MathUtils.getIntermediateValues(360, 270, 12),
+                                                ...MathUtils.getIntermediateValues(270, 360, 12),
+                                            ],
+                                            [
+                                                ...MathUtils.getIntermediateValues(0, 180, 12),
+                                                ...MathUtils.getIntermediateValues(180, 0, 12),
+                                            ],
+                                        ),
+                                        defs,
+                                    )}
+                                </clipPath>
+                            ),
+                        },
+                    },
+                ],
+            },
+
+            elastic_inter_semicircle_3: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -580,7 +637,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            elastic_td_3: {
+            elastic_drip_3: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -728,7 +785,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            flow_d_2s: {
+            flow_diag_2s: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         gradientOrPattern: {
@@ -776,7 +833,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            flow_d_3: {
+            flow_diag_3: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         gradientOrPattern: {
@@ -814,7 +871,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            flow_d_3s: {
+            flow_diag_3s: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         gradientOrPattern: {
@@ -888,11 +945,12 @@ export namespace SVGDefsSamples {
                                 ),
                             ),
                         },
+                        filter: getBaseBlur(id, defs),
                     },
                 ],
             },
 
-            hue_p_2: {
+            hue_pulse_2: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -921,11 +979,12 @@ export namespace SVGDefsSamples {
                                 ),
                             ),
                         },
+                        filter: getBaseBlur(id, defs),
                     },
                 ],
             },
 
-            hue_di_2: {
+            hue_diag_inter_2: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -952,8 +1011,8 @@ export namespace SVGDefsSamples {
                                         [
                                             defs.colors.primary,
                                             defs.colors.primary,
-                                            defs.colors.secondary,
-                                            defs.colors.secondary,
+                                            defs.colors.tertiary,
+                                            defs.colors.tertiary,
                                             defs.colors.primary,
                                         ],
                                     ],
@@ -961,11 +1020,12 @@ export namespace SVGDefsSamples {
                                 ),
                             ),
                         },
+                        filter: getBaseBlur(id, defs),
                     },
                 ],
             },
 
-            hue_r_3: {
+            hue_rot_3: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1012,6 +1072,7 @@ export namespace SVGDefsSamples {
                                 </>,
                             ),
                         },
+                        filter: getBaseBlur(id, defs),
                     },
                 ],
             },
@@ -1064,7 +1125,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            merge_d_1v1: {
+            merge_diag_1v1: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1112,7 +1173,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            merge_da_4x: {
+            merge_diag_async_4: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1302,7 +1363,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            orbit_a_2v1: {
+            orbit_async_2v1: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1340,7 +1401,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            orbit_a_3x: {
+            orbit_async_3: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1491,7 +1552,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            scan_d_1: {
+            scan_diag_1: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1519,7 +1580,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            scan_d_1v1: {
+            scan_diag_1v1: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1883,7 +1944,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            snake_i_2x: {
+            snake_inter_2: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -1995,7 +2056,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            snake_a_3x: {
+            snake_async_3: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -2192,7 +2253,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            sweep_d_1: {
+            sweep_diag_1: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -2220,7 +2281,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            sweep_d_1v1: {
+            sweep_diag_1v1: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -2268,7 +2329,7 @@ export namespace SVGDefsSamples {
                 ],
             },
 
-            sweep_da_4x: {
+            sweep_diag_async_4: {
                 getSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
@@ -2294,7 +2355,7 @@ export namespace SVGDefsSamples {
                                         x2,
                                         y2,
                                         45,
-                                        [0, 1.25, 2.5, 2.5, 2.5, 2.5],
+                                        [0, 1.25, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5],
                                         defs,
                                     ),
                             ),
@@ -2322,7 +2383,7 @@ export namespace SVGDefsSamples {
                                         x2,
                                         y2,
                                         225,
-                                        [0, 0, 1.25, 2.5, 2.5, 2.5],
+                                        [0, 0, 0, 1.25, 2.5, 2.5, 2.5, 2.5, 2.5],
                                         defs,
                                     ),
                             ),
@@ -2350,7 +2411,7 @@ export namespace SVGDefsSamples {
                                         x2,
                                         y2,
                                         135,
-                                        [0, 0, 0, 1.25, 2.5, 2.5],
+                                        [0, 0, 0, 0, 0, 1.25, 2.5, 2.5, 2.5],
                                         defs,
                                     ),
                             ),
@@ -2378,7 +2439,7 @@ export namespace SVGDefsSamples {
                                         x2,
                                         y2,
                                         315,
-                                        [0, 0, 0, 0, 1.25, 2.5],
+                                        [0, 0, 0, 0, 0, 0, 0, 1.25, 2.5],
                                         defs,
                                     ),
                             ),

@@ -162,7 +162,7 @@ export const ShapePage = () => {
     const [getJoinRadii, setJoinRadii] = createSignal<number[]>([40, 40, 40, 40, 40, 40]);
     const [getLameExponents, setLameExponents] = createSignal<number[]>([1, 1, 1, 1, 1, 1]);
     const [getStrokeConfigKey, setStrokeConfigKey] =
-        createSignal<keyof typeof SVGDefsSamples.Gradient.SAMPLE_CONFIGS>("sweep_d_1v1");
+        createSignal<keyof typeof SVGDefsSamples.Gradient.SAMPLE_CONFIGS>("sweep_diag_1v1");
     const [getFillConfigKey, setFillConfigKey] =
         createSignal<keyof typeof SVGDefsSamples.Pattern.SAMPLE_CONFIGS>("plain");
     const [getIterationConfigKey, setIterationConfigKey] =
