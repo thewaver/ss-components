@@ -1,4 +1,4 @@
-import { Show, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import { Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 import { Portal } from "solid-js/web";
 
 import { Rect, Size2d } from "@thewaver/ss-utils";
@@ -46,8 +46,8 @@ export const Tooltip = (props: TooltipProps) => {
         const contentSize = getContentSize();
         const anchorRect = getAnchorRect();
         const screenSize: Size2d = {
-            width: viewportContext?.getSize().width ?? 0,
-            height: viewportContext?.getSize().height ?? 0,
+            width: viewportContext.getSize().width ?? 0,
+            height: viewportContext.getSize().height ?? 0,
         };
         const offset = props.getOffset?.();
         const placement = props.getPlacement();
@@ -100,7 +100,7 @@ export const Tooltip = (props: TooltipProps) => {
         };
     });
 
-    const getZIndex = createMemo(() => (props.getZindex ?? DEFAULT_TOOLTIP_Z_INDEX_GETTER)(getPlacement));
+    const getZIndex = createMemo(() => (props.getZIndex ?? DEFAULT_TOOLTIP_Z_INDEX_GETTER)(getPlacement));
 
     const { getIsVisible, getTransitionTarget } = ElementFader.createFader(getShouldShow, getTransitionDurationMs);
 
@@ -137,7 +137,7 @@ export const Tooltip = (props: TooltipProps) => {
         setShouldShow(false);
     };
 
-    onMount(() => {
+    createEffect(() => {
         const anchorRef = props.getAnchorRef();
 
         onCleanup(() => {

@@ -118,17 +118,17 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
                                 {...props}
                                 getLineCount={() => STRESS_LINE_COUNT}
                                 getAnimationIterationDelayMs={() => 0}
-                                evaluateScanlineAnimation={(getIndex, getLineCount, getTimeline) =>
+                                evaluateScanlineAnimation={(index, lineCount, timeline) =>
                                     foo(
                                         ScanlineAnimationBreakpoints.getBreakpoints(
                                             props.getOrder(),
-                                            getIndex(),
-                                            getLineCount(),
+                                            index,
+                                            lineCount,
                                             {},
                                             undefined,
                                         ),
-                                        getIndex(),
-                                        getTimeline(),
+                                        index,
+                                        timeline,
                                         undefined,
                                     )
                                 }

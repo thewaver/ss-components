@@ -5,30 +5,8 @@ import { SVGUtils } from "@thewaver/ss-utils";
 import type { SVGLinearGradientDefs, SVGRadialGradientDefs } from "./SVGGradientDefs.types";
 
 export namespace SVGGradientDefsUtils {
-    const renderSmoothGradientStops = (colors: (SVGLinearGradientDefs | SVGRadialGradientDefs)["colors"], id: string) =>
+    const resolveStops = (colors: (SVGLinearGradientDefs | SVGRadialGradientDefs)["colors"]) =>
         colors.map((c, i) => {
-            const prevIdx = colors.findLastIndex((x, j) => j <= i && x.stop != null);
-            const nextIdx = colors.findIndex((x, j) => j >= i && x.stop != null);
-
-            const prevStop = prevIdx >= 0 ? colors[prevIdx].stop! : 0;
-            const nextStop = nextIdx >= 0 ? colors[nextIdx].stop! : 100;
-
-            const prev = prevIdx >= 0 ? prevIdx : 0;
-            const next = nextIdx >= 0 ? nextIdx : colors.length - 1;
-
-            const offset =
-                c.stop ?? (prev === next ? prevStop : prevStop + ((nextStop - prevStop) * (i - prev)) / (next - prev));
-
-            return <stop id={`${id}-stop-${i}`} offset={`${offset}%`} stop-color={c.value} />;
-        });
-
-    const renderBandedGradientStops = (
-        colors: (SVGLinearGradientDefs | SVGRadialGradientDefs)["colors"],
-        id: string,
-    ) => {
-        const stops: JSX.Element[] = [];
-
-        const resolvedStops = colors.map((c, i) => {
             const prevIdx = colors.findLastIndex((x, j) => j <= i && x.stop != null);
             const nextIdx = colors.findIndex((x, j) => j >= i && x.stop != null);
 
@@ -43,17 +21,25 @@ export namespace SVGGradientDefsUtils {
             );
         });
 
-        stops.push(<stop id={`${id}-stop-${stops.length - 1}`} offset="0%" stop-color={colors[0].value} />);
+    const renderSmoothGradientStops = (colors: (SVGLinearGradientDefs | SVGRadialGradientDefs)["colors"], id: string) =>
+        resolveStops(colors).map((stop, i) => (
+            <stop id={`${id}-stop-${i}`} offset={`${stop}%`} stop-color={colors[i].value} />
+        ));
+
+    const renderBandedGradientStops = (
+        colors: (SVGLinearGradientDefs | SVGRadialGradientDefs)["colors"],
+        id: string,
+    ) => {
+        const stops: JSX.Element[] = [];
+        const resolvedStops = resolveStops(colors);
+
+        stops.push(<stop id={`${id}-stop-0`} offset="0%" stop-color={colors[0].value} />);
 
         for (let i = 1; i < colors.length; i++) {
-            const boundary = resolvedStops[i];
+            const stop = resolvedStops[i];
 
-            stops.push(
-                <stop id={`${id}-stop-${stops.length - 1}`} offset={`${boundary}%`} stop-color={colors[i - 1].value} />,
-            );
-            stops.push(
-                <stop id={`${id}-stop-${stops.length - 1}`} offset={`${boundary}%`} stop-color={colors[i].value} />,
-            );
+            stops.push(<stop id={`${id}-stop-${i - 1}`} offset={`${stop}%`} stop-color={colors[i - 1].value} />);
+            stops.push(<stop id={`${id}-stop-${i}`} offset={`${stop}%`} stop-color={colors[i].value} />);
         }
 
         return stops;

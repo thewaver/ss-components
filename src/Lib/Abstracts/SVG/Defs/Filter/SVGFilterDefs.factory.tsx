@@ -79,9 +79,10 @@ export class SVGFilterDefsFactory {
     };
 
     public addDropShadowFilter = (defs: SVGDropShadowFilterDefs, custom?: JSX.Element) => {
-        if (defs.stdDeviation <= 0 && (defs.dx ?? 0) === 0 && (defs.dy ?? 0) === 0) return this;
+        if (defs.stdDeviation <= 0 && defs.dx === 0 && defs.dy === 0) return this;
 
         const key = `${this.filterId}_dropShadow_${this.dropShadowCount++}`;
+        const { floodColor, floodOpacity, ...otherDefs } = defs;
 
         this.maxOffset = Math.max(
             this.maxOffset,
@@ -89,7 +90,7 @@ export class SVGFilterDefsFactory {
         );
         this.filterPrimitives[key] = () => ({
             element: (
-                <feDropShadow {...defs} result={key}>
+                <feDropShadow {...otherDefs} result={key} flood-color={floodColor} flood-opacity={floodOpacity}>
                     {custom}
                 </feDropShadow>
             ),

@@ -19,9 +19,11 @@ export namespace ElementObserver {
         const viewportContext = useViewportContext();
 
         const updateSize = () => {
-            if (!getElementRef()) return;
+            const elementRef = getElementRef();
 
-            const elementRect = ViewportUtils.getAdjustedBoundingClientRect(getElementRef()!, viewportContext);
+            if (!elementRef) return;
+
+            const elementRect = ViewportUtils.getAdjustedBoundingClientRect(elementRef, viewportContext);
             const offset = opts?.getOffset?.() ?? { x: 0, y: 0 };
             const padding = opts?.getPadding?.() ?? 0;
             const spreadPadding = typeof padding === "number" ? Bounds.spread(padding) : padding;
@@ -29,8 +31,8 @@ export namespace ElementObserver {
             setElementRect({
                 x: elementRect.x - spreadPadding.left - offset.x,
                 y: elementRect.y - spreadPadding.top - offset.y,
-                width: elementRect.width + spreadPadding.left + spreadPadding.right - offset.x,
-                height: elementRect.height + spreadPadding.top + spreadPadding.bottom - offset.y,
+                width: elementRect.width + spreadPadding.left + spreadPadding.right,
+                height: elementRect.height + spreadPadding.top + spreadPadding.bottom,
             });
         };
 

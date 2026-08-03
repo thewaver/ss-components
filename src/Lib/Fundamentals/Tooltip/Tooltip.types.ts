@@ -20,10 +20,10 @@ export type TooltipProps = AccessorProps<{
     transitionDurationMs?: number;
     focusShowDelayMs?: number;
     getAnchorRef: () => HTMLElement | undefined;
+    getZIndex?: (getPlacement: () => TooltipPlacement) => number;
     renderContent: (
         getVisibilityTarget: () => 0 | 1,
         getTransitionDurationMs: () => number,
         getPlacement: () => TooltipPlacement,
     ) => JSX.Element;
-    getZindex?: (getPlacement: () => TooltipPlacement) => number;
 }>;

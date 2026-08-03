@@ -11,8 +11,7 @@ const DEFAULT_TABS_GAP = 0;
 const DEFAULT_TABS_DIR = "row";
 
 export const Tabs = (props: TabProps) => {
-    let itemRefs: HTMLElement[] = [];
-
+    const [getRootRef, setRootRef] = createSignal<HTMLElement>();
     const [getFloaterBounds, setFloaterBounds] = createSignal<
         { [k in "top" | "left" | "width" | "height"]: string } | undefined
     >();
@@ -34,25 +33,37 @@ export const Tabs = (props: TabProps) => {
             selectedItemObserver?.disconnect();
         });
 
-        const selectedIndex = props.getSelectedIndex();
-        const selectedItemRef = selectedIndex !== undefined ? itemRefs[selectedIndex] : undefined;
+        props.getTabCount();
 
-        if (!selectedItemRef) return;
+        const rootRef = getRootRef();
+        const selectedIndex = props.getSelectedIndex();
+
+        if (!rootRef) return;
+
+        const tabs = Array.from(rootRef.querySelectorAll(":scope > a, :scope > button")) as HTMLElement[];
+        const selectedTab = selectedIndex !== undefined ? tabs[selectedIndex] : undefined;
+
+        if (!selectedTab) return;
 
         selectedItemObserver = new ResizeObserver(() => {
             setFloaterBounds({
-                top: `${selectedItemRef.offsetTop}px`,
-                left: `${selectedItemRef.offsetLeft}px`,
-                width: `${selectedItemRef.offsetWidth}px`,
-                height: `${selectedItemRef.offsetHeight}px`,
+                top: `${selectedTab.offsetTop}px`,
+                left: `${selectedTab.offsetLeft}px`,
+                width: `${selectedTab.offsetWidth}px`,
+                height: `${selectedTab.offsetHeight}px`,
             });
         });
-        selectedItemObserver.observe(selectedItemRef);
+        selectedItemObserver.observe(selectedTab);
     });
 
     return (
-        <div class={styles.tabsRoot} style={{ "flex-direction": getDir(), "gap": `${getTabGap()}px` }} role="tablist">
-            {props.renderGutter && <div class={styles.tabsGutter}>{props.renderGutter?.()}</div>}
+        <div
+            ref={setRootRef}
+            class={styles.tabsRoot}
+            style={{ "flex-direction": getDir(), "gap": `${getTabGap()}px` }}
+            role="tablist"
+        >
+            {props.renderGutter && <div class={styles.tabsGutter}>{props.renderGutter()}</div>}
             {props.renderFloater && getFloaterBounds() && (
                 <div
                     class={styles.tabsFloater}
@@ -65,23 +76,24 @@ export const Tabs = (props: TabProps) => {
             <For each={getTabArray()}>
                 {(_, getIndex) => {
                     const commonProps: JSX.ButtonHTMLAttributes<any> = {
-                        "ref": (el: HTMLElement) => {
-                            itemRefs[getIndex()] = el;
-                        },
                         "class": styles.tabsItem,
+                        "role": "tab",
                         "disabled": props.getIsDisabled?.(getIndex),
+                        "aria-disabled": props.getIsDisabled?.(getIndex),
                         "aria-selected": getIndex() === props.getSelectedIndex(),
-                        "onClick": () => {
-                            props.onSelectionChange?.(getIndex());
-                        },
+                        "onClick": props.getIsDisabled?.(getIndex)
+                            ? () => {
+                                  props.onSelectionChange?.(getIndex());
+                              }
+                            : undefined,
                     };
 
                     return props.hrefs?.[getIndex()] ? (
-                        <A href={props.hrefs![getIndex()]} role="tab" {...commonProps}>
+                        <A href={props.hrefs![getIndex()]} {...commonProps}>
                             {props.renderTab(getIndex)}
                         </A>
                     ) : (
-                        <button type="button" role="tab" {...commonProps}>
+                        <button type="button" {...commonProps}>
                             {props.renderTab(getIndex)}
                         </button>
                     );

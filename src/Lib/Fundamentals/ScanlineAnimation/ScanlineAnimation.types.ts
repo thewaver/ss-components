@@ -17,11 +17,12 @@ export type ScanlineAnimationProps = AccessorProps<{
     animationIterationCount?: number;
     animationIterationDelayMs?: number;
     getController?: (controller: ScanlineAnimationController) => void;
-    evaluateRootAnimation?: (getTimeline: () => number) => ScanlineAnimationEvaluationResult;
+    evaluateRootAnimation?: (timeline: number) => ScanlineAnimationEvaluationResult;
     evaluateScanlineAnimation: (
-        getIndex: () => number,
-        getLineCount: () => number,
-        getTimeline: () => number,
+        index: number,
+        lineCount: number,
+        timeline: number,
     ) => ScanlineAnimationEvaluationResult;
+    onIterationEnd?: () => void;
     onAnimationEnd?: () => void;
 }>;

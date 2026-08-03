@@ -41,19 +41,21 @@ export const ImageSwitcher = (props: ImageSwitcherProps) => {
         <div class={styles.imageSwitcherRoot}>
             <img
                 class={styles.imageSwitcherImage}
-                src={isEven() ? getCurrentImage() : getPrevImage()}
                 style={{
                     "opacity": isEven() ? 1 : 0,
                     "transition-duration": `${getTransitionDurationMs()}ms`,
                 }}
+                src={isEven() ? getCurrentImage() : getPrevImage()}
+                alt=""
             />
             <img
                 class={styles.imageSwitcherImage}
-                src={!isEven() ? getCurrentImage() : getPrevImage()}
                 style={{
                     "opacity": !isEven() ? 1 : 0,
                     "transition-duration": `${getTransitionDurationMs()}ms`,
                 }}
+                src={!isEven() ? getCurrentImage() : getPrevImage()}
+                alt=""
             />
         </div>
     );

@@ -68,7 +68,11 @@ export namespace InteractionUtils {
                 ref.style.cursor = "pointer";
             }
 
-            if (isDisabled) return;
+            if (isDisabled) {
+                setActiveByKey(false);
+                setActiveByMouse(false);
+                return;
+            }
 
             ref.addEventListener("focus", onFocus);
             ref.addEventListener("blur", onBlur);

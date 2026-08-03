@@ -16,17 +16,11 @@ export const GrayscaleExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder,
     return (
         <ScanlineAnimation
             {...otherProps}
-            evaluateScanlineAnimation={(getIndex, getLineCount, getTimeline) =>
+            evaluateScanlineAnimation={(index, lineCount, timeline) =>
                 ScanlineAnimationKeyframes.evaluateHorizontalGrayscale(
-                    ScanlineAnimationBreakpoints.getBreakpoints(
-                        getOrder(),
-                        getIndex(),
-                        getLineCount(),
-                        {},
-                        getBreakpointOpts(),
-                    ),
-                    getIndex(),
-                    getTimeline(),
+                    ScanlineAnimationBreakpoints.getBreakpoints(getOrder(), index, lineCount, {}, getBreakpointOpts()),
+                    index,
+                    timeline,
                     getKeyframeOpts(),
                 )
             }

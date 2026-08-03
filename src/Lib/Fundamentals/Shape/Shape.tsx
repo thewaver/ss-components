@@ -7,8 +7,7 @@ import type { ShapeProps } from "./Shape.types";
 import * as styles from "./Shape.css";
 
 export const Shape = (props: ShapeProps) => {
-    let rootRef: HTMLElement | undefined;
-
+    const [getRootRef, setRootRef] = createSignal<HTMLElement>();
     const [getRootSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
 
     const getFillDefs = createMemo(() => {
@@ -45,6 +44,8 @@ export const Shape = (props: ShapeProps) => {
             rootResizeObserver?.disconnect();
         });
 
+        const rootRef = getRootRef();
+
         if (!rootRef) return;
 
         rootResizeObserver = new ResizeObserver(() => {
@@ -54,12 +55,7 @@ export const Shape = (props: ShapeProps) => {
     });
 
     return (
-        <div
-            ref={(el) => {
-                rootRef = el;
-            }}
-            class={styles.shapeRoot}
-        >
+        <div ref={setRootRef} class={styles.shapeRoot}>
             {getFillDefs() && (
                 <svg
                     class={styles.shapeFillSVG}
@@ -69,13 +65,15 @@ export const Shape = (props: ShapeProps) => {
                     overflow="visible"
                 >
                     <defs>
-                        {getFillDefs()?.map((def) => (
-                            <>
-                                {def.gradientOrPattern?.defsElement}
-                                {def.filter?.defsElement}
-                                {def.clipPath?.defsElement}
-                            </>
-                        ))}
+                        <For each={getFillDefs()}>
+                            {(def) => (
+                                <>
+                                    {def.gradientOrPattern?.defsElement}
+                                    {def.filter?.defsElement}
+                                    {def.clipPath?.defsElement}
+                                </>
+                            )}
+                        </For>
                     </defs>
 
                     <For each={getFillDefs()}>
@@ -108,13 +106,15 @@ export const Shape = (props: ShapeProps) => {
                     overflow="visible"
                 >
                     <defs>
-                        {getStrokeDefs()?.map((def) => (
-                            <>
-                                {def.gradientOrPattern?.defsElement}
-                                {def.filter?.defsElement}
-                                {def.clipPath?.defsElement}
-                            </>
-                        ))}
+                        <For each={getStrokeDefs()}>
+                            {(def) => (
+                                <>
+                                    {def.gradientOrPattern?.defsElement}
+                                    {def.filter?.defsElement}
+                                    {def.clipPath?.defsElement}
+                                </>
+                            )}
+                        </For>
                     </defs>
 
                     <For each={getStrokeDefs()}>

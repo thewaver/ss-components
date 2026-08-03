@@ -1,7 +1,7 @@
 import { For, Show, createEffect, createMemo, createSignal, untrack } from "solid-js";
 import { Portal } from "solid-js/web";
 
-import { MathUtils, Size2d } from "@thewaver/ss-utils";
+import { MathUtils } from "@thewaver/ss-utils";
 
 import type { AnimDirection } from "../../Abstracts/Anim/Anim.types";
 import { useViewportContext } from "../Viewport/Viewport.context";
@@ -11,7 +11,7 @@ import * as styles from "./ScreenWiper.css";
 
 const DEFAULT_SCREENWIPER_SHAPE: ScreenWiperShape = "lozenge";
 const DEFAULT_SCREENWIPER_TRANSITION_DURATION_MS = 200;
-const DEFAULT_SCREENWIPER_CELL_SIZE: Size2d = { width: 120, height: 120 };
+const DEFAULT_SCREENWIPER_CELL_SIZE: number = 120;
 
 const getTargetFromDirection = (direction: AnimDirection) => (direction === "in" ? 1 : 0);
 
@@ -28,40 +28,33 @@ export const ScreenWiper = (props: ScreenWiperProps) => {
     );
 
     const getCols = createMemo(() => ({
-        odd: Array.from({ length: (viewportContext.getSize().width ?? 0) / getCellSize().width }).map(
-            (_, index) => index,
-        ),
-        even: Array.from({ length: (viewportContext.getSize().width ?? 0) / getCellSize().width + 1 }).map(
+        odd: Array.from({ length: (viewportContext.getSize().width ?? 0) / getCellSize() }).map((_, index) => index),
+        even: Array.from({ length: (viewportContext.getSize().width ?? 0) / getCellSize() + 1 }).map(
             (_, index) => index,
         ),
     }));
 
     const getRows = createMemo(() =>
-        Array.from({ length: ((viewportContext.getSize().height ?? 0) * 2) / getCellSize().width + 1 }).map(
+        Array.from({ length: ((viewportContext.getSize().height ?? 0) * 2) / getCellSize() + 1 }).map(
             (_, index) => index,
         ),
     );
 
     const renderCell = (shape: ScreenWiperShape, _row: number, _col: number) => (
         <svg
-            width={getCellSize().width}
-            height={getCellSize().height}
-            viewBox={`0 0 ${getCellSize().width} ${getCellSize().height}`}
+            width={getCellSize()}
+            height={getCellSize()}
+            viewBox={`0 0 ${getCellSize()} ${getCellSize()}`}
             overflow="visible"
             aria-hidden="true"
         >
             {shape === "lozenge" ? (
                 <polygon
-                    points={`${getCellSize().width * 0.5},0 ${getCellSize().width},${getCellSize().height * 0.5} ${getCellSize().width * 0.5},${getCellSize().height} 0,${getCellSize().height * 0.5}`}
+                    points={`${getCellSize() * 0.5},0 ${getCellSize()},${getCellSize() * 0.5} ${getCellSize() * 0.5},${getCellSize()} 0,${getCellSize() * 0.5}`}
                     fill="black"
                 />
             ) : (
-                <circle
-                    cx={getCellSize().width * 0.5}
-                    cy={getCellSize().width * 0.5}
-                    r={getCellSize().width * 0.5}
-                    fill="black"
-                />
+                <circle cx={getCellSize() * 0.5} cy={getCellSize() * 0.5} r={getCellSize() * 0.5} fill="black" />
             )}
         </svg>
     );
@@ -94,7 +87,7 @@ export const ScreenWiper = (props: ScreenWiperProps) => {
                                 <div
                                     class={styles.screenWiperRow}
                                     style={{
-                                        transform: `translate(${isRowEven ? getCellSize().width * -0.5 : 0}px, ${(row + 1) * getCellSize().height * -0.5}px)`,
+                                        transform: `translate(${isRowEven ? getCellSize() * -0.5 : 0}px, ${(row + 1) * getCellSize() * -0.5}px)`,
                                     }}
                                 >
                                     <For each={getRowCols()}>
@@ -102,8 +95,8 @@ export const ScreenWiper = (props: ScreenWiperProps) => {
                                             <div
                                                 class={styles.screenWiperCell}
                                                 style={{
-                                                    width: `${getCellSize().width}px`,
-                                                    height: `${getCellSize().height}px`,
+                                                    width: `${getCellSize()}px`,
+                                                    height: `${getCellSize()}px`,
                                                     transition: `transform ${getTransitionDurationMs()}ms ease ${getTransitionDurationMs() * 0.05 * (col + row)}ms`,
                                                     transform: `scale(${getTarget()})`,
                                                 }}

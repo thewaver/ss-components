@@ -9,12 +9,17 @@ const DEFAULT_AUDIO_SWITCHER_CROSSFADE_MS = 500;
 const DEFAULT_AUDIO_SWITCHER_CROSSFADE_STEPS = 25;
 const DEFAULT_AUDIO_SWITCHER_VOLUME = 0.5;
 
+const clearAndNullifyInterval = (handle: ReturnType<typeof setInterval> | undefined) => {
+    clearInterval(handle);
+    handle = undefined;
+};
+
 export const AudioSwitcher = (props: AudioSwitcherProps) => {
     let fadeInTickHandler: ReturnType<typeof setInterval> | undefined;
     let fadeOutTickHandler: ReturnType<typeof setInterval> | undefined;
+    let audioA = new Audio();
+    let audioB = new Audio();
 
-    const [getAudioA] = createSignal(new Audio());
-    const [getAudioB] = createSignal(new Audio());
     const [getCurrentSrc, setCurrentSrc] = createSignal<string>();
     const [getVersion, setVersion] = createSignal(0);
 
@@ -27,9 +32,9 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
             (props.getCrossfadeMs?.() ?? DEFAULT_AUDIO_SWITCHER_CROSSFADE_MS) / DEFAULT_AUDIO_SWITCHER_CROSSFADE_STEPS,
     );
 
-    const getActiveElement = createMemo(() => (isEven() ? getAudioA() : getAudioB()));
+    const getActiveElement = createMemo(() => (isEven() ? audioA : audioB));
 
-    const getInactiveElement = createMemo(() => (!isEven() ? getAudioA() : getAudioB()));
+    const getInactiveElement = createMemo(() => (!isEven() ? audioA : audioB));
 
     const fadeIn = (element: HTMLAudioElement) => {
         const step = getStep();
@@ -39,11 +44,11 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
             element.volume = Math.min(element.volume + step, volume);
 
             if (element.volume === volume) {
-                clearInterval(fadeInTickHandler);
+                clearAndNullifyInterval(fadeInTickHandler);
             }
         };
 
-        clearInterval(fadeInTickHandler);
+        clearAndNullifyInterval(fadeInTickHandler);
 
         element.volume = 0;
         element
@@ -53,7 +58,7 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
             })
             .catch((err) => {
                 console.warn("Playback prevented by browser autoplay restrictions:", err);
-                clearInterval(fadeInTickHandler);
+                clearAndNullifyInterval(fadeInTickHandler);
             });
     };
 
@@ -65,11 +70,11 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
 
             if (element.volume === 0) {
                 element.pause();
-                clearInterval(fadeOutTickHandler);
+                clearAndNullifyInterval(fadeOutTickHandler);
             }
         };
 
-        clearInterval(fadeOutTickHandler);
+        clearAndNullifyInterval(fadeOutTickHandler);
 
         fadeOutTickHandler = setInterval(fadeOutTick, getIntervalMs());
     };
@@ -79,7 +84,7 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
             const active = getActiveElement();
 
             if (active && !AudioUtils.isPlaying(active)) {
-                clearInterval(fadeOutTickHandler);
+                clearAndNullifyInterval(fadeOutTickHandler);
                 fadeIn(active);
 
                 return true;
@@ -91,7 +96,7 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
             const active = getActiveElement();
 
             if (active && AudioUtils.isPlaying(active)) {
-                clearInterval(fadeInTickHandler);
+                clearAndNullifyInterval(fadeInTickHandler);
                 fadeOut(active);
 
                 return true;
@@ -144,10 +149,10 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
     });
 
     onCleanup(() => {
-        clearInterval(fadeInTickHandler);
-        clearInterval(fadeOutTickHandler);
-        getAudioA().pause();
-        getAudioB().pause();
+        clearAndNullifyInterval(fadeInTickHandler);
+        clearAndNullifyInterval(fadeOutTickHandler);
+        audioA.pause();
+        audioB.pause();
     });
 
     onMount(() => {

@@ -93,32 +93,26 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
             const t = (now - start) / duration; // 0..1
 
             if (props.evaluateRootAnimation) {
-                ScanlineAnimationUtils.assignAnimationProps(
-                    rootRef,
-                    props.evaluateRootAnimation(() => t),
-                );
+                ScanlineAnimationUtils.assignAnimationProps(rootRef, props.evaluateRootAnimation(t));
             }
 
             for (let i = 0; i < lines.length; i++) {
                 ScanlineAnimationUtils.assignAnimationProps(
                     lines[i],
-                    props.evaluateScanlineAnimation(
-                        () => i,
-                        () => lines.length,
-                        () => t,
-                    ),
+                    props.evaluateScanlineAnimation(i, lines.length, t),
                 );
             }
 
             if (t >= 1) {
-                const current = getCurrentIteration();
+                props.onIterationEnd?.();
 
-                if (current + 1 >= maxIterations) return;
-
-                props.onAnimationEnd?.();
-                timeout = setTimeout(() => {
-                    setCurrentIteration((v) => v + 1);
-                }, iterationDelay);
+                if (getCurrentIteration() + 1 >= maxIterations) {
+                    props.onAnimationEnd?.();
+                } else {
+                    timeout = setTimeout(() => {
+                        setCurrentIteration((v) => v + 1);
+                    }, iterationDelay);
+                }
 
                 return;
             }
@@ -142,8 +136,8 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
 
         resizeObserver = new ResizeObserver(() => {
             setRootSize({
-                width: imgRef.offsetWidth ?? 0,
-                height: imgRef.offsetHeight ?? 0,
+                width: imgRef.offsetWidth,
+                height: imgRef.offsetHeight,
             });
         });
         resizeObserver.observe(imgRef);

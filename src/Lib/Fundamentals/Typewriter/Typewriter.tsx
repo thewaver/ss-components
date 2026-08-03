@@ -106,7 +106,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
         update,
     }));
 
-    createEffect(on(getAnimationName, restartAnimation as any)); // avoid function re-wrapping just to satisfy param types
+    createEffect(on(getAnimationName, () => restartAnimation()));
 
     onMount(() => {
         props.getController?.(controller());
@@ -131,7 +131,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
                 {props.children}
             </div>
 
-            {getIndexedSegments().length && (
+            {!!getIndexedSegments().length && (
                 <div class={styles.typewriterTextWrap} style={{ width: `${getContainerRef()?.clientWidth ?? 0}px` }}>
                     <For each={getIndexedSegments()}>
                         {(segment) => {

@@ -9,5 +9,5 @@ export type CornersProps = AccessorProps<{
     cornerLength?: Size2d;
     strokeThickness?: number;
     transitionDurationMs?: number;
-    visibleCorners?: Partial<Record<CornerKey, boolean>>;
+    visibleCorners?: Set<CornerKey>;
 }>;

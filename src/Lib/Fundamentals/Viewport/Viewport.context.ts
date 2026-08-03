@@ -23,6 +23,11 @@ const useViewportWithFallback = (props?: ViewportContextType) => {
     };
 
     onMount(() => {
+        const sizeCb = props?.getSize;
+        const scaleRectCb = props?.getScaledRect;
+
+        if (sizeCb && scaleRectCb) return;
+
         onCleanup(() => {
             window.removeEventListener("resize", handleWindowResize);
         });

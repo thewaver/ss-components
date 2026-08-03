@@ -1,4 +1,4 @@
-import { For, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import { Index, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 import { Portal } from "solid-js/web";
 
 import { Rect } from "@thewaver/ss-utils";
@@ -65,13 +65,13 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
         <Show when={getIsVisible() && getSegmentRects()}>
             <Portal mount={viewportContext.getPortalRef()}>
                 <div class={styles.elementHighlightOverlay}>
-                    <For each={Object.values(getSegmentRects()!)}>
-                        {(rect) => (
-                            <div class={styles.elementHighlightOverlaySegment} style={rect}>
+                    <Index each={Object.values(getSegmentRects()!)}>
+                        {(getRect) => (
+                            <div class={styles.elementHighlightOverlaySegment} style={getRect()}>
                                 {props.renderOverlay(getTransitionTarget, getTransitionDurationMs)}
                             </div>
                         )}
-                    </For>
+                    </Index>
                 </div>
 
                 {props.renderHighlight && getElementRect() && (

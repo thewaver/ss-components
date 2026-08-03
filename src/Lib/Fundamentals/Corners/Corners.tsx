@@ -10,12 +10,7 @@ import * as styles from "./Corners.css";
 const DEFAULT_CORNERS_TRANSITION_DURATION_MS = 200;
 const DEFAULT_CORNERS_STROKE_THICKNESS = 4;
 const DEFAULT_CORNERS_CORNER_LENGTH: Size2d = { width: 20, height: 20 };
-const DEFAULT_CORNERS_VISIBLE_CORNERS: Partial<Record<CornerKey, boolean>> = {
-    bottomLeft: true,
-    bottomRight: true,
-    topLeft: true,
-    topRight: true,
-};
+const DEFAULT_CORNERS_VISIBLE_CORNERS: Set<CornerKey> = new Set(["bottomLeft", "bottomRight", "topLeft", "topRight"]);
 
 export const Corners = (props: ParentProps<CornersProps>) => {
     const getColor = createMemo(() => props.getColor?.() ?? "currentColor");
@@ -28,7 +23,7 @@ export const Corners = (props: ParentProps<CornersProps>) => {
 
     const getStrokeThickness = createMemo(() => props.getStrokeThickness?.() ?? DEFAULT_CORNERS_STROKE_THICKNESS);
 
-    const getVisibleCorners = createMemo(() => props.getVisibleCorners?.() ?? DEFAULT_CORNERS_VISIBLE_CORNERS);
+    const getVisibleCorners = createMemo(() => [...(props.visibleCorners ?? DEFAULT_CORNERS_VISIBLE_CORNERS)]);
 
     return (
         <div
@@ -40,7 +35,7 @@ export const Corners = (props: ParentProps<CornersProps>) => {
             }}
             aria-hidden="true"
         >
-            <For each={Object.keys(getVisibleCorners())}>
+            <For each={getVisibleCorners()}>
                 {(cornerKey) => (
                     <svg
                         class={`${styles.cornerSVG} ${styles.cornerVariant[cornerKey as CornerKey]}`}

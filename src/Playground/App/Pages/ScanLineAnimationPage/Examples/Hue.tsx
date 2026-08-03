@@ -16,17 +16,11 @@ export const HueExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...ot
     return (
         <ScanlineAnimation
             {...otherProps}
-            evaluateScanlineAnimation={(getIndex, getLineCount, getTimeline) =>
+            evaluateScanlineAnimation={(index, lineCount, timeline) =>
                 ScanlineAnimationKeyframes.evaluateHorizontalHue(
-                    ScanlineAnimationBreakpoints.getBreakpoints(
-                        getOrder(),
-                        getIndex(),
-                        getLineCount(),
-                        {},
-                        getBreakpointOpts(),
-                    ),
-                    getIndex(),
-                    getTimeline(),
+                    ScanlineAnimationBreakpoints.getBreakpoints(getOrder(), index, lineCount, {}, getBreakpointOpts()),
+                    index,
+                    timeline,
                     getKeyframeOpts(),
                 )
             }
