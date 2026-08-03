@@ -9,16 +9,12 @@ const DEFAULT_AUDIO_SWITCHER_CROSSFADE_MS = 500;
 const DEFAULT_AUDIO_SWITCHER_CROSSFADE_STEPS = 25;
 const DEFAULT_AUDIO_SWITCHER_VOLUME = 0.5;
 
-const clearAndNullifyInterval = (handle: ReturnType<typeof setInterval> | undefined) => {
-    clearInterval(handle);
-    handle = undefined;
-};
-
 export const AudioSwitcher = (props: AudioSwitcherProps) => {
     let fadeInTickHandler: ReturnType<typeof setInterval> | undefined;
     let fadeOutTickHandler: ReturnType<typeof setInterval> | undefined;
-    let audioA = new Audio();
-    let audioB = new Audio();
+
+    const audioA = new Audio();
+    const audioB = new Audio();
 
     const [getCurrentSrc, setCurrentSrc] = createSignal<string>();
     const [getVersion, setVersion] = createSignal(0);
@@ -36,6 +32,16 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
 
     const getInactiveElement = createMemo(() => (!isEven() ? audioA : audioB));
 
+    const clearFadeIn = () => {
+        clearInterval(fadeInTickHandler);
+        fadeInTickHandler = undefined;
+    };
+
+    const clearFadeOut = () => {
+        clearInterval(fadeOutTickHandler);
+        fadeOutTickHandler = undefined;
+    };
+
     const fadeIn = (element: HTMLAudioElement) => {
         const step = getStep();
         const volume = getVolume();
@@ -44,11 +50,11 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
             element.volume = Math.min(element.volume + step, volume);
 
             if (element.volume === volume) {
-                clearAndNullifyInterval(fadeInTickHandler);
+                clearFadeIn();
             }
         };
 
-        clearAndNullifyInterval(fadeInTickHandler);
+        clearFadeIn();
 
         element.volume = 0;
         element
@@ -58,7 +64,7 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
             })
             .catch((err) => {
                 console.warn("Playback prevented by browser autoplay restrictions:", err);
-                clearAndNullifyInterval(fadeInTickHandler);
+                clearFadeIn();
             });
     };
 
@@ -70,11 +76,11 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
 
             if (element.volume === 0) {
                 element.pause();
-                clearAndNullifyInterval(fadeOutTickHandler);
+                clearFadeOut();
             }
         };
 
-        clearAndNullifyInterval(fadeOutTickHandler);
+        clearFadeOut();
 
         fadeOutTickHandler = setInterval(fadeOutTick, getIntervalMs());
     };
@@ -84,7 +90,7 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
             const active = getActiveElement();
 
             if (active && !AudioUtils.isPlaying(active)) {
-                clearAndNullifyInterval(fadeOutTickHandler);
+                clearFadeOut();
                 fadeIn(active);
 
                 return true;
@@ -96,7 +102,7 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
             const active = getActiveElement();
 
             if (active && AudioUtils.isPlaying(active)) {
-                clearAndNullifyInterval(fadeInTickHandler);
+                clearFadeIn();
                 fadeOut(active);
 
                 return true;
@@ -149,8 +155,8 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
     });
 
     onCleanup(() => {
-        clearAndNullifyInterval(fadeInTickHandler);
-        clearAndNullifyInterval(fadeOutTickHandler);
+        clearFadeIn();
+        clearFadeOut();
         audioA.pause();
         audioB.pause();
     });

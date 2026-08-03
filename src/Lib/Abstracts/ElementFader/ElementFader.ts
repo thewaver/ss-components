@@ -10,8 +10,12 @@ export namespace ElementFader {
         },
     ) => {
         let transitionTimeout: ReturnType<typeof setTimeout> | undefined;
+        let pendingFrameId: number | undefined;
 
         onCleanup(() => {
+            if (pendingFrameId !== undefined) {
+                cancelAnimationFrame(pendingFrameId);
+            }
             clearTimeout(transitionTimeout);
         });
 
@@ -25,31 +29,27 @@ export namespace ElementFader {
             return transitionTarget === 1 || !hasTransitionFinished;
         });
 
-        const show = () => {
-            if (getTransitionTarget() === 1) return;
+        const setTarget = (target: 0 | 1) => {
+            if (getTransitionTarget() === target) return;
 
             setHasTransitionFinished(false);
-            setTimeout(() => {
-                setTransitionTarget(1);
+
+            if (pendingFrameId !== undefined) cancelAnimationFrame(pendingFrameId);
+
+            pendingFrameId = requestAnimationFrame(() => {
+                pendingFrameId = undefined;
+
+                setTransitionTarget(target);
                 clearTimeout(transitionTimeout);
                 transitionTimeout = setTimeout(() => setHasTransitionFinished(true), getTransitionDurationMs());
-            }, 0);
+            });
 
-            opts?.onShow?.();
+            (target === 1 ? opts?.onShow : opts?.onHide)?.();
         };
 
-        const hide = () => {
-            if (getTransitionTarget() === 0) return;
+        const show = () => setTarget(1);
 
-            setHasTransitionFinished(false);
-            setTimeout(() => {
-                setTransitionTarget(0);
-                clearTimeout(transitionTimeout);
-                transitionTimeout = setTimeout(() => setHasTransitionFinished(true), getTransitionDurationMs());
-            }, 0);
-
-            opts?.onHide?.();
-        };
+        const hide = () => setTarget(0);
 
         createEffect(() => {
             const isVisible = getIsVisible();

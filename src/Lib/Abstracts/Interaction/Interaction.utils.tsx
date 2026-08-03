@@ -48,6 +48,8 @@ export namespace InteractionUtils {
         };
 
         const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key !== "Enter" && e.key !== " ") return;
+
             setActiveByKey(true);
         };
 
@@ -69,6 +71,7 @@ export namespace InteractionUtils {
             }
 
             if (isDisabled) {
+                setInternalFlags({ isHovered: false, isFocused: false });
                 setActiveByKey(false);
                 setActiveByMouse(false);
                 return;

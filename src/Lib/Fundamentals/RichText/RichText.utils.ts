@@ -28,13 +28,21 @@ export namespace RichTextUtils {
                 for (let i = stack.length - 1; i >= 0; i--) {
                     if (stack[i].tag === tag) {
                         found = true;
+
                         const popped = stack.splice(i);
                         const completed = popped[0];
-                        stack[stack.length - 1].children.push({
-                            type: "tag",
-                            tag,
-                            children: completed.children,
-                        });
+
+                        if (popped.length > 1) {
+                            console.warn(
+                                `RichText: closing [${tag}] discarded content from unclosed ` +
+                                    `${popped
+                                        .slice(1)
+                                        .map((frame) => `[${frame.tag}]`)
+                                        .join(", ")} in: ${input}`,
+                            );
+                        }
+
+                        stack[stack.length - 1].children.push({ type: "tag", tag, children: completed.children });
 
                         break;
                     }

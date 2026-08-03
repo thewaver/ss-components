@@ -49,7 +49,7 @@ export const Shape = (props: ShapeProps) => {
         if (!rootRef) return;
 
         rootResizeObserver = new ResizeObserver(() => {
-            setRootSize({ width: rootRef?.offsetWidth ?? 0, height: rootRef?.offsetHeight ?? 0 });
+            setRootSize({ width: rootRef.offsetWidth, height: rootRef.offsetHeight });
         });
         rootResizeObserver.observe(rootRef);
     });
@@ -68,9 +68,9 @@ export const Shape = (props: ShapeProps) => {
                         <For each={getFillDefs()}>
                             {(def) => (
                                 <>
-                                    {def.gradientOrPattern?.defsElement}
-                                    {def.filter?.defsElement}
-                                    {def.clipPath?.defsElement}
+                                    {def.gradientOrPattern?.getDefsElement()}
+                                    {def.filter?.getDefsElement()}
+                                    {def.clipPath?.getDefsElement()}
                                 </>
                             )}
                         </For>
@@ -109,9 +109,9 @@ export const Shape = (props: ShapeProps) => {
                         <For each={getStrokeDefs()}>
                             {(def) => (
                                 <>
-                                    {def.gradientOrPattern?.defsElement}
-                                    {def.filter?.defsElement}
-                                    {def.clipPath?.defsElement}
+                                    {def.gradientOrPattern?.getDefsElement()}
+                                    {def.filter?.getDefsElement()}
+                                    {def.clipPath?.getDefsElement()}
                                 </>
                             )}
                         </For>

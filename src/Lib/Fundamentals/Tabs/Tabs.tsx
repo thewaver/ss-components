@@ -69,31 +69,48 @@ export const Tabs = (props: TabProps) => {
                     class={styles.tabsFloater}
                     style={{ ...getFloaterBounds(), "transition-duration": `${getTransitionDurationMs()}ms` }}
                 >
-                    {props.renderFloater?.()}
+                    {props.renderFloater()}
                 </div>
             )}
 
             <For each={getTabArray()}>
                 {(_, getIndex) => {
+                    const isDisabled = createMemo(() => props.getIsDisabled?.(getIndex) ?? false);
+
                     const commonProps: JSX.ButtonHTMLAttributes<any> = {
                         "class": styles.tabsItem,
                         "role": "tab",
-                        "disabled": props.getIsDisabled?.(getIndex),
-                        "aria-disabled": props.getIsDisabled?.(getIndex),
-                        "aria-selected": getIndex() === props.getSelectedIndex(),
-                        "onClick": props.getIsDisabled?.(getIndex)
-                            ? () => {
-                                  props.onSelectionChange?.(getIndex());
-                              }
-                            : undefined,
+                        get "aria-disabled"() {
+                            return isDisabled();
+                        },
+                        get "aria-selected"() {
+                            return getIndex() === props.getSelectedIndex();
+                        },
                     };
 
                     return props.hrefs?.[getIndex()] ? (
-                        <A href={props.hrefs![getIndex()]} {...commonProps}>
+                        <A
+                            href={props.hrefs![getIndex()]}
+                            {...commonProps}
+                            onClick={(e) => {
+                                if (isDisabled()) {
+                                    e.preventDefault();
+                                    return;
+                                }
+                                props.onSelectionChange?.(getIndex());
+                            }}
+                        >
                             {props.renderTab(getIndex)}
                         </A>
                     ) : (
-                        <button type="button" {...commonProps}>
+                        <button
+                            type="button"
+                            {...commonProps}
+                            disabled={isDisabled()}
+                            onClick={() => {
+                                props.onSelectionChange?.(getIndex());
+                            }}
+                        >
                             {props.renderTab(getIndex)}
                         </button>
                     );

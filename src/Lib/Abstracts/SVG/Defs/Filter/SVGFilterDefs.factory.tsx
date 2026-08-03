@@ -88,9 +88,15 @@ export class SVGFilterDefsFactory {
             this.maxOffset,
             defs.stdDeviation * 3 + Math.max(Math.abs(defs.dx), Math.abs(defs.dy)),
         );
-        this.filterPrimitives[key] = () => ({
+        this.filterPrimitives[key] = (srcIn) => ({
             element: (
-                <feDropShadow {...otherDefs} result={key} flood-color={floodColor} flood-opacity={floodOpacity}>
+                <feDropShadow
+                    {...{ in: srcIn }}
+                    {...otherDefs}
+                    result={key}
+                    flood-color={floodColor}
+                    flood-opacity={floodOpacity}
+                >
                     {custom}
                 </feDropShadow>
             ),

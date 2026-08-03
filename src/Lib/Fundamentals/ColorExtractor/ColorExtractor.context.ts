@@ -10,6 +10,7 @@ export const ColorExtractorContextProvider = ColorExtractorContext.Provider;
 
 export const useColorExtractor = (props?: ColorExtractorContextType) => {
     const [getColorData, setColorData] = createSignal<Color[]>([]);
+    const [getError, setError] = createSignal<unknown>();
 
     createEffect(() => {
         let isMounted = true;
@@ -29,26 +30,39 @@ export const useColorExtractor = (props?: ColorExtractorContextType) => {
 
         img.crossOrigin = "anonymous";
         img.src = src;
+        img.onerror = () => {
+            if (!isMounted) return;
+
+            console.warn(`ColorExtractor: failed to load image: ${src}`);
+            setColorData([]);
+            setError(new Error(`Failed to load image: ${src}`));
+        };
         img.onload = (e) => {
             if (!isMounted || !e.currentTarget) return;
 
-            if (colorCount === 1) {
-                getColor(e.currentTarget as HTMLImageElement, { quality }).then((res) => {
-                    if (isMounted && res) {
-                        setColorData([res]);
-                    }
+            const request =
+                colorCount === 1
+                    ? getColor(img, { quality }).then((res) => (res ? [res] : []))
+                    : getPalette(img, { quality, colorCount });
+
+            request
+                .then((res) => {
+                    if (!isMounted) return;
+
+                    setColorData(res ?? []);
+                    setError(undefined);
+                })
+                .catch((err) => {
+                    if (!isMounted) return;
+
+                    console.warn("ColorExtractor: colour extraction failed:", err);
+                    setColorData([]);
+                    setError(err);
                 });
-            } else {
-                getPalette(e.currentTarget as HTMLImageElement, { quality, colorCount }).then((res) => {
-                    if (isMounted && res) {
-                        setColorData(res);
-                    }
-                });
-            }
         };
     });
 
-    return { getColorData };
+    return { getColorData, getError };
 };
 
 export const useColorExtractorContext = () => {

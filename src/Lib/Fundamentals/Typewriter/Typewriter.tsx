@@ -1,21 +1,21 @@
 import { For, createEffect, createMemo, createSignal, on, onCleanup, onMount } from "solid-js";
 import type { ParentProps } from "solid-js";
 
-import { EMPTY_ARRAY, type ElementSegment, JSXTextParser } from "@thewaver/ss-utils";
+import { type ElementSegment, JSXTextParser } from "@thewaver/ss-utils";
 
 import type { TypewriterProps, TypewriterUpdateCause } from "./Typewriter.types";
 
 import * as styles from "./Typewriter.css";
 
+const EMPTY_SEGMENTS: (ElementSegment & { startIndex: number })[] = [];
 const DEFAULT_TYPEWRITER_ANIMATION_NAME = styles.typewriterFade;
 const DEFAULT_TYPEWRITER_ANIMATION_DURATION_MS = 500;
 const DEFAULT_TYPEWRITER_ANIMATION_DELAY_MS = 10;
 
 export const Typewriter = (props: ParentProps<TypewriterProps>) => {
     const [getContainerRef, setContainerRef] = createSignal<HTMLElement>();
-    const [getIndexedSegments, setIndexedSegments] = createSignal<(ElementSegment & { startIndex: number })[]>(
-        EMPTY_ARRAY as any,
-    );
+    const [getIndexedSegments, setIndexedSegments] =
+        createSignal<(ElementSegment & { startIndex: number })[]>(EMPTY_SEGMENTS);
     const [getAnimatedElementCount, setAnimatedElementCount] = createSignal(0);
     const [getIsAnimating, setIsAnimating] = createSignal(false);
     const [getHasAnimatedOnce, setHasAnimatedOnce] = createSignal(false);
@@ -72,7 +72,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
         if (!containerRef) return;
 
         clearAnimation();
-        setIndexedSegments(EMPTY_ARRAY as any);
+        setIndexedSegments(EMPTY_SEGMENTS);
         setAnimatedElementCount(0);
 
         let itemCount = 0;
@@ -168,7 +168,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
                                         <>
                                             {getIsAnimating() ? (
                                                 <span style={style}>
-                                                    <For each={segment.text.split("")}>
+                                                    <For each={Array.from(segment.text)}>
                                                         {(char, getCharIndex) => (
                                                             <span
                                                                 class={styles.typewriterChar}

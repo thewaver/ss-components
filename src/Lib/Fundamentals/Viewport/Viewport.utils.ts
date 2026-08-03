@@ -4,8 +4,8 @@ import type { ViewportContextType } from "./Viewport.context.types";
 
 export namespace ViewportUtils {
     export const getAdjustedBoundingClientRect = (child: Element, viewportContext: ViewportContextType) => {
-        const viewportRect = viewportContext?.getScaledRect();
-        const viewportScale = 1 / (viewportContext?.getScale() ?? 1);
+        const viewportRect = viewportContext.getScaledRect();
+        const viewportScale = 1 / viewportContext.getScale();
 
         return DOMUtils.scaleDOMRect(
             DOMUtils.offsetDOMRect(child.getBoundingClientRect(), viewportRect),

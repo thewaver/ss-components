@@ -33,13 +33,13 @@ export namespace SVGGradientDefsUtils {
         const stops: JSX.Element[] = [];
         const resolvedStops = resolveStops(colors);
 
-        stops.push(<stop id={`${id}-stop-0`} offset="0%" stop-color={colors[0].value} />);
+        stops.push(<stop id={`${id}-stop-0-start`} offset="0%" stop-color={colors[0].value} />);
 
         for (let i = 1; i < colors.length; i++) {
             const stop = resolvedStops[i];
 
-            stops.push(<stop id={`${id}-stop-${i - 1}`} offset={`${stop}%`} stop-color={colors[i - 1].value} />);
-            stops.push(<stop id={`${id}-stop-${i}`} offset={`${stop}%`} stop-color={colors[i].value} />);
+            stops.push(<stop id={`${id}-stop-${i - 1}-end`} offset={`${stop}%`} stop-color={colors[i - 1].value} />);
+            stops.push(<stop id={`${id}-stop-${i}-start`} offset={`${stop}%`} stop-color={colors[i].value} />);
         }
 
         return stops;

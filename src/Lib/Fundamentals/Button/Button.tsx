@@ -22,6 +22,7 @@ export const Button = (props: ParentProps<ButtonProps>) => {
             }}
         >
             <button
+                id={props.getId?.()}
                 ref={setAnchorRef}
                 type="button"
                 class={[styles.buttonElement, styles.buttonSizingVariants[getSizing()]].join(" ")}

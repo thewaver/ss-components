@@ -23,11 +23,6 @@ const useViewportWithFallback = (props?: ViewportContextType) => {
     };
 
     onMount(() => {
-        const sizeCb = props?.getSize;
-        const scaleRectCb = props?.getScaledRect;
-
-        if (sizeCb && scaleRectCb) return;
-
         onCleanup(() => {
             window.removeEventListener("resize", handleWindowResize);
         });
@@ -50,8 +45,8 @@ const useViewportWithFallback = (props?: ViewportContextType) => {
     };
 };
 
-export const useViewportContext = () => {
+export const useViewportContext = (): ViewportContextType => {
     const context = useContext(ViewportContext);
 
-    return useViewportWithFallback(context);
+    return context ?? useViewportWithFallback();
 };
