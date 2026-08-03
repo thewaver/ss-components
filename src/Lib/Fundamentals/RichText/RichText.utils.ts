@@ -1,6 +1,9 @@
 import type { RichTextNode } from "./RichText.types";
 
 export namespace RichTextUtils {
+    const stringifyNode = (node: RichTextNode): string =>
+        node.type === "text" ? node.content : `[${node.tag}]${node.children.map(stringifyNode).join("")}[/${node.tag}]`;
+
     export const parseContent = (input: string): RichTextNode[] => {
         const stack: { tag: string; children: RichTextNode[] }[] = [{ tag: "root", children: [] }];
         const tagRE = /\[\/?[a-z]+\]/gi;
@@ -72,9 +75,7 @@ export namespace RichTextUtils {
             const unclosed = stack.pop()!;
             stack[stack.length - 1].children.push({
                 type: "text",
-                content:
-                    `[${unclosed.tag}]` +
-                    unclosed.children.map((n) => (n.type === "text" ? n.content : `[${n.tag}]...[/${n.tag}]`)).join(""),
+                content: `[${unclosed.tag}]` + unclosed.children.map(stringifyNode).join(""),
             });
         }
 

@@ -28,6 +28,7 @@ export namespace InteractionUtils {
 
         const onBlur = () => {
             setInternalFlags("isFocused", false);
+            setActiveByKey(false);
         };
 
         const onMouseEnter = () => {

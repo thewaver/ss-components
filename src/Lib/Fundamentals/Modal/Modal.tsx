@@ -57,6 +57,19 @@ export const Modal = (props: ModalProps) => {
         props.onTransitionStatusChange?.(hasTransitionFinished);
     });
 
+    let hasWarnedAboutName = false;
+
+    createEffect(() => {
+        if (hasWarnedAboutName || !getIsVisible()) return;
+        if (props.getAriaLabel?.() || props.getAriaLabelledBy?.()) return;
+
+        hasWarnedAboutName = true;
+
+        console.warn(
+            "Modal: neither ariaLabel nor ariaLabelledBy was given, so screen readers announce this dialog without saying what it is.",
+        );
+    });
+
     return (
         <Show when={getIsVisible()}>
             <Portal
@@ -79,6 +92,8 @@ export const Modal = (props: ModalProps) => {
                         }}
                         role="dialog"
                         aria-modal="true"
+                        aria-label={props.getAriaLabel?.()}
+                        aria-labelledby={props.getAriaLabelledBy?.()}
                     >
                         {props.renderContent(getTransitionTarget, getTransitionDurationMs)}
                     </div>

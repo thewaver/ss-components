@@ -55,6 +55,7 @@ export const PageExamples = (props: ExamplesProps) => {
             <Modal
                 getMargins={() => CSSUtils.spreadMargin(40)}
                 getIsVisible={getIsModalOpen}
+                getAriaLabel={() => `${props.getItems()[getActiveIndex()].name} source code`}
                 onHide={() => {
                     setIsModalOpen(false);
                 }}

@@ -46,8 +46,8 @@ export const Tooltip = (props: TooltipProps) => {
         const contentSize = getContentSize();
         const anchorRect = getAnchorRect();
         const screenSize: Size2d = {
-            width: viewportContext.getSize().width ?? 0,
-            height: viewportContext.getSize().height ?? 0,
+            width: viewportContext.getSize().width,
+            height: viewportContext.getSize().height,
         };
         const offset = props.getOffset?.();
         const placement = props.getPlacement();

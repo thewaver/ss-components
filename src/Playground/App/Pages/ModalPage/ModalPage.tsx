@@ -6,6 +6,8 @@ import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
 import * as pageStyles from "../Pages.css";
 import * as styles from "./ModalPage.css";
 
+const MODAL_TITLE_ID = "modal-page-title";
+
 export const ModalPage = () => {
     const [getModalOpen, setModalOpen] = createSignal(false);
 
@@ -34,6 +36,7 @@ export const ModalPage = () => {
 
             <Modal
                 getIsVisible={getModalOpen}
+                getAriaLabelledBy={() => MODAL_TITLE_ID}
                 onHide={() => {
                     setModalOpen(false);
                 }}
@@ -55,7 +58,7 @@ export const ModalPage = () => {
                             transition: `transform ${getTransitionDurationMs()}ms`,
                         }}
                     >
-                        <div>I am a Modal.</div>
+                        <div id={MODAL_TITLE_ID}>I am a Modal.</div>
                         <div>And I focus trap!</div>
                         <div class={styles.buttons}>
                             <Button>

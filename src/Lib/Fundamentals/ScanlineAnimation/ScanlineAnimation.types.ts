@@ -11,6 +11,7 @@ export type ScanlineAnimationController = {
 
 export type ScanlineAnimationProps = AccessorProps<{
     src: string;
+    ariaLabel?: string;
     sizeAnchor?: "width" | "height";
     lineCount: number;
     animationDurationMs?: number;

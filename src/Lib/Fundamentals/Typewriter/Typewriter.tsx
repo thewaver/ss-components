@@ -83,7 +83,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
         const indexedSegments = inlinedSegments.map((segment) => {
             const result = { ...segment, startIndex: itemCount };
 
-            itemCount += segment.type === "text" ? segment.text.length : 1;
+            itemCount += segment.type === "text" ? Array.from(segment.text).length : 1;
 
             return result;
         });

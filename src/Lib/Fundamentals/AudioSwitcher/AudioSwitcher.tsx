@@ -12,6 +12,7 @@ const DEFAULT_AUDIO_SWITCHER_VOLUME = 0.5;
 export const AudioSwitcher = (props: AudioSwitcherProps) => {
     let fadeInTickHandler: ReturnType<typeof setInterval> | undefined;
     let fadeOutTickHandler: ReturnType<typeof setInterval> | undefined;
+    let isMounted = false;
 
     const audioA = new Audio();
     const audioB = new Audio();
@@ -60,6 +61,8 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
         element
             .play()
             .then(() => {
+                if (!isMounted || element !== getActiveElement()) return;
+
                 fadeInTickHandler = setInterval(fadeInTick, getIntervalMs());
             })
             .catch((err) => {
@@ -155,6 +158,7 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
     });
 
     onCleanup(() => {
+        isMounted = false;
         clearFadeIn();
         clearFadeOut();
         audioA.pause();
@@ -162,6 +166,7 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
     });
 
     onMount(() => {
+        isMounted = true;
         props.getController?.(controller());
     });
 

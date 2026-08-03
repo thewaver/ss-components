@@ -28,16 +28,12 @@ export const ScreenWiper = (props: ScreenWiperProps) => {
     );
 
     const getCols = createMemo(() => ({
-        odd: Array.from({ length: (viewportContext.getSize().width ?? 0) / getCellSize() }).map((_, index) => index),
-        even: Array.from({ length: (viewportContext.getSize().width ?? 0) / getCellSize() + 1 }).map(
-            (_, index) => index,
-        ),
+        odd: Array.from({ length: viewportContext.getSize().width / getCellSize() }).map((_, index) => index),
+        even: Array.from({ length: viewportContext.getSize().width / getCellSize() + 1 }).map((_, index) => index),
     }));
 
     const getRows = createMemo(() =>
-        Array.from({ length: ((viewportContext.getSize().height ?? 0) * 2) / getCellSize() + 1 }).map(
-            (_, index) => index,
-        ),
+        Array.from({ length: (viewportContext.getSize().height * 2) / getCellSize() + 1 }).map((_, index) => index),
     );
 
     const renderCell = (shape: ScreenWiperShape, _row: number, _col: number) => (

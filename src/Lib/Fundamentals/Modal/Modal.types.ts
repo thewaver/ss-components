@@ -5,6 +5,8 @@ import type { CSSMargin } from "@thewaver/ss-utils";
 import type { AccessorProps } from "../../Utils/typeUtils";
 
 export type ModalProps = AccessorProps<{
+    ariaLabel?: string;
+    ariaLabelledBy?: string;
     isVisible: boolean;
     transitionDurationMs?: number;
     margins?: CSSMargin;

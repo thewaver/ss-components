@@ -25,6 +25,9 @@ export const useColorExtractor = (props?: ColorExtractorContextType) => {
 
         onCleanup(() => {
             img.onload = null;
+            img.onerror = null;
+            // cancels the download if it hasn't finished
+            img.src = "";
             isMounted = false;
         });
 
@@ -37,8 +40,8 @@ export const useColorExtractor = (props?: ColorExtractorContextType) => {
             setColorData([]);
             setError(new Error(`Failed to load image: ${src}`));
         };
-        img.onload = (e) => {
-            if (!isMounted || !e.currentTarget) return;
+        img.onload = () => {
+            if (!isMounted) return;
 
             const request =
                 colorCount === 1

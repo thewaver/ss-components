@@ -32,7 +32,7 @@ export namespace SVGAnimationUtils {
 
         const getPatterns = createMemo(() => unrollSelfReferencingPatterns(defs.animationIterationPatterns ?? []));
 
-        let notifier: SVGAnimateElement | undefined;
+        const elements: SVGAnimateElement[] = [];
 
         return (): JSX.AnimateSVGAttributes<SVGAnimateElement> => ({
             get dur() {
@@ -45,7 +45,7 @@ export namespace SVGAnimationUtils {
             fill: "freeze",
             begin: "indefinite",
             ref: (el: SVGAnimateElement) => {
-                notifier ??= el;
+                elements.push(el);
 
                 requestAnimationFrame(() => {
                     if (!el.isConnected) return;
@@ -58,18 +58,26 @@ export namespace SVGAnimationUtils {
                 });
 
                 el.addEventListener("endEvent", () => {
+                    if (el !== elements.find((candidate) => candidate.isConnected)) return;
+
                     const currentIndex = getPatternIndex();
                     const nextIndex = getPatterns()[currentIndex]?.nextIndex;
-                    const isNotifier = el === notifier;
 
-                    if (isNotifier) defs.onAnimationIteration?.(currentIndex);
+                    defs.onAnimationIteration?.(currentIndex);
 
-                    if (nextIndex !== undefined) {
-                        if (isNotifier) setPatternIndex(nextIndex);
-
-                        el.beginElementAt((getPatterns()[nextIndex]?.beginDelayMs ?? 0) / 1000);
-                    } else if (isNotifier) {
+                    if (nextIndex === undefined) {
                         defs.onAnimationEnd?.();
+                        return;
+                    }
+
+                    setPatternIndex(nextIndex);
+
+                    const delaySecs = (getPatterns()[nextIndex]?.beginDelayMs ?? 0) / 1000;
+
+                    for (const element of elements) {
+                        if (element.isConnected) {
+                            element.beginElementAt(delaySecs);
+                        }
                     }
                 });
             },

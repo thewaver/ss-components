@@ -27,9 +27,11 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
 
     const getSizeAnchor = createMemo(() => props.getSizeAnchor?.() ?? DEFAULT_SCANLINE_ANIMATION_SIZE_ANCHOR);
 
+    const getAriaLabel = createMemo(() => props.getAriaLabel?.());
+
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
     const [getImgRef, setImgRef] = createSignal<HTMLElement>();
-    const [getContainerRef, setContainerRef] = createSignal<SVGSVGElement>();
+    const [getContainerRef, setContainerRef] = createSignal<HTMLElement>();
     const [getIsWindowVisible, setIsWindowVisible] = createSignal(true);
     const [getIsPlaying, setIsPlaying] = createSignal(true);
     const [getCurrentIteration, setCurrentIteration] = createSignal(0);
@@ -158,7 +160,13 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
     });
 
     return (
-        <div ref={setRootRef} class={styles.scanlineAnimationRoot} role="img">
+        <div
+            ref={setRootRef}
+            class={styles.scanlineAnimationRoot}
+            role={getAriaLabel() ? "img" : undefined}
+            aria-label={getAriaLabel()}
+            aria-hidden={getAriaLabel() ? undefined : "true"}
+        >
             <img
                 ref={setImgRef}
                 src={props.getSrc()}

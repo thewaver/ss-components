@@ -11,6 +11,7 @@ export namespace ElementFader {
     ) => {
         let transitionTimeout: ReturnType<typeof setTimeout> | undefined;
         let pendingFrameId: number | undefined;
+        let pendingTarget: 0 | 1 = 0;
 
         onCleanup(() => {
             if (pendingFrameId !== undefined) {
@@ -30,7 +31,10 @@ export namespace ElementFader {
         });
 
         const setTarget = (target: 0 | 1) => {
-            if (getTransitionTarget() === target) return;
+            // the signal is only written on the next frame, so it can't be used to detect repeat calls
+            if (pendingTarget === target) return;
+
+            pendingTarget = target;
 
             setHasTransitionFinished(false);
 
