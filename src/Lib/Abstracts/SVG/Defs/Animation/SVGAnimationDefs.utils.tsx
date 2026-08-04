@@ -244,7 +244,7 @@ export namespace SVGAnimationUtils {
     }
 
     export namespace Path {
-        export const getRotatingArc = (aArray: [rotation: number, arcSize: number][], defs: SVGAnimationDefs) => {
+        export const rotatingArc = (aArray: [rotation: number, arcSize: number][], defs: SVGAnimationDefs) => {
             const paths = aArray.map(([rotation, arcSize]) => SVGUtils.getArcPath(arcSize, rotation));
             const animateDefs = createAnimateDefs(defs);
 
@@ -257,7 +257,7 @@ export namespace SVGAnimationUtils {
             );
         };
 
-        export const getRotatingWedges = (
+        export const rotatingWedges = (
             wedgeCount: number,
             wedgeThickness: number,
             curvature: number,

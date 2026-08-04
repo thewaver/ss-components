@@ -35,7 +35,7 @@ export class SVGFilterDefsFactory {
 
     constructor(private readonly filterId: string) {}
 
-    public getFilterPrimitives = (defs?: SVGPrimitiveDefs & { elementSize?: Size2d }) => {
+    public computeFilterPrimitives = (defs?: SVGPrimitiveDefs & { elementSize?: Size2d }) => {
         const entries = Object.entries(this.filterPrimitives);
 
         if (entries.length < 1) return undefined;

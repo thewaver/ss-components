@@ -6,7 +6,7 @@ export type ElementHighlightProps = AccessorProps<{
     isVisible: boolean;
     padding?: number;
     transitionDurationMs?: number;
-    getElementRef: () => HTMLElement | undefined;
+    elementRef: HTMLElement | undefined;
     onShow?: () => void;
     onHide?: () => void;
     renderHighlight?: (getVisibilityTarget: () => 0 | 1, getTransitionDurationMs: () => number) => JSX.Element;

@@ -3,7 +3,7 @@ import type { AccessorProps } from "../../Utils/typeUtils";
 export type RichTextProps = AccessorProps<{
     content: string;
     removeOtherTags?: boolean;
-    getClassNames?: (defaultClasses: Record<string, string>) => Record<string, string>;
+    computeClassNames?: (defaultClasses: Record<string, string>) => Record<string, string>;
 }>;
 
 export type RichTextNode =

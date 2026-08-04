@@ -9,13 +9,13 @@ import * as styles from "./Card.css";
 const config: SurfaceProps = {
     getBorderRadii: () => CSSUtils.spreadRadius(styles.borderRadius),
     getBorderWidths: () => CSSUtils.spreadWidth(2),
-    getStrokeDefs: () => [
+    computeStrokeDefs: () => [
         {
             color: "var(--clr-primary)",
             opacity: 0.5,
         },
     ],
-    getFillDefs: () => [
+    computeFillDefs: () => [
         {
             color: "var(--clr-primary-contrast)",
         },

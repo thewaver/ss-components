@@ -3,8 +3,8 @@ import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 export namespace ElementFader {
     export const createFader = (
         getIsVisible: () => boolean,
-        getTransitionDurationMs: () => number,
-        opts?: {
+        opts: {
+            getTransitionDurationMs: () => number;
             onShow?: () => void;
             onHide?: () => void;
         },
@@ -31,7 +31,6 @@ export namespace ElementFader {
         });
 
         const setTarget = (target: 0 | 1) => {
-            // the signal is only written on the next frame, so it can't be used to detect repeat calls
             if (pendingTarget === target) return;
 
             pendingTarget = target;
@@ -45,10 +44,10 @@ export namespace ElementFader {
 
                 setTransitionTarget(target);
                 clearTimeout(transitionTimeout);
-                transitionTimeout = setTimeout(() => setHasTransitionFinished(true), getTransitionDurationMs());
+                transitionTimeout = setTimeout(() => setHasTransitionFinished(true), opts.getTransitionDurationMs());
             });
 
-            (target === 1 ? opts?.onShow : opts?.onHide)?.();
+            (target === 1 ? opts.onShow : opts.onHide)?.();
         };
 
         const show = () => setTarget(1);

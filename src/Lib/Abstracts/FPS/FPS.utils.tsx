@@ -3,7 +3,12 @@ import { type Accessor, createEffect, createSignal, onCleanup, onMount } from "s
 const FPS_INTERVAL_MS = 1000;
 
 export namespace FPSUtils {
-    export const createMonitor = (getIsEnabled: Accessor<boolean>, startupTimeMs: number = 0) => {
+    export const createMonitor = (
+        getIsDisabled: Accessor<boolean>,
+        opts?: {
+            startupTimeMs?: number;
+        },
+    ) => {
         const [getFPS, setFPS] = createSignal({ current: 0, average: 0 });
         const [getIsWindowVisible, setIsWindowVisible] = createSignal(true);
 
@@ -22,9 +27,9 @@ export namespace FPSUtils {
             });
 
             const isVisible = getIsWindowVisible();
-            const isEnabled = getIsEnabled();
+            const isDisabled = getIsDisabled();
 
-            if (!isVisible || !isEnabled) return;
+            if (!isVisible || isDisabled) return;
 
             const updateFPS = () => {
                 const now = performance.now();
@@ -50,7 +55,7 @@ export namespace FPSUtils {
                 firstTime = lastTime;
 
                 rafId = requestAnimationFrame(updateFPS);
-            }, startupTimeMs);
+            }, opts?.startupTimeMs ?? 0);
         });
 
         onMount(() => {

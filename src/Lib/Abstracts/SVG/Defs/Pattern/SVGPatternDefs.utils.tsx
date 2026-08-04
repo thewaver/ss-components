@@ -3,11 +3,11 @@ import type { JSX } from "solid-js";
 import { MathUtils, type Point2d, type Size2d } from "@thewaver/ss-utils";
 
 export namespace SVGPatternDefsUtils {
-    export const getPattern = (
+    export const computePattern = (
         id: string,
         cellCount: { rows: number; cols: number },
         patternSize: Size2d,
-        getCellPos: (index: { row: number; col: number }) => Point2d,
+        computeCellPos: (index: { row: number; col: number }) => Point2d,
         renderCell: (
             id: string,
             index: { row: number; col: number },
@@ -19,7 +19,7 @@ export namespace SVGPatternDefsUtils {
                 {Array.from({ length: cellCount.cols }, (_, col) =>
                     Array.from({ length: cellCount.rows }, (_, row) => {
                         const index = { row, col };
-                        const pos = getCellPos(index);
+                        const pos = computeCellPos(index);
                         const cellId = `${id}_X${col}_Y${row}`;
 
                         return <g transform={`translate(${pos.x},${pos.y})`}>{renderCell(cellId, index, cellCount)}</g>;
@@ -33,7 +33,7 @@ export namespace SVGPatternDefsUtils {
      * - rows advance at 1H
      * - cols advance at 1W
      */
-    export const getGridPattern = (
+    export const computeGridPattern = (
         id: string,
         cellCountIn: { rows: number; cols: number },
         cellSize: Size2d,
@@ -50,7 +50,7 @@ export namespace SVGPatternDefsUtils {
             height: cellSize.height * cellCount.rows,
         };
 
-        return getPattern(
+        return computePattern(
             id,
             cellCount,
             patternSize,
@@ -68,7 +68,7 @@ export namespace SVGPatternDefsUtils {
      * - rows have a -0.5H offset
      * - even rows have a -0.5W offset
      */
-    export const getDiagonalPattern = (
+    export const computeDiagonalPattern = (
         id: string,
         cellCountIn: { rows: number; cols: number },
         cellSize: Size2d,
@@ -88,7 +88,7 @@ export namespace SVGPatternDefsUtils {
             height: cellSize.height * (cellCount.rows * 0.5 - 0.5),
         };
 
-        return getPattern(
+        return computePattern(
             id,
             cellCount,
             patternSize,
@@ -112,7 +112,7 @@ export namespace SVGPatternDefsUtils {
      * - cols advance at 1W
      * - even rows have a -0.5W offset
      */
-    export const getHalfShiftPattern = (
+    export const computeHalfShiftPattern = (
         id: string,
         cellCountIn: { rows: number; cols: number },
         cellSize: Size2d,
@@ -132,7 +132,7 @@ export namespace SVGPatternDefsUtils {
             height: cellSize.height * cellCount.rows,
         };
 
-        return getPattern(
+        return computePattern(
             id,
             cellCount,
             patternSize,
@@ -153,7 +153,7 @@ export namespace SVGPatternDefsUtils {
      * - cols advance at 1W
      * - even cols have a -0.5H offset
      */
-    export const getHalfDropPattern = (
+    export const computeHalfDropPattern = (
         id: string,
         cellCountIn: { rows: number; cols: number },
         cellSize: Size2d,
@@ -173,7 +173,7 @@ export namespace SVGPatternDefsUtils {
             height: cellSize.height * (cellCount.rows - 1),
         };
 
-        return getPattern(
+        return computePattern(
             id,
             cellCount,
             patternSize,
@@ -193,7 +193,7 @@ export namespace SVGPatternDefsUtils {
      * - rows advance at 1H
      * - cols advance at 0.5W
      */
-    export const getTrianglePattern = (
+    export const computeTrianglePattern = (
         id: string,
         cellCountIn: { rows: number; cols: number },
         cellSize: Size2d,
@@ -213,7 +213,7 @@ export namespace SVGPatternDefsUtils {
             height: cellSize.height * cellCount.rows,
         };
 
-        return getPattern(
+        return computePattern(
             id,
             cellCount,
             patternSize,
@@ -235,7 +235,7 @@ export namespace SVGPatternDefsUtils {
      * - rows have a -0.75H offset
      * - even rows have a -0.5W offset
      */
-    export const getHexPointyTopPattern = (
+    export const computeHexPointyTopPattern = (
         id: string,
         cellCountIn: { rows: number; cols: number },
         cellSize: Size2d,
@@ -255,7 +255,7 @@ export namespace SVGPatternDefsUtils {
             height: cellSize.height * (cellCount.rows - 1) * 0.75,
         };
 
-        return getPattern(
+        return computePattern(
             id,
             cellCount,
             patternSize,
@@ -280,7 +280,7 @@ export namespace SVGPatternDefsUtils {
      * - cols have a -0.75W offset
      * - even cols have a -0.5H offset
      */
-    export const getHexFlatTopPattern = (
+    export const computeHexFlatTopPattern = (
         id: string,
         cellCountIn: { rows: number; cols: number },
         cellSize: Size2d,
@@ -300,7 +300,7 @@ export namespace SVGPatternDefsUtils {
             height: cellSize.height * (cellCount.rows - 1),
         };
 
-        return getPattern(
+        return computePattern(
             id,
             cellCount,
             patternSize,

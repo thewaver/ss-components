@@ -23,7 +23,7 @@ export const Corners = (props: ParentProps<CornersProps>) => {
 
     const getStrokeThickness = createMemo(() => props.getStrokeThickness?.() ?? DEFAULT_CORNERS_STROKE_THICKNESS);
 
-    const getVisibleCorners = createMemo(() => [...(props.visibleCorners ?? DEFAULT_CORNERS_VISIBLE_CORNERS)]);
+    const getVisibleCorners = createMemo(() => [...(props.getVisibleCorners?.() ?? DEFAULT_CORNERS_VISIBLE_CORNERS)]);
 
     return (
         <div

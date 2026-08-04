@@ -46,7 +46,7 @@ export namespace FocusUtils {
         }
     };
 
-    export const autoFocus = (getIsVisible: () => boolean, getRef: () => HTMLElement | undefined) =>
+    export const autoFocus = (getRef: () => HTMLElement | undefined, getIsVisible: () => boolean) =>
         createEffect(() => {
             let activeElement: HTMLElement | undefined;
 

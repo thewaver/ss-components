@@ -14,7 +14,7 @@ import * as styles from "./Tooltip.css";
 const DEFAULT_TOOLTIP_TRANSITION_DURATION_MS = 200;
 const DEFAULT_TOOLTIP_SHOW_ON_FOCUS_DELAY_MS = 500;
 const DEFAULT_TOOLTIP_RESERVED_SCREEN_SIZE: Size2d = { width: 0, height: 0 };
-const DEFAULT_TOOLTIP_Z_INDEX_GETTER = (getPlacement: () => TooltipPlacement) => 1;
+const DEFAULT_TOOLTIP_Z_INDEX_GETTER = (_: TooltipPlacement) => 1;
 
 export const Tooltip = (props: TooltipProps) => {
     const viewportContext = useViewportContext();
@@ -100,11 +100,13 @@ export const Tooltip = (props: TooltipProps) => {
         };
     });
 
-    const getZIndex = createMemo(() => (props.getZIndex ?? DEFAULT_TOOLTIP_Z_INDEX_GETTER)(getPlacement));
+    const getZIndex = createMemo(() => (props.computeZIndex ?? DEFAULT_TOOLTIP_Z_INDEX_GETTER)(getPlacement()));
 
-    const { getIsVisible, getTransitionTarget } = ElementFader.createFader(getShouldShow, getTransitionDurationMs);
+    const { getIsVisible, getTransitionTarget } = ElementFader.createFader(getShouldShow, {
+        getTransitionDurationMs,
+    });
 
-    ElementObserver.createObserver(props.getAnchorRef, setAnchorRect, getIsVisible);
+    ElementObserver.createObserver(props.getAnchorRef, getIsVisible, { setElementRect: setAnchorRect });
 
     const handleMouseEnter = () => {
         clearTimeout(focusTimeout);

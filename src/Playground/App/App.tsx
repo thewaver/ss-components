@@ -137,16 +137,16 @@ export function AppContent(props: RouteSectionProps) {
                     getDir={() => "column"}
                     getSelectedIndex={getTabIndex}
                     getTabCount={() => getTabConfig().length}
-                    getIsDisabled={(getIndex) => !isComponentConfig(getTabConfig()[getIndex()])}
+                    computeIsDisabled={(index) => !isComponentConfig(getTabConfig()[index])}
                     onSelectionChange={setTabIndex}
-                    hrefs={getHrefs()}
+                    getHrefs={getHrefs}
                     renderFloater={() => <div class={styles.tabFloater} />}
-                    renderTab={(getIndex) => (
+                    renderTab={(index) => (
                         <div
-                            class={isComponentConfig(getTabConfig()[getIndex()]) ? styles.tabItem : styles.tabCategory}
-                            classList={{ [styles.isSelected]: getIndex() === getTabIndex() }}
+                            class={isComponentConfig(getTabConfig()[index]) ? styles.tabItem : styles.tabCategory}
+                            classList={{ [styles.isSelected]: index === getTabIndex() }}
                         >
-                            {getTabConfig()[getIndex()].name}
+                            {getTabConfig()[index].name}
                         </div>
                     )}
                 />

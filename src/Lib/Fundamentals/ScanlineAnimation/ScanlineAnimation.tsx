@@ -94,14 +94,14 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
         const tick = (now: number) => {
             const t = (now - start) / duration; // 0..1
 
-            if (props.evaluateRootAnimation) {
-                ScanlineAnimationUtils.assignAnimationProps(rootRef, props.evaluateRootAnimation(t));
+            if (props.computeRootAnimation) {
+                ScanlineAnimationUtils.assignAnimationProps(rootRef, props.computeRootAnimation(t));
             }
 
             for (let i = 0; i < lines.length; i++) {
                 ScanlineAnimationUtils.assignAnimationProps(
                     lines[i],
-                    props.evaluateScanlineAnimation(i, lines.length, t),
+                    props.computeScanlineAnimation(i, lines.length, t),
                 );
             }
 
@@ -146,7 +146,7 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
     });
 
     onMount(() => {
-        props.getController?.(controller());
+        props.onMount?.(controller());
 
         const handleVisibilityChange = () => {
             setIsWindowVisible(document.visibilityState === "visible");

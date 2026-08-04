@@ -14,31 +14,31 @@ export namespace SVGDefsSamples {
     const getBaseBlur = (
         id: string,
         defs: {
-            size: Size2d;
+            getSize: () => Size2d;
             blurWidth?: number;
         },
     ) =>
         defs.blurWidth
             ? {
                   id: `border-blur-filter-${id}`,
-                  getDefsElement: () =>
+                  renderDefsElement: () =>
                       new SVGFilterDefsFactory(`border-blur-filter-${id}`)
                           .addGaussianBlurFilter({ stdDeviation: defs.blurWidth! })
-                          .getFilterPrimitives({ method: "isolate", elementSize: defs.size }),
+                          .computeFilterPrimitives({ method: "isolate", elementSize: defs.getSize() }),
               }
             : undefined;
 
     export namespace Iteration {
         export type ConfigDefs = {
-            getDefs: (animationDurationMs: number) => Pick<SVGAnimationDefs, "animationIterationPatterns">;
+            computeDefs: (animationDurationMs: number) => Pick<SVGAnimationDefs, "animationIterationPatterns">;
         };
 
         export const SAMPLE_CONFIGS = {
             constant: {
-                getDefs: () => ({}),
+                computeDefs: () => ({}),
             },
             repeat1_1: {
-                getDefs: (animationDurationMs) => ({
+                computeDefs: (animationDurationMs) => ({
                     animationIterationPatterns: [
                         {
                             count: 1,
@@ -53,7 +53,7 @@ export namespace SVGDefsSamples {
                 }),
             },
             repeat2_1: {
-                getDefs: (animationDurationMs) => ({
+                computeDefs: (animationDurationMs) => ({
                     animationIterationPatterns: [
                         {
                             count: 2,
@@ -68,7 +68,7 @@ export namespace SVGDefsSamples {
                 }),
             },
             repeat3_3: {
-                getDefs: (animationDurationMs) => ({
+                computeDefs: (animationDurationMs) => ({
                     animationIterationPatterns: [
                         {
                             count: 3,
@@ -89,14 +89,18 @@ export namespace SVGDefsSamples {
         const DEBUG_SEAMS = false;
 
         type ElementDefs = SVGAnimationDefs & {
-            size: Size2d;
+            getSize: () => Size2d;
             cellSize: Size2d;
             colors: ColorDefs;
             blurWidth?: number;
         };
 
         export type ConfigDefs = {
-            getSVGDefs: (id: string, interactionFlags: InteractionFlags | undefined, defs: ElementDefs) => SVGDefs[];
+            computeSVGDefs: (
+                id: string,
+                getInteractionFlags: (() => InteractionFlags) | undefined,
+                defs: ElementDefs,
+            ) => SVGDefs[];
         };
 
         const getBaseBackgroundColor = (defs: { colors: ColorDefs }) =>
@@ -131,7 +135,7 @@ export namespace SVGDefsSamples {
         // GENERICS
 
         const circle = (variant: "grid" | "drop" | "shift"): ConfigDefs => ({
-            getSVGDefs: (id, __, defs) => {
+            computeSVGDefs: (id, __, defs) => {
                 const splitValuesCache: Record<string, string> = {};
                 const cellSize = defs.cellSize;
                 const cellCount = { rows: 8, cols: 8 };
@@ -139,16 +143,16 @@ export namespace SVGDefsSamples {
 
                 const cb =
                     variant === "grid"
-                        ? SVGPatternDefsUtils.getGridPattern
+                        ? SVGPatternDefsUtils.computeGridPattern
                         : variant === "drop"
-                          ? SVGPatternDefsUtils.getHalfDropPattern
-                          : SVGPatternDefsUtils.getHalfShiftPattern;
+                          ? SVGPatternDefsUtils.computeHalfDropPattern
+                          : SVGPatternDefsUtils.computeHalfShiftPattern;
 
                 return [
                     {
                         gradientOrPattern: {
                             id: `pattern1-${id}`,
-                            getDefsElement: () =>
+                            renderDefsElement: () =>
                                 cb(`pattern1-${id}`, cellCount, cellSize, (cellId, index, cellCount, isSplit) => {
                                     const isEven = MathUtils.isEven(index.col + index.row);
                                     const values = getRandomValuesWithSplitControl(
@@ -193,14 +197,14 @@ export namespace SVGDefsSamples {
         const hexagon = (
             variant: Extract<ShapeConst.DefaultShape, "hexagon-pointy-top" | "hexagon-flat-top">,
         ): ConfigDefs => ({
-            getSVGDefs: (id, __, defs) => {
+            computeSVGDefs: (id, __, defs) => {
                 const splitValuesCache: Record<string, string> = {};
                 const cellSize = defs.cellSize;
                 const cellCount = { rows: 8, cols: 8 };
                 const cb =
                     variant === "hexagon-pointy-top"
-                        ? SVGPatternDefsUtils.getHexPointyTopPattern
-                        : SVGPatternDefsUtils.getHexFlatTopPattern;
+                        ? SVGPatternDefsUtils.computeHexPointyTopPattern
+                        : SVGPatternDefsUtils.computeHexFlatTopPattern;
 
                 const lozenge = (
                     <path
@@ -213,7 +217,7 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `pattern1-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <>
                                     {lozenge}
                                     {cb(`pattern1-${id}`, cellCount, cellSize, (cellId, index, cellCount, isSplit) => {
@@ -256,7 +260,7 @@ export namespace SVGDefsSamples {
         });
 
         const lozenge = (): ConfigDefs => ({
-            getSVGDefs: (id, __, defs) => {
+            computeSVGDefs: (id, __, defs) => {
                 const splitValuesCache: Record<string, string> = {};
                 const cellSize = defs.cellSize;
                 const cellCount = { rows: 8, cols: 8 };
@@ -272,10 +276,10 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `pattern1-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <>
                                     {lozenge}
-                                    {SVGPatternDefsUtils.getDiagonalPattern(
+                                    {SVGPatternDefsUtils.computeDiagonalPattern(
                                         `pattern1-${id}`,
                                         cellCount,
                                         cellSize,
@@ -320,7 +324,7 @@ export namespace SVGDefsSamples {
         });
 
         const triangle = (): ConfigDefs => ({
-            getSVGDefs: (id, __, defs) => {
+            computeSVGDefs: (id, __, defs) => {
                 const splitValuesCache: Record<string, string> = {};
                 const cellSize = defs.cellSize;
                 const cellCount = { rows: 8, cols: 8 };
@@ -343,11 +347,11 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `pattern1-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <>
                                     {upTriangle}
                                     {downTriangle}
-                                    {SVGPatternDefsUtils.getTrianglePattern(
+                                    {SVGPatternDefsUtils.computeTrianglePattern(
                                         `pattern1-${id}`,
                                         cellCount,
                                         cellSize,
@@ -392,15 +396,15 @@ export namespace SVGDefsSamples {
         });
 
         const whirl = (curvature: number): ConfigDefs => ({
-            getSVGDefs: (id, __, defs) => [
+            computeSVGDefs: (id, __, defs) => [
                 {
                     color: getBaseBackgroundColor(defs),
                 },
                 {
                     gradientOrPattern: {
                         id: `gradient1-${id}`,
-                        getDefsElement: () =>
-                            SVGGradientDefsUtils.getRadialGradient(
+                        renderDefsElement: () =>
+                            SVGGradientDefsUtils.computeRadialGradient(
                                 {
                                     id: `gradient1-${id}`,
                                     colors: [
@@ -418,9 +422,9 @@ export namespace SVGDefsSamples {
                     },
                     clipPath: {
                         id: `clip1-${id}`,
-                        getDefsElement: () => (
+                        renderDefsElement: () => (
                             <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                                {SVGAnimationUtils.Path.getRotatingWedges(
+                                {SVGAnimationUtils.Path.rotatingWedges(
                                     Math.max(defs.cellSize.width, defs.cellSize.height),
                                     0.75,
                                     curvature,
@@ -438,7 +442,7 @@ export namespace SVGDefsSamples {
 
         export const SAMPLE_CONFIGS = {
             plain: {
-                getSVGDefs: (_, __, defs) => [
+                computeSVGDefs: (_, __, defs) => [
                     {
                         color: getBaseBackgroundColor(defs),
                     },
@@ -459,13 +463,17 @@ export namespace SVGDefsSamples {
 
     export namespace Gradient {
         type ElementDefs = SVGAnimationDefs & {
-            size: Size2d;
+            getSize: () => Size2d;
             colors: ColorDefs;
             blurWidth?: number;
         };
 
         export type ConfigDefs = {
-            getSVGDefs: (id: string, interactionFlags: InteractionFlags | undefined, defs: ElementDefs) => SVGDefs[];
+            computeSVGDefs: (
+                id: string,
+                getInteractionFlags: (() => InteractionFlags) | undefined,
+                defs: ElementDefs,
+            ) => SVGDefs[];
         };
 
         const getBaseBorderColor = (defs: { colors: ColorDefs }) =>
@@ -479,7 +487,7 @@ export namespace SVGDefsSamples {
 
         export const SAMPLE_CONFIGS = {
             plain: {
-                getSVGDefs: (_, __, defs) => [
+                computeSVGDefs: (_, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
@@ -489,15 +497,15 @@ export namespace SVGDefsSamples {
             // ELASTIC
 
             elastic_circle_3: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient({
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient({
                                     id: `gradient1-${id}`,
                                     colors: [
                                         { value: defs.colors.primary },
@@ -509,9 +517,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip1-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             [
@@ -533,15 +541,15 @@ export namespace SVGDefsSamples {
             },
 
             elastic_semicircle_3: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient({
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient({
                                     id: `gradient1-${id}`,
                                     colors: [
                                         { value: defs.colors.primary },
@@ -553,9 +561,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip1-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             [
@@ -569,7 +577,7 @@ export namespace SVGDefsSamples {
                                         ),
                                         defs,
                                     )}
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             [
@@ -591,15 +599,15 @@ export namespace SVGDefsSamples {
             },
 
             elastic_inter_semicircle_3: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient({
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient({
                                     id: `gradient1-${id}`,
                                     colors: [
                                         { value: defs.colors.primary },
@@ -611,9 +619,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip1-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             [
@@ -639,15 +647,15 @@ export namespace SVGDefsSamples {
             },
 
             elastic_drip_3: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient({
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient({
                                     id: `gradient1-${id}`,
                                     colors: [
                                         { value: defs.colors.primary },
@@ -659,9 +667,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip1-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             [
@@ -685,12 +693,12 @@ export namespace SVGDefsSamples {
             // FLOW
 
             flow_2s: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -725,12 +733,12 @@ export namespace SVGDefsSamples {
             },
 
             flow_3: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -755,12 +763,12 @@ export namespace SVGDefsSamples {
             },
 
             flow_3s: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -791,12 +799,12 @@ export namespace SVGDefsSamples {
             },
 
             flow_diag_2s: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -819,9 +827,9 @@ export namespace SVGDefsSamples {
                                             { value: defs.colors.primary },
                                         ],
                                         spreadKind: "banded",
-                                        angle: MathUtils.unwarpAngle(45, defs.size),
+                                        angle: MathUtils.unwarpAngle(45, defs.getSize()),
                                         scale: { width: 2, height: 2 },
-                                        offset: offsetDiagonally(0.25, MathUtils.unwarpAngle(45, defs.size)),
+                                        offset: offsetDiagonally(0.25, MathUtils.unwarpAngle(45, defs.getSize())),
                                     },
                                     (x1, y1, x2, y2) =>
                                         SVGAnimationUtils.Linear.sweepDiagonal(
@@ -829,7 +837,7 @@ export namespace SVGDefsSamples {
                                             y1,
                                             x2,
                                             y2,
-                                            MathUtils.unwarpAngle(45, defs.size),
+                                            MathUtils.unwarpAngle(45, defs.getSize()),
                                             [0, -0.5],
                                             defs,
                                         ),
@@ -840,12 +848,12 @@ export namespace SVGDefsSamples {
             },
 
             flow_diag_3: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -857,9 +865,9 @@ export namespace SVGDefsSamples {
                                             { value: defs.colors.tertiary },
                                             { value: defs.colors.primary },
                                         ],
-                                        angle: MathUtils.unwarpAngle(45, defs.size),
+                                        angle: MathUtils.unwarpAngle(45, defs.getSize()),
                                         scale: { width: 2, height: 2 },
-                                        offset: offsetDiagonally(0.5, MathUtils.unwarpAngle(45, defs.size)),
+                                        offset: offsetDiagonally(0.5, MathUtils.unwarpAngle(45, defs.getSize())),
                                     },
                                     (x1, y1, x2, y2) =>
                                         SVGAnimationUtils.Linear.sweepDiagonal(
@@ -867,7 +875,7 @@ export namespace SVGDefsSamples {
                                             y1,
                                             x2,
                                             y2,
-                                            MathUtils.unwarpAngle(45, defs.size),
+                                            MathUtils.unwarpAngle(45, defs.getSize()),
                                             [0, -1],
                                             defs,
                                         ),
@@ -879,12 +887,12 @@ export namespace SVGDefsSamples {
             },
 
             flow_diag_3s: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -903,9 +911,9 @@ export namespace SVGDefsSamples {
                                             { value: defs.colors.primary },
                                         ],
                                         spreadKind: "banded",
-                                        angle: MathUtils.unwarpAngle(45, defs.size),
+                                        angle: MathUtils.unwarpAngle(45, defs.getSize()),
                                         scale: { width: 2, height: 2 },
-                                        offset: offsetDiagonally(0.25, MathUtils.unwarpAngle(45, defs.size)),
+                                        offset: offsetDiagonally(0.25, MathUtils.unwarpAngle(45, defs.getSize())),
                                     },
                                     (x1, y1, x2, y2) =>
                                         SVGAnimationUtils.Linear.sweepDiagonal(
@@ -913,7 +921,7 @@ export namespace SVGDefsSamples {
                                             y1,
                                             x2,
                                             y2,
-                                            MathUtils.unwarpAngle(45, defs.size),
+                                            MathUtils.unwarpAngle(45, defs.getSize()),
                                             [0, -0.5],
                                             defs,
                                         ),
@@ -926,15 +934,15 @@ export namespace SVGDefsSamples {
             // HUE
 
             hue_1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [{ value: defs.colors.primary }],
@@ -960,15 +968,15 @@ export namespace SVGDefsSamples {
             },
 
             hue_pulse_2: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [{ value: defs.colors.primary }],
@@ -995,15 +1003,15 @@ export namespace SVGDefsSamples {
             },
 
             hue_diag_inter_2: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [{ value: defs.colors.primary }, { value: defs.colors.secondary }],
@@ -1037,15 +1045,15 @@ export namespace SVGDefsSamples {
             },
 
             hue_rot_3: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -1095,15 +1103,15 @@ export namespace SVGDefsSamples {
             // MERGE
 
             merge_1v1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -1122,8 +1130,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -1143,15 +1151,15 @@ export namespace SVGDefsSamples {
             },
 
             merge_diag_1v1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -1171,8 +1179,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -1193,15 +1201,15 @@ export namespace SVGDefsSamples {
             },
 
             merge_diag_async_4: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -1229,8 +1237,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -1258,8 +1266,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient3-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient3-${id}`,
                                         colors: [
@@ -1287,8 +1295,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient4-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient4-${id}`,
                                         colors: [
@@ -1319,15 +1327,15 @@ export namespace SVGDefsSamples {
             // ORBIT
 
             orbit_1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -1345,15 +1353,15 @@ export namespace SVGDefsSamples {
             },
 
             orbit_1v1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -1370,8 +1378,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -1390,15 +1398,15 @@ export namespace SVGDefsSamples {
             },
 
             orbit_async_2v1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [{ value: defs.colors.tertiary }, { value: defs.colors.secondary }],
@@ -1411,8 +1419,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -1430,15 +1438,15 @@ export namespace SVGDefsSamples {
             },
 
             orbit_async_3: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -1456,8 +1464,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -1481,8 +1489,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient3-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient3-${id}`,
                                         colors: [
@@ -1510,15 +1518,15 @@ export namespace SVGDefsSamples {
             // SCAN
 
             scan_1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -1538,15 +1546,15 @@ export namespace SVGDefsSamples {
             },
 
             scan_1v1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -1565,8 +1573,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -1587,15 +1595,15 @@ export namespace SVGDefsSamples {
             },
 
             scan_diag_1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -1616,15 +1624,15 @@ export namespace SVGDefsSamples {
             },
 
             scan_diag_1v1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -1644,8 +1652,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -1668,15 +1676,15 @@ export namespace SVGDefsSamples {
             // SNAKE
 
             snake_1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -1690,9 +1698,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip1-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             MathUtils.getIntermediateValues(90, 450, 12),
@@ -1708,15 +1716,15 @@ export namespace SVGDefsSamples {
             },
 
             snake_1v1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -1730,9 +1738,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip1-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             MathUtils.getIntermediateValues(90, 450, 12),
@@ -1747,8 +1755,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -1765,9 +1773,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip2-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             MathUtils.getIntermediateValues(630, 270, 12),
@@ -1783,15 +1791,15 @@ export namespace SVGDefsSamples {
             },
 
             snake_2: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -1805,9 +1813,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip1-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             MathUtils.getIntermediateValues(90, 450, 12),
@@ -1822,8 +1830,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -1840,9 +1848,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip2-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             MathUtils.getIntermediateValues(270, 630, 12),
@@ -1858,15 +1866,15 @@ export namespace SVGDefsSamples {
             },
 
             snake_4: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -1880,9 +1888,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip1-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             MathUtils.getIntermediateValues(0, 360, 12),
@@ -1897,8 +1905,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -1913,9 +1921,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip2-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             MathUtils.getIntermediateValues(90, 450, 12),
@@ -1930,8 +1938,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient3-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient3-${id}`,
                                         colors: [
@@ -1949,9 +1957,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip3-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             MathUtils.getIntermediateValues(180, 540, 12),
@@ -1966,8 +1974,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient4-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient4-${id}`,
                                         colors: [
@@ -1985,9 +1993,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip4-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip4-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             MathUtils.getIntermediateValues(270, 630, 12),
@@ -2003,15 +2011,15 @@ export namespace SVGDefsSamples {
             },
 
             snake_inter_2: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -2037,9 +2045,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip1-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             [
@@ -2063,8 +2071,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -2090,9 +2098,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip2-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             [
@@ -2117,15 +2125,15 @@ export namespace SVGDefsSamples {
             },
 
             snake_async_3: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -2139,9 +2147,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip1-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             MathUtils.getIntermediateValues(90, 450, 12),
@@ -2156,8 +2164,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -2177,9 +2185,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip2-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             [
@@ -2197,8 +2205,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient3-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient3-${id}`,
                                         colors: [
@@ -2219,9 +2227,9 @@ export namespace SVGDefsSamples {
                         },
                         clipPath: {
                             id: `clip3-${id}`,
-                            getDefsElement: () => (
+                            renderDefsElement: () => (
                                 <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
-                                    {SVGAnimationUtils.Path.getRotatingArc(
+                                    {SVGAnimationUtils.Path.rotatingArc(
                                         ObjectUtils.zipArray(
                                             "stretch",
                                             [
@@ -2243,15 +2251,15 @@ export namespace SVGDefsSamples {
             // SWEEP
 
             sweep_1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -2271,15 +2279,15 @@ export namespace SVGDefsSamples {
             },
 
             sweep_1v1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -2298,8 +2306,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -2320,15 +2328,15 @@ export namespace SVGDefsSamples {
             },
 
             sweep_diag_1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -2349,15 +2357,15 @@ export namespace SVGDefsSamples {
             },
 
             sweep_diag_1v1: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -2377,8 +2385,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -2399,15 +2407,15 @@ export namespace SVGDefsSamples {
             },
 
             sweep_diag_async_4: {
-                getSVGDefs: (id, __, defs) => [
+                computeSVGDefs: (id, __, defs) => [
                     {
                         color: getBaseBorderColor(defs),
                     },
                     {
                         gradientOrPattern: {
                             id: `gradient1-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient1-${id}`,
                                         colors: [
@@ -2435,8 +2443,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient2-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient2-${id}`,
                                         colors: [
@@ -2464,8 +2472,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient3-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient3-${id}`,
                                         colors: [
@@ -2493,8 +2501,8 @@ export namespace SVGDefsSamples {
                     {
                         gradientOrPattern: {
                             id: `gradient4-${id}`,
-                            getDefsElement: () =>
-                                SVGGradientDefsUtils.getLinearGradient(
+                            renderDefsElement: () =>
+                                SVGGradientDefsUtils.computeLinearGradient(
                                     {
                                         id: `gradient4-${id}`,
                                         colors: [

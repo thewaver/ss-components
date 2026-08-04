@@ -12,9 +12,9 @@ import * as styles from "./Avatar.css";
 const getConfig = (strokeId: string): SurfaceProps => ({
     getBorderRadii: () => CSSUtils.spreadRadius(styles.width * 0.5),
     getBorderWidths: () => CSSUtils.spreadWidth(4),
-    getStrokeDefs: (getSize) =>
-        SVGDefsSamples.Gradient.SAMPLE_CONFIGS["sweep_diag_async_4"].getSVGDefs(strokeId, undefined, {
-            size: getSize(),
+    computeStrokeDefs: (getSize) =>
+        SVGDefsSamples.Gradient.SAMPLE_CONFIGS["sweep_diag_async_4"].computeSVGDefs(strokeId, undefined, {
+            getSize,
             animationDurationMs: 4000,
             colors: {
                 background: "#282420",

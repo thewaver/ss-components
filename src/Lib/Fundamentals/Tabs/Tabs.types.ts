@@ -9,9 +9,9 @@ export type TabProps = AccessorProps<{
     tabGap?: number;
     hrefs?: string[];
     transitionDurationMs?: number;
-    getIsDisabled?: (getIndex: () => number) => boolean;
+    computeIsDisabled?: (index: number) => boolean;
     renderGutter?: () => JSX.Element;
     renderFloater?: () => JSX.Element;
-    renderTab: (getIndex: () => number) => JSX.Element;
+    renderTab: (index: number) => JSX.Element;
     onSelectionChange?: (newIndex: number) => void;
 }>;

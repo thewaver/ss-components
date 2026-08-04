@@ -14,6 +14,6 @@ export type TypewriterProps = AccessorProps<{
     initialAnimationDelayMs?: number;
     resetAnimationOnLayout?: boolean;
     resetAnimationOnContent?: boolean;
-    getController?: (controller: TypewriterController) => void;
+    onMount?: (controller: TypewriterController) => void;
     onAnimationEnd?: () => void;
 }>;

@@ -45,7 +45,7 @@ export namespace SVGGradientDefsUtils {
         return stops;
     };
 
-    export const getLinearGradient = (
+    export const computeLinearGradient = (
         defs: SVGLinearGradientDefs,
         custom?: JSX.Element | ((x1: number, y1: number, x2: number, y2: number) => JSX.Element),
     ) => {
@@ -64,7 +64,7 @@ export namespace SVGGradientDefsUtils {
 
     const DEFAULT_RADIAL_ORIGIN = { x: 0.5, y: 0.5 };
 
-    export const getRadialGradient = (
+    export const computeRadialGradient = (
         defs: SVGRadialGradientDefs,
         custom?: JSX.Element | ((cx: number, cy: number, r: number) => JSX.Element),
     ) => {

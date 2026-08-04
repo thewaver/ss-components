@@ -109,7 +109,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
     createEffect(on(getAnimationName, () => restartAnimation()));
 
     onMount(() => {
-        props.getController?.(controller());
+        props.onMount?.(controller());
 
         let childrenContainerObserver: ResizeObserver | undefined;
 

@@ -19,7 +19,7 @@ export const DefaultExample = ({
     getAnimationDurationMs,
     getColors,
     getBlurWidth,
-    edgeThicknesses,
+    getEdgeThicknesses,
     ...otherProps
 }: ShapeExampleProps) => {
     const id = createUniqueId();
@@ -31,34 +31,32 @@ export const DefaultExample = ({
     return (
         <Shape
             {...otherProps}
-            getPoints={(getSize) => ShapeConst.getDefaultShapePoints(getShapeKind(), getSize())}
-            getStrokeDefs={(getSize) => {
-                const strokes = getStrokeConfig()
-                    .getSVGDefs(`stroke-${id}`, getFlags(), {
-                        size: getSize(),
-                        animationDurationMs: getAnimationDurationMs(),
-                        colors: getColors(),
-                        blurWidth: getBlurWidth?.(),
-                        ...getIterationConfig().getDefs(getAnimationDurationMs()),
-                    })
-                    .map((config) => ({ ...config, thicknesses: edgeThicknesses }));
+            computePoints={(size) => ShapeConst.getDefaultShapePoints(getShapeKind(), size)}
+            computeStrokeDefs={(getSize) => {
+                const strokes = getStrokeConfig().computeSVGDefs(`stroke-${id}`, getFlags, {
+                    getSize,
+                    animationDurationMs: getAnimationDurationMs(),
+                    colors: getColors(),
+                    blurWidth: getBlurWidth?.(),
+                    ...getIterationConfig().computeDefs(getAnimationDurationMs()),
+                });
 
                 if (getFlags().isFocused)
                     strokes.push({
                         color: "#FF00FF",
-                        thicknesses: [2],
                     });
 
                 return strokes;
             }}
-            getFillDefs={(getSize) =>
-                getFillConfig().getSVGDefs(`fill-${id}`, undefined, {
-                    size: getSize(),
+            getStrokeGeom={() => [{ thicknesses: getEdgeThicknesses() }]}
+            computeFillDefs={(getSize) =>
+                getFillConfig().computeSVGDefs(`fill-${id}`, undefined, {
+                    getSize,
                     cellSize: getCellSize(),
                     animationDurationMs: getAnimationDurationMs(),
                     colors: getColors(),
                     blurWidth: getBlurWidth?.(),
-                    ...getIterationConfig().getDefs(getAnimationDurationMs()),
+                    ...getIterationConfig().computeDefs(getAnimationDurationMs()),
                 })
             }
             renderChildren={(getSize, getClipPath, getClipPoints) => {
@@ -71,7 +69,11 @@ export const DefaultExample = ({
 
                     const paddingStyle =
                         shape === "square"
-                            ? ShapeUtils.getRectPadding(edgeThicknesses, otherProps.joinRadii, otherProps.lameExponents)
+                            ? ShapeUtils.getRectPadding(
+                                  getEdgeThicknesses(),
+                                  otherProps.getJoinRadii?.(),
+                                  otherProps.getLameExponents?.(),
+                              )
                             : ShapeUtils.getPolygonPadding(size, getClipPoints());
 
                     return { ...clipStyle, ...paddingStyle };

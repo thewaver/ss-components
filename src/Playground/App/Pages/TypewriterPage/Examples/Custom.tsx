@@ -30,7 +30,7 @@ export const CustomExample = (props: Props) => {
     createEffect(on(props.getText, hasMounted ? updateContentDebounced : updateContent));
 
     return (
-        <Typewriter getAnimationName={props.getAnimationName} getController={setController}>
+        <Typewriter getAnimationName={props.getAnimationName} onMount={setController}>
             {getText()}
         </Typewriter>
     );

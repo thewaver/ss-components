@@ -10,5 +10,5 @@ export type AudioSwitcherProps = AccessorProps<{
     src: string;
     crossfadeMs?: number;
     volume?: number;
-    getController?: (controller: AudioSwitcherController) => void;
+    onMount?: (controller: AudioSwitcherController) => void;
 }>;

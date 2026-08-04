@@ -81,7 +81,7 @@ const StressTestWrapper = ({
     getAnimationDurationMs,
     getColors,
     getBlurWidth,
-    edgeThicknesses,
+    getEdgeThicknesses,
     ...otherProps
 }: ShapeExampleProps) => {
     const id = createUniqueId();
@@ -93,29 +93,31 @@ const StressTestWrapper = ({
             renderItem={(getConfigIndex, getItemIndex) => (
                 <Shape
                     {...otherProps}
-                    joinRadii={otherProps.joinRadii?.map(
-                        (n) => (n * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
-                    )}
-                    getPoints={(getSize) => ShapeConst.getDefaultShapePoints(getShapeKind(), getSize())}
-                    getStrokeDefs={(getSize) =>
-                        getStrokeConfig()
-                            .getSVGDefs(`stroke-${id}`, undefined, {
-                                size: getSize(),
-                                animationDurationMs: getAnimationDurationMs(),
-                                colors: getColors(),
-                                blurWidth: getBlurWidth?.(),
-                                ...getIterationConfig().getDefs(getAnimationDurationMs()),
-                            })
-                            .map((config) => ({
-                                ...config,
-                                thicknesses: edgeThicknesses.map(
-                                    (t) => (t * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
-                                ),
-                            }))
+                    getJoinRadii={() =>
+                        otherProps.getJoinRadii!().map(
+                            (n) => (n * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
+                        )
                     }
-                    getFillDefs={(getSize) =>
-                        getFillConfig().getSVGDefs(`fill-${id}`, undefined, {
-                            size: getSize(),
+                    computePoints={(size) => ShapeConst.getDefaultShapePoints(getShapeKind(), size)}
+                    computeStrokeDefs={(getSize) =>
+                        getStrokeConfig().computeSVGDefs(`stroke-${id}`, undefined, {
+                            getSize,
+                            animationDurationMs: getAnimationDurationMs(),
+                            colors: getColors(),
+                            blurWidth: getBlurWidth?.(),
+                            ...getIterationConfig().computeDefs(getAnimationDurationMs()),
+                        })
+                    }
+                    getStrokeGeom={() => [
+                        {
+                            thicknesses: getEdgeThicknesses().map(
+                                (t) => (t * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
+                            ),
+                        },
+                    ]}
+                    computeFillDefs={(getSize) =>
+                        getFillConfig().computeSVGDefs(`fill-${id}`, undefined, {
+                            getSize,
                             cellSize: {
                                 width: (getCellSize().width * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
                                 height:
@@ -124,7 +126,7 @@ const StressTestWrapper = ({
                             animationDurationMs: getAnimationDurationMs(),
                             colors: getColors(),
                             blurWidth: getBlurWidth?.(),
-                            ...getIterationConfig().getDefs(getAnimationDurationMs()),
+                            ...getIterationConfig().computeDefs(getAnimationDurationMs()),
                         })
                     }
                     renderChildren={(_, getClipPath) => {
@@ -198,9 +200,9 @@ export const ShapePage = () => {
             getFillConfig: () => SVGDefsSamples.Pattern.SAMPLE_CONFIGS[getFillConfigKey()],
             getIterationConfig: () => SVGDefsSamples.Iteration.SAMPLE_CONFIGS[getIterationConfigKey()],
             getCellSize: () => ({ width: getCellSize(), height: getCellSize() }),
-            edgeThicknesses: getEdgeThicknesses().slice(0, getShapePointCount()),
-            joinRadii: getJoinRadii().slice(0, getShapePointCount()),
-            lameExponents: getLameExponents().slice(0, getShapePointCount()),
+            getEdgeThicknesses: () => getEdgeThicknesses().slice(0, getShapePointCount()),
+            getJoinRadii: () => getJoinRadii().slice(0, getShapePointCount()),
+            getLameExponents: () => getLameExponents().slice(0, getShapePointCount()),
         };
 
         return [

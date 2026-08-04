@@ -16,9 +16,9 @@ export const SnakeExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...
     return (
         <ScanlineAnimation
             {...otherProps}
-            evaluateScanlineAnimation={(index, lineCount, timeline) =>
-                ScanlineAnimationKeyframes.evaluateHorizontalSnake(
-                    ScanlineAnimationBreakpoints.getBreakpoints(getOrder(), index, lineCount, {}, getBreakpointOpts()),
+            computeScanlineAnimation={(index, lineCount, timeline) =>
+                ScanlineAnimationKeyframes.computeHorizontalSnake(
+                    ScanlineAnimationBreakpoints.computeBreakpoints(getOrder(), index, lineCount, {}, getBreakpointOpts()),
                     index,
                     timeline,
                     getKeyframeOpts(),

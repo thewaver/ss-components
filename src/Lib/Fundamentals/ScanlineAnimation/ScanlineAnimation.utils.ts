@@ -55,7 +55,7 @@ export namespace ScanlineAnimationBreakpoints {
         },
     };
 
-    export const getBreakpoints = <T extends OrderingType>(
+    export const computeBreakpoints = <T extends OrderingType>(
         type: T,
         idx: number,
         lineCount: number,
@@ -89,7 +89,7 @@ export namespace ScanlineAnimationKeyframes {
         shiftPercent: 5,
     };
 
-    export const evaluateHorizontalSnake = (
+    export const computeHorizontalSnake = (
         [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
         idx: number,
         t: number,
@@ -109,7 +109,7 @@ export namespace ScanlineAnimationKeyframes {
         shiftPercent: 10,
     };
 
-    export const evaluateHorizontalSplit = (
+    export const computeHorizontalSplit = (
         [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
         idx: number,
         t: number,
@@ -130,7 +130,7 @@ export namespace ScanlineAnimationKeyframes {
         peakScalePercent: 150,
     };
 
-    export const evaluateHorizontalStretch = (
+    export const computeHorizontalStretch = (
         [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
         idx: number,
         t: number,
@@ -146,7 +146,7 @@ export namespace ScanlineAnimationKeyframes {
 
     // const DEFAULT_HORIZONTAL_HUE_OPTS: Required<HorizontalHueOpts> = {};
 
-    export const evaluateHorizontalHue = (
+    export const computeHorizontalHue = (
         [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
         idx: number,
         t: number,
@@ -162,7 +162,7 @@ export namespace ScanlineAnimationKeyframes {
 
     // const DEFAULT_HORIZONTAL_BRIGHTNESS_OPTS: Required<HorizontalBrightnessOpts> = {};
 
-    export const evaluateHorizontalBrightness = (
+    export const computeHorizontalBrightness = (
         [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
         idx: number,
         t: number,
@@ -178,7 +178,7 @@ export namespace ScanlineAnimationKeyframes {
 
     // const DEFAULT_HORIZONTAL_GRAYSCALE_OPTS: Required<HorizontalGrayscaleOpts> = {};
 
-    export const evaluateHorizontalGrayscale = (
+    export const computeHorizontalGrayscale = (
         [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
         idx: number,
         t: number,

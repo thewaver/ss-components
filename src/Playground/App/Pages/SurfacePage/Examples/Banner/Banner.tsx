@@ -9,9 +9,9 @@ import knight from "../../../../knight.png";
 
 import * as styles from "./Banner.css";
 
-const getDefs = (getSize: () => Size2d, id: string) =>
-    SVGDefsSamples.Gradient.SAMPLE_CONFIGS["flow_diag_2s"].getSVGDefs(id, undefined, {
-        size: getSize(),
+const computeDefs = (getSize: () => Size2d, id: string) =>
+    SVGDefsSamples.Gradient.SAMPLE_CONFIGS["flow_diag_2s"].computeSVGDefs(id, undefined, {
+        getSize,
         animationDurationMs: 4000,
         colors: {
             background: "#282420",
@@ -24,9 +24,9 @@ const getDefs = (getSize: () => Size2d, id: string) =>
 const getConfig = (id: string): SurfaceProps => ({
     getBorderRadii: () => CSSUtils.spreadRadius(styles.borderRadius),
     getBorderWidths: () => CSSUtils.spreadWidth(4),
-    getStrokeDefs: (getSize) => getDefs(getSize, id),
-    getFillDefs: (getSize) => [
-        ...getDefs(getSize, id),
+    computeStrokeDefs: (getSize) => computeDefs(getSize, id),
+    computeFillDefs: (getSize) => [
+        ...computeDefs(getSize, id),
         {
             color: "black",
             opacity: 0.5,

@@ -29,11 +29,10 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
 
     const { getIsVisible, getTransitionTarget, hide } = ElementFader.createFader(
         props.getIsVisible,
-        getTransitionDurationMs,
-        { onShow: props.onShow, onHide: props.onHide },
+        { getTransitionDurationMs, onShow: props.onShow, onHide: props.onHide },
     );
 
-    ElementObserver.createObserver(props.getElementRef, setElementRect, getIsVisible, { getPadding });
+    ElementObserver.createObserver(props.getElementRef, getIsVisible, { setElementRect, getPadding });
 
     const getSegmentRects = createMemo(() => {
         const rect = getElementRect();

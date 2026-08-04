@@ -1,40 +1,52 @@
 import { For, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
-import { ShapeUtils, type Size2d } from "@thewaver/ss-utils";
+import { ObjectUtils, ShapeUtils, type Size2d } from "@thewaver/ss-utils";
 
-import type { ShapeProps } from "./Shape.types";
+import type { ShapeProps, ShapeStrokeGeom } from "./Shape.types";
 
 import * as styles from "./Shape.css";
+
+const DEFAULT_STROKE_GEOM: ShapeStrokeGeom = { thicknesses: [0] };
 
 export const Shape = (props: ShapeProps) => {
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
     const [getRootSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
 
     const getFillDefs = createMemo(() => {
-        return props.getFillDefs?.(getRootSize);
+        return props.computeFillDefs?.(getRootSize);
     });
 
     const getStrokeDefs = createMemo(() => {
-        return props.getStrokeDefs?.(getRootSize);
+        return props.computeStrokeDefs?.(getRootSize);
     });
 
     const getPaths = createMemo(() => {
-        const pts = props.getPoints(getRootSize);
+        const pts = props.computePoints(getRootSize());
         const cache: Record<string, ReturnType<typeof ShapeUtils.getPaths>> = {};
-        const defs = getStrokeDefs();
+        const strokeDefs = getStrokeDefs();
+        const strokeGeom = props.getStrokeGeom?.() ?? [];
 
-        return defs?.length
-            ? defs.map(({ thicknesses, offset }) => {
-                  const key = thicknesses.map((t) => Math.floor(t)).join("_");
+        if (!strokeDefs?.length) {
+            return [ShapeUtils.getPaths(pts, [0], props.getJoinRadii?.(), props.getLameExponents?.())];
+        }
 
-                  if (cache[key]) return cache[key];
+        const pairs = ObjectUtils.zipArray(
+            "stretch",
+            strokeDefs,
+            strokeGeom.length ? strokeGeom : [DEFAULT_STROKE_GEOM],
+        );
 
-                  const paths = ShapeUtils.getPaths(pts, thicknesses, props.joinRadii, props.lameExponents, offset);
-                  cache[key] = paths;
+        return pairs.map(([, geom]) => {
+            const { thicknesses, offset } = geom;
+            const key = `${thicknesses.map((t) => Math.floor(t)).join("_")}_${offset ?? ""}`;
 
-                  return paths;
-              })
-            : [ShapeUtils.getPaths(pts, [0], props.joinRadii, props.lameExponents)];
+            if (cache[key]) return cache[key];
+
+            const paths = ShapeUtils.getPaths(pts, thicknesses, props.getJoinRadii?.(), props.getLameExponents?.(), offset);
+            cache[key] = paths;
+
+            return paths;
+        });
     });
 
     onMount(() => {
@@ -68,9 +80,9 @@ export const Shape = (props: ShapeProps) => {
                         <For each={getFillDefs()}>
                             {(def) => (
                                 <>
-                                    {def.gradientOrPattern?.getDefsElement()}
-                                    {def.filter?.getDefsElement()}
-                                    {def.clipPath?.getDefsElement()}
+                                    {def.gradientOrPattern?.renderDefsElement()}
+                                    {def.filter?.renderDefsElement()}
+                                    {def.clipPath?.renderDefsElement()}
                                 </>
                             )}
                         </For>
@@ -109,9 +121,9 @@ export const Shape = (props: ShapeProps) => {
                         <For each={getStrokeDefs()}>
                             {(def) => (
                                 <>
-                                    {def.gradientOrPattern?.getDefsElement()}
-                                    {def.filter?.getDefsElement()}
-                                    {def.clipPath?.getDefsElement()}
+                                    {def.gradientOrPattern?.renderDefsElement()}
+                                    {def.filter?.renderDefsElement()}
+                                    {def.clipPath?.renderDefsElement()}
                                 </>
                             )}
                         </For>

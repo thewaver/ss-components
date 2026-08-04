@@ -33,7 +33,7 @@ export const Tabs = (props: TabProps) => {
         return rootRef ? (Array.from(rootRef.querySelectorAll(":scope > a, :scope > button")) as HTMLElement[]) : [];
     };
 
-    const getIsDisabledAt = (index: number) => props.getIsDisabled?.(() => index) ?? false;
+    const getIsDisabledAt = (index: number) => props.computeIsDisabled?.(index) ?? false;
 
     const getNextEnabledIndex = (from: number, delta: number) => {
         const count = props.getTabCount();
@@ -152,9 +152,9 @@ export const Tabs = (props: TabProps) => {
                         },
                     };
 
-                    return props.hrefs?.[getIndex()] ? (
+                    return props.getHrefs?.()?.[getIndex()] ? (
                         <A
-                            href={props.hrefs![getIndex()]}
+                            href={props.getHrefs!()[getIndex()]}
                             {...commonProps}
                             onClick={(e) => {
                                 if (isDisabled()) {
@@ -164,7 +164,7 @@ export const Tabs = (props: TabProps) => {
                                 props.onSelectionChange?.(getIndex());
                             }}
                         >
-                            {props.renderTab(getIndex)}
+                            {props.renderTab(getIndex())}
                         </A>
                     ) : (
                         <button
@@ -175,7 +175,7 @@ export const Tabs = (props: TabProps) => {
                                 props.onSelectionChange?.(getIndex());
                             }}
                         >
-                            {props.renderTab(getIndex)}
+                            {props.renderTab(getIndex())}
                         </button>
                     );
                 }}

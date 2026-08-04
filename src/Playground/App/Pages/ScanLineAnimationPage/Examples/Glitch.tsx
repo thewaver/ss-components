@@ -38,7 +38,7 @@ export const GlitchExample = ({ getKeyframeOpts, ...otherProps }: Props) => {
     return (
         <ScanlineAnimation
             {...otherProps}
-            evaluateRootAnimation={(timeline) => {
+            computeRootAnimation={(timeline) => {
                 for (let g = 0; g < BREAKPOINT_GROUPS.length; g++) {
                     if (timeline >= BREAKPOINT_GROUPS[g][0] && timeline <= BREAKPOINT_GROUPS[g][2])
                         return { brightness: 125 };
@@ -46,7 +46,7 @@ export const GlitchExample = ({ getKeyframeOpts, ...otherProps }: Props) => {
 
                 return { brightness: 100 };
             }}
-            evaluateScanlineAnimation={(index, _, timeline) => {
+            computeScanlineAnimation={(index, _, timeline) => {
                 for (let g = 0; g < BREAKPOINT_GROUPS.length; g++) {
                     if (timeline >= BREAKPOINT_GROUPS[g][0] && timeline <= BREAKPOINT_GROUPS[g][2])
                         return { translateX: getShifts()[g][index] };

@@ -8,5 +8,5 @@ export type ScanlineAnimationExampleProps = AccessorProps<{
     animationDurationMs: number;
     animationIterationDelayMs: number;
     order: ScanlineAnimationBreakpoints.OrderingType;
-    getController: (controller: ScanlineAnimationController) => void;
+    onMount: (controller: ScanlineAnimationController) => void;
 }>;

@@ -8,10 +8,10 @@ import { ViewportUtils } from "../../Fundamentals/Viewport/Viewport.utils";
 
 export namespace ElementObserver {
     export const createObserver = <T extends HTMLElement>(
-        getElementRef: Accessor<T | undefined>,
-        setElementRect: Setter<Rect | undefined>,
+        getRef: Accessor<T | undefined>,
         getIsVisible: Accessor<boolean>,
-        opts?: {
+        opts: {
+            setElementRect: Setter<Rect | undefined>;
             getPadding?: () => Bounds | number;
             getOffset?: () => Point2d;
         },
@@ -19,16 +19,16 @@ export namespace ElementObserver {
         const viewportContext = useViewportContext();
 
         const updateSize = () => {
-            const elementRef = getElementRef();
+            const ref = getRef();
 
-            if (!elementRef) return;
+            if (!ref) return;
 
-            const elementRect = ViewportUtils.getAdjustedBoundingClientRect(elementRef, viewportContext);
-            const offset = opts?.getOffset?.() ?? { x: 0, y: 0 };
-            const padding = opts?.getPadding?.() ?? 0;
+            const elementRect = ViewportUtils.getAdjustedBoundingClientRect(ref, viewportContext);
+            const offset = opts.getOffset?.() ?? { x: 0, y: 0 };
+            const padding = opts.getPadding?.() ?? 0;
             const spreadPadding = typeof padding === "number" ? Bounds.spread(padding) : padding;
 
-            setElementRect({
+            opts.setElementRect({
                 x: elementRect.x - spreadPadding.left - offset.x,
                 y: elementRect.y - spreadPadding.top - offset.y,
                 width: elementRect.width + spreadPadding.left + spreadPadding.right,

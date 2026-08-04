@@ -7,7 +7,9 @@ export namespace InteractionUtils {
     export const wrapElement = (
         getRef: () => HTMLElement | undefined,
         getIsDisabled: () => boolean,
-        skipAriaSettings?: boolean,
+        opts?: {
+            skipAriaSettings?: boolean;
+        },
     ) => {
         const [internalFlags, setInternalFlags] = createStore<InternalInteractionFlags>({});
         const [getActiveByMouse, setActiveByMouse] = createSignal(false);
@@ -64,7 +66,7 @@ export namespace InteractionUtils {
 
             if (!ref) return;
 
-            if (!skipAriaSettings) {
+            if (!opts?.skipAriaSettings) {
                 ref.role = "button";
                 ref.tabIndex = !isDisabled ? 0 : -1;
                 ref.ariaDisabled = String(isDisabled);

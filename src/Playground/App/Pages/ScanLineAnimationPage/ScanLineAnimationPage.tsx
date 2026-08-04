@@ -96,15 +96,15 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
                     const foo =
                         STRESS_ITEMS[getConfigIndex()].kind === "transform"
                             ? random < 1
-                                ? ScanlineAnimationKeyframes.evaluateHorizontalSnake
+                                ? ScanlineAnimationKeyframes.computeHorizontalSnake
                                 : random < 2
-                                  ? ScanlineAnimationKeyframes.evaluateHorizontalSplit
-                                  : ScanlineAnimationKeyframes.evaluateHorizontalStretch
+                                  ? ScanlineAnimationKeyframes.computeHorizontalSplit
+                                  : ScanlineAnimationKeyframes.computeHorizontalStretch
                             : random < 1
-                              ? ScanlineAnimationKeyframes.evaluateHorizontalBrightness
+                              ? ScanlineAnimationKeyframes.computeHorizontalBrightness
                               : random < 2
-                                ? ScanlineAnimationKeyframes.evaluateHorizontalHue
-                                : ScanlineAnimationKeyframes.evaluateHorizontalGrayscale;
+                                ? ScanlineAnimationKeyframes.computeHorizontalHue
+                                : ScanlineAnimationKeyframes.computeHorizontalGrayscale;
 
                     return (
                         <div
@@ -118,9 +118,9 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
                                 {...props}
                                 getLineCount={() => STRESS_LINE_COUNT}
                                 getAnimationIterationDelayMs={() => 0}
-                                evaluateScanlineAnimation={(index, lineCount, timeline) =>
+                                computeScanlineAnimation={(index, lineCount, timeline) =>
                                     foo(
-                                        ScanlineAnimationBreakpoints.getBreakpoints(
+                                        ScanlineAnimationBreakpoints.computeBreakpoints(
                                             props.getOrder(),
                                             index,
                                             lineCount,
@@ -502,7 +502,7 @@ export const ScanlineAnimationPage = () => {
         controllers = [];
 
         const commonProps: ScanlineAnimationExampleProps = {
-            getController: (controller) => {
+            onMount: (controller) => {
                 controllers.push(controller);
             },
             getSrc,

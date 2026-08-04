@@ -1,16 +1,17 @@
-import type { Accessor, JSX } from "solid-js";
+import type { Accessor } from "solid-js";
 
 type NonNullish<T> = T extends undefined | null ? never : T;
 
-type IsPrimitive<T> = T extends string | number | boolean | bigint | null | undefined ? true : false;
-
-type IsNonReactive<T> = T extends ((...args: any) => any) | JSX.Element | Date | Map<any, any> | Set<any> | symbol
-    ? true
-    : false;
+/**
+ * Skip (leave plain) only when the prop is:
+ * - already an accessor / callback (functions — natively reactive or never reactive)
+ * - a symbol (never reactive)
+ *
+ * Everything else is accessorized to `getX`.
+ */
+type IsSkippable<T> = NonNullish<T> extends ((...args: any) => any) | symbol ? true : false;
 
 type IsOptional<T, K extends keyof T> = {} extends Pick<T, K> ? true : false;
-
-type IsSkippable<T> = IsPrimitive<NonNullish<T>> extends true ? false : IsNonReactive<NonNullish<T>>;
 
 type PrefixKeyWithGet<K> = K extends string ? `get${Capitalize<K>}` : never;
 

@@ -19,14 +19,14 @@ export const StressTest = (props: StressTestProps) => {
         Array.from({ length: props.getConfigs()[getConfigIndex()].count }, (_, idx) => idx),
     );
 
-    const getIsMonitoring = createMemo(() => {
+    const getIsMonitoringDisabled = createMemo(() => {
         const isOpen = getModalOpen();
         const isStable = getModalTransitionFinished();
 
-        return isOpen && isStable;
+        return !(isOpen && isStable);
     });
 
-    const { getFPS } = FPSUtils.createMonitor(getIsMonitoring);
+    const { getFPS } = FPSUtils.createMonitor(getIsMonitoringDisabled);
 
     return (
         <>

@@ -1,4 +1,6 @@
 export * from "./Abstracts/Audio/Audio.utils";
+export * from "./Abstracts/ColorExtractor/ColorExtractor.context";
+export type * from "./Abstracts/ColorExtractor/ColorExtractor.context.types";
 export * from "./Abstracts/ElementFader/ElementFader";
 export * from "./Abstracts/ElementObserver/ElementObserver";
 export * from "./Abstracts/FPS/FPS.utils";
@@ -19,8 +21,6 @@ export * from "./Fundamentals/AudioSwitcher/AudioSwitcher";
 export type * from "./Fundamentals/AudioSwitcher/AudioSwitcher.types";
 export * from "./Fundamentals/Button/Button";
 export type * from "./Fundamentals/Button/Button.types";
-export * from "./Fundamentals/ColorExtractor/ColorExtractor.context";
-export type * from "./Fundamentals/ColorExtractor/ColorExtractor.context.types";
 export * from "./Fundamentals/Corners/Corners";
 export type * from "./Fundamentals/Corners/Corners.types";
 export * from "./Fundamentals/ElementHighlight/ElementHighlight";

@@ -27,11 +27,10 @@ export const Modal = (props: ModalProps) => {
 
     const { getIsVisible, getTransitionTarget, getHasTransitionFinished, hide } = ElementFader.createFader(
         props.getIsVisible,
-        getTransitionDurationMs,
-        { onShow: props.onShow, onHide: props.onHide },
+        { getTransitionDurationMs, onShow: props.onShow, onHide: props.onHide },
     );
 
-    FocusUtils.autoFocus(getIsVisible, getContainerRef);
+    FocusUtils.autoFocus(getContainerRef, getIsVisible);
 
     const handleKeyDown = (e: KeyboardEvent) => {
         if (!getIsVisible()) return;
@@ -55,19 +54,6 @@ export const Modal = (props: ModalProps) => {
         const hasTransitionFinished = getHasTransitionFinished();
 
         props.onTransitionStatusChange?.(hasTransitionFinished);
-    });
-
-    let hasWarnedAboutName = false;
-
-    createEffect(() => {
-        if (hasWarnedAboutName || !getIsVisible()) return;
-        if (props.getAriaLabel?.() || props.getAriaLabelledBy?.()) return;
-
-        hasWarnedAboutName = true;
-
-        console.warn(
-            "Modal: neither ariaLabel nor ariaLabelledBy was given, so screen readers announce this dialog without saying what it is.",
-        );
     });
 
     return (

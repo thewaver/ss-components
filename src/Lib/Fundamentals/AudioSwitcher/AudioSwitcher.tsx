@@ -167,7 +167,7 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
 
     onMount(() => {
         isMounted = true;
-        props.getController?.(controller());
+        props.onMount?.(controller());
     });
 
     return null;

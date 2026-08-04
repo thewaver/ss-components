@@ -16,9 +16,9 @@ export const BrightnessExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder
     return (
         <ScanlineAnimation
             {...otherProps}
-            evaluateScanlineAnimation={(index, lineCount, timeline) =>
-                ScanlineAnimationKeyframes.evaluateHorizontalBrightness(
-                    ScanlineAnimationBreakpoints.getBreakpoints(getOrder(), index, lineCount, {}, getBreakpointOpts()),
+            computeScanlineAnimation={(index, lineCount, timeline) =>
+                ScanlineAnimationKeyframes.computeHorizontalBrightness(
+                    ScanlineAnimationBreakpoints.computeBreakpoints(getOrder(), index, lineCount, {}, getBreakpointOpts()),
                     index,
                     timeline,
                     getKeyframeOpts(),
