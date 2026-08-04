@@ -2,6 +2,7 @@ import { createEffect, createMemo, createSignal, on, onCleanup, onMount } from "
 
 import { MathUtils } from "@thewaver/ss-utils";
 
+import type { AnimDirection } from "../../Abstracts/Anim/Anim.types";
 import { AudioUtils } from "../../Abstracts/Audio/Audio.utils";
 import type { AudioSwitcherProps } from "./AudioSwitcher.types";
 
@@ -9,9 +10,14 @@ const DEFAULT_AUDIO_SWITCHER_CROSSFADE_MS = 500;
 const DEFAULT_AUDIO_SWITCHER_CROSSFADE_STEPS = 25;
 const DEFAULT_AUDIO_SWITCHER_VOLUME = 0.5;
 
+type Fade = {
+    handle: ReturnType<typeof setInterval>;
+    direction: AnimDirection;
+};
+
 export const AudioSwitcher = (props: AudioSwitcherProps) => {
-    let fadeInTickHandler: ReturnType<typeof setInterval> | undefined;
-    let fadeOutTickHandler: ReturnType<typeof setInterval> | undefined;
+    const fades = new Map<HTMLAudioElement, Fade>();
+
     let isMounted = false;
 
     const audioA = new Audio();
@@ -33,14 +39,21 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
 
     const getInactiveElement = createMemo(() => (!isEven() ? audioA : audioB));
 
-    const clearFadeIn = () => {
-        clearInterval(fadeInTickHandler);
-        fadeInTickHandler = undefined;
+    const getFadeDirection = (element: HTMLAudioElement) => fades.get(element)?.direction;
+
+    const clearFade = (element: HTMLAudioElement) => {
+        const fade = fades.get(element);
+
+        if (!fade) return;
+
+        clearInterval(fade.handle);
+        fades.delete(element);
     };
 
-    const clearFadeOut = () => {
-        clearInterval(fadeOutTickHandler);
-        fadeOutTickHandler = undefined;
+    const startFade = (element: HTMLAudioElement, direction: AnimDirection, tick: () => void) => {
+        clearFade(element);
+
+        fades.set(element, { handle: setInterval(tick, getIntervalMs()), direction });
     };
 
     const fadeIn = (element: HTMLAudioElement) => {
@@ -51,23 +64,24 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
             element.volume = Math.min(element.volume + step, volume);
 
             if (element.volume === volume) {
-                clearFadeIn();
+                clearFade(element);
             }
         };
 
-        clearFadeIn();
+        clearFade(element);
 
         element.volume = 0;
         element
             .play()
             .then(() => {
                 if (!isMounted || element !== getActiveElement()) return;
+                if (getFadeDirection(element) === "out") return;
 
-                fadeInTickHandler = setInterval(fadeInTick, getIntervalMs());
+                startFade(element, "in", fadeInTick);
             })
             .catch((err) => {
                 console.warn("Playback prevented by browser autoplay restrictions:", err);
-                clearFadeIn();
+                clearFade(element);
             });
     };
 
@@ -79,21 +93,18 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
 
             if (element.volume === 0) {
                 element.pause();
-                clearFadeOut();
+                clearFade(element);
             }
         };
 
-        clearFadeOut();
-
-        fadeOutTickHandler = setInterval(fadeOutTick, getIntervalMs());
+        startFade(element, "out", fadeOutTick);
     };
 
     const controller = createMemo(() => ({
         play: () => {
             const active = getActiveElement();
 
-            if (active && !AudioUtils.isPlaying(active)) {
-                clearFadeOut();
+            if (active && (!AudioUtils.isPlaying(active) || getFadeDirection(active) === "out")) {
                 fadeIn(active);
 
                 return true;
@@ -104,8 +115,7 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
         pause: () => {
             const active = getActiveElement();
 
-            if (active && AudioUtils.isPlaying(active)) {
-                clearFadeIn();
+            if (active && AudioUtils.isPlaying(active) && getFadeDirection(active) !== "out") {
                 fadeOut(active);
 
                 return true;
@@ -129,7 +139,7 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
         on(getVolume, (volume) => {
             const active = getActiveElement();
 
-            if (active && !fadeInTickHandler) {
+            if (active && !fades.has(active)) {
                 active.volume = volume;
             }
         }),
@@ -161,10 +171,9 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
 
     onCleanup(() => {
         isMounted = false;
-        clearFadeIn();
-        clearFadeOut();
 
         for (const element of [audioA, audioB]) {
+            clearFade(element);
             element.pause();
             element.src = "";
             element.load();

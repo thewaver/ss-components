@@ -30,6 +30,8 @@ export namespace SVGGradientDefsUtils {
         colors: (SVGLinearGradientDefs | SVGRadialGradientDefs)["colors"],
         id: string,
     ) => {
+        if (!colors.length) return [];
+
         const stops: JSX.Element[] = [];
         const resolvedStops = resolveStops(colors);
 
@@ -69,7 +71,7 @@ export namespace SVGGradientDefsUtils {
         custom?: JSX.Element | ((cx: number, cy: number, r: number) => JSX.Element),
     ) => {
         const { id, colors, origin, scale, spreadKind, ...baseProps } = defs;
-        const o = defs.origin ?? DEFAULT_RADIAL_ORIGIN;
+        const o = origin ?? DEFAULT_RADIAL_ORIGIN;
         const r = 0.5 * (scale ?? 1);
 
         return (

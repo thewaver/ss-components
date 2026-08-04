@@ -15,6 +15,7 @@ export const surfaceDivBorder = style({
     position: "absolute",
     inset: 0,
     zIndex: 1,
+    pointerEvents: "none",
 
     borderRadius: "inherit",
     borderStyle: "solid",

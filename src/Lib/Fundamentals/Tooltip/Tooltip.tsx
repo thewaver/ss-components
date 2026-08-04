@@ -95,8 +95,8 @@ export const Tooltip = (props: TooltipProps) => {
 
         if (!anchorRect || !contentSize) return;
 
-        let shiftX = TooltipUtils.getHPlacementShift(placement.x, anchorRect, contentSize);
-        let shiftY = TooltipUtils.getVPlacementShift(placement.y, anchorRect, contentSize);
+        const shiftX = TooltipUtils.getHPlacementShift(placement.x, anchorRect, contentSize);
+        const shiftY = TooltipUtils.getVPlacementShift(placement.y, anchorRect, contentSize);
 
         return {
             x: shiftX + offset.x,
@@ -202,6 +202,7 @@ export const Tooltip = (props: TooltipProps) => {
 
         onCleanup(() => {
             containerResizeObserver?.disconnect();
+            setContentSize(undefined);
         });
 
         const containerRef = getContainerRef();
@@ -210,7 +211,7 @@ export const Tooltip = (props: TooltipProps) => {
         if (!containerRef || !isVisible) return;
 
         containerResizeObserver = new ResizeObserver(() => {
-            setContentSize({ width: containerRef!.offsetWidth, height: containerRef!.offsetHeight });
+            setContentSize({ width: containerRef.offsetWidth, height: containerRef.offsetHeight });
         });
         containerResizeObserver.observe(containerRef);
     });

@@ -25,11 +25,16 @@ export const ImageSwitcher = (props: ImageSwitcherProps) => {
 
         if (src === untrack(getCurrentImage)) return;
 
-        setPrevImage(untrack(getCurrentImage));
-        setCurrentImage(src);
-        setVersion((prev) => prev + 1);
+        const swap = () => {
+            setPrevImage(untrack(getCurrentImage));
+            setCurrentImage(src);
+            setVersion((prev) => prev + 1);
+        };
 
-        if (!src || !onLoad) return;
+        if (!src) {
+            swap();
+            return;
+        }
 
         const img = new Image();
 
@@ -40,9 +45,13 @@ export const ImageSwitcher = (props: ImageSwitcherProps) => {
         });
 
         img.crossOrigin = "anonymous";
-        img.onload = onLoad;
+        img.onload = (e) => {
+            swap();
+            onLoad?.call(img, e);
+        };
         img.onerror = () => {
             console.warn(`ImageSwitcher: failed to preload image: ${src}`);
+            swap();
         };
         img.src = src;
     });

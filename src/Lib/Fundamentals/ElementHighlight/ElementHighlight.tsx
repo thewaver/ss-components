@@ -74,19 +74,21 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
                     </Index>
                 </div>
 
-                {props.renderHighlight && getElementRect() && (
-                    <div
-                        class={styles.elementHighlightDecoration}
-                        style={{
-                            top: `${getElementRect()?.y}px`,
-                            left: `${getElementRect()?.x}px`,
-                            width: `${getElementRect()?.width}px`,
-                            height: `${getElementRect()?.height}px`,
-                        }}
-                    >
-                        {props.renderHighlight!(getTransitionTarget, getTransitionDurationMs)}
-                    </div>
-                )}
+                <Show when={props.renderHighlight && getElementRect()}>
+                    {(getRect) => (
+                        <div
+                            class={styles.elementHighlightDecoration}
+                            style={{
+                                top: `${getRect().y}px`,
+                                left: `${getRect().x}px`,
+                                width: `${getRect().width}px`,
+                                height: `${getRect().height}px`,
+                            }}
+                        >
+                            {props.renderHighlight?.(getTransitionTarget, getTransitionDurationMs)}
+                        </div>
+                    )}
+                </Show>
             </Portal>
         </Show>
     );

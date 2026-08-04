@@ -70,7 +70,7 @@ export namespace InteractionUtils {
                 ref.role = "button";
                 ref.tabIndex = !isDisabled ? 0 : -1;
                 ref.ariaDisabled = String(isDisabled);
-                ref.style.cursor = "pointer";
+                ref.style.cursor = !isDisabled ? "pointer" : "not-allowed";
             }
 
             if (isDisabled) {

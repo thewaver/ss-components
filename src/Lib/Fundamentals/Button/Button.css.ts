@@ -40,6 +40,12 @@ export const buttonElement = style({
     lineHeight: "inherit !important",
     pointerEvents: "all",
     cursor: "pointer",
+
+    selectors: {
+        "&:disabled": {
+            cursor: "not-allowed",
+        },
+    },
 });
 
 export const buttonCornersWrapper = style({

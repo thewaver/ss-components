@@ -117,7 +117,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
         update,
     }));
 
-    createEffect(on(getAnimationName, () => restartAnimation()));
+    createEffect(on(getAnimationName, () => restartAnimation(), { defer: true }));
 
     onMount(() => {
         props.onMount?.(controller());

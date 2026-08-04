@@ -28,7 +28,7 @@ export namespace RichTextUtils {
                 // Gracefully skip unmatched closing tag
                 let found = false;
 
-                for (let i = stack.length - 1; i >= 0; i--) {
+                for (let i = stack.length - 1; i >= 1; i--) {
                     if (stack[i].tag === tag) {
                         found = true;
 

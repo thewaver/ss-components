@@ -6,7 +6,6 @@ export const scanlineAnimationRoot = style({
     height: "100%",
 });
 
-// leave accessible to ARIA, disable segmented SVG instead
 export const scanlineAnimationAnchor = style({
     position: "absolute",
     opacity: 0,
