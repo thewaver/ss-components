@@ -1,6 +1,5 @@
 import { For, type JSX, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
-
-import { A } from "@solidjs/router";
+import { Dynamic } from "solid-js/web";
 
 import type { TabProps } from "./Tabs.types";
 
@@ -169,7 +168,8 @@ export const Tabs = (props: TabProps) => {
                                 </button>
                             }
                         >
-                            <A
+                            <Dynamic
+                                component={props.linkComponent ?? "a"}
                                 href={props.getHrefs!()[getIndex()]}
                                 {...commonProps}
                                 onClick={(e) => {
@@ -181,7 +181,7 @@ export const Tabs = (props: TabProps) => {
                                 }}
                             >
                                 {props.renderTab(getIndex())}
-                            </A>
+                            </Dynamic>
                         </Show>
                     );
                 }}

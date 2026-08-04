@@ -4,15 +4,30 @@ Running log of open issues and opportunities for `src/Lib`. Resolved entries (fi
 closed) are deleted once settled; remaining open work is renumbered to stay contiguous from 1.
 
 Last full pass: **2026-08-04** — whole `src/Lib`, every file read, plus the built `dist` output.
-It raised thirteen findings; eleven were fixed on **2026-08-05** and deleted from this file per
-the convention above. One was folded into **3**, which is where the work actually belongs, and
-one is recorded below as an accepted cost.
+It raised thirteen findings; twelve were fixed on **2026-08-05** and deleted from this file per
+the convention above, and one was folded into **3**, which is where the work actually belongs.
+Everything still open predates that pass.
 
 Verification for the fixes: typecheck clean, `build:lib` clean (115.9 KB JS, 3.8 KB CSS, all
 peers external, no `React.` references), `build:playground` clean, and the `RichText` parser
 re-run standalone across nine inputs — the crash gone, every pre-existing behaviour unchanged.
 Nothing was observed in a browser; there is no test environment. So the reactivity and pointer-
 event fixes are reasoned about and typechecked, not seen working.
+
+Two of the twelve were reworked after review and are worth knowing about, since the shipped code
+is not what was first proposed:
+
+- **`AudioSwitcher` fades are now per-element** — a `Map<HTMLAudioElement, { handle, direction }>`
+  replacing the two module-level interval handles. The first attempt kept the shared handle and
+  force-ended the competing fade, which dodged the collision by truncating the outgoing track
+  instead of fixing it. The global handles encoded "at most one fade-in and one fade-out
+  _overall_", which breaks the moment two elements both need to go down — pause during a track
+  switch. Per-element is the invariant that's actually true, and it makes the existing crossfade
+  honest rather than accidental.
+- **The `Tabs` floater fix was dropped** — `tabsRoot` is `display: flex` with no size constraints,
+  so gap and direction changes resize its content box and the existing root `ResizeObserver`
+  already catches them. Adding them as effect dependencies was redundant, and cost an observer
+  teardown per change.
 
 ### Index
 
@@ -21,10 +36,6 @@ event fixes are reasoned about and typechecked, not seen working.
 1. `ScreenWiper` renders a few hundred inline SVGs — _deferred_
 2. `Show when={... ?? EMPTY_ARRAY} keyed` can't fire as written — _parked_
 3. `InteractionUtils` and `Button` overlap, and neither covers non-button controls — _deferred, written up to be picked up cold_
-
-**Packaging**
-
-4. `@solidjs/router` is a required peer for one component — _accepted cost_
 
 ---
 
@@ -122,16 +133,6 @@ _Layer 2 — a shell._ One component owning the wrapper element, the tooltip, an
 1. Does `Control` own a wrapper element? It needs one to anchor the tooltip and position the highlight, and `Button` already has one — but it means every control carries an extra node.
 2. Do flags flow out of the shell (derived from events) or in as props? `isPressed` / `hasError` are genuinely the owner's state, while hover / focus / active are genuinely the element's. Probably both, merged — worth being explicit about which side wins.
 3. Does `Button` stay a component in its own right, or become an alias thin enough to drop?
-
----
-
-# Packaging
-
-## 4. `@solidjs/router` is a required peer for one component
-
-`Tabs` imports `A` from `@solidjs/router` ([Tabs.tsx:3](src/Lib/Fundamentals/Tabs/Tabs.tsx#L3)) to render the anchor variant, and it's the only file in `src/Lib` that does. Because it's a `peerDependency`, consumers who never render a `Tabs` — or who render one without `getHrefs` — still have to install a router to satisfy the peer range.
-
-Not urgent, and not wrong exactly: the router genuinely is required for that code path. Recorded as a known cost, and as an argument for the anchor element being injectable if `Tabs` is ever reworked — which would also drop `commonProps` having to be typed `JSX.ButtonHTMLAttributes<any>` to serve both branches.
 
 ---
 

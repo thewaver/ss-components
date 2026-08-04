@@ -48,7 +48,6 @@
         "vite-plugin-solid": "^2.11.14"
     },
     "peerDependencies": {
-        "@solidjs/router": "^1.0.0",
         "@thewaver/ss-utils": "^0.0.17",
         "solid-js": "^1.9.14"
     },

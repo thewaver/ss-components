@@ -1,7 +1,7 @@
 import type { JSX } from "solid-js";
 import { createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
-import { Route, type RouteSectionProps, Router } from "@solidjs/router";
+import { A, Route, type RouteSectionProps, Router } from "@solidjs/router";
 import { FunctionUtils, Size2d, StringUtils } from "@thewaver/ss-utils";
 
 import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
@@ -140,6 +140,7 @@ export function AppContent(props: RouteSectionProps) {
                     computeIsDisabled={(index) => !isComponentConfig(getTabConfig()[index])}
                     onSelectionChange={setTabIndex}
                     getHrefs={getHrefs}
+                    linkComponent={A}
                     renderFloater={() => <div class={styles.tabFloater} />}
                     renderTab={(index) => (
                         <div
