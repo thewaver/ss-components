@@ -1,8 +1,8 @@
 import type { ShapeConst, Size2d } from "@thewaver/ss-utils";
 
-import type { SVGDefsSamples } from "../../../../Lib/Abstracts/SVG/Defs/SVGDefs.const";
 import type { ShapeProps } from "../../../../Lib/Fundamentals/Shape/Shape.types";
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
+import type { SVGDefsSamples } from "../../Samples/SVGDefs.const";
 
 export type ShapeExampleProps = Pick<ShapeProps, "getLameExponents" | "getJoinRadii"> &
     AccessorProps<{

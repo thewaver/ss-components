@@ -1,6 +1,7 @@
 import { For, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
 import { Size2d } from "@thewaver/ss-utils";
+import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import type { ScanlineAnimationProps } from "./ScanlineAnimation.types";
 import { ScanlineAnimationUtils } from "./ScanlineAnimation.utils";
@@ -92,7 +93,7 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
         const start = performance.now();
 
         const tick = (now: number) => {
-            const t = (now - start) / duration; // 0..1
+            const t = Math.min(1, (now - start) / duration); // 0..1
 
             if (props.computeRootAnimation) {
                 ScanlineAnimationUtils.assignAnimationProps(rootRef, props.computeRootAnimation(t));
@@ -179,6 +180,10 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
             <div
                 ref={setContainerRef}
                 style={{
+                    ...assignInlineVars({
+                        [styles.lineSrcVar]: `url(${props.getSrc()})`,
+                        [styles.lineSizeVar]: `${getRootSize().width}px ${getRootSize().height}px`,
+                    }),
                     width: `${getRootSize().width}px`,
                     height: `${getRootSize().height}px`,
                 }}
@@ -191,13 +196,9 @@ export const ScanlineAnimation = (props: ScanlineAnimationProps) => {
                             <div
                                 class={styles.scanlineAnimationLine}
                                 style={{
-                                    "position": "absolute",
-                                    "left": 0,
                                     "top": `${y()}px`,
                                     "width": `${getRootSize().width}px`,
                                     "height": `${getLineHeight() + 1}px`,
-                                    "background-image": `url(${props.getSrc()})`,
-                                    "background-size": `${getRootSize().width}px ${getRootSize().height}px`,
                                     "background-position": `0 -${y()}px`,
                                 }}
                                 aria-hidden="true"

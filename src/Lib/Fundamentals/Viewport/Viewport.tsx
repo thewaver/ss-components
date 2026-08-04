@@ -16,7 +16,13 @@ export const Viewport = (props: ParentProps<ViewportProps>) => {
     const [getPortalRef, setPortalRef] = createSignal<HTMLElement>();
     const [getWindowSize, setWindowSize] = createSignal<Size2d>(getWindowInnerSize());
 
-    const throttleResize = FunctionUtils.trailingThrottle(() => setWindowSize(getWindowInnerSize()), 10);
+    let isDisposed = false;
+
+    const throttleResize = FunctionUtils.trailingThrottle(() => {
+        if (isDisposed) return;
+
+        setWindowSize(getWindowInnerSize());
+    }, 10);
 
     const getSizeData = createMemo(() => {
         const rect = getFit(props.getSize(), getWindowSize());
@@ -29,6 +35,7 @@ export const Viewport = (props: ParentProps<ViewportProps>) => {
 
     onMount(() => {
         onCleanup(() => {
+            isDisposed = true;
             window.removeEventListener("resize", throttleResize);
         });
 

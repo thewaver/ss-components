@@ -1,10 +1,11 @@
-import { Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import { Show, createEffect, createMemo, createSignal, createUniqueId, onCleanup } from "solid-js";
 import { Portal } from "solid-js/web";
 
 import { Rect, Size2d } from "@thewaver/ss-utils";
 
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { ElementObserver } from "../../Abstracts/ElementObserver/ElementObserver";
+import { FocusUtils } from "../../Abstracts/Focus/Focus.utils";
 import { useViewportContext } from "../Viewport/Viewport.context";
 import type { TooltipHPlacement, TooltipPlacement, TooltipProps, TooltipVPlacement } from "./Tooltip.types";
 import { TooltipUtils } from "./Tooltip.utils";
@@ -15,9 +16,12 @@ const DEFAULT_TOOLTIP_TRANSITION_DURATION_MS = 200;
 const DEFAULT_TOOLTIP_SHOW_ON_FOCUS_DELAY_MS = 500;
 const DEFAULT_TOOLTIP_RESERVED_SCREEN_SIZE: Size2d = { width: 0, height: 0 };
 const DEFAULT_TOOLTIP_Z_INDEX_GETTER = (_: TooltipPlacement) => 1;
+const DEFAULT_ARIA_DESCRIBED_BY = "aria-describedby";
 
 export const Tooltip = (props: TooltipProps) => {
     const viewportContext = useViewportContext();
+
+    const tooltipId = createUniqueId();
 
     let focusTimeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -129,6 +133,12 @@ export const Tooltip = (props: TooltipProps) => {
 
     const handleFocus = () => {
         clearTimeout(focusTimeout);
+
+        const anchorRef = props.getAnchorRef();
+
+        if (FocusUtils.getIsRestoringFocus()) return;
+        if (anchorRef && !anchorRef.matches(":focus-visible")) return;
+
         focusTimeout = setTimeout(() => {
             setShouldShow(true);
         }, getFocusShowDelayMs());
@@ -160,6 +170,34 @@ export const Tooltip = (props: TooltipProps) => {
     });
 
     createEffect(() => {
+        const anchorRef = props.getAnchorRef();
+        const isVisible = getIsVisible();
+
+        if (!anchorRef || !isVisible) return;
+
+        const describedBy = anchorRef.getAttribute(DEFAULT_ARIA_DESCRIBED_BY);
+        const ids = describedBy ? describedBy.split(/\s+/).filter(Boolean) : [];
+
+        if (!ids.includes(tooltipId)) {
+            anchorRef.setAttribute(DEFAULT_ARIA_DESCRIBED_BY, [...ids, tooltipId].join(" "));
+        }
+
+        onCleanup(() => {
+            const current = anchorRef.getAttribute(DEFAULT_ARIA_DESCRIBED_BY);
+
+            if (!current) return;
+
+            const remaining = current.split(/\s+/).filter((id) => id && id !== tooltipId);
+
+            if (remaining.length) {
+                anchorRef.setAttribute(DEFAULT_ARIA_DESCRIBED_BY, remaining.join(" "));
+            } else {
+                anchorRef.removeAttribute(DEFAULT_ARIA_DESCRIBED_BY);
+            }
+        });
+    });
+
+    createEffect(() => {
         let containerResizeObserver: ResizeObserver | undefined;
 
         onCleanup(() => {
@@ -182,11 +220,12 @@ export const Tooltip = (props: TooltipProps) => {
             <Portal mount={viewportContext.getPortalRef()}>
                 <div
                     ref={setContainerRef}
+                    id={tooltipId}
                     class={styles.tooltipRoot}
                     style={{
                         "visibility": getContentPos() ? "visible" : "hidden",
-                        "top": `${getContentPos()?.y}px`,
-                        "left": `${getContentPos()?.x}px`,
+                        "top": `${getContentPos()?.y ?? 0}px`,
+                        "left": `${getContentPos()?.x ?? 0}px`,
                         "z-index": getZIndex(),
                     }}
                     role="tooltip"

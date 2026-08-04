@@ -18,10 +18,10 @@ export const buttonRoot = style({
     userSelect: "none",
 
     selectors: {
-        [`&:not([disabled]).${buttonPressed}, &:not([disabled]):focus-visible`]: {
+        [`&:has(> button:not([disabled])).${buttonPressed}, &:has(> button:not([disabled]):focus-visible)`]: {
             zIndex: 1,
         },
-        "&:not([disabled]):hover": {
+        "&:has(> button:not([disabled])):hover": {
             zIndex: 2,
         },
     },

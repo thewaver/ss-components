@@ -1,17 +1,49 @@
 import { createEffect, onCleanup } from "solid-js";
 
 const FOCUSABLE_SELECTOR = [
+    "a[href]",
+    "area[href]",
     "button:not([disabled])",
-    "[href]",
     "input:not([disabled])",
     "select:not([disabled])",
     "textarea:not([disabled])",
+    "audio[controls]",
+    "video[controls]",
+    "details > summary:first-of-type",
+    "iframe",
+    "object",
+    "embed",
+    "[contenteditable]:not([contenteditable='false'])",
     "[tabindex]:not([tabindex='-1'])",
 ].join(",");
 
+const isReachable = (element: HTMLElement) => {
+    if (element.closest("[inert]")) return false;
+    if (element.closest("[aria-hidden='true']")) return false;
+    if (element.offsetParent === null && element.getClientRects().length === 0) return false;
+
+    return getComputedStyle(element).visibility !== "hidden";
+};
+
+let restoreDepth = 0;
+
 export namespace FocusUtils {
+    export const getIsRestoringFocus = () => restoreDepth > 0;
+
+    export const runFocusRestore = (restore: () => void) => {
+        restoreDepth++;
+
+        try {
+            restore();
+        } finally {
+            setTimeout(() => {
+                restoreDepth--;
+            }, 0);
+        }
+    };
+
     export const getFocusableChildren = (root?: HTMLElement): HTMLElement[] =>
-        Array.from((root ?? document.body).querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+        Array.from((root ?? document.body).querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(isReachable);
 
     export const getFirstFocusableChild = (root?: HTMLElement): HTMLElement | null =>
         getFocusableChildren(root)[0] ?? null;
@@ -48,18 +80,21 @@ export namespace FocusUtils {
 
     export const autoFocus = (getRef: () => HTMLElement | undefined, getIsVisible: () => boolean) =>
         createEffect(() => {
-            let activeElement: HTMLElement | undefined;
-
-            onCleanup(() => {
-                activeElement?.focus();
-            });
-
             const ref = getRef();
             const isVisible = getIsVisible();
 
             if (!ref || !isVisible) return;
 
-            activeElement = (document.activeElement as HTMLElement) ?? undefined;
+            const previouslyFocused = (document.activeElement as HTMLElement | null) ?? undefined;
+
             getFirstFocusableChild(ref)?.focus();
+
+            onCleanup(() => {
+                if (!previouslyFocused?.isConnected) return;
+
+                runFocusRestore(() => {
+                    previouslyFocused.focus();
+                });
+            });
         });
 }

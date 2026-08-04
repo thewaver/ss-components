@@ -4,15 +4,26 @@
     "version": "0.0.1",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./styles.css": "./dist/index.css",
+        "./package.json": "./package.json"
+    },
+    "sideEffects": [
+        "**/*.css"
+    ],
     "files": [
         "dist"
     ],
     "license": "MIT",
     "scripts": {
-        "build:lib": "tsup src/Lib/index.ts --format esm --dts --clean",
+        "build:lib": "vite build --config ./vite.lib.config.ts && tsup src/Lib/index.ts --format esm --dts-only",
         "build:playground": "vite build --config ./vite.config.ts",
         "build:all": "npm run build:lib && npm run build:playground",
-        "dev": "tsup src/Lib/index.ts --format esm --dts --watch",
+        "dev": "vite build --config ./vite.lib.config.ts --watch",
         "preview": "vite preview --config ./vite.config.ts",
         "start": "vite --config ./vite.config.ts --host",
         "format": "prettier --write ."

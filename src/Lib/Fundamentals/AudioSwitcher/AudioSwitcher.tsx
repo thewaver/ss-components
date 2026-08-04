@@ -145,7 +145,9 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
             const active = getActiveElement();
             const inactive = getInactiveElement();
 
-            fadeOut(inactive);
+            if (AudioUtils.isPlaying(inactive)) {
+                fadeOut(inactive);
+            }
 
             if (src) {
                 active.src = src;
@@ -161,8 +163,12 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
         isMounted = false;
         clearFadeIn();
         clearFadeOut();
-        audioA.pause();
-        audioB.pause();
+
+        for (const element of [audioA, audioB]) {
+            element.pause();
+            element.src = "";
+            element.load();
+        }
     });
 
     onMount(() => {

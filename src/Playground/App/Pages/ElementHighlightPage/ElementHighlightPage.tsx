@@ -11,7 +11,8 @@ export const ElementHighlightPage = () => {
     let containerRefs: HTMLElement[] = [];
 
     const [getActiveIndex, setActiveIndex] = createSignal(0);
-    const [getHighlightOn, setHighlightOn] = createSignal(false);
+    const highlightVisibility = createSignal(false);
+    const [, setHighlightOn] = highlightVisibility;
 
     return (
         <div class={styles.root}>
@@ -53,9 +54,7 @@ export const ElementHighlightPage = () => {
             <ElementHighlight
                 getElementRef={() => containerRefs[getActiveIndex()]}
                 getPadding={() => 20}
-                getIsVisible={getHighlightOn}
-                onHide={() => setHighlightOn(false)}
-                onShow={() => setHighlightOn(true)}
+                visibilitySignal={highlightVisibility}
                 renderHighlight={(getVisibilityTarget) => (
                     <Corners getColor={() => (getVisibilityTarget() === 1 ? "yellow" : "transparent")} />
                 )}

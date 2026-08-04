@@ -49,13 +49,13 @@ export namespace SVGGradientDefsUtils {
         defs: SVGLinearGradientDefs,
         custom?: JSX.Element | ((x1: number, y1: number, x2: number, y2: number) => JSX.Element),
     ) => {
-        const { id, angle, offset, scale, colors, ...baseProps } = defs;
+        const { id, angle, offset, scale, colors, spreadKind, ...baseProps } = defs;
         const { x1, y1, x2, y2 } = SVGUtils.getLinearCoords({ angle, offset, scale });
 
         return (
             <linearGradient {...baseProps} id={id} x1={x1} y1={y1} x2={x2} y2={y2}>
                 {typeof custom === "function" ? custom(x1, y1, x2, y2) : custom}
-                {defs.spreadKind === "banded"
+                {spreadKind === "banded"
                     ? renderBandedGradientStops(colors, id)
                     : renderSmoothGradientStops(colors, id)}
             </linearGradient>
@@ -68,14 +68,14 @@ export namespace SVGGradientDefsUtils {
         defs: SVGRadialGradientDefs,
         custom?: JSX.Element | ((cx: number, cy: number, r: number) => JSX.Element),
     ) => {
-        const { id, colors, origin, scale, ...baseProps } = defs;
+        const { id, colors, origin, scale, spreadKind, ...baseProps } = defs;
         const o = defs.origin ?? DEFAULT_RADIAL_ORIGIN;
         const r = 0.5 * (scale ?? 1);
 
         return (
             <radialGradient {...baseProps} id={id} cx={o.x} cy={o.y} r={r}>
                 {typeof custom === "function" ? custom(o.x, o.y, r) : custom}
-                {defs.spreadKind === "banded"
+                {spreadKind === "banded"
                     ? renderBandedGradientStops(colors, id)
                     : renderSmoothGradientStops(colors, id)}
             </radialGradient>

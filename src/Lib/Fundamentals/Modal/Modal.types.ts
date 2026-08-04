@@ -1,4 +1,4 @@
-import type { JSX } from "solid-js";
+import type { JSX, Signal } from "solid-js";
 
 import type { CSSMargin } from "@thewaver/ss-utils";
 
@@ -7,7 +7,7 @@ import type { AccessorProps } from "../../Utils/typeUtils";
 export type ModalProps = AccessorProps<{
     ariaLabel?: string;
     ariaLabelledBy?: string;
-    isVisible: boolean;
+    visibilitySignal: Signal<boolean>;
     transitionDurationMs?: number;
     margins?: CSSMargin;
     onShow?: () => void;

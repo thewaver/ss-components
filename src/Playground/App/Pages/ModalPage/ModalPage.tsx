@@ -9,7 +9,8 @@ import * as styles from "./ModalPage.css";
 const MODAL_TITLE_ID = "modal-page-title";
 
 export const ModalPage = () => {
-    const [getModalOpen, setModalOpen] = createSignal(false);
+    const modalVisibility = createSignal(false);
+    const [, setModalOpen] = modalVisibility;
 
     return (
         <div class={styles.root}>
@@ -35,11 +36,8 @@ export const ModalPage = () => {
             </Button>
 
             <Modal
-                getIsVisible={getModalOpen}
+                visibilitySignal={modalVisibility}
                 getAriaLabelledBy={() => MODAL_TITLE_ID}
-                onHide={() => {
-                    setModalOpen(false);
-                }}
                 renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
                     <div
                         class={getVisibilityTarget() === 1 ? pageStyles.overlayOn : pageStyles.overlayOff}

@@ -1,4 +1,4 @@
-import { For, createEffect, createMemo, createSignal, on, onCleanup, onMount } from "solid-js";
+import { For, Index, createEffect, createMemo, createSignal, on, onCleanup, onMount } from "solid-js";
 import type { ParentProps } from "solid-js";
 
 import { type ElementSegment, JSXTextParser } from "@thewaver/ss-utils";
@@ -34,6 +34,17 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
 
     const getAnimationDelayMs = createMemo(
         () => props.getAnimationDelayMs?.() ?? DEFAULT_TYPEWRITER_ANIMATION_DELAY_MS,
+    );
+
+    const getAnimationBase = createMemo(() =>
+        getIsAnimating()
+            ? {
+                  name: getAnimationName(),
+                  durationMs: getAnimationDurationMs(),
+                  delayMs: getAnimationDelayMs(),
+                  initialDelayMs: props.getInitialAnimationDelayMs?.() ?? 0,
+              }
+            : undefined,
     );
 
     const clearAnimation = () => {
@@ -135,14 +146,17 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
                 <div class={styles.typewriterTextWrap} style={{ width: `${getContainerRef()?.clientWidth ?? 0}px` }}>
                     <For each={getIndexedSegments()}>
                         {(segment) => {
-                            const getAnimationStyle = (startIndex: number) =>
-                                getIsAnimating()
-                                    ? {
-                                          "animation-name": getAnimationName(),
-                                          "animation-duration": `${getAnimationDurationMs()}ms`,
-                                          "animation-delay": `${startIndex * getAnimationDelayMs() + (props.getInitialAnimationDelayMs?.() ?? 0)}ms`,
-                                      }
-                                    : undefined;
+                            const getAnimationStyle = (startIndex: number) => {
+                                const base = getAnimationBase();
+
+                                if (!base) return undefined;
+
+                                return {
+                                    "animation-name": base.name,
+                                    "animation-duration": `${base.durationMs}ms`,
+                                    "animation-delay": `${startIndex * base.delayMs + base.initialDelayMs}ms`,
+                                };
+                            };
 
                             switch (segment.type) {
                                 case "atomic": {
@@ -168,18 +182,18 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
                                         <>
                                             {getIsAnimating() ? (
                                                 <span style={style}>
-                                                    <For each={Array.from(segment.text)}>
-                                                        {(char, getCharIndex) => (
+                                                    <Index each={Array.from(segment.text)}>
+                                                        {(getChar, charIndex) => (
                                                             <span
                                                                 class={styles.typewriterChar}
                                                                 style={getAnimationStyle(
-                                                                    segment.startIndex + getCharIndex(),
+                                                                    segment.startIndex + charIndex,
                                                                 )}
                                                             >
-                                                                {char}
+                                                                {getChar()}
                                                             </span>
                                                         )}
-                                                    </For>
+                                                    </Index>
                                                 </span>
                                             ) : segment.meta?.anchor ? (
                                                 <a

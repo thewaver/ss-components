@@ -1,4 +1,4 @@
-import { For, type JSX, Show, createMemo, createSignal } from "solid-js";
+import { For, type JSX, Show, createMemo, createSignal, onCleanup } from "solid-js";
 
 import { EMPTY_ARRAY, SVGUtils } from "@thewaver/ss-utils";
 
@@ -32,7 +32,15 @@ export namespace SVGAnimationUtils {
 
         const getPatterns = createMemo(() => unrollSelfReferencingPatterns(defs.animationIterationPatterns ?? []));
 
-        const elements: SVGAnimateElement[] = [];
+        const elements = new Set<SVGAnimateElement>();
+
+        const getLeadElement = () => {
+            for (const candidate of elements) {
+                if (candidate.isConnected) return candidate;
+            }
+
+            return undefined;
+        };
 
         return (): JSX.AnimateSVGAttributes<SVGAnimateElement> => ({
             get dur() {
@@ -45,9 +53,9 @@ export namespace SVGAnimationUtils {
             fill: "freeze",
             begin: "indefinite",
             ref: (el: SVGAnimateElement) => {
-                elements.push(el);
+                elements.add(el);
 
-                requestAnimationFrame(() => {
+                const frameId = requestAnimationFrame(() => {
                     if (!el.isConnected) return;
 
                     const svg = el.ownerSVGElement;
@@ -57,8 +65,8 @@ export namespace SVGAnimationUtils {
                     el.setAttribute("begin", `${now + delaySecs}s`);
                 });
 
-                el.addEventListener("endEvent", () => {
-                    if (el !== elements.find((candidate) => candidate.isConnected)) return;
+                const handleEndEvent = () => {
+                    if (el !== getLeadElement()) return;
 
                     const currentIndex = getPatternIndex();
                     const nextIndex = getPatterns()[currentIndex]?.nextIndex;
@@ -79,6 +87,14 @@ export namespace SVGAnimationUtils {
                             element.beginElementAt(delaySecs);
                         }
                     }
+                };
+
+                el.addEventListener("endEvent", handleEndEvent);
+
+                onCleanup(() => {
+                    cancelAnimationFrame(frameId);
+                    el.removeEventListener("endEvent", handleEndEvent);
+                    elements.delete(el);
                 });
             },
         });

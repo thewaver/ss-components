@@ -42,7 +42,13 @@ export const Shape = (props: ShapeProps) => {
 
             if (cache[key]) return cache[key];
 
-            const paths = ShapeUtils.getPaths(pts, thicknesses, props.getJoinRadii?.(), props.getLameExponents?.(), offset);
+            const paths = ShapeUtils.getPaths(
+                pts,
+                thicknesses,
+                props.getJoinRadii?.(),
+                props.getLameExponents?.(),
+                offset,
+            );
             cache[key] = paths;
 
             return paths;

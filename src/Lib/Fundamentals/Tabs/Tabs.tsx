@@ -1,4 +1,4 @@
-import { For, type JSX, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import { For, type JSX, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
 import { A } from "@solidjs/router";
 
@@ -136,6 +136,7 @@ export const Tabs = (props: TabProps) => {
 
             <For each={getTabArray()}>
                 {(_, getIndex) => {
+                    const isLink = createMemo(() => props.getHrefs?.()?.[getIndex()]);
                     const isDisabled = createMemo(() => getIsDisabledAt(getIndex()));
 
                     const commonProps: JSX.ButtonHTMLAttributes<any> = {
@@ -152,31 +153,36 @@ export const Tabs = (props: TabProps) => {
                         },
                     };
 
-                    return props.getHrefs?.()?.[getIndex()] ? (
-                        <A
-                            href={props.getHrefs!()[getIndex()]}
-                            {...commonProps}
-                            onClick={(e) => {
-                                if (isDisabled()) {
-                                    e.preventDefault();
-                                    return;
-                                }
-                                props.onSelectionChange?.(getIndex());
-                            }}
+                    return (
+                        <Show
+                            when={isLink()}
+                            fallback={
+                                <button
+                                    type="button"
+                                    {...commonProps}
+                                    disabled={isDisabled()}
+                                    onClick={() => {
+                                        props.onSelectionChange?.(getIndex());
+                                    }}
+                                >
+                                    {props.renderTab(getIndex())}
+                                </button>
+                            }
                         >
-                            {props.renderTab(getIndex())}
-                        </A>
-                    ) : (
-                        <button
-                            type="button"
-                            {...commonProps}
-                            disabled={isDisabled()}
-                            onClick={() => {
-                                props.onSelectionChange?.(getIndex());
-                            }}
-                        >
-                            {props.renderTab(getIndex())}
-                        </button>
+                            <A
+                                href={props.getHrefs!()[getIndex()]}
+                                {...commonProps}
+                                onClick={(e) => {
+                                    if (isDisabled()) {
+                                        e.preventDefault();
+                                        return;
+                                    }
+                                    props.onSelectionChange?.(getIndex());
+                                }}
+                            >
+                                {props.renderTab(getIndex())}
+                            </A>
+                        </Show>
                     );
                 }}
             </For>

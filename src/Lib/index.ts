@@ -1,3 +1,4 @@
+export type * from "./Abstracts/Anim/Anim.types";
 export * from "./Abstracts/Audio/Audio.utils";
 export * from "./Abstracts/ColorExtractor/ColorExtractor.context";
 export type * from "./Abstracts/ColorExtractor/ColorExtractor.context.types";
@@ -7,7 +8,6 @@ export * from "./Abstracts/FPS/FPS.utils";
 export * from "./Abstracts/Focus/Focus.utils";
 export type * from "./Abstracts/Interaction/Interaction.types";
 export * from "./Abstracts/Interaction/Interaction.utils";
-export * from "./Abstracts/SVG/Defs/SVGDefs.const";
 export type * from "./Abstracts/SVG/Defs/SVGDefs.types";
 export type * from "./Abstracts/SVG/Defs/Animation/SVGAnimationDefs.types";
 export * from "./Abstracts/SVG/Defs/Animation/SVGAnimationDefs.utils";

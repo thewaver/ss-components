@@ -3,14 +3,12 @@ import { createStore } from "solid-js/store";
 
 import { ScanlineAnimation } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
 import type { ScanlineAnimationController } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.types";
-import {
-    ScanlineAnimationBreakpoints,
-    ScanlineAnimationKeyframes,
-} from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
+import { ScanlineAnimationBreakpoints } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { StressTest } from "../../PageComponents/StressTest/StressTest";
 import type { StressTestDefs } from "../../PageComponents/StressTest/StressText.types";
+import { ScanlineAnimationKeyframesConst } from "../../Samples/ScanlineAnimation.const";
 import knight from "../../knight.png";
 import { BrightnessExample } from "./Examples/Brightness";
 import BrightnessExampleRaw from "./Examples/Brightness.tsx?raw";
@@ -96,15 +94,15 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
                     const foo =
                         STRESS_ITEMS[getConfigIndex()].kind === "transform"
                             ? random < 1
-                                ? ScanlineAnimationKeyframes.computeHorizontalSnake
+                                ? ScanlineAnimationKeyframesConst.computeHorizontalSnake
                                 : random < 2
-                                  ? ScanlineAnimationKeyframes.computeHorizontalSplit
-                                  : ScanlineAnimationKeyframes.computeHorizontalStretch
+                                  ? ScanlineAnimationKeyframesConst.computeHorizontalSplit
+                                  : ScanlineAnimationKeyframesConst.computeHorizontalStretch
                             : random < 1
-                              ? ScanlineAnimationKeyframes.computeHorizontalBrightness
+                              ? ScanlineAnimationKeyframesConst.computeHorizontalBrightness
                               : random < 2
-                                ? ScanlineAnimationKeyframes.computeHorizontalHue
-                                : ScanlineAnimationKeyframes.computeHorizontalGrayscale;
+                                ? ScanlineAnimationKeyframesConst.computeHorizontalHue
+                                : ScanlineAnimationKeyframesConst.computeHorizontalGrayscale;
 
                     return (
                         <div
@@ -244,7 +242,7 @@ const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
 const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
     const [getOrder, setOrder] = createSignal(props.getOrder());
-    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalStretchOpts>({
+    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalStretchOpts>({
         peakScalePercent: 150,
     });
     const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
@@ -293,7 +291,7 @@ const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
 const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
     const [getOrder, setOrder] = createSignal(props.getOrder());
-    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalSnakeOpts>({
+    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalSnakeOpts>({
         shiftPercent: 5,
     });
     const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
@@ -342,7 +340,7 @@ const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
 const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
     const [getOrder, setOrder] = createSignal(props.getOrder());
-    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalSplitOpts>({
+    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalSplitOpts>({
         shiftPercent: 10,
     });
     const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
@@ -391,7 +389,7 @@ const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
 const BrightnessExampleWrapper = (props: ScanlineAnimationExampleProps) => {
     const [getOrder, setOrder] = createSignal(props.getOrder());
-    const [keyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalBrightnessOpts>({});
+    const [keyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalBrightnessOpts>({});
     const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
         dir: "asc",
         smoothness: 0.5,
@@ -422,7 +420,7 @@ const BrightnessExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
 const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) => {
     const [getOrder, setOrder] = createSignal(props.getOrder());
-    const [keyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalGrayscaleOpts>({});
+    const [keyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalGrayscaleOpts>({});
     const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
         dir: "asc",
         smoothness: 0.5,
@@ -453,7 +451,7 @@ const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
 const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
     const [getOrder, setOrder] = createSignal(props.getOrder());
-    const [keyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalHueOpts>({});
+    const [keyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalHueOpts>({});
     const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
         dir: "asc",
         smoothness: 0.5,

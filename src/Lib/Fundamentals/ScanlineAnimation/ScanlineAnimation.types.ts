@@ -19,11 +19,7 @@ export type ScanlineAnimationProps = AccessorProps<{
     animationIterationDelayMs?: number;
     onMount?: (controller: ScanlineAnimationController) => void;
     computeRootAnimation?: (timeline: number) => ScanlineAnimationEvaluationResult;
-    computeScanlineAnimation: (
-        index: number,
-        lineCount: number,
-        timeline: number,
-    ) => ScanlineAnimationEvaluationResult;
+    computeScanlineAnimation: (index: number, lineCount: number, timeline: number) => ScanlineAnimationEvaluationResult;
     onIterationEnd?: () => void;
     onAnimationEnd?: () => void;
 }>;

@@ -12,9 +12,9 @@ export type ButtonOutlineDefs = {
 };
 
 export type ButtonCbs = {
-    onClick?: (e: MouseEvent | KeyboardEvent) => Promise<void>;
-    onMouseEnter?: (e: MouseEvent) => Promise<void>;
-    onMouseLeave?: (e: MouseEvent) => Promise<void>;
+    onClick?: (e: MouseEvent | KeyboardEvent) => void | Promise<void>;
+    onMouseEnter?: (e: MouseEvent) => void | Promise<void>;
+    onMouseLeave?: (e: MouseEvent) => void | Promise<void>;
 };
 
 export type ButtonProps = AccessorProps<

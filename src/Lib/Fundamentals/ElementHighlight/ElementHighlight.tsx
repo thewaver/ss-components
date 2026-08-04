@@ -27,10 +27,11 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
 
     const getPadding = createMemo(() => props.getPadding?.() ?? DEFAULT_ELEMENT_HIGHLIGHT_PADDING);
 
-    const { getIsVisible, getTransitionTarget, hide } = ElementFader.createFader(
-        props.getIsVisible,
-        { getTransitionDurationMs, onShow: props.onShow, onHide: props.onHide },
-    );
+    const { getIsVisible, getTransitionTarget } = ElementFader.createFader(() => props.visibilitySignal[0](), {
+        getTransitionDurationMs,
+        onShow: props.onShow,
+        onHide: props.onHide,
+    });
 
     ElementObserver.createObserver(props.getElementRef, getIsVisible, { setElementRect, getPadding });
 
@@ -46,7 +47,7 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
         if (!getIsVisible()) return;
 
         if (e.key === "Escape") {
-            hide();
+            props.visibilitySignal[1](false);
         }
     };
 

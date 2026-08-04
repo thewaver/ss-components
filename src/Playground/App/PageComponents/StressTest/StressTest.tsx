@@ -11,7 +11,8 @@ import * as pageStyles from "./../../Pages/Pages.css";
 import * as styles from "./StressTest.css";
 
 export const StressTest = (props: StressTestProps) => {
-    const [getModalOpen, setModalOpen] = createSignal(false);
+    const modalVisibility = createSignal(false);
+    const [getModalOpen, setModalOpen] = modalVisibility;
     const [getModalTransitionFinished, setModalTransitionFinished] = createSignal(false);
     const [getConfigIndex, setConfigIndex] = createSignal(0);
 
@@ -48,13 +49,10 @@ export const StressTest = (props: StressTestProps) => {
 
             <Modal
                 getMargins={() => CSSUtils.spreadMargin(40)}
-                getIsVisible={getModalOpen}
+                visibilitySignal={modalVisibility}
                 getAriaLabel={() => "Stress test"}
                 onShow={props.onShowModal}
-                onHide={() => {
-                    setModalOpen(false);
-                    props.onHideModal?.();
-                }}
+                onHide={props.onHideModal}
                 onTransitionStatusChange={setModalTransitionFinished}
                 renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
                     <div

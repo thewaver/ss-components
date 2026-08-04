@@ -21,6 +21,13 @@ const SVG_PRIMITIVE_DEFS: SVGPrimitiveDefs = {
     method: "isolate",
 };
 
+const FALLBACK_FILTER_REGION: JSX.FilterSVGAttributes<SVGFilterElement> = {
+    x: "-50%",
+    y: "-50%",
+    width: "200%",
+    height: "200%",
+};
+
 export class SVGFilterDefsFactory {
     private filterPrimitives: Record<string, (srcIn: string) => { element: JSX.Element; resultGraphic: string }> = {};
     private dropShadowCount = 0;
@@ -52,7 +59,9 @@ export class SVGFilterDefsFactory {
                   width: `${defs.elementSize.width + this.maxOffset * 2}px`,
                   height: `${defs.elementSize.height + this.maxOffset * 2}px`,
               }
-            : undefined;
+            : this.maxOffset > 0
+              ? FALLBACK_FILTER_REGION
+              : undefined;
 
         return (
             <filter id={this.filterId} {...sizeProps}>

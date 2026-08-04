@@ -11,7 +11,8 @@ import * as styles from "./Examples.css";
 
 export const PageExamples = (props: ExamplesProps) => {
     const [getActiveIndex, setActiveIndex] = createSignal(0);
-    const [getIsModalOpen, setIsModalOpen] = createSignal(false);
+    const modalVisibility = createSignal(false);
+    const [, setIsModalOpen] = modalVisibility;
 
     return (
         <>
@@ -54,11 +55,8 @@ export const PageExamples = (props: ExamplesProps) => {
 
             <Modal
                 getMargins={() => CSSUtils.spreadMargin(40)}
-                getIsVisible={getIsModalOpen}
+                visibilitySignal={modalVisibility}
                 getAriaLabel={() => `${props.getItems()[getActiveIndex()].name} source code`}
-                onHide={() => {
-                    setIsModalOpen(false);
-                }}
                 renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
                     <div
                         class={getVisibilityTarget() === 1 ? pageStyles.overlayOn : pageStyles.overlayOff}

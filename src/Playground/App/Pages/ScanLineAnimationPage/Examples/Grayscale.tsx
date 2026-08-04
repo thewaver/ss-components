@@ -1,15 +1,13 @@
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
-import {
-    ScanlineAnimationBreakpoints,
-    ScanlineAnimationKeyframes,
-} from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
+import { ScanlineAnimationBreakpoints } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
+import { ScanlineAnimationKeyframesConst } from "../../../Samples/ScanlineAnimation.const";
 import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.types";
 
 type Props = ScanlineAnimationExampleProps &
     AccessorProps<{
         breakpointOpts: ScanlineAnimationBreakpoints.BreakpointOpts;
-        keyframeOpts: ScanlineAnimationKeyframes.HorizontalGrayscaleOpts;
+        keyframeOpts: ScanlineAnimationKeyframesConst.HorizontalGrayscaleOpts;
     }>;
 
 export const GrayscaleExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...otherProps }: Props) => {
@@ -17,8 +15,14 @@ export const GrayscaleExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder,
         <ScanlineAnimation
             {...otherProps}
             computeScanlineAnimation={(index, lineCount, timeline) =>
-                ScanlineAnimationKeyframes.computeHorizontalGrayscale(
-                    ScanlineAnimationBreakpoints.computeBreakpoints(getOrder(), index, lineCount, {}, getBreakpointOpts()),
+                ScanlineAnimationKeyframesConst.computeHorizontalGrayscale(
+                    ScanlineAnimationBreakpoints.computeBreakpoints(
+                        getOrder(),
+                        index,
+                        lineCount,
+                        {},
+                        getBreakpointOpts(),
+                    ),
                     index,
                     timeline,
                     getKeyframeOpts(),

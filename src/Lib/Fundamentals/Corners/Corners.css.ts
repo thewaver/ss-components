@@ -6,6 +6,12 @@ export const cornersRoot = style({
     height: "100%",
 });
 
+export const cornersGlow = style({
+    position: "absolute",
+    inset: 0,
+    pointerEvents: "none",
+});
+
 export const cornerSVG = style({
     position: "absolute",
     zIndex: 1,

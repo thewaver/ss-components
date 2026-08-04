@@ -25,18 +25,22 @@ export const Modal = (props: ModalProps) => {
         return props.getMargins?.() ?? CSSUtils.spreadMargin(0);
     });
 
-    const { getIsVisible, getTransitionTarget, getHasTransitionFinished, hide } = ElementFader.createFader(
-        props.getIsVisible,
+    const { getIsVisible, getTransitionTarget, getHasTransitionFinished } = ElementFader.createFader(
+        () => props.visibilitySignal[0](),
         { getTransitionDurationMs, onShow: props.onShow, onHide: props.onHide },
     );
 
     FocusUtils.autoFocus(getContainerRef, getIsVisible);
 
+    const handleDismiss = () => {
+        props.visibilitySignal[1](false);
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
         if (!getIsVisible()) return;
 
         if (e.key === "Escape") {
-            hide();
+            handleDismiss();
         }
     };
 
@@ -65,7 +69,7 @@ export const Modal = (props: ModalProps) => {
                 }}
             >
                 <div class={styles.modalRoot} onKeyDown={(e) => FocusUtils.focusTrapKeyDown(e, getContainerRef())}>
-                    <div class={styles.modalOverlay} onClick={hide}>
+                    <div class={styles.modalOverlay} onClick={handleDismiss}>
                         {props.renderOverlay(getTransitionTarget, getTransitionDurationMs)}
                     </div>
                     <div

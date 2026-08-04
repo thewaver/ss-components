@@ -1,12 +1,12 @@
 import { MathUtils, ObjectUtils, RandomUtils, ShapeConst, ShapeUtils, type Size2d } from "@thewaver/ss-utils";
 
-import type { InteractionFlags } from "../../Interaction/Interaction.types";
-import type { SVGAnimationDefs } from "./Animation/SVGAnimationDefs.types";
-import { SVGAnimationUtils } from "./Animation/SVGAnimationDefs.utils";
-import { SVGFilterDefsFactory } from "./Filter/SVGFilterDefs.factory";
-import { SVGGradientDefsUtils } from "./Gradient/SVGGradientDefs.utils";
-import { SVGPatternDefsUtils } from "./Pattern/SVGPatternDefs.utils";
-import type { SVGDefs } from "./SVGDefs.types";
+import type { InteractionFlags } from "../../../Lib/Abstracts/Interaction/Interaction.types";
+import type { SVGAnimationDefs } from "../../../Lib/Abstracts/SVG/Defs/Animation/SVGAnimationDefs.types";
+import { SVGAnimationUtils } from "../../../Lib/Abstracts/SVG/Defs/Animation/SVGAnimationDefs.utils";
+import { SVGFilterDefsFactory } from "../../../Lib/Abstracts/SVG/Defs/Filter/SVGFilterDefs.factory";
+import { SVGGradientDefsUtils } from "../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
+import { SVGPatternDefsUtils } from "../../../Lib/Abstracts/SVG/Defs/Pattern/SVGPatternDefs.utils";
+import type { SVGDefs } from "../../../Lib/Abstracts/SVG/Defs/SVGDefs.types";
 
 export namespace SVGDefsSamples {
     export type ColorDefs = { [K in "primary" | "secondary" | "tertiary" | "background"]: string };

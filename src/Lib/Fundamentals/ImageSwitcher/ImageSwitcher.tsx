@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal } from "solid-js";
+import { createEffect, createMemo, createSignal, onCleanup, untrack } from "solid-js";
 
 import { MathUtils } from "@thewaver/ss-utils";
 
@@ -23,18 +23,28 @@ export const ImageSwitcher = (props: ImageSwitcherProps) => {
         const src = props.getSrc();
         const onLoad = props.onLoad;
 
-        if (src !== getCurrentImage()) {
-            setPrevImage(getCurrentImage());
-            setCurrentImage(src);
-            setVersion((prev) => prev + 1);
+        if (src === untrack(getCurrentImage)) return;
 
-            if (src && onLoad) {
-                const img = new Image();
-                img.crossOrigin = "anonymous";
-                img.src = src;
-                img.onload = onLoad;
-            }
-        }
+        setPrevImage(untrack(getCurrentImage));
+        setCurrentImage(src);
+        setVersion((prev) => prev + 1);
+
+        if (!src || !onLoad) return;
+
+        const img = new Image();
+
+        onCleanup(() => {
+            img.onload = null;
+            img.onerror = null;
+            img.src = "";
+        });
+
+        img.crossOrigin = "anonymous";
+        img.onload = onLoad;
+        img.onerror = () => {
+            console.warn(`ImageSwitcher: failed to preload image: ${src}`);
+        };
+        img.src = src;
     });
 
     return (

@@ -2,9 +2,9 @@ import { createUniqueId } from "solid-js";
 
 import { CSSUtils, type Size2d } from "@thewaver/ss-utils";
 
-import { SVGDefsSamples } from "../../../../../../Lib/Abstracts/SVG/Defs/SVGDefs.const";
 import { Surface } from "../../../../../../Lib/Composites/Surface/Surface";
 import type { SurfaceProps } from "../../../../../../Lib/Composites/Surface/Surface.types";
+import { SVGDefsSamples } from "../../../../Samples/SVGDefs.const";
 import knight from "../../../../knight.png";
 
 import * as styles from "./Banner.css";

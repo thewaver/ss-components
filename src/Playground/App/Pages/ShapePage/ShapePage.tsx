@@ -4,12 +4,12 @@ import { createStore } from "solid-js/store";
 import { ShapeConst } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
-import { SVGDefsSamples } from "../../../../Lib/Abstracts/SVG/Defs/SVGDefs.const";
 import { Shape } from "../../../../Lib/Fundamentals/Shape/Shape";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { StressTest } from "../../PageComponents/StressTest/StressTest";
 import type { StressTestDefs } from "../../PageComponents/StressTest/StressText.types";
+import { SVGDefsSamples } from "../../Samples/SVGDefs.const";
 import { DefaultExample } from "./Examples/Default";
 import DefaultExampleRaw from "./Examples/Default.tsx?raw";
 import type { ShapeExampleProps } from "./ShapePage.types";

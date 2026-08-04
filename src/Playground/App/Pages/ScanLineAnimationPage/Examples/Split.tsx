@@ -1,15 +1,13 @@
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
-import {
-    ScanlineAnimationBreakpoints,
-    ScanlineAnimationKeyframes,
-} from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
+import { ScanlineAnimationBreakpoints } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
+import { ScanlineAnimationKeyframesConst } from "../../../Samples/ScanlineAnimation.const";
 import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.types";
 
 type Props = ScanlineAnimationExampleProps &
     AccessorProps<{
         breakpointOpts: ScanlineAnimationBreakpoints.BreakpointOpts;
-        keyframeOpts: ScanlineAnimationKeyframes.HorizontalSplitOpts;
+        keyframeOpts: ScanlineAnimationKeyframesConst.HorizontalSplitOpts;
     }>;
 
 export const SplitExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...otherProps }: Props) => {
@@ -17,8 +15,14 @@ export const SplitExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...
         <ScanlineAnimation
             {...otherProps}
             computeScanlineAnimation={(index, lineCount, timeline) =>
-                ScanlineAnimationKeyframes.computeHorizontalSplit(
-                    ScanlineAnimationBreakpoints.computeBreakpoints(getOrder(), index, lineCount, {}, getBreakpointOpts()),
+                ScanlineAnimationKeyframesConst.computeHorizontalSplit(
+                    ScanlineAnimationBreakpoints.computeBreakpoints(
+                        getOrder(),
+                        index,
+                        lineCount,
+                        {},
+                        getBreakpointOpts(),
+                    ),
                     index,
                     timeline,
                     getKeyframeOpts(),

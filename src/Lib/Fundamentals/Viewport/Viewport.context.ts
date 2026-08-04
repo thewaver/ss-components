@@ -1,4 +1,4 @@
-import { createContext, createSignal, onCleanup, onMount, useContext } from "solid-js";
+import { createContext, createRoot, createSignal, onCleanup, onMount, useContext } from "solid-js";
 
 import type { ViewportContextType } from "./Viewport.context.types";
 
@@ -41,8 +41,12 @@ const useViewportWithFallback = (): ViewportContextType => {
     };
 };
 
+let fallbackContext: ViewportContextType | undefined;
+
+const getFallbackContext = () => (fallbackContext ??= createRoot(() => useViewportWithFallback()));
+
 export const useViewportContext = (): ViewportContextType => {
     const context = useContext(ViewportContext);
 
-    return context ?? useViewportWithFallback();
+    return context ?? getFallbackContext();
 };

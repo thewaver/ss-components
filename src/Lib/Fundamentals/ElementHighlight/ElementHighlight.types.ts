@@ -1,9 +1,9 @@
-import type { JSX } from "solid-js";
+import type { JSX, Signal } from "solid-js";
 
-import type { AccessorProps } from "../../../Lib/Utils/typeUtils";
+import type { AccessorProps } from "../../Utils/typeUtils";
 
 export type ElementHighlightProps = AccessorProps<{
-    isVisible: boolean;
+    visibilitySignal: Signal<boolean>;
     padding?: number;
     transitionDurationMs?: number;
     elementRef: HTMLElement | undefined;
