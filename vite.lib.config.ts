@@ -19,11 +19,15 @@ export default defineConfig({
         lib: {
             entry: "src/Lib/index.ts",
             formats: ["es"],
-            fileName: () => "index.js",
             cssFileName: "index",
         },
         rollupOptions: {
             external: isExternal,
+            output: {
+                preserveModules: true,
+                preserveModulesRoot: "src/Lib",
+                entryFileNames: (chunk) => `${chunk.name.replace(/^(?:.*\/)?node_modules\//, "_external/")}.js`,
+            },
         },
     },
 });
