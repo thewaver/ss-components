@@ -3,13 +3,15 @@ import { For, createMemo, createSignal } from "solid-js";
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
+import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
+import { PageProp } from "../../PageComponents/Prop/Prop";
+import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { ComplexExample } from "./Examples/Complex";
 import ComplexExampleRaw from "./Examples/Complex.tsx?raw";
 import { CustomExample } from "./Examples/Custom";
 import CustomExampleRaw from "./Examples/Custom.tsx?raw";
 import type { TypewriterExampleProps } from "./TypewriterPage.types";
 
-import * as pageStyles from "../Pages.css";
 import * as styles from "./TypewriterPage.css";
 
 const TEXT_EFFECTS = ["fade", "scale", "glow", "drop", "slide"] as const;
@@ -32,9 +34,9 @@ type ExampleWrapperProps = TypewriterExampleProps &
 
 const ComplexExampleWrapper = ({ getWidth, ...props }: ExampleWrapperProps) => {
     return (
-        <div class={pageStyles.measureBox} style={{ width: `${getWidth()}px` }}>
+        <PageMeasureBox getWidth={getWidth}>
             <ComplexExample {...props} />
-        </div>
+        </PageMeasureBox>
     );
 };
 
@@ -50,9 +52,9 @@ const CustomExampleWrapper = ({ getWidth, ...props }: ExampleWrapperProps) => {
                 onInput={(e) => setText(e.target.value)}
             />
 
-            <div class={pageStyles.measureBox} style={{ width: `${getWidth()}px` }}>
+            <PageMeasureBox getWidth={getWidth}>
                 <CustomExample {...props} getText={getText} />
-            </div>
+            </PageMeasureBox>
         </>
     );
 };
@@ -83,9 +85,8 @@ export const TypewriterPage = () => {
 
     return (
         <div class={styles.root}>
-            <div class={pageStyles.globalPropsContainer}>
-                <div class={pageStyles.propContainer}>
-                    <div>{"Container width"}</div>
+            <PagePropsPanel getScope={() => "global"}>
+                <PageProp getLabel={() => "Container width"}>
                     <input
                         type="number"
                         min={40}
@@ -96,18 +97,17 @@ export const TypewriterPage = () => {
                             setTextContainerWidth((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 40), 560))
                         }
                     />
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Effect"}</div>
+                <PageProp getLabel={() => "Effect"}>
                     <select
                         value={getTextEffect()}
                         onChange={(e) => setTextEffect(e.target.value as (typeof TEXT_EFFECTS)[number])}
                     >
                         <For each={TEXT_EFFECTS}>{(effect) => <option value={effect}>{effect}</option>}</For>
                     </select>
-                </div>
-            </div>
+                </PageProp>
+            </PagePropsPanel>
 
             <PageExamples getItems={getExamples} />
         </div>

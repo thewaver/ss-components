@@ -1,7 +1,8 @@
 import { style, styleVariants } from "@vanilla-extract/css";
 
-export const optionButton = style({
-    width: "100%",
+export const itemGrid = style({
+    display: "grid",
+    fontSize: "0.75rem",
 });
 
 export const fpsCounter = style({

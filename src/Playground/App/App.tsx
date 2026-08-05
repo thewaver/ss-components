@@ -7,6 +7,7 @@ import { FunctionUtils, Size2d, StringUtils } from "@thewaver/ss-utils";
 import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
 import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
+import { CheckboxPage } from "./Pages/CheckboxPage/CheckboxPage";
 import { ElementHighlightPage } from "./Pages/ElementHighlightPage/ElementHighlightPage";
 import { ModalPage } from "./Pages/ModalPage/ModalPage";
 import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
@@ -45,6 +46,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "Button",
         component: () => <ButtonPage />,
+    },
+    {
+        name: "Checkbox",
+        component: () => <CheckboxPage />,
     },
     {
         name: "ElementHighlight",

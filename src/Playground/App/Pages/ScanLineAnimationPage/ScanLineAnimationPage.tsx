@@ -6,6 +6,9 @@ import type { ScanlineAnimationController } from "../../../../Lib/Fundamentals/S
 import { ScanlineAnimationBreakpoints } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
+import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
+import { PageProp } from "../../PageComponents/Prop/Prop";
+import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { StressTest } from "../../PageComponents/StressTest/StressTest";
 import type { StressTestDefs } from "../../PageComponents/StressTest/StressText.types";
 import { ScanlineAnimationKeyframesConst } from "../../Samples/ScanlineAnimation.const";
@@ -26,9 +29,10 @@ import { SurgeExample } from "./Examples/Surge";
 import SurgeExampleRaw from "./Examples/Surge.tsx?raw";
 import type { ScanlineAnimationExampleProps } from "./ScanlineAnimationPage.types";
 
-import * as pageStyles from "../Pages.css";
+import { MEASURE_BOX_PADDING } from "../../PageComponents/MeasureBox/MeasureBox.css";
 import * as styles from "./ScanlineAnimationPage.css";
 
+const IMAGE_CONTAINER_SIZE = 240 + MEASURE_BOX_PADDING * 2;
 const STRESS_LINE_COUNT = 120;
 const STRESS_ITEMS: (StressTestDefs & { size: number; kind: "transform" | "filter" })[] = (
     ["transform", "filter"] as const
@@ -38,28 +42,28 @@ const STRESS_ITEMS: (StressTestDefs & { size: number; kind: "transform" | "filte
             count: 8,
             cols: 4,
             gap: 10,
-            size: STRESS_LINE_COUNT + styles.IMAGE_CONTAINER_PADDING * 2,
+            size: STRESS_LINE_COUNT + MEASURE_BOX_PADDING * 2,
             kind,
         },
         {
             count: 18,
             cols: 6,
             gap: 10,
-            size: STRESS_LINE_COUNT + styles.IMAGE_CONTAINER_PADDING * 2,
+            size: STRESS_LINE_COUNT + MEASURE_BOX_PADDING * 2,
             kind,
         },
         {
             count: 32,
             cols: 8,
             gap: 10,
-            size: STRESS_LINE_COUNT + styles.IMAGE_CONTAINER_PADDING * 2,
+            size: STRESS_LINE_COUNT + MEASURE_BOX_PADDING * 2,
             kind,
         },
         {
             count: 50,
             cols: 10,
             gap: 10,
-            size: STRESS_LINE_COUNT + styles.IMAGE_CONTAINER_PADDING * 2,
+            size: STRESS_LINE_COUNT + MEASURE_BOX_PADDING * 2,
             kind,
         },
     ])
@@ -105,12 +109,9 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
                                 : ScanlineAnimationKeyframesConst.computeHorizontalGrayscale;
 
                     return (
-                        <div
-                            class={[styles.imageContainer, pageStyles.measureBox].join(" ")}
-                            style={{
-                                width: `${STRESS_ITEMS[getConfigIndex()].size}px`,
-                                height: `${STRESS_ITEMS[getConfigIndex()].size}px`,
-                            }}
+                        <PageMeasureBox
+                            getWidth={() => STRESS_ITEMS[getConfigIndex()].size}
+                            getHeight={() => STRESS_ITEMS[getConfigIndex()].size}
                         >
                             <ScanlineAnimation
                                 {...props}
@@ -131,7 +132,7 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
                                     )
                                 }
                             />
-                        </div>
+                        </PageMeasureBox>
                     );
                 }}
             />
@@ -141,8 +142,7 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
 
 const SmoothnessInput = (props: { getter: () => number; setter: (value: number) => void }) => {
     return (
-        <div class={pageStyles.propContainer}>
-            <div>{"Smoothness (0-1)"}</div>
+        <PageProp getLabel={() => "Smoothness (0-1)"}>
             <input
                 type="number"
                 min={0.1}
@@ -151,7 +151,7 @@ const SmoothnessInput = (props: { getter: () => number; setter: (value: number) 
                 value={props.getter()}
                 onInput={(e) => props.setter(Math.min(Math.max(Number(e.target.value), 0.1), 1))}
             />
-        </div>
+        </PageProp>
     );
 };
 
@@ -160,15 +160,14 @@ const DirInput = (props: {
     setter: (value: ScanlineAnimationBreakpoints.Direction) => void;
 }) => {
     return (
-        <div class={pageStyles.propContainer}>
-            <div>{"Direction"}</div>
+        <PageProp getLabel={() => "Direction"}>
             <select
                 value={props.getter()}
                 onChange={(e) => props.setter(e.target.value as ScanlineAnimationBreakpoints.Direction)}
             >
                 <For each={ScanlineAnimationBreakpoints.DIRECTIONS}>{(dir) => <option value={dir}>{dir}</option>}</For>
             </select>
-        </div>
+        </PageProp>
     );
 };
 
@@ -177,8 +176,7 @@ const OrdererInput = (props: {
     setter: (value: ScanlineAnimationBreakpoints.OrderingType) => void;
 }) => {
     return (
-        <div class={pageStyles.propContainer}>
-            <div>{"Ordering"}</div>
+        <PageProp getLabel={() => "Ordering"}>
             <select
                 value={props.getter()}
                 onChange={(e) => props.setter(e.target.value as ScanlineAnimationBreakpoints.OrderingType)}
@@ -187,7 +185,7 @@ const OrdererInput = (props: {
                     {(order) => <option value={order}>{order}</option>}
                 </For>
             </select>
-        </div>
+        </PageProp>
     );
 };
 
@@ -199,13 +197,12 @@ const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
     return (
         <>
-            <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
+            <PageMeasureBox getWidth={() => IMAGE_CONTAINER_SIZE}>
                 <GlitchExample {...props} getKeyframeOpts={() => keyframeOpts} />
-            </div>
+            </PageMeasureBox>
 
-            <div class={pageStyles.localPropsContainer}>
-                <div class={pageStyles.propContainer}>
-                    <div>{"Max shift (%)"}</div>
+            <PagePropsPanel getScope={() => "local"}>
+                <PageProp getLabel={() => "Max shift (%)"}>
                     <input
                         type="number"
                         min={5}
@@ -218,10 +215,9 @@ const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                             )
                         }
                     />
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Chunkyness (0-1)"}</div>
+                <PageProp getLabel={() => "Chunkyness (0-1)"}>
                     <input
                         type="number"
                         min={0.1}
@@ -234,8 +230,8 @@ const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                             )
                         }
                     />
-                </div>
-            </div>
+                </PageProp>
+            </PagePropsPanel>
         </>
     );
 };
@@ -252,18 +248,17 @@ const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
     return (
         <>
-            <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
+            <PageMeasureBox getWidth={() => IMAGE_CONTAINER_SIZE}>
                 <SurgeExample
                     {...props}
                     getKeyframeOpts={() => keyframeOpts}
                     getBreakpointOpts={() => breakpointOpts}
                     getOrder={getOrder}
                 />
-            </div>
+            </PageMeasureBox>
 
-            <div class={pageStyles.localPropsContainer}>
-                <div class={pageStyles.propContainer}>
-                    <div>{"Peak Scale (%)"}</div>
+            <PagePropsPanel getScope={() => "local"}>
+                <PageProp getLabel={() => "Peak Scale (%)"}>
                     <input
                         type="number"
                         min={120}
@@ -276,7 +271,7 @@ const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                             )
                         }
                     />
-                </div>
+                </PageProp>
 
                 <SmoothnessInput
                     getter={() => breakpointOpts.smoothness!}
@@ -284,7 +279,7 @@ const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                 />
                 <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
                 <OrdererInput getter={getOrder} setter={setOrder} />
-            </div>
+            </PagePropsPanel>
         </>
     );
 };
@@ -301,18 +296,17 @@ const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
     return (
         <>
-            <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
+            <PageMeasureBox getWidth={() => IMAGE_CONTAINER_SIZE}>
                 <SnakeExample
                     {...props}
                     getKeyframeOpts={() => keyframeOpts}
                     getBreakpointOpts={() => breakpointOpts}
                     getOrder={getOrder}
                 />
-            </div>
+            </PageMeasureBox>
 
-            <div class={pageStyles.localPropsContainer}>
-                <div class={pageStyles.propContainer}>
-                    <div>{"Shift (%)"}</div>
+            <PagePropsPanel getScope={() => "local"}>
+                <PageProp getLabel={() => "Shift (%)"}>
                     <input
                         type="number"
                         min={5}
@@ -325,7 +319,7 @@ const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                             )
                         }
                     />
-                </div>
+                </PageProp>
 
                 <SmoothnessInput
                     getter={() => breakpointOpts.smoothness!}
@@ -333,7 +327,7 @@ const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                 />
                 <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
                 <OrdererInput getter={getOrder} setter={setOrder} />
-            </div>
+            </PagePropsPanel>
         </>
     );
 };
@@ -350,18 +344,17 @@ const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
     return (
         <>
-            <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
+            <PageMeasureBox getWidth={() => IMAGE_CONTAINER_SIZE}>
                 <SplitExample
                     {...props}
                     getKeyframeOpts={() => keyframeOpts}
                     getBreakpointOpts={() => breakpointOpts}
                     getOrder={getOrder}
                 />
-            </div>
+            </PageMeasureBox>
 
-            <div class={pageStyles.localPropsContainer}>
-                <div class={pageStyles.propContainer}>
-                    <div>{"Shift (%)"}</div>
+            <PagePropsPanel getScope={() => "local"}>
+                <PageProp getLabel={() => "Shift (%)"}>
                     <input
                         type="number"
                         min={5}
@@ -374,7 +367,7 @@ const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                             )
                         }
                     />
-                </div>
+                </PageProp>
 
                 <SmoothnessInput
                     getter={() => breakpointOpts.smoothness!}
@@ -382,7 +375,7 @@ const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                 />
                 <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
                 <OrdererInput getter={getOrder} setter={setOrder} />
-            </div>
+            </PagePropsPanel>
         </>
     );
 };
@@ -397,23 +390,23 @@ const BrightnessExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
     return (
         <>
-            <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
+            <PageMeasureBox getWidth={() => IMAGE_CONTAINER_SIZE}>
                 <BrightnessExample
                     {...props}
                     getKeyframeOpts={() => keyframeOpts}
                     getBreakpointOpts={() => breakpointOpts}
                     getOrder={getOrder}
                 />
-            </div>
+            </PageMeasureBox>
 
-            <div class={pageStyles.localPropsContainer}>
+            <PagePropsPanel getScope={() => "local"}>
                 <SmoothnessInput
                     getter={() => breakpointOpts.smoothness!}
                     setter={(value) => setBreakpointOpts("smoothness", value)}
                 />
                 <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
                 <OrdererInput getter={getOrder} setter={setOrder} />
-            </div>
+            </PagePropsPanel>
         </>
     );
 };
@@ -428,23 +421,23 @@ const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
     return (
         <>
-            <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
+            <PageMeasureBox getWidth={() => IMAGE_CONTAINER_SIZE}>
                 <GrayscaleExample
                     {...props}
                     getKeyframeOpts={() => keyframeOpts}
                     getBreakpointOpts={() => breakpointOpts}
                     getOrder={getOrder}
                 />
-            </div>
+            </PageMeasureBox>
 
-            <div class={pageStyles.localPropsContainer}>
+            <PagePropsPanel getScope={() => "local"}>
                 <SmoothnessInput
                     getter={() => breakpointOpts.smoothness!}
                     setter={(value) => setBreakpointOpts("smoothness", value)}
                 />
                 <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
                 <OrdererInput getter={getOrder} setter={setOrder} />
-            </div>
+            </PagePropsPanel>
         </>
     );
 };
@@ -459,23 +452,23 @@ const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
     return (
         <>
-            <div class={[styles.imageContainer, pageStyles.measureBox].join(" ")}>
+            <PageMeasureBox getWidth={() => IMAGE_CONTAINER_SIZE}>
                 <HueExample
                     {...props}
                     getKeyframeOpts={() => keyframeOpts}
                     getBreakpointOpts={() => breakpointOpts}
                     getOrder={getOrder}
                 />
-            </div>
+            </PageMeasureBox>
 
-            <div class={pageStyles.localPropsContainer}>
+            <PagePropsPanel getScope={() => "local"}>
                 <SmoothnessInput
                     getter={() => breakpointOpts.smoothness!}
                     setter={(value) => setBreakpointOpts("smoothness", value)}
                 />
                 <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
                 <OrdererInput getter={getOrder} setter={setOrder} />
-            </div>
+            </PagePropsPanel>
         </>
     );
 };
@@ -556,14 +549,12 @@ export const ScanlineAnimationPage = () => {
 
     return (
         <div class={styles.root}>
-            <div class={pageStyles.globalPropsContainer}>
-                <div class={pageStyles.propContainer}>
-                    <div>{"Image"}</div>
+            <PagePropsPanel getScope={() => "global"}>
+                <PageProp getLabel={() => "Image"}>
                     <input type="file" accept="image/*" onChange={handleFile} />
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Line count"}</div>
+                <PageProp getLabel={() => "Line count"}>
                     <input
                         type="number"
                         min={8}
@@ -574,10 +565,9 @@ export const ScanlineAnimationPage = () => {
                             setLineCount((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 8), 240))
                         }
                     />
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Animation duration (ms)"}</div>
+                <PageProp getLabel={() => "Animation duration (ms)"}>
                     <input
                         type="number"
                         min={100}
@@ -590,10 +580,9 @@ export const ScanlineAnimationPage = () => {
                             )
                         }
                     />
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Iteration delay (ms)"}</div>
+                <PageProp getLabel={() => "Iteration delay (ms)"}>
                     <input
                         type="number"
                         min={0}
@@ -606,8 +595,8 @@ export const ScanlineAnimationPage = () => {
                             )
                         }
                     />
-                </div>
-            </div>
+                </PageProp>
+            </PagePropsPanel>
 
             <PageExamples getItems={getExamples} />
         </div>

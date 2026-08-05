@@ -50,7 +50,7 @@ export const ModalPage = () => {
                     <div
                         class={[
                             getVisibilityTarget() === 1 ? pageStyles.modalOn : pageStyles.modalOff,
-                            pageStyles.exampleContainer,
+                            pageStyles.panel,
                         ].join(" ")}
                         style={{
                             transition: `transform ${getTransitionDurationMs()}ms`,

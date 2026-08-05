@@ -4,6 +4,7 @@ import { CSSUtils } from "@thewaver/ss-utils";
 
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
+import { PageCodeBox } from "../CodeBox/CodeBox";
 import type { ExamplesProps } from "./Examples.types";
 
 import * as pageStyles from "../../Pages/Pages.css";
@@ -73,9 +74,7 @@ export const PageExamples = (props: ExamplesProps) => {
                             background: "none",
                         }}
                     >
-                        <div class={pageStyles.codeBoxOutter}>
-                            <div class={pageStyles.codeBoxInner} innerHTML={props.getItems()[getActiveIndex()].src} />
-                        </div>
+                        <PageCodeBox getSource={() => props.getItems()[getActiveIndex()].src} />
                         <div class={pageStyles.modalHint}>{"tap anywhere to close"}</div>
                     </div>
                 )}

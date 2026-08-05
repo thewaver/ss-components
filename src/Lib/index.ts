@@ -21,6 +21,8 @@ export * from "./Fundamentals/AudioSwitcher/AudioSwitcher";
 export type * from "./Fundamentals/AudioSwitcher/AudioSwitcher.types";
 export * from "./Fundamentals/Button/Button";
 export type * from "./Fundamentals/Button/Button.types";
+export * from "./Fundamentals/Checkbox/Checkbox";
+export type * from "./Fundamentals/Checkbox/Checkbox.types";
 export * from "./Fundamentals/Corners/Corners";
 export type * from "./Fundamentals/Corners/Corners.types";
 export * from "./Fundamentals/ElementHighlight/ElementHighlight";

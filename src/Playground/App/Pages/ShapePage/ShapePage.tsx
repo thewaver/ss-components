@@ -7,6 +7,8 @@ import { assignInlineVars } from "@vanilla-extract/dynamic";
 import { Shape } from "../../../../Lib/Fundamentals/Shape/Shape";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
+import { PageProp } from "../../PageComponents/Prop/Prop";
+import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { StressTest } from "../../PageComponents/StressTest/StressTest";
 import type { StressTestDefs } from "../../PageComponents/StressTest/StressText.types";
 import { SVGDefsSamples } from "../../Samples/SVGDefs.const";
@@ -14,7 +16,6 @@ import { DefaultExample } from "./Examples/Default";
 import DefaultExampleRaw from "./Examples/Default.tsx?raw";
 import type { ShapeExampleProps } from "./ShapePage.types";
 
-import * as pageStyles from "../Pages.css";
 import * as styles from "./ShapePage.css";
 
 const extractOptionGroupWord = (key: string) => {
@@ -221,36 +222,32 @@ export const ShapePage = () => {
 
     return (
         <div class={styles.root} style={assignInlineVars({ [styles.backgroundColor]: colors.background })}>
-            <div class={pageStyles.globalPropsContainer}>
-                <div class={pageStyles.propContainer}>
-                    <div>{"Individual corner settings"}</div>
+            <PagePropsPanel getScope={() => "global"}>
+                <PageProp getLabel={() => "Individual corner settings"}>
                     <input
                         type="checkbox"
                         checked={getHasIndividualCorners()}
                         onChange={() => setHasIndividualCorners((prev) => !prev)}
                     />
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Clip children"}</div>
+                <PageProp getLabel={() => "Clip children"}>
                     <input
                         type="checkbox"
                         checked={getShouldClipChildren()}
                         onChange={() => setShouldClipChildren((prev) => !prev)}
                     />
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Pad children"}</div>
+                <PageProp getLabel={() => "Pad children"}>
                     <input
                         type="checkbox"
                         checked={getShouldPadChildren()}
                         onChange={() => setShouldPadChildren((prev) => !prev)}
                     />
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Edge Thickness (px)"}</div>
+                <PageProp getLabel={() => "Edge Thickness (px)"}>
                     <div class={styles.valueList} style={{ "grid-template-columns": getTemplateColumns() }}>
                         <For each={getPointIterator()}>
                             {(_, getIndex) => (
@@ -277,10 +274,9 @@ export const ShapePage = () => {
                             )}
                         </For>
                     </div>
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Joint Radii (px)"}</div>
+                <PageProp getLabel={() => "Joint Radii (px)"}>
                     <div class={styles.valueList} style={{ "grid-template-columns": getTemplateColumns() }}>
                         <For each={getPointIterator()}>
                             {(_, getIndex) => (
@@ -307,10 +303,9 @@ export const ShapePage = () => {
                             )}
                         </For>
                     </div>
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Lamé Exponent"}</div>
+                <PageProp getLabel={() => "Lamé Exponent"}>
                     <div class={styles.valueList} style={{ "grid-template-columns": getTemplateColumns() }}>
                         <For each={getPointIterator()}>
                             {(_, getIndex) => (
@@ -337,10 +332,9 @@ export const ShapePage = () => {
                             )}
                         </For>
                     </div>
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Shape"}</div>
+                <PageProp getLabel={() => "Shape"}>
                     <select
                         value={getShapeKind()}
                         onChange={(e) => setShapeKind(e.target.value as ShapeConst.DefaultShape)}
@@ -349,10 +343,9 @@ export const ShapePage = () => {
                             {(config) => <option value={config}>{config}</option>}
                         </For>
                     </select>
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Stroke Pattern"}</div>
+                <PageProp getLabel={() => "Stroke Pattern"}>
                     <select
                         value={getStrokeConfigKey()}
                         onChange={(e) =>
@@ -369,10 +362,9 @@ export const ShapePage = () => {
                             )}
                         </For>
                     </select>
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Fill Pattern"}</div>
+                <PageProp getLabel={() => "Fill Pattern"}>
                     <select
                         value={getFillConfigKey()}
                         onChange={(e) =>
@@ -389,10 +381,9 @@ export const ShapePage = () => {
                             )}
                         </For>
                     </select>
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Fill Cell Size (px)"}</div>
+                <PageProp getLabel={() => "Fill Cell Size (px)"}>
                     <input
                         type="number"
                         min={10}
@@ -403,10 +394,9 @@ export const ShapePage = () => {
                             setCellSize((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 10), 160))
                         }
                     />
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Colors"}</div>
+                <PageProp getLabel={() => "Colors"}>
                     <div class={styles.colorList}>
                         <For each={Object.entries(colors)}>
                             {([key, value]) => (
@@ -418,10 +408,9 @@ export const ShapePage = () => {
                             )}
                         </For>
                     </div>
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Blur (px)"}</div>
+                <PageProp getLabel={() => "Blur (px)"}>
                     <input
                         type="number"
                         min={0}
@@ -432,10 +421,9 @@ export const ShapePage = () => {
                             setBlurWidth((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0), 40))
                         }
                     />
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Animation duration (ms)"}</div>
+                <PageProp getLabel={() => "Animation duration (ms)"}>
                     <input
                         type="number"
                         min={1000}
@@ -448,10 +436,9 @@ export const ShapePage = () => {
                             )
                         }
                     />
-                </div>
+                </PageProp>
 
-                <div class={pageStyles.propContainer}>
-                    <div>{"Iteration Pattern"}</div>
+                <PageProp getLabel={() => "Iteration Pattern"}>
                     <select
                         value={getIterationConfigKey()}
                         onChange={(e) =>
@@ -464,8 +451,8 @@ export const ShapePage = () => {
                             {(config) => <option value={config}>{config}</option>}
                         </For>
                     </select>
-                </div>
-            </div>
+                </PageProp>
+            </PagePropsPanel>
 
             <PageExamples getItems={getExamples} />
         </div>

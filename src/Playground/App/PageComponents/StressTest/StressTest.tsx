@@ -5,6 +5,7 @@ import { CSSUtils } from "@thewaver/ss-utils";
 import { FPSUtils } from "../../../../Lib/Abstracts/FPS/FPS.utils";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
+import { PagePropsPanel } from "../PropsPanel/PropsPanel";
 import type { StressTestProps } from "./StressText.types";
 
 import * as pageStyles from "./../../Pages/Pages.css";
@@ -31,7 +32,7 @@ export const StressTest = (props: StressTestProps) => {
 
     return (
         <>
-            <div class={pageStyles.localPropsContainer}>
+            <PagePropsPanel getScope={() => "local"}>
                 <For each={props.getConfigs()}>
                     {(items, getIndex) => (
                         <Button
@@ -45,7 +46,7 @@ export const StressTest = (props: StressTestProps) => {
                         </Button>
                     )}
                 </For>
-            </div>
+            </PagePropsPanel>
 
             <Modal
                 getMargins={() => CSSUtils.spreadMargin(40)}
@@ -66,7 +67,7 @@ export const StressTest = (props: StressTestProps) => {
                     <div
                         class={[
                             getVisibilityTarget() === 1 ? pageStyles.modalOn : pageStyles.modalOff,
-                            pageStyles.exampleContainer,
+                            pageStyles.panel,
                         ].join(" ")}
                         style={{
                             transition: `transform ${getTransitionDurationMs()}ms`,
@@ -82,7 +83,7 @@ export const StressTest = (props: StressTestProps) => {
                             ].join(" ")}
                         >{`FPS: ${getFPS().current.toFixed(1)}\nAVG: ${getFPS().average.toFixed(1)}`}</div>
                         <div
-                            class={pageStyles.stressContainer}
+                            class={styles.itemGrid}
                             style={{
                                 "grid-template-columns": `repeat(${props.getConfigs()[getConfigIndex()].cols}, auto)`,
                                 "gap": `${props.getConfigs()[getConfigIndex()].gap}px`,
