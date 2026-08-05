@@ -1,0 +1,142 @@
+@import url(https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css);
+
+.button {
+  appearance: none;
+  border: none;
+  background-color: var(--clr-primary-bkg);
+  color: var(--clr-primary-text);
+  box-shadow: var(--shd-soft);
+  text-align: center;
+  text-transform: uppercase;
+  font-size: var(--txt-size-medium);
+  font-weight: bold;
+  margin: 0;
+  padding: 16px;
+  width: 240px;
+  max-width: 100%;
+  outline-offset: 0;
+  cursor: pointer;
+  transition: color 0.5s, background-color 0.5s;
+}
+
+.button.full-width {
+  width: 100%;
+}
+
+.button:hover:not(:disabled),
+.button:active:not(:disabled) {
+  background-color: var(--clr-secondary-bkg);
+  color: var(--clr-secondary-text);
+}
+
+.ghost-button {
+  background-color: transparent;
+  color: var(--clr-primary-text);
+  appearance: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  outline-offset: 2px;
+  cursor: pointer;
+}
+
+.ghost-button:hover:not(:disabled),
+.ghost-button:active:not(:disabled) {
+  color: var(--clr-secondary-text);
+}
+
+.input,
+.select {
+  appearance: none;
+  background-color: var(--clr-page-bkg);
+  border: none;
+  border-bottom: 2px solid var(--clr-primary-bkg);
+  color: var(--clr-page-text);
+  box-shadow: var(--shd-soft);
+  font-size: var(--txt-size-medium);
+  padding: 8px;
+  width: 100%;
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--clr-primary-text);
+}
+
+.select::-ms-expand {
+  display: none; /* hide the default arrow in ie10 and ie11 */
+}
+
+.select-div {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+}
+
+.select-div::after {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translate(50%, -50%);
+  pointer-events: none;
+  content: "\f0d7";
+  font-family: FontAwesome;
+}
+
+.input-with-label .label {
+  margin-bottom: 8px;
+  font-size: var(--txt-size-small);
+  text-transform: uppercase;
+  width: 100%;
+}
+
+.checkbox,
+.radio {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  appearance: none;
+  background-color: var(--clr-page-bkg);
+  border: 2px solid var(--clr-primary-bkg);
+  color: var(--clr-page-text);
+  box-shadow: var(--shd-soft);
+  font-size: var(--txt-size-check);
+  margin: 0 8px 0 0;
+  width: calc(var(--txt-size-check) * 2);
+  height: calc(var(--txt-size-check) * 2);
+  flex: 0 0 auto;
+}
+
+.radio {
+  border-radius: 100%;
+}
+
+.radio:checked:before {
+  content: "\f111";
+  font-family: FontAwesome;
+}
+
+.checkbox:checked:before {
+  content: "\f00c";
+  font-family: FontAwesome;
+}
+
+.checkbox-div {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+}
+
+.checkbox-div .label {
+  font-size: var(--txt-size-small);
+  width: 100%;
+}
+
+.flex-space {
+  flex-grow: 1;
+}

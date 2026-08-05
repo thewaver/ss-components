@@ -1,0 +1,12 @@
+.big-o {
+  position: absolute;
+  background-color: rgb(0, 2, 4);
+  color: var(--clr-primary-text);
+  border: .05em solid var(--clr-primary-text);
+  border-radius: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}

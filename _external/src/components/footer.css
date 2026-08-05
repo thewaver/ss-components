@@ -1,0 +1,11 @@
+.footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 24px 32px;
+  background-color: var(--clr-panel-bkg);
+  color: var(--clr-panel-text);
+  font-size: var(--txt-size-small);
+}

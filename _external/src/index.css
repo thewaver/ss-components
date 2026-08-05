@@ -1,0 +1,98 @@
+:root {
+  --clr-page-bkg: rgb(16, 24, 32);
+  --clr-page-text: rgb(248, 252, 255);
+  --clr-page-highlight: rgb(192, 255, 128);
+  --clr-panel-bkg: rgb(12, 16, 20);
+  --clr-panel-text: rgb(248, 252, 255);
+  --clr-topmost-bkg: rgb(8, 10, 12);
+  --clr-topmost-text: rgb(248, 252, 255);
+  --clr-primary-bkg: rgb(32, 48, 64);
+  --clr-primary-text: rgb(0, 255, 255);
+  --clr-primary-highlight: rgb(0, 255, 128);
+  --clr-secondary-bkg: rgb(64, 32, 0);
+  --clr-secondary-text: rgb(255, 255, 8);
+  --clr-secondary-highlight: rgb(255, 128, 8);
+  --clr-tertiary-bkg: rgb(64, 32, 96);
+  --clr-tertiary-text: rgb(255, 0, 255);
+  --clr-tertiary-highlight: rgb(128, 0, 255);
+
+  --txt-size-check: 10px;
+  --txt-size-small: 12px;
+  --txt-size-medium: 14px;
+  --txt-size-large: 16px;
+  --txt-size-extra: 20px;
+
+  --shd-soft: 0 5px 20px 0 rgba(0, 2, 4, 0.8);
+  --shd-medium: 0 10px 40px 0 rgba(0, 2, 4, 1);
+
+  --anim-duration: 0.5s;
+
+  --scroll-width: 8px; /* FF "thin" */
+
+  --padding-body: 32px;
+}
+
+* {
+  box-sizing: border-box;
+  scrollbar-color: var(--clr-bkg-highlight) var(--clr-panel-bkg);
+  scrollbar-width: thin;
+}
+
+.disabled,
+:disabled {
+  opacity: 0.5;
+  filter: saturate(0.5);
+  cursor: not-allowed;
+}
+
+:focus {
+  outline: 2px solid var(--clr-primary-text);
+}
+
+::-webkit-scrollbar {
+  width: var(--scroll-width);
+  height: var(--scroll-width);
+}
+
+::-webkit-scrollbar-corner {
+  background-color: var(--clr-panel-bkg);
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--clr-panel-bkg);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--clr-primary-text);
+  box-shadow: inset 0 0 0 1px var(--clr-panel-bkg);
+  transition: background-color var(--anim-duration);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--clr-secondary-text);
+}
+
+a,
+a:visited {
+  color: var(--clr-primary-text);
+  text-decoration: none;
+  outline-offset: 2px;
+}
+
+a:hover,
+a:active {
+  color: var(--clr-secondary-text);
+}
+
+body {
+  max-width: 100vw;
+  margin: 0;
+  padding: 0;
+  font-family: "Open Sans", sans-serif;
+}
+
+.line b,
+.line-i b {
+  color: var(--clr-page-highlight);
+  font-weight: normal;
+}

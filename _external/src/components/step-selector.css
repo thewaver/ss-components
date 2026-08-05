@@ -1,0 +1,63 @@
+.step-selector {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 320px;
+  height: 100%;
+  padding: var(--padding-body);
+  overflow-y: auto;
+}
+
+.step-selector .step {
+  display: flex;
+  flex-direction: column;
+}
+
+.step-selector .step:not(:first-child) {
+  margin-top: 16px;
+}
+
+.step-selector .step .title {
+  background: var(--clr-panel-bkg);
+  box-shadow: var(--shd-soft);
+  font-size: var(--txt-size-large);
+  text-transform: uppercase;
+  border-left: 4px solid var(--clr-primary-bkg);
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.step-selector .step.done .title,
+.step-selector .step.current .title {
+  border-color: var(--clr-primary-text);
+}
+
+.step-selector .step .title b {
+  display: none;
+}
+
+.step-selector .step.done .title b {
+  display: inline;
+  color: var(--clr-primary-text);
+  font-weight: normal;
+}
+
+.step-selector .step .desc {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--txt-size-medium);
+  padding: 16px;
+}
+
+.step-selector .step:not(.current) .desc {
+  display: none;
+}
+
+.step-selector .step .desc .line:not(:first-child) {
+  margin-top: 8px;
+}
+
+.step-selector .step .desc .line-i {
+  margin: 16px 0 0 8px;
+  font-size: var(--txt-size-small);
+  font-style: italic;
+}
