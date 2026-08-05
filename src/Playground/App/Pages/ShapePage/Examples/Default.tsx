@@ -26,7 +26,7 @@ export const DefaultExample = ({
 
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
 
-    const { getFlags } = InteractionUtils.wrapElement(getRootRef, () => false);
+    const { getFlags } = InteractionUtils.wrapElement(getRootRef, () => false, { applyButtonSemantics: true });
 
     return (
         <Shape
@@ -41,14 +41,21 @@ export const DefaultExample = ({
                     ...getIterationConfig().computeDefs(getAnimationDurationMs()),
                 });
 
-                if (getFlags().isFocused)
-                    strokes.push({
-                        color: "#FF00FF",
-                    });
+                if (getFlags().isFocused) {
+                    strokes.push({ color: "#FF00FF" });
+                }
 
                 return strokes;
             }}
-            getStrokeGeom={() => [{ thicknesses: getEdgeThicknesses() }]}
+            getStrokeGeom={() => {
+                const result = [{ thicknesses: getEdgeThicknesses() }];
+
+                if (getFlags().isFocused) {
+                    result.push({ thicknesses: [2] });
+                }
+
+                return result;
+            }}
             computeFillDefs={(getSize) =>
                 getFillConfig().computeSVGDefs(`fill-${id}`, undefined, {
                     getSize,

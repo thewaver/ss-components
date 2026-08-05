@@ -13,7 +13,9 @@ export const ButtonPage = () => {
         <div class={styles.root}>
             <Button
                 getIsPressed={getToggleOn}
-                renderHighlight={() => <Corners getColor={() => (getToggleOn() ? "yellow" : "transparent")} />}
+                renderDecoration={(getFlags) => (
+                    <Corners getColor={() => (getFlags().isPressed ? "yellow" : "transparent")} />
+                )}
                 getTooltipDefs={() => ({
                     getPlacement: () => ({ x: "center", y: "top-out" }),
                     getOffset: () => ({ x: 0, y: 5 }),

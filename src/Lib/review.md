@@ -5,8 +5,9 @@ closed) are deleted once settled; remaining open work is renumbered to stay cont
 
 Last full pass: **2026-08-04** — whole `src/Lib`, every file read, plus the built `dist` output.
 It raised thirteen findings; twelve were fixed on **2026-08-05** and deleted from this file per
-the convention above, and one was folded into **3**, which is where the work actually belongs.
-Everything still open predates that pass.
+the convention above, and one — a disabled `Button` being unable to show its tooltip — was folded
+into the `InteractionWrapper` split, done **2026-08-05** and likewise deleted. Everything still
+open predates that pass.
 
 Verification for the fixes: typecheck clean, `build:lib` clean (115.9 KB JS, 3.8 KB CSS, all
 peers external, no `React.` references), `build:playground` clean, and the `RichText` parser
@@ -35,7 +36,6 @@ is not what was first proposed:
 
 1. `ScreenWiper` renders a few hundred inline SVGs — _deferred_
 2. `Show when={... ?? EMPTY_ARRAY} keyed` can't fire as written — _parked_
-3. `InteractionUtils` and `Button` overlap, and neither covers non-button controls — _deferred, written up to be picked up cold_
 
 ---
 
@@ -85,54 +85,6 @@ export type SVGAnimationDefs = {
 ```tsx
 <Show when={defs.getAnimationIterationPatterns?.() ?? EMPTY_ARRAY} keyed>
 ```
-
----
-
-## 3. `InteractionUtils` and `Button` overlap, and neither covers non-button controls
-
-_Raised 2026-08-04, deferred by agreement. Nothing here has been implemented. Written to be
-picked up without the conversation that produced it — read the three files below first and
-the rest should stand on its own._
-
-**The files.**
-
-- [Interaction.utils.ts](src/Lib/Abstracts/Interaction/Interaction.utils.ts) — `wrapElement`
-- [Button.tsx](src/Lib/Fundamentals/Button/Button.tsx) / [Button.types.ts](src/Lib/Fundamentals/Button/Button.types.ts)
-- [Tooltip.tsx](src/Lib/Fundamentals/Tooltip/Tooltip.tsx) — what any control needs to anchor
-
-**Where it stands.** `InteractionUtils.wrapElement` points at any element and reports how the user is interacting with it — hovered, focused, active. `Button` renders its own markup, wires up a `Tooltip`, and hosts a highlight — and doesn't use `wrapElement` at all. So the two overlap in intent while sharing no code, and between them they cover exactly one kind of control.
-
-The trigger for raising it: custom toggles, checkboxes and radios are planned, and each would currently have to reimplement `Button`'s tooltip and state wiring by hand.
-
-Four concrete gaps:
-
-- A tooltip can only be had by using `Button`. An `<input>`, a checkbox, a custom toggle — none can have one without duplicating `Button`'s wiring.
-- **A disabled `Button` can't show its tooltip at all.** `disabled={props.getIsDisabled?.()}` goes on the native `<button>` ([Button.tsx:24](src/Lib/Fundamentals/Button/Button.tsx#L24)), and `Tooltip` drives visibility off `mouseenter` / `focus` bound to that same element ([Tooltip.tsx:165](src/Lib/Fundamentals/Tooltip/Tooltip.tsx#L165)). A disabled button fires neither and isn't focusable, so the tooltip is unreachable exactly when it's most useful — explaining _why_ the control is disabled. Raised on its own in the 2026-08-04 pass and folded in here rather than patched: every available fix moves the tooltip anchor off the `<button>`, which is precisely the split this item proposes. Doing it twice is the only way to get it wrong.
-- `wrapElement` imperatively sets `role="button"`, `tabIndex` and `aria-disabled` unless told to skip. That's right for making a plain `div` behave like a button and wrong for everything else: forcing `role="button"` onto an `<input>` actively breaks it. (The `cursor` write in the same block was corrected independently — it now sets `not-allowed` when disabled instead of always `pointer` — but it's still an opinion that belongs behind the opt-in.)
-- `Button` takes its interaction state as props (`isPressed`, `hasError`, `isDisabled`) while `wrapElement` derives it from real events. Nothing reconciles the two.
-
-**Proposal — split behaviour from element.** The concerns that repeat across every control are: interaction state, an anchored tooltip, state-driven decoration, and accessibility wiring. None depend on _which_ element it is. Only the element and its semantics differ.
-
-_Layer 1 — behaviour._ `wrapElement` keeps doing what it does, minus the opinions. The role / tabIndex / cursor block becomes opt-in for the "I'm making a div act like a button" case rather than the default, because native controls already carry correct semantics.
-
-_Layer 2 — a shell._ One component owning the wrapper element, the tooltip, and the highlight, with the consumer supplying only the control itself:
-
-```tsx
-<Control
-    getIsDisabled={...}
-    getTooltipDefs={...}
-    renderHighlight={...}
-    renderControl={(setRef, getFlags) => <input ref={setRef} type="checkbox" />}
-/>
-```
-
-`Button` then becomes a thin preset over `Control` that renders a `<button>`, and `Checkbox` / `Radio` / `Toggle` are the same shape with different elements. Tooltip support arrives for all of them at once, from one place.
-
-**Open questions, for whoever picks this up:**
-
-1. Does `Control` own a wrapper element? It needs one to anchor the tooltip and position the highlight, and `Button` already has one — but it means every control carries an extra node.
-2. Do flags flow out of the shell (derived from events) or in as props? `isPressed` / `hasError` are genuinely the owner's state, while hover / focus / active are genuinely the element's. Probably both, merged — worth being explicit about which side wins.
-3. Does `Button` stay a component in its own right, or become an alias thin enough to drop?
 
 ---
 
@@ -213,3 +165,73 @@ Primary args → **defs** → **opts** → **extra** (injected elements / custom
 Merging defs and opts is desirable later but is a deeper refactor — keep them separate for now.
 
 Examples: `computeLinearGradient(defs, custom?)`; `add*Filter(defs, custom?)`; sample `computeSVGDefs(id, flags, defs)`; `computeBreakpoints(type, idx, lineCount, defs, opts?)`; animation helpers `(…, defs)`.
+
+### Controls: wrapper owns behaviour, leaf owns the element
+
+Settled **2026-08-05** when `InteractionWrapper` was split out of `Button`.
+`Checkbox` / `Radio` / `Toggle` land later as different leaves in the same wrapper.
+
+**The composition is an implementation detail, not the consumer's job.** `Button` _is_
+`InteractionWrapper` wrapping a private `ButtonElement`, and consumers write `<Button {...props} />`
+exactly as before the split. Leaf-only with no preset was tried first and reverted the same day: it
+pushed a six-line `renderControl` block into all eight call sites and put `setElementRef` / `getFlags`
+/ `getIsReachable` — wiring that should be opaque — in the consumer's face. This follows `Surface`,
+which composes `Shape` and keeps `SurfaceSVG` / `SurfaceDiv` as unexported locals in its own file.
+`ButtonElement` is likewise unexported; `InteractionWrapper` stays public for custom controls.
+
+**What the wrapper hands a leaf is the wrapper's type, not the leaf's.** `InteractionControlProps`
+(`id` / `flags` / `isReachable` / `ref`) lives in `InteractionWrapper.types.ts`, declared
+unaccessorized so each leaf applies `AccessorProps` itself — `ButtonElementProps =
+AccessorProps<ButtonCbs & InteractionControlProps>`. Anything applicable to every wrapped element
+belongs there; only genuinely element-specific props (`ButtonCbs`) stay with the leaf. The public
+`ButtonProps` is then derived rather than restated — `Omit<InteractionWrapperProps, "renderControl">
+& AccessorProps<ButtonCbs & { id?: string }>` — so wrapper props reach `Button` consumers
+automatically as the wrapper grows.
+
+**The tooltip anchors on the leaf, not the wrapper.** Anchoring on the wrapper div was considered
+and rejected: it drags in four changes to `Tooltip` (`focusin`/`focusout` instead of `focus`/`blur`,
+a `:has(:focus-visible)` guard, rerouting `aria-describedby` back to the control, and losing
+`pointer-events: none` on the root so the hover region grows to the wrapper box). `Tooltip` was not
+modified at all by the split — keep it that way.
+
+**Disabled is a mechanism choice, exposed per instance.** Native `disabled` blocks activation for
+free but kills every event, so the tooltip explaining _why_ a control is disabled becomes
+unreachable exactly when it matters. `aria-disabled="true"` keeps the element live and focusable
+but moves click gating into JS. Native stays the default so nothing shifts silently:
+
+```
+reachable = isDisabled && isReachableWhenDisabled && tooltipDefs !== undefined
+```
+
+Deriving the mode from `getTooltipDefs` presence _alone_ was rejected, and the distinction
+generalises: **presence as a trigger fails invisibly** — add hover text, and disabled semantics
+change under you — while **presence as a guard fails toward the safe default**, only when a prop
+was explicitly set, and is findable with a warning. The third clause exists because a focusable
+`aria-disabled` control with nothing to reveal is strictly worse than one skipped by the tab order.
+Two cases it knowingly shuts out, each earning its own prop if it ever shows up rather than a
+loosening: an explanation living elsewhere on the page (inline error, validation summary) that only
+needs `aria-describedby`, and composite widgets where skipping disabled items makes the set read as
+incomplete. A control that is reachable while disabled must keep its focus ring — focus landing
+somewhere invisible is worse than being skipped.
+
+**Render props receive what drives them.** `renderDecoration(getFlags)` replaced `Button`'s
+zero-argument `renderHighlight()`, under which the pressed linkage was faked consumer-side —
+`ButtonPage` closed over its own signal for the colour and passed the same signal again as
+`getIsPressed`, with the component connecting neither. Renamed because
+`ElementHighlight.renderHighlight` already means `(getVisibilityTarget, getTransitionDurationMs)`,
+and two contracts under one name is a trap.
+
+**The decoration slot belongs to the wrapper for a structural reason**, not because `Button` needed
+it: it requires `position: relative` on the root plus `inset: 0` on the overlay, and inherits
+`pointer-events: none` so it never eats clicks — all wrapper properties a leaf cannot provide
+without becoming a wrapper itself. One slot, not layered slots; a fragment covers multiple
+decorations, and ordering waits until something needs it. Marker classes (`interactionPressed`,
+`interactionError`, `interactionDisabled`) stay alongside it as the cheap path for anything CSS can
+express: slot for structure, classes for styling.
+
+**Flags merge, external wins.** `isPressed` / `hasError` / `isDisabled` are the owner's;
+`isHovered` / `isFocused` / `isActive` are the element's. `wrapElement` keeps its listeners attached
+while disabled so hover and focus stay live in reachable mode, forcing `isActive` false rather than
+tearing down. Its role / tabIndex / cursor block is opt-in via `applyButtonSemantics` — right for a
+div acting as a button, wrong everywhere else, since forcing `role="button"` onto an `<input>`
+breaks it and native controls already carry correct semantics.

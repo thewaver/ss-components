@@ -1,43 +1,50 @@
-import { createMemo, createSignal } from "solid-js";
 import type { ParentProps } from "solid-js";
 
-import { Tooltip } from "../Tooltip/Tooltip";
-import type { ButtonProps, ButtonSizing } from "./Button.types";
+import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
+import type { ButtonElementProps, ButtonProps } from "./Button.types";
 
 import * as styles from "./Button.css";
 
-const DEFAULT_BUTTON_SIZING: ButtonSizing = "fit-content";
-
-export const Button = (props: ParentProps<ButtonProps>) => {
-    const [getAnchorRef, setAnchorRef] = createSignal<HTMLElement>();
-
-    const getSizing = createMemo(() => props.getSizing?.() ?? DEFAULT_BUTTON_SIZING);
+const ButtonElement = (props: ParentProps<ButtonElementProps>) => {
+    const getIsDisabled = () => props.getFlags?.().isDisabled ?? false;
 
     return (
-        <div
-            class={[styles.buttonRoot, styles.buttonSizingVariants[getSizing()]].join(" ")}
-            classList={{
-                [styles.buttonError]: props.getHasError?.(),
-                [styles.buttonPressed]: props.getIsPressed?.(),
+        <button
+            id={props.getId?.()}
+            ref={(element) => props.ref?.(element)}
+            type="button"
+            class={styles.buttonElement}
+            disabled={getIsDisabled() && !(props.getIsReachable?.() ?? false)}
+            aria-disabled={getIsDisabled() || undefined}
+            aria-pressed={props.getFlags?.().isPressed}
+            onClick={(e) => {
+                if (getIsDisabled()) return;
+
+                void props.onClick?.(e);
             }}
+            onMouseEnter={props.onMouseEnter}
+            onMouseLeave={props.onMouseLeave}
         >
-            <button
-                id={props.getId?.()}
-                ref={setAnchorRef}
-                type="button"
-                class={[styles.buttonElement, styles.buttonSizingVariants[getSizing()]].join(" ")}
-                disabled={props.getIsDisabled?.()}
-                aria-pressed={props.getIsPressed?.()}
+            {props.children}
+        </button>
+    );
+};
+
+export const Button = (props: ParentProps<ButtonProps>) => (
+    <InteractionWrapper
+        {...props}
+        renderControl={(setElementRef, getFlags, getIsReachable) => (
+            <ButtonElement
+                ref={setElementRef}
+                getId={props.getId}
+                getFlags={getFlags}
+                getIsReachable={getIsReachable}
                 onClick={props.onClick}
                 onMouseEnter={props.onMouseEnter}
                 onMouseLeave={props.onMouseLeave}
             >
                 {props.children}
-            </button>
-
-            {props.renderHighlight && <div class={styles.buttonCornersWrapper}>{props.renderHighlight()}</div>}
-
-            {props.getTooltipDefs && <Tooltip {...props.getTooltipDefs()} getAnchorRef={getAnchorRef} />}
-        </div>
-    );
-};
+            </ButtonElement>
+        )}
+    />
+);

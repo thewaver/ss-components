@@ -1,15 +1,5 @@
-import type { JSX } from "solid-js";
-
-import type { ExternalInteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
-import type { TooltipProps } from "../Tooltip/Tooltip.types";
-
-export type ButtonSizing = "fit-content" | "fill";
-
-export type ButtonOutlineDefs = {
-    color: string;
-    width: number;
-};
+import type { InteractionControlProps, InteractionWrapperProps } from "../InteractionWrapper/InteractionWrapper.types";
 
 export type ButtonCbs = {
     onClick?: (e: MouseEvent | KeyboardEvent) => void | Promise<void>;
@@ -17,12 +7,6 @@ export type ButtonCbs = {
     onMouseLeave?: (e: MouseEvent) => void | Promise<void>;
 };
 
-export type ButtonProps = AccessorProps<
-    ButtonCbs &
-        ExternalInteractionFlags & {
-            id?: string;
-            sizing?: ButtonSizing;
-            tooltipDefs?: Omit<TooltipProps, "getAnchorRef">;
-            renderHighlight?: () => JSX.Element;
-        }
->;
+export type ButtonElementProps = AccessorProps<ButtonCbs & InteractionControlProps>;
+
+export type ButtonProps = Omit<InteractionWrapperProps, "renderControl"> & AccessorProps<ButtonCbs & { id?: string }>;

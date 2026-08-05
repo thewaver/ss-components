@@ -8,7 +8,8 @@ export namespace InteractionUtils {
         getRef: () => HTMLElement | undefined,
         getIsDisabled: () => boolean,
         opts?: {
-            skipAriaSettings?: boolean;
+            applyButtonSemantics?: boolean;
+            getIsReachable?: () => boolean;
         },
     ) => {
         const [internalFlags, setInternalFlags] = createStore<InternalInteractionFlags>({});
@@ -18,7 +19,7 @@ export namespace InteractionUtils {
         const getFlags = createMemo(() => {
             const flags: InternalInteractionFlags = {
                 ...internalFlags,
-                isActive: getActiveByMouse() || getActiveByKey(),
+                isActive: !getIsDisabled() && (getActiveByMouse() || getActiveByKey()),
             };
 
             return flags;
@@ -63,17 +64,18 @@ export namespace InteractionUtils {
         createEffect(() => {
             const ref = getRef();
             const isDisabled = getIsDisabled();
+            const isReachable = opts?.getIsReachable?.() ?? false;
 
             if (!ref) return;
 
-            if (!opts?.skipAriaSettings) {
+            if (opts?.applyButtonSemantics) {
                 ref.role = "button";
-                ref.tabIndex = !isDisabled ? 0 : -1;
+                ref.tabIndex = !isDisabled || isReachable ? 0 : -1;
                 ref.ariaDisabled = String(isDisabled);
                 ref.style.cursor = !isDisabled ? "pointer" : "not-allowed";
             }
 
-            if (isDisabled) {
+            if (isDisabled && !isReachable) {
                 setInternalFlags({ isHovered: false, isFocused: false });
                 setActiveByKey(false);
                 setActiveByMouse(false);

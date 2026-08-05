@@ -28,6 +28,8 @@ export type * from "./Fundamentals/ElementHighlight/ElementHighlight.types";
 export * from "./Fundamentals/ElementHighlight/ElementHighlight.utils";
 export * from "./Fundamentals/ImageSwitcher/ImageSwitcher";
 export type * from "./Fundamentals/ImageSwitcher/ImageSwitcher.types";
+export * from "./Fundamentals/InteractionWrapper/InteractionWrapper";
+export type * from "./Fundamentals/InteractionWrapper/InteractionWrapper.types";
 export * from "./Fundamentals/Modal/Modal";
 export type * from "./Fundamentals/Modal/Modal.types";
 export * from "./Fundamentals/RichText/RichText";

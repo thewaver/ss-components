@@ -1,35 +1,9 @@
-import { style, styleVariants } from "@vanilla-extract/css";
-
-export const buttonError = style({});
-export const buttonPressed = style({});
-
-export const buttonSizingVariants = styleVariants({
-    "fit-content": {
-        width: "fit-content",
-    },
-    "fill": {
-        width: "100%",
-    },
-});
-
-export const buttonRoot = style({
-    position: "relative",
-    pointerEvents: "none",
-    userSelect: "none",
-
-    selectors: {
-        [`&:has(> button:not([disabled])).${buttonPressed}, &:has(> button:not([disabled]):focus-visible)`]: {
-            zIndex: 1,
-        },
-        "&:has(> button:not([disabled])):hover": {
-            zIndex: 2,
-        },
-    },
-});
+import { style } from "@vanilla-extract/css";
 
 export const buttonElement = style({
     appearance: "none",
     background: "transparent",
+    width: "100%",
     margin: 0,
     padding: 0,
     border: "none",
@@ -42,13 +16,8 @@ export const buttonElement = style({
     cursor: "pointer",
 
     selectors: {
-        "&:disabled": {
+        "&:disabled, &[aria-disabled='true']": {
             cursor: "not-allowed",
         },
     },
-});
-
-export const buttonCornersWrapper = style({
-    position: "absolute",
-    inset: 0,
 });
