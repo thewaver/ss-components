@@ -25,6 +25,7 @@ export type InteractionTooltipDefs = Omit<TooltipProps, "getAnchorRef" | "render
 export type InteractionWrapperProps = AccessorProps<
     ExternalInteractionFlags & {
         sizing?: InteractionSizing;
+        minWidth?: number;
         isReachableWhenDisabled?: boolean;
         isTabbable?: boolean;
         tooltipDefs?: InteractionTooltipDefs;

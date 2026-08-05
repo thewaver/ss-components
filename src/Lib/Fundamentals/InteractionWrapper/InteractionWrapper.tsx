@@ -32,9 +32,11 @@ export const InteractionWrapper = (props: InteractionWrapperProps) => {
     const getFlags = createMemo((): InteractionFlags => ({
         ...getInternalFlags(),
         isDisabled: getIsDisabled(),
+        isReadOnly: props.getIsReadOnly?.(),
         isPressed: props.getIsPressed?.(),
         hasError: props.getHasError?.(),
         checkedState: props.getCheckedState?.(),
+        isEmpty: props.getIsEmpty?.(),
     }));
 
     if (props.getIsReachableWhenDisabled && !props.getTooltipDefs) {
@@ -46,6 +48,7 @@ export const InteractionWrapper = (props: InteractionWrapperProps) => {
     return (
         <div
             class={[styles.interactionRoot, styles.interactionSizingVariants[getSizing()]].join(" ")}
+            style={{ "min-width": props.getMinWidth ? `${props.getMinWidth()}px` : undefined }}
             classList={{
                 [styles.interactionDisabled]: getIsDisabled(),
                 [styles.interactionError]: props.getHasError?.(),

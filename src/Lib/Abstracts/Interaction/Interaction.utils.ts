@@ -68,6 +68,10 @@ export namespace InteractionUtils {
             setActiveByKey(false);
         };
 
+        const onDisabledMouseDown = (e: MouseEvent) => {
+            e.preventDefault();
+        };
+
         createEffect(() => {
             const ref = getRef();
             const isDisabled = getIsDisabled();
@@ -88,6 +92,13 @@ export namespace InteractionUtils {
                 setInternalFlags({ isHovered: false, isFocused: false });
                 setActiveByKey(false);
                 setActiveByMouse(false);
+
+                ref.addEventListener("mousedown", onDisabledMouseDown);
+
+                onCleanup(() => {
+                    ref.removeEventListener("mousedown", onDisabledMouseDown);
+                });
+
                 return;
             }
 

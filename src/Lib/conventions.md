@@ -78,7 +78,13 @@ Mental shortcut: **if calling `fn(x())` would lose a subscription the callee nee
 
 `ref` (if any) → enabled / visible / disabled → opts / defs. Prefer `getIsDisabled` over `getIsEnabled`.
 
-Examples: `ElementObserver(ref, visible, opts)`, `Interaction.wrapElement(ref, disabled, opts)`, `Focus.autoFocus(ref, visible)`, `ElementFader(visible, opts)`, `FPS.createMonitor(disabled, opts)`.
+Examples: `ElementObserver.createViewportRectObserver(ref, visible, opts)`, `Interaction.wrapElement(ref, disabled, opts)`, `Focus.autoFocus(ref, visible)`, `ElementFader(visible, opts)`, `FPS.createMonitor(disabled, opts)`.
+
+**An observer's name carries its coordinate space**, because picking the wrong one fails silently — it
+returns a plausible number that is wrong by the `Viewport` scale factor.
+`ElementObserver.createViewportRectObserver` polls on `requestAnimationFrame` and reports position
+**and** size through `ViewportUtils.getAdjustedBoundingClientRect`, with the scale divided out. It was
+briefly just `createObserver`, which said neither what was measured nor in which space.
 
 ### SVG / factory arg order
 
@@ -153,9 +159,29 @@ Three things had been leaning on the native attribute and now have explicit home
   could compute its own native `disabled`. Both are gone — reachability now stops at `wrapElement`,
   which is the "wiring that should be opaque" argument above, applied one level further in.
 
-One consequence with no fix worth building: a plain disabled control can now take focus from a mouse
-click, since only its tab order was removed. `:focus-visible` does not match on mouse focus, so
-nothing is drawn, and `isFocused` stays false because non-reachable mode never attaches listeners.
+**Removing tab order is not enough on its own; mouse focus has to be refused too.** `tabIndex = -1`
+means "programmatically focusable, not tab-reachable", so a disabled control could still be focused
+by clicking it. This was originally recorded here as a consequence with no fix worth building, on
+the grounds that nothing is drawn — `:focus-visible` does not match on mouse focus, and `isFocused`
+stays false because non-reachable mode never attaches listeners. `TextInput` disproved the premise:
+a focused text input blinks a caret whether or not `:focus-visible` matched, so a disabled field
+invited typing it would silently refuse.
+
+`wrapElement` now attaches one listener in its disabled-and-not-reachable branch —
+`mousedown` with `preventDefault()`, which is the event whose default action is focusing the
+element. This is the same "activation gating lives in JS" shape as `Button`'s `onClick` return and
+`BinarySwitch`'s cancelled click, applied to focus, and it is uniform across every wrapped control
+rather than special-cased for text. Disabled controls also stop being text-selectable by drag, which
+matches what native `disabled` did anyway.
+
+Reachable controls are untouched: the branch only runs when the control is disabled **and** not
+reachable, so a control that is focusable in order to explain itself still is.
+
+One hole remains, deliberately. Clicking a `<label>` caption still focuses a disabled control,
+because label activation focuses the labelled control directly rather than by dispatching
+`mousedown` on it. After the caret suppression below, nothing is drawn in that state — no ring, no
+caret — so it lands back on the condition that was acceptable before, and the only catch-all,
+blurring from a `focus` handler, buys it with focus flicker and a jump to `<body>`.
 
 The reachable predicate itself is unchanged:
 
@@ -585,9 +611,381 @@ activation target is ambiguous.
 `role="radiogroup"` element. Wrapping a whole group in a `<label>` would claim that one control is
 being named, and would make a caption click activate an arbitrary member.
 
+### Controls: `TextInput`
+
+Settled **2026-08-05**. The first control whose element the user can see through, which turns out to
+be the only thing that separates it from `Checkbox`.
+
+**The overlay geometry survives; what the input keeps does not.** `TextInput` renders painter first
+in flow, `<input>` second at `position: absolute; inset: 0` — the exact `CheckboxElement`
+arrangement, so the painter sizes the box, the input covers that box, and the focus ring lands
+around what was painted. What changes is the blank-slate rule: a checkbox input shows nothing, while
+a text input **is** the thing that shows the value, the caret and the selection. So the reset keeps
+`appearance`, `background`, `border`, `border-radius`, `box-shadow`, `margin` and `min-width` — all
+`!important`, for the reason `BinarySwitch.css.ts` already records — and deliberately leaves
+`padding`, `font`, `color`, `caret-color` and the rest of the text-drawing properties alone.
+`user-select: text` is set because `interactionRoot` sets `none`.
+
+**Nesting the input inside the painter was the obvious alternative and lost on the focus ring.** If
+`renderContent` received a slot and placed the input inside its frame, typography would inherit and
+the padding duplication below would vanish entirely. But the input is still the focusable element,
+so the ring would then be drawn around the inner text area rather than around the frame, and
+recovering it means the painter matching on `:has(:focus-visible)` — which is the arrangement
+rejected under _"Nothing that fades or filters may touch the element that owns the focus ring"_,
+where the library owns one ring appearance and the consumer another. It would also have made
+`renderContent` a two-argument contract for this one control. Overlay geometry is settled and
+proven; keep it.
+
+**The cost, accepted: the painter's inner padding and the input's `padding` have to agree, and
+nothing enforces it.** Both live in the consumer's stylesheet, so a shared constant fixes it — the
+Playground's `TextInputContent.css.ts` derives both from `FIELD_PADDING`. This is the first place
+where the painter does not own literally every pixel, and it is the direct price of keeping the ring
+correct.
+
+**`computeTextStyle` is the one place paint lives on the element the browser owns**, and it exists
+because there is no other hook: the consumer must style the text, the text is inside the input, and
+the input is the library's element. It takes `getFlags` per _"Render props receive what drives
+them"_ — disabled text is grey, and no ancestor knows the flags, which is the one thing plain CSS
+inheritance cannot do here.
+
+It returns a **whitelisted** object rather than a class name, and the whitelist is the point:
+
+```ts
+export type TextInputTextStyle = Pick<JSX.CSSProperties, "color" | "font-size" | "padding" | …>;
+```
+
+The first version took `computeClassName` and carried a prose rule — _"it may only carry properties
+that draw text"_ — that nothing enforced. A `Pick` of `JSX.CSSProperties` makes that a compile
+error instead, so a border or a `position` cannot reach the input by accident and decouple the
+painted box from the wrapper's box. Solid's `JSX.CSSProperties` extends `csstype.PropertiesHyphen`,
+so the keys are kebab-case and lengths must be strings — `"12px"`, not `12`.
+
+**It is applied as an inline style, and that ends the specificity war on the consumer's side.**
+Inline styles outrank every selector short of `!important`, so a consumer no longer has to reach
+their own input through a `globalStyle` on `input.<class>` just to beat an app stylesheet's
+`input:not([type="range"])`. The Playground lost four `globalStyle` blocks to this change. The
+library's own `!important` resets still win over it, which is correct: `caret-color` under
+`[aria-disabled='true']` must beat whatever the consumer asked for.
+
+**One prop rather than one per property**, because almost everything that draws text is an
+_inherited_ CSS property — `color`, `font-*`, `line-height`, `letter-spacing`, `text-align`,
+`text-transform`, `caret-color`. Enumerating them as `getTextColor`, `getFontSize` and so on
+reimplements CSS one prop at a time and still leaves a tail. One object covers the tail by widening
+the `Pick`.
+
+**Padding is deliberately _not_ in the whitelist, because the library owns it.** The obvious division
+of labour — background element owns borders, corners _and padding_; input owns only text — does not
+work, since an absolutely positioned box resolves `inset` against its containing block's padding box
+and **ignores that ancestor's padding entirely**. Padding on `renderContent` insets nothing. The
+first version therefore put padding in the whitelist and made the consumer compute it; `getPadding`
+and `getGap` replaced that — see _"The field's inset is measured, not declared"_ below. The
+whitelist is now purely text properties and the rule no longer bends.
+
+**What a value-only API cannot express**, recorded because it is the reason the class may have to
+come back: `::selection`, `::placeholder`, `::-webkit-*` and `:autofill` are selectors, not values.
+The last of those is a real gap rather than a theoretical one — Chrome's `:autofill` forces an opaque
+background that `background: transparent` cannot clear, so an autofilled field paints a solid
+rectangle **over** the painter, square-cornered and ignoring the frame. `color` is locked the same
+way.
+
+**Left alone deliberately, and the reason is not that it is hard.** The lock is an anti-spoofing
+measure: Chromium refuses author overrides so a site cannot conceal that the browser filled a field
+with the user's stored data. Defeating it is possible — `box-shadow: inset 0 0 0 1000px <colour>`
+works because inset shadows paint above the background and below the text, and
+`-webkit-text-fill-color` covers the forced text colour — but doing so by default would have the
+library suppress a signal the browser is deliberately showing the user. `opacity` and `filter` are
+not alternatives at any specificity or under any selector: both composite the element's whole paint,
+so they fade the text with the background, and both would reach the focus ring.
+
+So no escape hatch ships. If one is ever wanted it should return as a narrowly documented
+pseudo-selector hook rather than a general class prop, since the common path no longer needs one —
+and the consumer, not the library, should be the one deciding to override an anti-spoofing default.
+
+**`renderPlaceholder` is a slot, not a string.** Native `placeholder` is paint the library emits,
+which _"A control paints nothing"_ forbids outright. The slot is `position: absolute; inset: 0;
+pointer-events: none`, rendered between the painter and the input so typed text is never occluded,
+and it is **always rendered when the prop is given** — gating it on `isEmpty` internally would make
+a floating label impossible, since that has to stay mounted and transform. The painter reads
+`getFlags().isEmpty` and decides between hiding and floating. Placeholder text should be
+`aria-hidden`, for the same reason a checkbox painter's glyph is: the accessible name comes from
+`getAriaLabel` or an enclosing `Label`.
+
+This is also why the slot belongs to the leaf rather than to `renderDecoration`: the decoration
+wrapper sits above the input and is shared by every control, whereas a placeholder must sit below
+the caret and only a text field has one.
+
+**Focus is drawn once, by the ring, and a painter must not draw a second one.** The first version of
+`PageTextInputContent` coloured its border on `isFocused`, which produced two concentric indications
+at different radii — the consumer's `:focus-visible` outline sitting on the input's border box, and
+the painter's border two pixels inside it. The outline already hugs the painted box exactly, because
+the input is `inset: 0` against a root the painter sized, so there is nothing left for the painter to
+add. `isFocused` stays available for focus-driven paint that is **not** a ring; it is a second
+outline or border specifically that is always wrong here.
+
+**Adornments are `renderLeading` / `renderTrailing`, and they are the leaf's, not the wrapper's.**
+Both are absolutely positioned against the root at `insetBlock: 0`, and both are rendered **after**
+the input so they stack above it. The width is their content's, so the slot hugs what it holds and
+clicks either side of it still land on the field. The Playground puts a real `Button` in one, which
+is the point: an adornment can hold anything, including another `InteractionWrapper` with its own
+focus ring, tooltip and disabled state.
+
+**The slot inherits `pointer-events: none` from the root and must not override it.** It briefly set
+`auto`, which inverted hover: the slot sits above the input, so pointing at a static adornment stole
+the hit test, the input never received `mouseenter`, and `isHovered` went **false** exactly while the
+cursor was over the adornment — so a painter keyed on the field's hover lit up everywhere except
+there. Inheriting `none` lets the hit test fall through to the input underneath, and hovering the
+adornment now reads as hovering the field, which is what it is.
+
+Interactivity is unaffected, and that is why `none` is the right default rather than a compromise:
+`pointer-events` is inherited, so an interactive element re-enables it for itself. Every control
+element in this library already does — `buttonElement`, `binarySwitchElement` and `textInputElement`
+all set `pointer-events: all` against the same inherited `none` — so a `Button` dropped in a slot
+works with no configuration. Only raw consumer markup that must be clickable needs `pointer-events:
+auto` on itself, the same one-liner `interactionDecorationWrapper` has always required.
+
+One consequence, left alone: hovering an interactive adornment does drop the field's `isHovered`,
+since the adornment is a sibling of the input rather than an ancestor and `mouseleave` fires. That
+reads correctly — you are hovering the button, not the field — and fixing it would mean moving
+`wrapElement`'s hover tracking from the control to the root and from `mouseenter`/`mouseleave` to
+`mouseover`/`mouseout`, which is shared-code surgery for a cosmetic gain.
+
+They do not go through `renderDecoration` for the reason that slot was defined narrowly in the first
+place: it is one full-box overlay shared by every control, while these are positional and
+text-specific, and they drive the input's padding. Nor are they one prop taking a side — _"one
+slot, not layered slots"_ was about stacking, and these two do not stack; they reserve opposite ends
+and drive opposite padding.
+
+Named leading/trailing for **role, not axis** — the slot at the start of the field and the one at
+its end. They were briefly positioned with `inset-inline-start` / `inset-inline-end` on the argument
+that following the writing direction costs only a property name; that argument is withdrawn.
+Adopting `CSSPadding` (next section) made it incoherent, since `paddingLeft` is physical and feeding
+it into a logical property is a lie the moment anything is RTL. Physical throughout is the honest
+choice while nothing else in the library is RTL-aware — `getDir` on `Label` and `RadioGroup` means
+flex direction, not writing direction. Going RTL later means changing the CSS, not the prop names.
+
+**The field's inset is measured, not declared.** `getPadding` and `getGap` are the geometry the
+consumer states; everything else is derived. `getPadding` takes `CSSPadding | number` and is
+normalised through `CSSUtils.spreadPadding`, so a single number spreads to four sides and per-side
+control is available without a second prop. `CSSUtils.spreadableToStyle` then renames the keys and
+adds the `px`, which is why no template strings are built by hand:
+
+```tsx
+CSSUtils.spreadableToStyle(
+    { ...getSpreadPadding(), paddingLeft: getLeadingInset(), paddingRight: getTrailingInset() },
+    StringUtils.camelToKebabCase,
+);
+```
+
+It briefly took a bare `number`, and briefly used `Bounds` — the latter is the right shape for
+`createViewportRectObserver`, which measures _edges_, but `CSSPadding` is the one meant for
+declaring padding and arrives already keyed by CSS property.
+
+Each adornment slot is observed by a local `createAdornmentWidth`, and the input's effective text
+area is inset by
+
+```
+padding + (adornment ? adornmentWidth + gap : 0)
+```
+
+per side, applied as an inline style along with the same inset on the placeholder slot. The
+adornment slots themselves sit at `padding` from their edge. So the only numbers anyone writes are
+padding and gap; nothing else has to be kept in agreement, and the placeholder no longer needs to
+know an adornment exists.
+
+_Corrected after the fact: this section originally argued that an adornment reserves no space and
+the consumer should supply the matching padding themselves, on the grounds that measuring "buys
+correctness with a resize observer per field and takes the decision away from the painter". The
+decision it takes away is one the painter cannot make correctly — the strongest counter-argument is
+**i18n**, where `Show` / `Hide` becomes `Anzeigen` / `Verbergen` and any declared width silently
+breaks, along with font swaps and dynamic adornment content._
+
+**A `ResizeObserver`, specifically, and not a measured rect.**
+`ElementObserver.createViewportRectObserver` is a `requestAnimationFrame` polling loop, appropriate
+for tracking a position that moves but far too heavy for a width that changes rarely.
+`borderBoxSize` also reports **untransformed layout size**, which matters here more than it looks:
+the Playground runs inside `Viewport`, which applies a CSS `transform: scale()`, and
+`getBoundingClientRect` would return scaled values. That is the whole reason
+`ViewportUtils.getAdjustedBoundingClientRect` exists. `ResizeObserver` sidesteps it entirely, and
+`offsetWidth` — used for the initial synchronous read, so the first paint is already inset — is
+likewise unaffected by transforms.
+
+No feedback loop is possible while the adornments stay absolutely positioned: the input's padding
+cannot change an adornment's size, so the observer cannot re-trigger itself. `getMinWidth` below
+derives the **root's** size from the same measurements and is still safe for the same reason — a
+content-sized, out-of-flow adornment does not change width when the root does. Anything that makes
+an adornment's width depend on the root's would close that loop.
+
+**`getMinWidth` is the floor, and it is the same numbers summed.** `InteractionWrapper` gained
+`getMinWidth` beside `getSizing`, and `TextInput` feeds it `leadingInset + trailingInset` — which
+expands to `padding × 2 + adornment widths + gap × adornment count`, exactly the chrome. Below that
+the field would be drawing over its own adornments. It deliberately reserves nothing for the text:
+a zero-width text area is a legitimate floor, and picking a minimum number of visible characters
+would be the library inventing a design decision.
+
+This is also why the measurement lives in `TextInput` rather than in `TextInputElement`, where it
+started. `min-width` belongs on the root, the root belongs to `InteractionWrapper`, and props flow
+down — so the observers had to sit above the wrapper. The leaf now receives `getTextInset` and
+`getSpreadPadding` ready-made and is correspondingly dumber, which is the better arrangement anyway.
+
+**What `getMinWidth` does not do: make the painter follow.** It protects the root, and with it the
+input and the adornments. A painter with a fixed `width` stays put, so if the floor exceeds it the
+root grows and the frame is left narrower than the field it is framing. Guaranteeing they move
+together needs `flex-grow: 1` on the in-flow child, which lives in `interactionRoot > *` and would
+therefore change every control at once — not worth doing on `TextInput`'s account alone. Until then
+the rule for a painter is simply that it must not be narrower than its own adornments require.
+
+**It is a local helper in `TextInput.tsx`, not an `Abstracts` utility.** It briefly was one —
+`ElementObserver.createLayoutSizeObserver` — which put a second, unrelated thing in a namespace whose
+name then had to work much harder, and shipped public API through `index.ts` for a single internal
+caller. Both instances live in one file, so the sharing that would justify extraction is inside that
+file already. This is the same rule applied to `TextArea` below: extraction is cheap, the wrong base
+is not, and the trigger is a second component wanting it.
+
+One consequence that is correct but looks odd: the focus ring encloses the adornments, because they
+are inside the field's box. They are part of the field, so that is right — an adornment that should
+own its own ring is a `Button` placed in the slot, and it gets one.
+
+`interactionRoot > * { margin: 0 !important }` reaches the slots, since they are direct children of
+the root. That is the rule doing its job rather than a limitation — spacing belongs inside, so a
+consumer insets an adornment from the frame with margin or padding on their own content, one level
+down.
+
+**Disabled means `readonly`, and this is the first control where `preventDefault` could not do the
+job.** `Button` gates in `onClick` and `BinarySwitch` cancels the click, but "activation" for a text
+field is typing, pasting, dragging text in, autofill and IME composition, and there is no single
+event to cancel. `readonly` blocks every one of them, and it satisfies the constraints that forced
+the `aria-disabled`-everywhere rule in the first place: the element stays focusable, its events keep
+firing so a disabled-but-reachable field still reveals its tooltip, and — decisively — **the UA does
+not repaint a readonly input**, so the appearance parity the mechanism split could never achieve
+holds here for free. Selection and copying survive too, which native `disabled` would have killed.
+
+```
+element.readOnly = isDisabled || isReadOnly
+```
+
+**The caret is suppressed while disabled, and only while disabled.** A disabled-but-reachable field
+is focusable by design, so focus genuinely lands in it and the browser draws a blinking caret in a
+`readonly` input exactly as it would in an editable one — an invitation to type that the field will
+refuse. `caret-color: transparent` on `[aria-disabled='true']` removes it, with `!important` for the
+same reason `cursor` carries one: a consumer's `caret-color` reaches the input through
+`computeTextStyle` and would otherwise win. Read-only keeps its caret, because keyboard navigation
+and selection inside a read-only field are the point of it.
+
+Read-only is a real feature in its own right, so `getIsReadOnly` is public and `aria-readonly`
+reflects only the consumer's intent while `aria-disabled` reflects disabled. There is deliberately
+**no redundant JS guard on the input path** — `readonly` is the single mechanism and a browser
+cannot deliver an `input` event past it. The mouse handlers keep their explicit gating, because
+`readonly` does not suppress `mouseenter` / `mouseleave` and `isHovered` on a disabled control is
+exactly what _"Flags merge, external wins"_ is about.
+
+**Native constraint validation stays out.** `required` / `pattern` produce a UA-painted bubble,
+which is paint the library would be emitting. `hasError` is already the owner's and stays that way.
+`maxLength` is out for a different reason: the owner's setter already owns transforms, and an
+attribute that truncates silently would be a second mechanism for the same thing.
+
+**`syncElement` is `BinarySwitch`'s function with two problems `BinarySwitch` never had.** The
+premise is identical — the browser mutates `value` before `input` fires, so an owner that refuses or
+transforms the write leaves the DOM holding text the state disagrees with — except it happens on
+every keystroke rather than on a rejected toggle.
+
+- **Assigning `value` collapses the caret to the end.** The sync captures `selectionStart` /
+  `selectionEnd`, writes only when `element.value` actually differs, and restores. The accepted path
+  therefore costs nothing and never touches the selection. The `null` guard is load-bearing beyond
+  tidiness: `type="email"` and `type="url"` do not support the selection API, so the properties read
+  `null` and `setSelectionRange` would throw. Truncation needs no special case — `setSelectionRange`
+  clamps.
+- **Writing mid-composition destroys it.** An `isComposing` signal gates both the sync and the
+  report, and `compositionend` reports and re-syncs. Chrome and Firefox fire `input` after
+  `compositionend` while Safari has historically fired it before; running the report from both is
+  idempotent, since the second pass finds the value unchanged.
+
+Both are read inside the render effect, so ending a composition re-syncs on its own.
+
+**Transforms compose through `onInput`, not through a derived signal.** `TextInput` writes
+`valueSignal` with the raw value and then calls `onInput`, exactly as `Checkbox` writes
+`checkedSignal` before reporting, so a consumer that wants upper-casing or digits-only writes the
+signal a second time from `onInput` and the sync corrects the DOM afterwards. Handing `TextInput` a
+hand-built `[getter, transformingSetter]` pair was tried first and abandoned: Solid's `Setter<T>` is
+an overloaded type a plain `(value: string) => void` cannot satisfy, so it needs a cast at every
+call site to express something the sanctioned path already does.
+
+**`isEmpty` and `isReadOnly` join the flags, and that is now a trend rather than an exception.**
+Both follow `checkedState` exactly — added to `ExternalInteractionFlags`, exposed on
+`InteractionWrapper` as `getIsEmpty` / `getIsReadOnly`, and `getIsEmpty` `Omit`ted from
+`TextInputProps` because the component owns the value and two sources for one state is the problem
+the omission prevents. `getIsReadOnly` stays public, since read-only is the consumer's to declare.
+The painter does **not** receive the value: the input already renders it, and a painter drawing it
+too would double it. `isEmpty` is the summary that drives placeholder and floating-label paint, and
+nothing more. What this costs is recorded in `review.md` — `ExternalInteractionFlags` is on its way
+to being the union of every control's private state.
+
+**`number` is a type, not a component.** _Corrected after the fact: this section originally argued
+for a separate `NumberInput`, on the grounds that a number field could not reuse this sync rule
+because writing `String(state)` back on every keystroke makes `"1."`, `"-"` and `"1e"` untypeable,
+and that `setSelectionRange` throws on `type="number"`. Both claims are true, and neither was a
+reason for a component._
+
+That argument rested on an assumption that was never stated and never justified: that a number field
+means `valueSignal: Signal<number | undefined>`. It does not. **The DOM's value is a string for every
+input type**, and once `valueSignal` stays `Signal<string>` the round-trip that made `"1."`
+untypeable never happens — `syncElement` compares strings, finds them equal, and writes nothing. The
+`setSelectionRange` hazard was already handled too, by the `null` guard written for `email` and
+`url`, which `number` hits identically. Nothing was left.
+
+So `"number"` is a member of `TextInputType`, and the only additions it needed were three
+behavioural attributes (`getMin` / `getMax` / `getStep`, which drive arrow-key stepping) and one CSS
+rule suppressing the spin buttons, which are UA paint and therefore forbidden by the same rule that
+kept `placeholder` out. Consumers who want a number derive it from the string; the owner's setter
+already owns transforms, so a codec inside the component would only be a lossier place to put one.
+
+This generalises, and it is the useful part: **an HTML input type is not a reason for a component.**
+`Toggle` was not a component because its difference was paint; `number` is not one because its
+difference is an attribute. What earns a component is behaviour the shell has to own — which is what
+`RadioGroup` had and neither of these did.
+
+**One caveat `type="number"` carries and the library cannot repair.** During bad input — a lone
+`"e"`, `"-"` or `"1e"` mid-typing — the HTML value sanitisation algorithm makes `element.value`
+return `""` while the field still shows the characters. State and screen diverge, nothing in the DOM
+exposes the visible string to read it back, and `syncElement` sees two empty strings and correctly
+does nothing. The visible symptom is `isEmpty` reporting true with text on screen, so a
+`renderPlaceholder` overlay will draw over it. `type="text"` with `getInputMode={() => "decimal"}`
+avoids the whole thing and is the better choice wherever the placeholder or an exact value matters.
+
+**No shared composite yet, and `TextArea` is the thing that would justify one.** `BinarySwitch`
+earned its existence from three presets sharing nine tenths of a leaf. `TextInput` is currently
+alone — `InteractionWrapper` plus a private `TextInputElement`, the `Button` shape — because a base
+extracted from one component is just an extra file.
+
+A textarea is a different case from `number`, and the difference is exactly the test above: it is a
+different **element**, not a different type, so the leaf's tag changes and with it two real things.
+`rows` and `cols` replace `type` and `autocomplete`-ish concerns, and — the one that matters —
+auto-growing height would invert who owns geometry, since the settled arrangement has the painter
+size the box and the element cover it at `inset: 0`. A fixed-height textarea keeps that arrangement
+untouched; an auto-growing one cannot, and that is a decision to take deliberately rather than
+inherit.
+
+Everything expensive is shared regardless: `syncElement` with its caret restore, composition
+gating, the `readonly` disabled mechanism, the flags, the placeholder and adornment slots. That is
+more overlap than `Checkbox` and `Radio` had, and copying it would put a second copy of
+`syncElement` in the tree — the specific mistake `BinarySwitch` exists to prevent. So when `TextArea`
+is built it should be a private shared leaf parameterised by its element with `TextInput` and
+`TextArea` as presets that `Omit` what does not apply, in the `BinarySwitch` shape, and **not** a
+`"textarea"` member of `TextInputType`, which would be a type that silently changes the element.
+
+**Password is not a component.** Its only distinguishing behaviour is revealing, which is
+`getType` flipping between `"password"` and `"text"` over a signal the consumer already owns. This
+is the audit's _"`Toggle` needs no new library code"_ result applied again, and the Playground
+demonstrates it with a `Toggle` next to the field.
+
+**`LabelUtils.resolveAriaLabel` was extracted rather than copied.** The context read, the
+suppression and the warning lived inline in `BinarySwitchElement` and are needed identically here.
+This is the `computeIsReachable` situation — a settled rule, and two copies would drift — so it
+moved to `Label.utils.ts` under the same namespace idiom as `InteractionUtils`, and the warning lost
+its `BinarySwitch:` prefix.
+
 ### Folder layout: `Fundamentals/Input`
 
-`BinarySwitch`, `Checkbox`, `Toggle`, `Radio`, `RadioGroup` and `Label` live under
+`BinarySwitch`, `Checkbox`, `Toggle`, `Radio`, `RadioGroup`, `TextInput` and `Label` live under
 `Fundamentals/Input/`. The grouping is by what a component is _for_ — carrying a value the user
 edits — not by what it is built from. `Button` and `InteractionWrapper` deliberately stay at the
 `Fundamentals` level: `Button` is an interaction with no value, and `InteractionWrapper` is shared
@@ -610,6 +1008,11 @@ npm run build:playground && npm run preview
 That is how the roving tab order, per-group `name` isolation, `role="radiogroup"`, the dropped
 `role="switch"` on a mixed toggle and the mixed painter classes were confirmed. It cannot click or
 type, so behaviour is a different problem — see `review.md`.
+
+The invocation is Chrome-specific in practice. Edge's headless `--dump-dom` on Windows returns the
+shell with an empty route outlet — the left menu and every generated `href` are present, the page
+itself is not — for `/radio` as much as for anything added since, at any `--virtual-time-budget`. So
+a failure to see page content there is the browser, not the page.
 
 ### `ScreenWiper`: CSS shapes, not SVG
 

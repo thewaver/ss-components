@@ -33,7 +33,7 @@ export const ElementHighlight = (props: ElementHighlightProps) => {
         onHide: props.onHide,
     });
 
-    ElementObserver.createObserver(props.getElementRef, getIsVisible, { setElementRect, getPadding });
+    ElementObserver.createViewportRectObserver(props.getElementRef, getIsVisible, { setElementRect, getPadding });
 
     const getSegmentRects = createMemo(() => {
         const rect = getElementRect();

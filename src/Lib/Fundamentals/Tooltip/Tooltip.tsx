@@ -110,7 +110,7 @@ export const Tooltip = (props: TooltipProps) => {
         getTransitionDurationMs,
     });
 
-    ElementObserver.createObserver(props.getAnchorRef, getIsVisible, { setElementRect: setAnchorRect });
+    ElementObserver.createViewportRectObserver(props.getAnchorRef, getIsVisible, { setElementRect: setAnchorRect });
 
     const handleMouseEnter = () => {
         clearTimeout(focusTimeout);

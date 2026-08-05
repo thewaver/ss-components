@@ -9,7 +9,9 @@ decisions and the reasoning behind them live in `conventions.md`.
 
 1. `Show when={... ?? EMPTY_ARRAY} keyed` can't fire as written — _parked_
 2. Nothing that needs a click or a keystroke has ever been verified — _open_
-3. One-shot positioned effects have nowhere to go — _open_
+3. `ExternalInteractionFlags` is becoming the union of every control's private state — _open_
+4. The Playground's blanket `input` rules now fight a real component — _open_
+5. One-shot positioned effects have nowhere to go — _open_
 
 ---
 
@@ -60,18 +62,67 @@ Currently unexercised, all of it in `Fundamentals/Input`: the tri-state resoluti
 control is clicked, the refused-write resync in `BinarySwitch.syncElement` (the whole reason that
 function exists), the radio arrow walk and its skip-a-disabled-option-but-still-focus-a-reachable-one
 rule, `Label`'s caption click reaching a disabled control and being stopped, and the `aria-label`
-suppression and its warning — that last one has no correct-usage path in the Playground at all, so
-it has never run.
+suppression's warning branch, which has no path in the Playground at all and so has never run.
 
-Markup can already be checked without any dependency: headless Chrome with `--dump-dom` against
+`TextInput` made this worse rather than incrementally longer, because it is the first control that
+is **entirely** keystrokes. Nothing in `TextInput.syncElement` can be seen in markup: not the caret
+restore after a transforming setter, not the resync after a refusing one, not the composition
+gating, not the `null` selection guard that keeps `type="email"` from throwing. `readonly` as the
+disabled mechanism is likewise invisible — the attribute is checkable, the fact that it actually
+stops a paste is not.
+
+Markup can still be checked without any dependency: headless Chrome with `--dump-dom` against
 `npm run preview`, which is how the roving tab order and the ARIA roles were confirmed
-(`conventions.md` records the invocation). The gap is interaction, and closing it means either a
-driver (Playwright, which is a real dependency decision) or a DOM-level test runner. Worth a
-deliberate choice rather than drifting further.
+(`conventions.md` records the invocation and the Edge caveat). The gap is interaction, and closing
+it means either a driver (Playwright, which is a real dependency decision) or a DOM-level test
+runner. Deferred deliberately when `TextInput` landed rather than overlooked.
 
 ---
 
-## 3. One-shot positioned effects have nowhere to go
+## 3. `ExternalInteractionFlags` is becoming the union of every control's private state
+
+It started as four fields every wrapped control could have. It now also carries `checkedState`
+(`BinarySwitch` only), and `isEmpty` and `isReadOnly` (`TextInput` only). Each addition was right on
+its own terms and followed the one before it, but the type is drifting toward a bag where most
+fields are meaningless for most controls, and every painter reads a flag set wider than its control
+can produce.
+
+The alternative is making the flags extensible — `InteractionWrapperProps<TExtra>` with
+`renderContent: (getFlags: () => InteractionFlags & TExtra) => JSX.Element` — so a control declares
+its own additions and a painter is typed to exactly what it can receive. That is a real refactor
+touching every leaf, every preset and every painter, and it is not worth doing for three fields.
+
+Recorded so the trigger is a decision rather than a drift: **the next control that wants two or more
+private flags should get the generic instead.** `TextArea` is the likely candidate, and a
+`Select` or a `Slider` after it.
+
+---
+
+## 4. The Playground's blanket `input` rules now fight a real component
+
+`style.css` styles `input:not([type="range"])`, `select` and `textarea` with padding, border,
+background and font — specificity 0,1,1, which outranks any class. That is already why
+`BinarySwitch.css.ts` carries a block of `!important` resets, and it is a fair trade there because
+the library's checkbox input is a blank slate nobody else styles.
+
+`TextInput` broke the trade, because the element the rules hit is one the **consumer** must style.
+The consumer's half of that is now gone — `computeTextStyle` applies as an inline style, which
+outranks every selector, and `TextInputContent.css.ts` dropped the four `globalStyle` blocks it only
+had to buy a specificity point. What remains is the library's own escalation: `cursor` is reset with
+`!important` purely because `input:hover:not(…)` at 0,3,1 would otherwise force `pointer` onto a
+text field, and the box resets in `TextInput.css.ts` and `BinarySwitch.css.ts` carry `!important`
+for the same reason.
+
+The root cause is that those rules exist to style the Playground's **own** chrome — the search box,
+the props panels — and were written before the library shipped anything they could collide with.
+Scoping them to that chrome would remove the escalation on both sides and probably let several of
+`BinarySwitch.css.ts`'s `!important`s go too. Not done here because it touches roughly thirty
+unclassed `<input>` call sites across `ShapePage`, `ScanLineAnimationPage` and `TypewriterPage`,
+which is its own change.
+
+---
+
+## 5. One-shot positioned effects have nowhere to go
 
 `renderDecoration(getFlags)` hands a painter a snapshot of state, and the flags describe state
 only — never events, never pointer geometry. A painter can watch `isActive` flip with its own

@@ -7,7 +7,7 @@ import { useViewportContext } from "../../Fundamentals/Viewport/Viewport.context
 import { ViewportUtils } from "../../Fundamentals/Viewport/Viewport.utils";
 
 export namespace ElementObserver {
-    export const createObserver = <T extends HTMLElement>(
+    export const createViewportRectObserver = <T extends HTMLElement>(
         getRef: Accessor<T | undefined>,
         getIsVisible: Accessor<boolean>,
         opts: {

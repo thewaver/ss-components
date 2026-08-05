@@ -1,7 +1,7 @@
 import { createEffect, createMemo, createSignal } from "solid-js";
 
-import { Checkbox } from "../../../../Lib/Fundamentals/Input/Checkbox/Checkbox";
 import { Corners } from "../../../../Lib/Fundamentals/Corners/Corners";
+import { Checkbox } from "../../../../Lib/Fundamentals/Input/Checkbox/Checkbox";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageCheckboxContent } from "../../StyledComponents/CheckboxContent/CheckboxContent";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";

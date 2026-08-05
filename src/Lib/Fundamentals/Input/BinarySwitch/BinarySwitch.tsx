@@ -1,25 +1,17 @@
 import { createRenderEffect, createSignal } from "solid-js";
 
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
-import { useLabelContext } from "../Label/Label.context";
+import { LabelUtils } from "../Label/Label.utils";
 import type { BinarySwitchElementProps, BinarySwitchProps } from "./BinarySwitch.types";
 
 import * as styles from "./BinarySwitch.css";
 
 const BinarySwitchElement = (props: BinarySwitchElementProps) => {
-    const labelContext = useLabelContext();
+    const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
 
     const [getElementRef, setElementRef] = createSignal<HTMLInputElement>();
 
     const getIsDisabled = () => props.getFlags().isDisabled ?? false;
-
-    const getAriaLabel = () => (labelContext.getIsLabelled() ? undefined : props.getAriaLabel?.());
-
-    if (labelContext.getIsLabelled() && props.getAriaLabel) {
-        console.warn(
-            "BinarySwitch: getAriaLabel was given inside a Label, and is being ignored. An aria-label overrides the visible caption as the accessible name, which leaves the two disagreeing — drop one of them.",
-        );
-    }
 
     const getIsMixed = () => props.getIsMixed?.() ?? false;
 

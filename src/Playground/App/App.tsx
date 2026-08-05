@@ -16,6 +16,7 @@ import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAni
 import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
 import { ShapePage } from "./Pages/ShapePage/ShapePage";
 import { SurfacePage } from "./Pages/SurfacePage/SurfacePage";
+import { TextInputPage } from "./Pages/TextInputPage/TextInputPage";
 import { TogglePage } from "./Pages/TogglePage/TogglePage";
 import { TypewriterPage } from "./Pages/TypewriterPage/TypewriterPage";
 
@@ -93,6 +94,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "Shape",
         component: () => <ShapePage />,
+    },
+    {
+        name: "TextInput",
+        component: () => <TextInputPage />,
     },
     {
         name: "Toggle",
