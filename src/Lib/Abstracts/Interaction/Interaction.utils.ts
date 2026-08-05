@@ -4,12 +4,16 @@ import { createStore } from "solid-js/store";
 import type { InternalInteractionFlags } from "./Interaction.types";
 
 export namespace InteractionUtils {
+    export const computeIsReachable = (isDisabled: boolean, isReachableWhenDisabled: boolean, hasTooltip: boolean) =>
+        isDisabled && isReachableWhenDisabled && hasTooltip;
+
     export const wrapElement = (
         getRef: () => HTMLElement | undefined,
         getIsDisabled: () => boolean,
         opts?: {
             applyButtonSemantics?: boolean;
             getIsReachable?: () => boolean;
+            getIsTabbable?: () => boolean;
         },
     ) => {
         const [internalFlags, setInternalFlags] = createStore<InternalInteractionFlags>({});
@@ -17,9 +21,12 @@ export namespace InteractionUtils {
         const [getActiveByKey, setActiveByKey] = createSignal(false);
 
         const getFlags = createMemo(() => {
+            const isDisabled = getIsDisabled();
+
             const flags: InternalInteractionFlags = {
                 ...internalFlags,
-                isActive: !getIsDisabled() && (getActiveByMouse() || getActiveByKey()),
+                isHovered: !isDisabled && (internalFlags.isHovered ?? false),
+                isActive: !isDisabled && (getActiveByMouse() || getActiveByKey()),
             };
 
             return flags;
@@ -65,12 +72,14 @@ export namespace InteractionUtils {
             const ref = getRef();
             const isDisabled = getIsDisabled();
             const isReachable = opts?.getIsReachable?.() ?? false;
+            const isTabbable = opts?.getIsTabbable?.() ?? true;
 
             if (!ref) return;
 
+            ref.tabIndex = (!isDisabled || isReachable) && isTabbable ? 0 : -1;
+
             if (opts?.applyButtonSemantics) {
                 ref.role = "button";
-                ref.tabIndex = !isDisabled || isReachable ? 0 : -1;
                 ref.ariaDisabled = String(isDisabled);
                 ref.style.cursor = !isDisabled ? "pointer" : "not-allowed";
             }

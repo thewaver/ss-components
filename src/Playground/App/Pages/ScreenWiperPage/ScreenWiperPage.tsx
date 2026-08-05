@@ -3,8 +3,9 @@ import { createSignal } from "solid-js";
 import type { AnimDirection } from "../../../../Lib/Abstracts/Anim/Anim.types";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { ScreenWiper } from "../../../../Lib/Fundamentals/ScreenWiper/ScreenWiper";
+import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
+import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 
-import * as pageStyles from "../Pages.css";
 import * as styles from "./ScreenWiperPage.css";
 
 const INITIAL_WIPE_DIRECTION: AnimDirection = "out";
@@ -32,13 +33,12 @@ export const ScreenWiperPage = () => {
                     getPlacement: () => ({ x: "center", y: "top-out" }),
                     getOffset: () => ({ x: 0, y: 5 }),
                     renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                        <div
-                            class={pageStyles.tooltipContent}
-                            classList={{ [pageStyles.isVisible]: getVisibilityTarget() === 1 }}
-                            style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
+                        <PageTooltipContent
+                            getVisibilityTarget={getVisibilityTarget}
+                            getTransitionDurationMs={getTransitionDurationMs}
                         >
                             Click me to wipe the screen. You should see a back and forth animation.
-                        </div>
+                        </PageTooltipContent>
                     ),
                 })}
                 onClick={async () => {
@@ -47,9 +47,8 @@ export const ScreenWiperPage = () => {
                         setIsWiping(true);
                     }
                 }}
-            >
-                <div class={pageStyles.buttonContent}>Click to Wipe</div>
-            </Button>
+                renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Click to Wipe</PageButtonContent>}
+            />
         </div>
     );
 };

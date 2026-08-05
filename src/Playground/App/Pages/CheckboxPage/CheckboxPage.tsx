@@ -1,9 +1,10 @@
-import { createSignal } from "solid-js";
+import { createEffect, createMemo, createSignal } from "solid-js";
 
-import { Checkbox } from "../../../../Lib/Fundamentals/Checkbox/Checkbox";
+import { Checkbox } from "../../../../Lib/Fundamentals/Input/Checkbox/Checkbox";
 import { Corners } from "../../../../Lib/Fundamentals/Corners/Corners";
-import { PageDemo } from "../../PageComponents/Demo/Demo";
-import { PageDemos } from "../../PageComponents/Demos/Demos";
+import { PageVariants } from "../../PageComponents/Variants/Variants";
+import { PageCheckboxContent } from "../../StyledComponents/CheckboxContent/CheckboxContent";
+import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 
 import * as pageStyles from "../Pages.css";
 
@@ -14,61 +15,150 @@ export const CheckboxPage = () => {
     const reachableSignal = createSignal(true);
     const erroredSignal = createSignal(false);
 
-    return (
-        <PageDemos>
-            <PageDemo getName={() => "Default"} getReadout={() => `checked: ${defaultSignal[0]()}`}>
-                <Checkbox checkedSignal={defaultSignal} getAriaLabel={() => "Default checkbox"} />
-            </PageDemo>
+    const allSignal = createSignal(false);
+    const firstChildSignal = createSignal(true);
+    const secondChildSignal = createSignal(false);
 
-            <PageDemo getName={() => "Decorated"} getReadout={() => `checked: ${decoratedSignal[0]()}`}>
-                <Checkbox
-                    checkedSignal={decoratedSignal}
-                    getAriaLabel={() => "Decorated checkbox"}
-                    getIsPressed={decoratedSignal[0]}
-                    renderDecoration={(getFlags) => (
-                        <Corners getColor={() => (getFlags().isPressed ? "yellow" : "transparent")} />
-                    )}
-                />
-            </PageDemo>
+    const getIsAllMixed = createMemo(() => firstChildSignal[0]() !== secondChildSignal[0]());
 
-            <PageDemo getName={() => "Disabled"} getReadout={() => `checked: ${disabledSignal[0]()}`}>
-                <Checkbox
-                    checkedSignal={disabledSignal}
-                    getAriaLabel={() => "Disabled checkbox"}
-                    getIsDisabled={() => true}
-                />
-            </PageDemo>
+    createEffect(() => {
+        allSignal[1](firstChildSignal[0]() && secondChildSignal[0]());
+    });
 
-            <PageDemo getName={() => "Disabled + reachable"} getReadout={() => `checked: ${reachableSignal[0]()}`}>
-                <Checkbox
-                    checkedSignal={reachableSignal}
-                    getAriaLabel={() => "Disabled but reachable checkbox"}
-                    getIsDisabled={() => true}
-                    getIsReachableWhenDisabled={() => true}
-                    getTooltipDefs={() => ({
-                        getPlacement: () => ({ x: "center", y: "top-out" }),
-                        getOffset: () => ({ x: 0, y: 5 }),
-                        renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                            <div
-                                class={pageStyles.tooltipContent}
-                                classList={{ [pageStyles.isVisible]: getVisibilityTarget() === 1 }}
-                                style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
-                            >
-                                Focusable so this tooltip can be read, but clicking and pressing Space must leave it
-                                checked.
-                            </div>
-                        ),
-                    })}
-                />
-            </PageDemo>
+    const getVariants = createMemo(() => {
+        return [
+            {
+                name: "Default",
+                readout: () => `checked: ${defaultSignal[0]()}`,
+                component: () => (
+                    <Checkbox
+                        checkedSignal={defaultSignal}
+                        getAriaLabel={() => "Default checkbox"}
+                        renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+                    />
+                ),
+            },
+            {
+                name: "Decorated",
+                readout: () => `checked: ${decoratedSignal[0]()}`,
+                component: () => (
+                    <Checkbox
+                        checkedSignal={decoratedSignal}
+                        getAriaLabel={() => "Decorated checkbox"}
+                        getIsPressed={decoratedSignal[0]}
+                        renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+                        renderDecoration={(getFlags) => (
+                            <Corners
+                                getColor={() => (getFlags().isPressed ? "yellow" : "transparent")}
+                                getCornerLength={() => ({ width: 8, height: 8 })}
+                                getStrokeThickness={() => 2}
+                            />
+                        )}
+                    />
+                ),
+            },
+            {
+                name: "Mixed",
+                readout: () =>
+                    `mixed: ${getIsAllMixed()} | all: ${allSignal[0]()} | children: ${firstChildSignal[0]()}, ${secondChildSignal[0]()}`,
+                component: () => (
+                    <div class={pageStyles.controlRow}>
+                        <Checkbox
+                            checkedSignal={allSignal}
+                            getIsMixed={getIsAllMixed}
+                            getAriaLabel={() => "Select all"}
+                            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+                            getTooltipDefs={() => ({
+                                getPlacement: () => ({ x: "center", y: "top-out" }),
+                                getOffset: () => ({ x: 0, y: 5 }),
+                                renderContent: (
+                                    getVisibilityTarget,
+                                    getTransitionDurationMs,
+                                    _getPlacement,
+                                    getFlags,
+                                ) => (
+                                    <PageTooltipContent
+                                        getVisibilityTarget={getVisibilityTarget}
+                                        getTransitionDurationMs={getTransitionDurationMs}
+                                    >
+                                        {`Summarises the two boxes on the right. It reads mixed whenever they disagree, and clicking it sets both. checkedState: ${String(getFlags().checkedState)}.`}
+                                    </PageTooltipContent>
+                                ),
+                            })}
+                            onChange={(isChecked) => {
+                                firstChildSignal[1](isChecked);
+                                secondChildSignal[1](isChecked);
+                            }}
+                        />
 
-            <PageDemo getName={() => "Error"} getReadout={() => `checked: ${erroredSignal[0]()}`}>
-                <Checkbox
-                    checkedSignal={erroredSignal}
-                    getAriaLabel={() => "Errored checkbox"}
-                    getHasError={() => !erroredSignal[0]()}
-                />
-            </PageDemo>
-        </PageDemos>
-    );
+                        <div class={pageStyles.controlRowLabel}>controls</div>
+
+                        <Checkbox
+                            checkedSignal={firstChildSignal}
+                            getAriaLabel={() => "First child"}
+                            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+                        />
+
+                        <Checkbox
+                            checkedSignal={secondChildSignal}
+                            getAriaLabel={() => "Second child"}
+                            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+                        />
+                    </div>
+                ),
+            },
+            {
+                name: "Disabled",
+                readout: () => `checked: ${disabledSignal[0]()}`,
+                component: () => (
+                    <Checkbox
+                        checkedSignal={disabledSignal}
+                        getAriaLabel={() => "Disabled checkbox"}
+                        getIsDisabled={() => true}
+                        renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+                    />
+                ),
+            },
+            {
+                name: "Disabled + reachable",
+                readout: () => `checked: ${reachableSignal[0]()}`,
+                component: () => (
+                    <Checkbox
+                        checkedSignal={reachableSignal}
+                        getAriaLabel={() => "Disabled but reachable checkbox"}
+                        getIsDisabled={() => true}
+                        getIsReachableWhenDisabled={() => true}
+                        renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+                        getTooltipDefs={() => ({
+                            getPlacement: () => ({ x: "center", y: "top-out" }),
+                            getOffset: () => ({ x: 0, y: 5 }),
+                            renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
+                                <PageTooltipContent
+                                    getVisibilityTarget={getVisibilityTarget}
+                                    getTransitionDurationMs={getTransitionDurationMs}
+                                >
+                                    Focusable so this tooltip can be read, but clicking and pressing Space must leave it
+                                    checked.
+                                </PageTooltipContent>
+                            ),
+                        })}
+                    />
+                ),
+            },
+            {
+                name: "Error",
+                readout: () => `checked: ${erroredSignal[0]()}`,
+                component: () => (
+                    <Checkbox
+                        checkedSignal={erroredSignal}
+                        getAriaLabel={() => "Errored checkbox"}
+                        getHasError={() => !erroredSignal[0]()}
+                        renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+                    />
+                ),
+            },
+        ];
+    });
+
+    return <PageVariants getItems={getVariants} />;
 };

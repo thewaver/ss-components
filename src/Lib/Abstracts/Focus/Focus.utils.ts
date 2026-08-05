@@ -18,6 +18,7 @@ const FOCUSABLE_SELECTOR = [
 ].join(",");
 
 const isReachable = (element: HTMLElement) => {
+    if (element.getAttribute("tabindex") === "-1") return false;
     if (element.closest("[inert]")) return false;
     if (element.closest("[aria-hidden='true']")) return false;
     if (element.offsetParent === null && element.getClientRects().length === 0) return false;

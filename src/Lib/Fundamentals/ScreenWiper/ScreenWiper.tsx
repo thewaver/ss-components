@@ -45,25 +45,6 @@ export const ScreenWiper = (props: ScreenWiperProps) => {
 
     const getShape = createMemo(() => props.getShape?.() ?? DEFAULT_SCREENWIPER_SHAPE);
 
-    const renderCell = () => (
-        <svg
-            width={getCellSize()}
-            height={getCellSize()}
-            viewBox={`0 0 ${getCellSize()} ${getCellSize()}`}
-            overflow="visible"
-            aria-hidden="true"
-        >
-            {getShape() === "lozenge" ? (
-                <polygon
-                    points={`${getCellSize() * 0.5},0 ${getCellSize()},${getCellSize() * 0.5} ${getCellSize() * 0.5},${getCellSize()} 0,${getCellSize() * 0.5}`}
-                    fill="black"
-                />
-            ) : (
-                <circle cx={getCellSize() * 0.5} cy={getCellSize() * 0.5} r={getCellSize() * 0.5} fill="black" />
-            )}
-        </svg>
-    );
-
     createEffect(() => {
         const direction = props.getWipeDirection();
 
@@ -129,16 +110,15 @@ export const ScreenWiper = (props: ScreenWiperProps) => {
                                     <For each={getRowCols()}>
                                         {(col) => (
                                             <div
-                                                class={styles.screenWiperCell}
+                                                class={styles.screenWiperCellShapes[getShape()]}
+                                                aria-hidden="true"
                                                 style={{
                                                     width: `${getCellSize()}px`,
                                                     height: `${getCellSize()}px`,
                                                     transition: `transform ${getTransitionDurationMs()}ms ease ${getTransitionDurationMs() * TRANSITION_STAGGER_FACTOR * (col + row)}ms`,
                                                     transform: `scale(${getTarget()})`,
                                                 }}
-                                            >
-                                                {renderCell()}
-                                            </div>
+                                            />
                                         )}
                                     </For>
                                 </div>

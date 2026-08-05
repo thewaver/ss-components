@@ -5,6 +5,7 @@ import { CSSUtils } from "@thewaver/ss-utils";
 import { FPSUtils } from "../../../../Lib/Abstracts/FPS/FPS.utils";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
+import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import { PagePropsPanel } from "../PropsPanel/PropsPanel";
 import type { StressTestProps } from "./StressText.types";
 
@@ -41,9 +42,10 @@ export const StressTest = (props: StressTestProps) => {
                                 setConfigIndex(getIndex());
                                 setModalOpen(true);
                             }}
-                        >
-                            <div class={pageStyles.buttonContent}>{props.renderLabel(getIndex)}</div>
-                        </Button>
+                            renderContent={(getFlags) => (
+                                <PageButtonContent getFlags={getFlags}>{props.renderLabel(getIndex)}</PageButtonContent>
+                            )}
+                        />
                     )}
                 </For>
             </PagePropsPanel>

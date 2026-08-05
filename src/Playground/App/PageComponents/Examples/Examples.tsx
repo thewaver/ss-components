@@ -4,6 +4,7 @@ import { CSSUtils } from "@thewaver/ss-utils";
 
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
+import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 import { PageCodeBox } from "../CodeBox/CodeBox";
 import type { ExamplesProps } from "./Examples.types";
 
@@ -29,22 +30,20 @@ export const PageExamples = (props: ExamplesProps) => {
                                             getPlacement: () => ({ x: "center", y: "top-out" }),
                                             getOffset: () => ({ x: 0, y: 5 }),
                                             renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                                                <div
-                                                    class={pageStyles.tooltipContent}
-                                                    classList={{ [pageStyles.isVisible]: getVisibilityTarget() === 1 }}
-                                                    style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
+                                                <PageTooltipContent
+                                                    getVisibilityTarget={getVisibilityTarget}
+                                                    getTransitionDurationMs={getTransitionDurationMs}
                                                 >
                                                     View source code
-                                                </div>
+                                                </PageTooltipContent>
                                             ),
                                         })}
                                         onClick={async () => {
                                             setActiveIndex(getExampleIndex());
                                             setIsModalOpen(true);
                                         }}
-                                    >
-                                        {"</>"}
-                                    </Button>
+                                        renderContent={() => "</>"}
+                                    />
                                 )}
                             </div>
 

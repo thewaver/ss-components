@@ -1,6 +1,7 @@
 import { style } from "@vanilla-extract/css";
 
-export const isVisible = style({});
+export const isDisabled = style({});
+export const hasError = style({});
 
 export const panel = style({
     backdropFilter: "brightness(75%) grayscale(25%) blur(10px)",
@@ -9,39 +10,29 @@ export const panel = style({
     padding: 20,
 });
 
-const content = style({
+export const controlRow = style({
+    display: "flex",
+    alignItems: "center",
+    gap: 20,
+});
+
+export const labelCaption = style({
+    cursor: "pointer",
+    userSelect: "none",
+});
+
+export const controlRowLabel = style({
+    opacity: 0.5,
+    fontSize: "0.75rem",
+    textTransform: "uppercase",
+});
+
+export const contentSurface = style({
     backgroundImage: "linear-gradient(45deg, var(--clr-primary), var(--clr-secondary))",
     color: "var(--clr-text-contrast)",
     boxShadow: "var(--shd-tiny)",
     borderRadius: 5,
 });
-
-export const buttonContent = style([
-    content,
-    {
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: 40,
-        paddingInline: 20,
-        fontWeight: "bold",
-    },
-]);
-
-export const tooltipContent = style([
-    content,
-    {
-        maxWidth: 240,
-        padding: 10,
-        opacity: 0,
-
-        selectors: {
-            [`&.${isVisible}`]: {
-                opacity: 1,
-            },
-        },
-    },
-]);
 
 const modal = style({
     display: "flex",

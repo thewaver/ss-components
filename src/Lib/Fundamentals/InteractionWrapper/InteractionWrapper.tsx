@@ -16,12 +16,17 @@ export const InteractionWrapper = (props: InteractionWrapperProps) => {
 
     const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
 
-    const getIsReachable = createMemo(
-        () => getIsDisabled() && (props.getIsReachableWhenDisabled?.() ?? false) && props.getTooltipDefs !== undefined,
+    const getIsReachable = createMemo(() =>
+        InteractionUtils.computeIsReachable(
+            getIsDisabled(),
+            props.getIsReachableWhenDisabled?.() ?? false,
+            props.getTooltipDefs !== undefined,
+        ),
     );
 
     const { getFlags: getInternalFlags } = InteractionUtils.wrapElement(getElementRef, getIsDisabled, {
         getIsReachable,
+        getIsTabbable: props.getIsTabbable,
     });
 
     const getFlags = createMemo((): InteractionFlags => ({
@@ -29,6 +34,7 @@ export const InteractionWrapper = (props: InteractionWrapperProps) => {
         isDisabled: getIsDisabled(),
         isPressed: props.getIsPressed?.(),
         hasError: props.getHasError?.(),
+        checkedState: props.getCheckedState?.(),
     }));
 
     if (props.getIsReachableWhenDisabled && !props.getTooltipDefs) {
@@ -46,13 +52,29 @@ export const InteractionWrapper = (props: InteractionWrapperProps) => {
                 [styles.interactionPressed]: props.getIsPressed?.(),
             }}
         >
-            {props.renderControl((element) => setElementRef(element), getFlags, getIsReachable)}
+            {props.renderControl((element) => {
+                setElementRef(element);
+                props.ref?.(element);
+            }, getFlags)}
 
             {props.renderDecoration && (
                 <div class={styles.interactionDecorationWrapper}>{props.renderDecoration(getFlags)}</div>
             )}
 
-            {props.getTooltipDefs && <Tooltip {...props.getTooltipDefs()} getAnchorRef={getElementRef} />}
+            {props.getTooltipDefs && (
+                <Tooltip
+                    {...props.getTooltipDefs()}
+                    renderContent={(getVisibilityTarget, getTransitionDurationMs, getPlacement) =>
+                        props.getTooltipDefs!().renderContent(
+                            getVisibilityTarget,
+                            getTransitionDurationMs,
+                            getPlacement,
+                            getFlags,
+                        )
+                    }
+                    getAnchorRef={getElementRef}
+                />
+            )}
         </div>
     );
 };

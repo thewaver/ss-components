@@ -1,4 +1,4 @@
-import { style, styleVariants } from "@vanilla-extract/css";
+import { globalStyle, style, styleVariants } from "@vanilla-extract/css";
 
 export const interactionDisabled = style({});
 export const interactionError = style({});
@@ -14,6 +14,7 @@ export const interactionSizingVariants = styleVariants({
 });
 
 export const interactionRoot = style({
+    display: "flex",
     position: "relative",
     pointerEvents: "none",
     userSelect: "none",
@@ -31,4 +32,8 @@ export const interactionRoot = style({
 export const interactionDecorationWrapper = style({
     position: "absolute",
     inset: 0,
+});
+
+globalStyle(`${interactionRoot} > *`, {
+    margin: "0 !important",
 });

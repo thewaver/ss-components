@@ -1,12 +1,10 @@
-import type { ParentProps } from "solid-js";
-
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import type { ButtonElementProps, ButtonProps } from "./Button.types";
 
 import * as styles from "./Button.css";
 
-const ButtonElement = (props: ParentProps<ButtonElementProps>) => {
-    const getIsDisabled = () => props.getFlags?.().isDisabled ?? false;
+const ButtonElement = (props: ButtonElementProps) => {
+    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
 
     return (
         <button
@@ -14,37 +12,42 @@ const ButtonElement = (props: ParentProps<ButtonElementProps>) => {
             ref={(element) => props.ref?.(element)}
             type="button"
             class={styles.buttonElement}
-            disabled={getIsDisabled() && !(props.getIsReachable?.() ?? false)}
             aria-disabled={getIsDisabled() || undefined}
-            aria-pressed={props.getFlags?.().isPressed}
+            aria-pressed={props.getFlags().isPressed}
             onClick={(e) => {
                 if (getIsDisabled()) return;
 
                 void props.onClick?.(e);
             }}
-            onMouseEnter={props.onMouseEnter}
-            onMouseLeave={props.onMouseLeave}
+            onMouseEnter={(e) => {
+                if (getIsDisabled()) return;
+
+                void props.onMouseEnter?.(e);
+            }}
+            onMouseLeave={(e) => {
+                if (getIsDisabled()) return;
+
+                void props.onMouseLeave?.(e);
+            }}
         >
-            {props.children}
+            {props.renderContent(props.getFlags)}
         </button>
     );
 };
 
-export const Button = (props: ParentProps<ButtonProps>) => (
+export const Button = (props: ButtonProps) => (
     <InteractionWrapper
         {...props}
-        renderControl={(setElementRef, getFlags, getIsReachable) => (
+        renderControl={(setElementRef, getFlags) => (
             <ButtonElement
                 ref={setElementRef}
                 getId={props.getId}
                 getFlags={getFlags}
-                getIsReachable={getIsReachable}
+                renderContent={props.renderContent}
                 onClick={props.onClick}
                 onMouseEnter={props.onMouseEnter}
                 onMouseLeave={props.onMouseLeave}
-            >
-                {props.children}
-            </ButtonElement>
+            />
         )}
     />
 );

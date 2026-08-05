@@ -2,6 +2,8 @@ import { createSignal } from "solid-js";
 
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
+import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
+import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 
 import * as pageStyles from "../Pages.css";
 import * as styles from "./ModalPage.css";
@@ -19,21 +21,19 @@ export const ModalPage = () => {
                     getPlacement: () => ({ x: "center", y: "top-out" }),
                     getOffset: () => ({ x: 0, y: 5 }),
                     renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                        <div
-                            class={pageStyles.tooltipContent}
-                            classList={{ [pageStyles.isVisible]: getVisibilityTarget() === 1 }}
-                            style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
+                        <PageTooltipContent
+                            getVisibilityTarget={getVisibilityTarget}
+                            getTransitionDurationMs={getTransitionDurationMs}
                         >
                             Click me to open a Modal.
-                        </div>
+                        </PageTooltipContent>
                     ),
                 })}
+                renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Open Modal</PageButtonContent>}
                 onClick={async () => {
                     setModalOpen(true);
                 }}
-            >
-                <div class={pageStyles.buttonContent}>Open Modal</div>
-            </Button>
+            />
 
             <Modal
                 visibilitySignal={modalVisibility}
@@ -59,15 +59,21 @@ export const ModalPage = () => {
                         <div id={MODAL_TITLE_ID}>I am a Modal.</div>
                         <div>And I focus trap!</div>
                         <div class={styles.buttons}>
-                            <Button>
-                                <div class={pageStyles.buttonContent}>Focus 1</div>
-                            </Button>
-                            <Button>
-                                <div class={pageStyles.buttonContent}>Focus 2</div>
-                            </Button>
-                            <Button>
-                                <div class={pageStyles.buttonContent}>Focus 3</div>
-                            </Button>
+                            <Button
+                                renderContent={(getFlags) => (
+                                    <PageButtonContent getFlags={getFlags}>Focus 1</PageButtonContent>
+                                )}
+                            />
+                            <Button
+                                renderContent={(getFlags) => (
+                                    <PageButtonContent getFlags={getFlags}>Focus 2</PageButtonContent>
+                                )}
+                            />
+                            <Button
+                                renderContent={(getFlags) => (
+                                    <PageButtonContent getFlags={getFlags}>Focus 3</PageButtonContent>
+                                )}
+                            />
                         </div>
                     </div>
                 )}

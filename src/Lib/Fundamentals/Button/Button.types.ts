@@ -9,4 +9,5 @@ export type ButtonCbs = {
 
 export type ButtonElementProps = AccessorProps<ButtonCbs & InteractionControlProps>;
 
-export type ButtonProps = Omit<InteractionWrapperProps, "renderControl"> & AccessorProps<ButtonCbs & { id?: string }>;
+export type ButtonProps = Omit<InteractionWrapperProps, "renderControl"> &
+    AccessorProps<ButtonCbs & Pick<InteractionControlProps, "id" | "renderContent">>;

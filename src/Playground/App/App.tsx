@@ -9,11 +9,14 @@ import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
 import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
 import { CheckboxPage } from "./Pages/CheckboxPage/CheckboxPage";
 import { ElementHighlightPage } from "./Pages/ElementHighlightPage/ElementHighlightPage";
+import { LabelPage } from "./Pages/LabelPage/LabelPage";
 import { ModalPage } from "./Pages/ModalPage/ModalPage";
+import { RadioPage } from "./Pages/RadioPage/RadioPage";
 import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
 import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
 import { ShapePage } from "./Pages/ShapePage/ShapePage";
 import { SurfacePage } from "./Pages/SurfacePage/SurfacePage";
+import { TogglePage } from "./Pages/TogglePage/TogglePage";
 import { TypewriterPage } from "./Pages/TypewriterPage/TypewriterPage";
 
 import * as styles from "./App.css";
@@ -62,8 +65,16 @@ const TAB_CONFIGS: TabConfig[] = [
     },
     */
     {
+        name: "Label",
+        component: () => <LabelPage />,
+    },
+    {
         name: "Modal",
         component: () => <ModalPage />,
+    },
+    {
+        name: "Radio",
+        component: () => <RadioPage />,
     },
     /*
     {
@@ -82,6 +93,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "Shape",
         component: () => <ShapePage />,
+    },
+    {
+        name: "Toggle",
+        component: () => <TogglePage />,
     },
     {
         name: "TypeWriter",

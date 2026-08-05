@@ -1,4 +1,4 @@
-import { style } from "@vanilla-extract/css";
+import { style, styleVariants } from "@vanilla-extract/css";
 
 export const screenWiperRoot = style({
     position: "fixed",
@@ -11,4 +11,12 @@ export const screenWiperRow = style({
     flexDirection: "row",
 });
 
-export const screenWiperCell = style({});
+const screenWiperCell = style({
+    flexShrink: 0,
+    backgroundColor: "black",
+});
+
+export const screenWiperCellShapes = styleVariants({
+    lozenge: [screenWiperCell, { clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)" }],
+    circle: [screenWiperCell, { borderRadius: "50%" }],
+});

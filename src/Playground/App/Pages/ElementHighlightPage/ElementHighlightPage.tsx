@@ -3,8 +3,9 @@ import { For, createSignal } from "solid-js";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Corners } from "../../../../Lib/Fundamentals/Corners/Corners";
 import { ElementHighlight } from "../../../../Lib/Fundamentals/ElementHighlight/ElementHighlight";
+import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
+import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 
-import * as pageStyles from "../Pages.css";
 import * as styles from "./ElementHighlightPage.css";
 
 export const ElementHighlightPage = () => {
@@ -30,23 +31,23 @@ export const ElementHighlightPage = () => {
                                 getPlacement: () => ({ x: "center", y: "top-out" }),
                                 getOffset: () => ({ x: 0, y: 5 }),
                                 renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                                    <div
-                                        class={pageStyles.tooltipContent}
-                                        classList={{ [pageStyles.isVisible]: getVisibilityTarget() === 1 }}
-                                        style={{ transition: `opacity ${getTransitionDurationMs()}ms` }}
+                                    <PageTooltipContent
+                                        getVisibilityTarget={getVisibilityTarget}
+                                        getTransitionDurationMs={getTransitionDurationMs}
                                     >
                                         Click me to darken and blur the rest of the screen, thus highlighting my
                                         content.
-                                    </div>
+                                    </PageTooltipContent>
                                 ),
                             })}
                             onClick={async () => {
                                 setActiveIndex(getIndex());
                                 setHighlightOn((prev) => !prev);
                             }}
-                        >
-                            <div class={pageStyles.buttonContent}>Highlight Me</div>
-                        </Button>
+                            renderContent={(getFlags) => (
+                                <PageButtonContent getFlags={getFlags}>Highlight Me</PageButtonContent>
+                            )}
+                        />
                     </div>
                 )}
             </For>
