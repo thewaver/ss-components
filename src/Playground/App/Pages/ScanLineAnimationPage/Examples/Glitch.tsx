@@ -1,7 +1,7 @@
 import { createSignal } from "solid-js";
 
+import { CellAnimationBreakpoints } from "../../../../../Lib/Fundamentals/CellAnimation/CellAnimation.utils";
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
-import { ScanlineAnimationBreakpoints } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.types";
 
@@ -9,7 +9,7 @@ const BREAKPOINT_GROUPS = [
     [0.35, 0.4, 0.45],
     [0.45, 0.5, 0.55],
     [0.55, 0.6, 0.65],
-] as ScanlineAnimationBreakpoints.BreakpointTupleTriple[];
+] as CellAnimationBreakpoints.BreakpointTupleTriple[];
 
 const getRandomShifts = (lineCount: number, shiftPercent: number, chunkyness: number) => {
     let lastShift: number | undefined;
@@ -46,10 +46,10 @@ export const GlitchExample = ({ getKeyframeOpts, ...otherProps }: Props) => {
 
                 return { brightness: 100 };
             }}
-            computeScanlineAnimation={(index, _, timeline) => {
+            computeScanlineAnimation={(defs, timeline) => {
                 for (let g = 0; g < BREAKPOINT_GROUPS.length; g++) {
                     if (timeline >= BREAKPOINT_GROUPS[g][0] && timeline <= BREAKPOINT_GROUPS[g][2])
-                        return { translateX: getShifts()[g][index] };
+                        return { translateX: getShifts()[g][defs.pos.y] };
                 }
 
                 return { translateX: 0 };

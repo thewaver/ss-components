@@ -1,25 +1,27 @@
-import type { CSSAnimationKey } from "@thewaver/ss-utils";
-
 import type { AccessorProps } from "../../Utils/typeUtils";
+import type {
+    CellAnimationController,
+    CellAnimationEvaluationDefs,
+    CellAnimationEvaluationResult,
+    CellAnimationProps,
+} from "../CellAnimation/CellAnimation.types";
+import type { CellAnimationWeights } from "../CellAnimation/CellAnimation.utils";
 
-export type ScanlineAnimationEvaluationResult = Partial<Record<CSSAnimationKey, number>>;
+export type ScanlineAnimationEvaluationDefs = CellAnimationEvaluationDefs;
 
-export type ScanlineAnimationController = {
-    start: () => void;
-    stop: () => void;
-};
+export type ScanlineAnimationEvaluationResult = CellAnimationEvaluationResult;
 
-export type ScanlineAnimationProps = AccessorProps<{
-    src: string;
-    ariaLabel?: string;
-    sizeAnchor?: "width" | "height";
-    lineCount: number;
-    animationDurationMs?: number;
-    animationIterationCount?: number;
-    animationIterationDelayMs?: number;
-    onMount?: (controller: ScanlineAnimationController) => void;
-    computeRootAnimation?: (timeline: number) => ScanlineAnimationEvaluationResult;
-    computeScanlineAnimation: (index: number, lineCount: number, timeline: number) => ScanlineAnimationEvaluationResult;
-    onIterationEnd?: () => void;
-    onAnimationEnd?: () => void;
-}>;
+export type ScanlineAnimationController = CellAnimationController;
+
+export type ScanlineAnimationProps = Omit<
+    CellAnimationProps,
+    "getCellCount" | "computeCellAnimation" | "getOriginType" | "getWeightType"
+> &
+    AccessorProps<{
+        lineCount: number;
+        weightType?: CellAnimationWeights.OriginFreeWeightType;
+        computeScanlineAnimation: (
+            defs: ScanlineAnimationEvaluationDefs,
+            timeline: number,
+        ) => ScanlineAnimationEvaluationResult;
+    }>;

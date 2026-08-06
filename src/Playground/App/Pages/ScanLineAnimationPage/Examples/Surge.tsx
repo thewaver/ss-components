@@ -1,29 +1,23 @@
+import { CellAnimationBreakpoints } from "../../../../../Lib/Fundamentals/CellAnimation/CellAnimation.utils";
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
-import { ScanlineAnimationBreakpoints } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import { ScanlineAnimationKeyframesConst } from "../../../Samples/ScanlineAnimation.const";
 import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.types";
 
 type Props = ScanlineAnimationExampleProps &
     AccessorProps<{
-        breakpointOpts: ScanlineAnimationBreakpoints.BreakpointOpts;
+        breakpointOpts: CellAnimationBreakpoints.BreakpointOpts;
         keyframeOpts: ScanlineAnimationKeyframesConst.HorizontalStretchOpts;
     }>;
 
-export const SurgeExample = ({ getKeyframeOpts, getBreakpointOpts, getOrder, ...otherProps }: Props) => {
+export const SurgeExample = ({ getKeyframeOpts, getBreakpointOpts, ...otherProps }: Props) => {
     return (
         <ScanlineAnimation
             {...otherProps}
-            computeScanlineAnimation={(index, lineCount, timeline) =>
+            computeScanlineAnimation={(defs, timeline) =>
                 ScanlineAnimationKeyframesConst.computeHorizontalStretch(
-                    ScanlineAnimationBreakpoints.computeBreakpoints(
-                        getOrder(),
-                        index,
-                        lineCount,
-                        {},
-                        getBreakpointOpts(),
-                    ),
-                    index,
+                    CellAnimationBreakpoints.computeBreakpoints(defs.weight, getBreakpointOpts()),
+                    defs,
                     timeline,
                     getKeyframeOpts(),
                 )

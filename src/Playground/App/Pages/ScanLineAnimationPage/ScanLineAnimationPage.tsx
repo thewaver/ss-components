@@ -1,9 +1,12 @@
 import { For, createMemo, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 
+import {
+    CellAnimationBreakpoints,
+    CellAnimationWeights,
+} from "../../../../Lib/Fundamentals/CellAnimation/CellAnimation.utils";
 import { ScanlineAnimation } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
 import type { ScanlineAnimationController } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.types";
-import { ScanlineAnimationBreakpoints } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.utils";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
@@ -69,6 +72,23 @@ const STRESS_ITEMS: (StressTestDefs & { size: number; kind: "transform" | "filte
     ])
     .flat();
 
+const extractOptionGroupWord = (key: string) => key.match(/^[a-z]+/)?.[0] ?? key;
+
+const groupOptions = <T extends string>(keys: readonly T[]) => {
+    const result: Record<string, T[]> = {};
+
+    for (const key of keys) {
+        const group = extractOptionGroupWord(key);
+
+        result[group] ??= [];
+        result[group].push(key);
+    }
+
+    return Object.entries(result);
+};
+
+const GROUPPED_WEIGHTS = groupOptions(CellAnimationWeights.ORIGIN_FREE_WEIGHT_TYPES);
+
 const GLITCH_SOURCE = highlighter.codeToHtml(GlitchExampleRaw, getDefaultHighlighterConfig());
 const SURGE_SOURCE = highlighter.codeToHtml(SurgeExampleRaw, getDefaultHighlighterConfig());
 const SNAKE_SOURCE = highlighter.codeToHtml(SnakeExampleRaw, getDefaultHighlighterConfig());
@@ -117,16 +137,10 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
                                 {...props}
                                 getLineCount={() => STRESS_LINE_COUNT}
                                 getAnimationIterationDelayMs={() => 0}
-                                computeScanlineAnimation={(index, lineCount, timeline) =>
+                                computeScanlineAnimation={(defs, timeline) =>
                                     foo(
-                                        ScanlineAnimationBreakpoints.computeBreakpoints(
-                                            props.getOrder(),
-                                            index,
-                                            lineCount,
-                                            {},
-                                            undefined,
-                                        ),
-                                        index,
+                                        CellAnimationBreakpoints.computeBreakpoints(defs.weight, undefined),
+                                        defs,
                                         timeline,
                                         undefined,
                                     )
@@ -156,34 +170,16 @@ const SmoothnessInput = (props: { getter: () => number; setter: (value: number) 
 };
 
 const DirInput = (props: {
-    getter: () => ScanlineAnimationBreakpoints.Direction;
-    setter: (value: ScanlineAnimationBreakpoints.Direction) => void;
+    getter: () => CellAnimationBreakpoints.Direction;
+    setter: (value: CellAnimationBreakpoints.Direction) => void;
 }) => {
     return (
         <PageProp getLabel={() => "Direction"}>
             <select
                 value={props.getter()}
-                onChange={(e) => props.setter(e.target.value as ScanlineAnimationBreakpoints.Direction)}
+                onChange={(e) => props.setter(e.target.value as CellAnimationBreakpoints.Direction)}
             >
-                <For each={ScanlineAnimationBreakpoints.DIRECTIONS}>{(dir) => <option value={dir}>{dir}</option>}</For>
-            </select>
-        </PageProp>
-    );
-};
-
-const OrdererInput = (props: {
-    getter: () => ScanlineAnimationBreakpoints.OrderingType;
-    setter: (value: ScanlineAnimationBreakpoints.OrderingType) => void;
-}) => {
-    return (
-        <PageProp getLabel={() => "Ordering"}>
-            <select
-                value={props.getter()}
-                onChange={(e) => props.setter(e.target.value as ScanlineAnimationBreakpoints.OrderingType)}
-            >
-                <For each={ScanlineAnimationBreakpoints.ORDER_TYPES}>
-                    {(order) => <option value={order}>{order}</option>}
-                </For>
+                <For each={CellAnimationBreakpoints.DIRECTIONS}>{(dir) => <option value={dir}>{dir}</option>}</For>
             </select>
         </PageProp>
     );
@@ -237,11 +233,10 @@ const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 };
 
 const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [getOrder, setOrder] = createSignal(props.getOrder());
     const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalStretchOpts>({
         peakScalePercent: 150,
     });
-    const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
+    const [breakpointOpts, setBreakpointOpts] = createStore<CellAnimationBreakpoints.BreakpointOpts>({
         dir: "asc",
         smoothness: 0.2,
     });
@@ -253,7 +248,6 @@ const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     {...props}
                     getKeyframeOpts={() => keyframeOpts}
                     getBreakpointOpts={() => breakpointOpts}
-                    getOrder={getOrder}
                 />
             </PageMeasureBox>
 
@@ -278,18 +272,16 @@ const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     setter={(value) => setBreakpointOpts("smoothness", value)}
                 />
                 <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
-                <OrdererInput getter={getOrder} setter={setOrder} />
             </PagePropsPanel>
         </>
     );
 };
 
 const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [getOrder, setOrder] = createSignal(props.getOrder());
     const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalSnakeOpts>({
         shiftPercent: 5,
     });
-    const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
+    const [breakpointOpts, setBreakpointOpts] = createStore<CellAnimationBreakpoints.BreakpointOpts>({
         dir: "asc",
         smoothness: 0.2,
     });
@@ -301,7 +293,6 @@ const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     {...props}
                     getKeyframeOpts={() => keyframeOpts}
                     getBreakpointOpts={() => breakpointOpts}
-                    getOrder={getOrder}
                 />
             </PageMeasureBox>
 
@@ -326,18 +317,16 @@ const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     setter={(value) => setBreakpointOpts("smoothness", value)}
                 />
                 <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
-                <OrdererInput getter={getOrder} setter={setOrder} />
             </PagePropsPanel>
         </>
     );
 };
 
 const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [getOrder, setOrder] = createSignal(props.getOrder());
     const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalSplitOpts>({
         shiftPercent: 10,
     });
-    const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
+    const [breakpointOpts, setBreakpointOpts] = createStore<CellAnimationBreakpoints.BreakpointOpts>({
         dir: "asc",
         smoothness: 1,
     });
@@ -349,7 +338,6 @@ const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     {...props}
                     getKeyframeOpts={() => keyframeOpts}
                     getBreakpointOpts={() => breakpointOpts}
-                    getOrder={getOrder}
                 />
             </PageMeasureBox>
 
@@ -374,16 +362,14 @@ const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     setter={(value) => setBreakpointOpts("smoothness", value)}
                 />
                 <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
-                <OrdererInput getter={getOrder} setter={setOrder} />
             </PagePropsPanel>
         </>
     );
 };
 
 const BrightnessExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [getOrder, setOrder] = createSignal(props.getOrder());
     const [keyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalBrightnessOpts>({});
-    const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
+    const [breakpointOpts, setBreakpointOpts] = createStore<CellAnimationBreakpoints.BreakpointOpts>({
         dir: "asc",
         smoothness: 0.5,
     });
@@ -395,7 +381,6 @@ const BrightnessExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     {...props}
                     getKeyframeOpts={() => keyframeOpts}
                     getBreakpointOpts={() => breakpointOpts}
-                    getOrder={getOrder}
                 />
             </PageMeasureBox>
 
@@ -405,16 +390,14 @@ const BrightnessExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     setter={(value) => setBreakpointOpts("smoothness", value)}
                 />
                 <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
-                <OrdererInput getter={getOrder} setter={setOrder} />
             </PagePropsPanel>
         </>
     );
 };
 
 const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [getOrder, setOrder] = createSignal(props.getOrder());
     const [keyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalGrayscaleOpts>({});
-    const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
+    const [breakpointOpts, setBreakpointOpts] = createStore<CellAnimationBreakpoints.BreakpointOpts>({
         dir: "asc",
         smoothness: 0.5,
     });
@@ -426,7 +409,6 @@ const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     {...props}
                     getKeyframeOpts={() => keyframeOpts}
                     getBreakpointOpts={() => breakpointOpts}
-                    getOrder={getOrder}
                 />
             </PageMeasureBox>
 
@@ -436,16 +418,14 @@ const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     setter={(value) => setBreakpointOpts("smoothness", value)}
                 />
                 <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
-                <OrdererInput getter={getOrder} setter={setOrder} />
             </PagePropsPanel>
         </>
     );
 };
 
 const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [getOrder, setOrder] = createSignal(props.getOrder());
     const [keyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalHueOpts>({});
-    const [breakpointOpts, setBreakpointOpts] = createStore<ScanlineAnimationBreakpoints.BreakpointOpts>({
+    const [breakpointOpts, setBreakpointOpts] = createStore<CellAnimationBreakpoints.BreakpointOpts>({
         dir: "asc",
         smoothness: 0.5,
     });
@@ -453,12 +433,7 @@ const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
     return (
         <>
             <PageMeasureBox getWidth={() => IMAGE_CONTAINER_SIZE}>
-                <HueExample
-                    {...props}
-                    getKeyframeOpts={() => keyframeOpts}
-                    getBreakpointOpts={() => breakpointOpts}
-                    getOrder={getOrder}
-                />
+                <HueExample {...props} getKeyframeOpts={() => keyframeOpts} getBreakpointOpts={() => breakpointOpts} />
             </PageMeasureBox>
 
             <PagePropsPanel getScope={() => "local"}>
@@ -467,7 +442,6 @@ const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     setter={(value) => setBreakpointOpts("smoothness", value)}
                 />
                 <DirInput getter={() => breakpointOpts.dir!} setter={(value) => setBreakpointOpts("dir", value)} />
-                <OrdererInput getter={getOrder} setter={setOrder} />
             </PagePropsPanel>
         </>
     );
@@ -480,6 +454,7 @@ export const ScanlineAnimationPage = () => {
     const [getLineCount, setLineCount] = createSignal(120);
     const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
     const [getAnimationIterationDelayMs, setAnimationIterationDelayMs] = createSignal(1000);
+    const [getWeightType, setWeightType] = createSignal<CellAnimationWeights.OriginFreeWeightType>("sequenceLinear");
 
     const handleFile = (e: Event) => {
         const file = (e.target as HTMLInputElement).files?.[0];
@@ -500,7 +475,7 @@ export const ScanlineAnimationPage = () => {
             getLineCount,
             getAnimationDurationMs,
             getAnimationIterationDelayMs,
-            getOrder: () => "linear",
+            getWeightType,
         };
 
         return [
@@ -552,6 +527,21 @@ export const ScanlineAnimationPage = () => {
             <PagePropsPanel getScope={() => "global"}>
                 <PageProp getLabel={() => "Image"}>
                     <input type="file" accept="image/*" onChange={handleFile} />
+                </PageProp>
+
+                <PageProp getLabel={() => "Weight"}>
+                    <select
+                        value={getWeightType()}
+                        onChange={(e) => setWeightType(e.target.value as CellAnimationWeights.OriginFreeWeightType)}
+                    >
+                        <For each={GROUPPED_WEIGHTS}>
+                            {([groupKey, groupValue]) => (
+                                <optgroup label={groupKey}>
+                                    <For each={groupValue}>{(weight) => <option value={weight}>{weight}</option>}</For>
+                                </optgroup>
+                            )}
+                        </For>
+                    </select>
                 </PageProp>
 
                 <PageProp getLabel={() => "Line count"}>

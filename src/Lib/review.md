@@ -12,6 +12,9 @@ decisions and the reasoning behind them live in `conventions.md`.
 3. `ExternalInteractionFlags` is becoming the union of every control's private state — _open_
 4. The Playground's blanket `input` rules now fight a real component — _open_
 5. One-shot positioned effects have nowhere to go — _open_
+6. Neither animation component can paint its own background — _open_
+7. Cell animation timing is linear-only — _open_
+8. Parity-based weights break when the origin lands on a half-pixel — _open_
 
 ---
 
@@ -136,3 +139,50 @@ for ripples.
 
 Not worth building until something asks for it, and it should be opt-in when it is — otherwise every
 control that wants no effect pays for a listener it ignores.
+
+---
+
+## 6. Neither animation component can paint its own background
+
+Both require a `getSrc` and slice that image. The React-era component could instead fill each cell
+with `currentColor` over its own children, which is what made a reveal-over-content effect possible —
+an animated button, a wipe over a card. Adding it means a children slot and a size anchor that is not
+an `<img>`, so the sizing path would diverge from `ScanlineAnimation`'s unless both change together.
+Worth deciding once, for both.
+
+---
+
+## 7. Cell animation timing is linear-only
+
+`computeLocalTimeline` maps the timeline linearly and `sampleTrack` interpolates linearly between
+stops, so nothing can ease. The React-era component took a timing function per keyframe
+(`linear`, `ease`, `ease-in`, `ease-out`, `ease-in-out`) and applied it to each cell's playback.
+
+Restoring it is an easing function applied to the local timeline before the stops are sampled, and
+needs nothing outside the samples file.
+
+---
+
+## 8. Parity-based weights break when the origin lands on a half-pixel
+
+`CellAnimationGeometry.isEvenRow` and its siblings test `dist.y % 2 === 0`, which silently assumes
+the distance is a whole number. It is not: a `center`, `left` or `right` origin is `(count - 1) / 2`,
+so on an **even** count the origin sits on a half-integer and every distance from it does too. The
+parity test is then false for every cell, so the alternating branch never runs and the weight
+function degenerates into whichever branch is the fallback.
+
+Measured on a 1×8 column with a centre origin: `lineRowAlternate` spans only `0 … 0.429`, so no cell
+ever starts at the beginning of the timeline, and `lineRowConvergent` returns `-0.071`, outside the
+0..1 range every other weight function honours. Nothing crashes, because `computeBreakpoints` clamps
+its progress, but the pattern the name promises is gone and two cells collide at the extreme.
+
+Eighteen of the thirty-seven weights read one of these predicates, so the blast radius is every
+`*Alternate`, `*Convergent`, `zigzag*`, `roll*`, `entwine*` and `checkered*` entry. It is invisible by
+default only because the Playground ships a 7×7 grid, whose centre origin lands on whole cells, and
+`ScanlineAnimation` cannot reach it at all now that it exposes no origin. It is inherited from the
+React original, which had the same formulas.
+
+Two candidate fixes, neither taken here because both change output across all eighteen: round the
+distance before testing parity, which keeps integer cases identical and makes half-integer ones
+alternate sensibly; or bound the origin to whole cells, which is a narrower change but removes
+centre-of-an-even-grid as a position.

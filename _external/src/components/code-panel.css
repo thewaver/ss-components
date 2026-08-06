@@ -1,9 +1,0 @@
-.code-panel {
-  background-color: var(--clr-topmost-bkg);
-  box-shadow: var(--shd-soft);
-  padding: 24px 48px 24px 24px;
-}
-
-.code-panel .snippet:not(:first-child) {
-  margin-top: 2em;
-}

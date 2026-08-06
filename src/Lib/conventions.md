@@ -1039,3 +1039,77 @@ tessellation at cell sizes where a row overflows.
 
 Not exercised: the `circle` shape has no Playground variant, so `border-radius: 50%` replacing
 `<circle>` is reasoned, not observed.
+
+### `CellAnimation`: weights as the staggering primitive
+
+**A cell's weight is its position on the timeline.** A weight function returns 0..1 per cell from
+`(pos, count, origin)`, and `computeBreakpoints(weight, opts)` turns that into the slice of the
+global timeline the cell owns — direction is weight inversion, smoothness is the width of the window.
+
+**`ScanlineAnimation` is a preset over this, not a second engine.** A scanline is a 1×N grid, so a
+line is a cell and `getLineCount` is the only prop it adds; the five orderings it used to own became
+the `sequence*` weight functions, which are exact rather than approximate. It kept its own name and
+evaluator alias because the line-shaped API reads better for the common case, the same reasoning that
+makes `Toggle` a preset over `Checkbox`.
+
+**A preset that loses an axis drops what indexed on it rather than narrowing it.** A scanline is a
+single column, so every weight reading `dist.x` collapses: six go outright constant — `lineColumn`,
+`lineColumnAlternate`, `lineColumnConvergent`, `radarDouble`, `radarQuad`, `quadrantDefault` — four
+more fall to two values, and most survivors are a plain row ramp wearing a name like `spiral` or
+`checkered`. The distance-based weights that do survive work, but they are the only reason an origin
+would exist on a line, and a control that is meaningful for three of nine options reads as broken. So
+`ScanlineAnimation` offers `ORIGIN_FREE_WEIGHT_TYPES` — the five `sequence*` permutations, which are
+the orderings it owned before the merge, plus `randomDefault` — and has no `getOriginType` at all.
+`CellAnimation` keeps the full set and calls `isOriginAware` to disable its own origin control when
+the selected weight ignores it. Both narrowings live in the type rather than in the Playground's
+dropdown, because filtering only the UI leaves the same trap set for the next consumer.
+
+**Cell geometry is integral and the requested count is honoured exactly.** Edges are
+`round(idx * total / count)`, so every cell starts on a whole pixel and the remainder is spread across
+the row — 7 cells over 240px start at 0, 34, 69, 103, 137, 171, 206. This replaced two worse rules:
+`ScanlineAnimation` used to snap `lineCount` down to a divisor of the measured size, which tiled
+exactly but silently gave you 80 lines when you asked for 119, and `CellAnimation` used fractional
+sizes, which have no visual upside and push a consumer toward a higher count purely to tile cleanly —
+buying cells that cost frame time and show nothing. The count is separately clamped to the pixel
+dimension, since cells thinner than a pixel cannot draw.
+
+**Cells are still drawn one pixel larger than their slot, and integer edges did not make that
+redundant.** The Playground renders inside `Viewport`'s `transform: scale()`, so whole-pixel layout
+edges still land on fractional device pixels, and the browser antialiases each cell independently and
+leaves hairline seams between them. This was removed once on the reasoning that exact tiling made it
+unnecessary, and had to go straight back because the seams were visible on screen — reasoning about
+sub-pixel rounding is not a substitute for looking at it. Only the drawn box grows: positions,
+`background-position` and the logical span stay exact, so the extra pixel repeats the neighbour's
+first column rather than shifting the slicing. `defs.size` reports the drawn box, because that is what
+the browser resolves a percentage `translateX` against.
+
+**Whole-grid operations cannot live in a per-cell evaluator**, which is why the component owns
+weights while the consumer owns breakpoints. `shouldMakeUnique` and `shouldNormalize` rank every
+cell against every other, and the memoised grid also stops `randomDefault` reshuffling every frame.
+The evaluator receives `{ pos, count, origin, weight }`, so a zone predicate can drive motion.
+
+**An anchor is a translate, not a new value key.** Scaling or rotating about an anchor `a` equals the
+centre-anchored transform `M` plus a translate of `(I - M)·a`, and translate percentages resolve
+against the element's own unscaled border box — so `transform-origin` folds into `translateX` /
+`translateY` inside `fromStops` and never reaches the result type. This is exact rather than an
+approximation, and it generalises to 3D: with `perspective` on the **parent**, a 3D rotation folds
+the same way using `translateZ`. It does **not** work with the `perspective()` transform function on
+the element itself, which puts the vanishing point at that element's own `transform-origin`, so
+moving the origin changes the projection rather than only the position. Perspective on the parent is
+also the better rendering: one shared vanishing point is a 3D scene, while per-element perspective is
+N independent cards.
+
+**Transform functions are emitted in a fixed order** — perspective, matrix, translate, rotate, skew,
+scale, with each family's axis variants together — because `translateX(50%) scaleX(50%)` and its
+reverse are different matrices, so ordering by `Object.entries` would make composition depend on the
+key order of a literal the consumer wrote. Filters are ordered by `CSS_FILTER_KEYS` for the same
+reason, and the transform/filter split is decided by those lists rather than by the ordering
+constant, so a key nobody thought to list cannot end up in the wrong string.
+`assignAnimationProps` also always assigns both properties, so a frame that stops producing a filter
+clears the previous one instead of leaving it stuck, and it zips each value against
+`CSSConst.ANIMATION_UNITS[key]`, which is one entry per function argument.
+
+**A component that computes a `z-index` owes the page a stacking context.** Cells carry a per-cell
+`z-index` from weight so earlier ones layer above later ones while they overlap; without
+`isolation: isolate` on the container those values escape into the nearest ancestor stacking context.
+In the Playground they landed in the stress test modal's context and painted over its FPS counter.

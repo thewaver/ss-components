@@ -1,6 +1,10 @@
 import { MathUtils } from "@thewaver/ss-utils";
 
-import type { ScanlineAnimationBreakpoints, ScanlineAnimationEvaluationResult } from "../../../Lib";
+import type {
+    CellAnimationBreakpoints,
+    ScanlineAnimationEvaluationDefs,
+    ScanlineAnimationEvaluationResult,
+} from "../../../Lib";
 
 export namespace ScanlineAnimationKeyframesConst {
     const peak = (a: number, b: number, x: number) => {
@@ -20,8 +24,8 @@ export namespace ScanlineAnimationKeyframesConst {
     };
 
     export const computeHorizontalSnake = (
-        [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
-        idx: number,
+        [b0, b1, b2]: CellAnimationBreakpoints.BreakpointTupleTriple,
+        defs: ScanlineAnimationEvaluationDefs,
         t: number,
         opts?: HorizontalSnakeOpts,
     ): ScanlineAnimationEvaluationResult => {
@@ -40,13 +44,13 @@ export namespace ScanlineAnimationKeyframesConst {
     };
 
     export const computeHorizontalSplit = (
-        [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
-        idx: number,
+        [b0, b1, b2]: CellAnimationBreakpoints.BreakpointTupleTriple,
+        defs: ScanlineAnimationEvaluationDefs,
         t: number,
         opts?: HorizontalSplitOpts,
     ): ScanlineAnimationEvaluationResult => {
         const mergedOpts = { ...DEFAULT_HORIZONTAL_SPLIT_OPTS, ...opts };
-        const dir = MathUtils.isEven(idx) ? -1 : 1;
+        const dir = MathUtils.isEven(defs.pos.y) ? -1 : 1;
         const p = peak(b0, b2, t);
 
         return { translateX: dir * mergedOpts.shiftPercent * p };
@@ -61,8 +65,8 @@ export namespace ScanlineAnimationKeyframesConst {
     };
 
     export const computeHorizontalStretch = (
-        [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
-        idx: number,
+        [b0, b1, b2]: CellAnimationBreakpoints.BreakpointTupleTriple,
+        defs: ScanlineAnimationEvaluationDefs,
         t: number,
         opts?: HorizontalStretchOpts,
     ): ScanlineAnimationEvaluationResult => {
@@ -77,8 +81,8 @@ export namespace ScanlineAnimationKeyframesConst {
     // const DEFAULT_HORIZONTAL_HUE_OPTS: Required<HorizontalHueOpts> = {};
 
     export const computeHorizontalHue = (
-        [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
-        idx: number,
+        [b0, b1, b2]: CellAnimationBreakpoints.BreakpointTupleTriple,
+        defs: ScanlineAnimationEvaluationDefs,
         t: number,
         opts?: HorizontalHueOpts,
     ): ScanlineAnimationEvaluationResult => {
@@ -93,8 +97,8 @@ export namespace ScanlineAnimationKeyframesConst {
     // const DEFAULT_HORIZONTAL_BRIGHTNESS_OPTS: Required<HorizontalBrightnessOpts> = {};
 
     export const computeHorizontalBrightness = (
-        [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
-        idx: number,
+        [b0, b1, b2]: CellAnimationBreakpoints.BreakpointTupleTriple,
+        defs: ScanlineAnimationEvaluationDefs,
         t: number,
         opts?: HorizontalBrightnessOpts,
     ): ScanlineAnimationEvaluationResult => {
@@ -109,8 +113,8 @@ export namespace ScanlineAnimationKeyframesConst {
     // const DEFAULT_HORIZONTAL_GRAYSCALE_OPTS: Required<HorizontalGrayscaleOpts> = {};
 
     export const computeHorizontalGrayscale = (
-        [b0, b1, b2]: ScanlineAnimationBreakpoints.BreakpointTupleTriple,
-        idx: number,
+        [b0, b1, b2]: CellAnimationBreakpoints.BreakpointTupleTriple,
+        defs: ScanlineAnimationEvaluationDefs,
         t: number,
         opts?: HorizontalGrayscaleOpts,
     ): ScanlineAnimationEvaluationResult => {
