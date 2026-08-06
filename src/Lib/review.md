@@ -20,6 +20,8 @@ having done the work does not go anywhere.
 10. Other core controls the library does not have — _open_
 11. Machinery those controls need, none of which exists — _open_
 12. What the verification suite still cannot see — _open_
+13. `AnchorUtils.getSafeHPlacement`'s `in` branch never reads the content size — _open_
+14. The SVG defs' geometry cannot be reached without rendering — _open_
 
 ### Build order
 
@@ -160,6 +162,13 @@ Eighteen of the thirty-seven weights read one of these predicates, so the blast 
 default only because the Playground ships a 7×7 grid, whose centre origin lands on whole cells, and
 `ScanlineAnimation` cannot reach it at all now that it exposes no origin. It is inherited from the
 React original, which had the same formulas.
+
+**A half-integer origin also breaks one weight that reads no parity predicate at all.** Sweeping every
+weight type over the same 1×8 column turned up `spiralSingle` reaching `1.008` — an overshoot rather
+than the collapse the parity weights show, so it is a second symptom of the same trigger and not part of
+the eighteen. Whichever fix is taken has to be checked against it rather than assumed to cover it.
+`CellAnimation.utils.test.ts` pins all three measured cases, so a fix that leaves any of them out of
+range fails rather than passing quietly.
 
 Two candidate fixes, neither taken here because both change output across all eighteen: round the
 distance before testing parity, which keeps integer cases identical and makes half-integer ones
@@ -398,39 +407,83 @@ any of those without first deciding these would bake the decision in by accident
 
 ## 12. What the verification suite still cannot see
 
-`verify/` drives real clicks and keystrokes over the DevTools Protocol, and `npm run verify:dom` runs it.
-What is worth stating is the shape of its blind spots, because a green run reads as broader coverage than
-it is.
-
-**It cannot assert on anything that needs a CSS transition to have finished.** Headless Chrome stops
-producing frames once a page settles, and a `transform` transition is compositor-driven, so a panel
-transitioning from `scale(0)` never grows and its box measures zero. This is why the `AlertDialog` spec
-activates its focused button by keyboard rather than clicking it, and why `page.frame()` races
-`requestAnimationFrame` against a timer instead of trusting it. Anything whose _only_ observable is a
-transitioned geometry is out of reach; anything observable as state, an attribute or a class is not.
-
-**The same stall may be hiding more bugs of the shape it already caught in `ElementFader`.** Every rAF
-consumer other than that one — `ElementObserver.createViewportRectObserver`, and through it `Anchor`,
-`Tooltip` and `Select`'s positioning — hangs on a frame with no fallback, and a stalled page would leave
-a popup anchored to where its field used to be. Whether that deserves the same treatment is undecided:
-a positioner that stops updating when nothing is painting is arguably correct, while a state machine
-that stops advancing is not.
-
-**Shipped components with no spec at all**: `Button`, `Tooltip`, `Modal` itself (`verify/specs/modal.spec.js`
-covers only the `Drawer` and `AlertDialog` presets), `Surface`, both animation components, `Checkbox`,
-`MultiSelect`, `RichText`, `Typewriter`, `ScreenWiper`, `ImageSwitcher`, `AudioSwitcher`, `Corners`,
-`Shape` and `Viewport`. Some of that is covered by proxy and some is not, and the distinction is what
-decides priority: `Popover` has no spec of its own but every line of it is driven through `Select` and
-`Menu`, and `Radio` is driven through `radioGroup.spec.js` — whereas `Checkbox` and `MultiSelect` are
-value-carrying controls with nothing exercising them at all. The `Tabs` spec covers its keyboard walk
-through the Playground's left menu and nothing else, so its floater, its `href` / `linkComponent` split
-and its selection are still markup-dump territory.
-
-**Pure functions are unreachable from a suite that only clicks.** `Anchor.utils`'s flip-and-clamp
-placement, `NavigationUtils.computeNextPosition` and the `CellAnimation` weight formulas in item 5 are
-all rects-in / value-out, and provoking their edge cases through a browser means building a Playground
-page per case. There is no test runner in the repo, so nothing calls a library function directly.
+`e2e/` drives real clicks and keystrokes in a real browser through Playwright, and `npm run verify:dom`
+runs it. What is worth stating is the shape of its blind spots, because a green run reads as broader
+coverage than it is.
 
 **Nothing checks appearance.** The suite reads the DOM, so the parity rule that forced
 `aria-disabled`-everywhere — that disabled and disabled-but-reachable must look _identical_ — is still
-only ever checked by eye.
+only ever checked by eye. Playwright can compare screenshots, so this is now a decision rather than a
+limit: what wants settling first is whether a committed baseline image is wanted in this repo at all,
+given every painter lives in the Playground and a deliberate restyle would then have to re-bless the
+baselines.
+
+**Components with a Playground page and no spec driving it**: `CellAnimation`, `ScanlineAnimation`,
+`ScreenWiper`, `ElementHighlight` and `Typewriter`. The first four are the hard case rather than the
+neglected one — what they produce is a transition over time, so a spec over them would assert structure
+and call it coverage. What would actually cover them is the screenshot decision above.
+
+**Components with no Playground page at all**, so nothing can drive them until one exists:
+`AudioSwitcher`, `ImageSwitcher` and `RichText`, all three commented out of `TAB_CONFIGS` in
+`src/Playground/App/App.tsx`.
+
+**Covered only through a consumer**, which is worth distinguishing from uncovered because it decides
+whether a spec is worth writing: `Popover` through `Select` and `Menu`, `Radio` through
+`radioGroup.spec.ts`, `Checkbox` through `binarySwitch.spec.ts`, `MultiSelect` through
+`select.spec.ts`, `Corners` and `Viewport` through whatever page happens to mount them,
+`InteractionWrapper` through every control. The `Tabs` spec covers its keyboard walk through the
+Playground's left menu and nothing else, so its floater and its `href` / `linkComponent` split are
+still uncovered.
+
+**Every rAF consumer but `ElementFader` hangs on a frame with no fallback.**
+`ElementObserver.createViewportRectObserver`, and through it `Anchor`, `Tooltip` and `Select`'s
+positioning, would leave a popup anchored to where its field used to be on a page that stopped painting.
+`ElementFader` was given a fallback timer because a state machine that stops advancing is a bug; whether
+a positioner that stops updating when nothing is painting is also a bug is undecided. This used to be
+observable through the old suite, whose headless mode stopped producing frames; Playwright does not
+stall that way, so the question is now purely about the components and nothing in the suite will surface
+it.
+
+---
+
+## 13. `AnchorUtils.getSafeHPlacement`'s `in` branch never reads the content size
+
+The `out` branch subtracts `contentSize` when it works out whether the content fits, and the centre
+branch subtracts half of it. The `in` branch subtracts neither: `spaceR` is
+`screenSize.width - (left + reservedW)` and `spaceL` is `right - reservedW`, both measured from an
+anchor edge, so the check asks whether the _anchor_ is on screen rather than whether the content will
+be. `getSafeVPlacement` has the same shape.
+
+The consequence, measured: with a 1000-wide screen, an anchor at `x: 900` 50 wide and a content 200
+wide, `getSafeHPlacement("left-in", …)` returns `left-in`, `getHPlacementShift` then puts the content
+at 900, and its right edge lands at 1100 — 100px off-screen, from the function whose entire job is to
+prevent that.
+
+It is invisible today because the two consumers that pass an `in` placement — `Select`'s popup and
+`Tooltip` — are both narrower than or close to their anchor, so the anchor being on screen implies the
+content is. Any consumer whose floating layer is wider than its trigger reaches it immediately. The fix
+is a one-line change on each of the four `space*` expressions; what wants deciding is whether the `in`
+placements should also be allowed to flip to their `out` siblings when neither side fits, which is a
+behaviour change rather than a correction.
+
+---
+
+## 14. The SVG defs' geometry cannot be reached without rendering
+
+`SVGPatternDefsUtils` is 321 lines of tiling arithmetic — the row and column offsets that make a grid, a
+diagonal, a half-drop, a triangle and two hex packings line up — and every one of those `compute*`
+functions returns a `<pattern>` element with the arithmetic written inline in the callback that places
+each cell. `SVGGradientDefsUtils` has the same shape, and the part of it most worth testing,
+`resolveStops`, is module-private: it interpolates the offset of every colour that was not given an
+explicit stop, and getting it wrong shifts a gradient rather than breaking it. `SVGAnimationUtils` is
+318 more lines of the same.
+
+None of it is reachable from `npm test`, which calls functions and reads values. Rendering it would need
+a DOM environment, which _"Unit tests"_ in `conventions.md` argues against for everything else, and the
+`e2e/` suite can only assert that a gradient exists in the defs — not that its third stop landed at 40%.
+
+The decision is whether to separate the arithmetic from the markup: a `computeCellPositions` returning
+an array of points, with the JSX builder consuming it. That is a real refactor of three files and it
+should be taken once, for all three, rather than for whichever one next grows a bug. It is worth noting
+that the packing offsets are exactly the kind of thing that is wrong by half a cell for months without
+anyone noticing, because a wrong tiling still tiles.

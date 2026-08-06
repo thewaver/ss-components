@@ -26,13 +26,17 @@
         "dev": "vite build --config ./vite.lib.config.ts --watch",
         "preview": "vite preview --config ./vite.config.ts",
         "start": "vite --config ./vite.config.ts --host",
-        "verify:dom": "node verify/main.js",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "verify:dom": "playwright test",
+        "verify:dom:ui": "playwright test --ui",
         "format": "prettier --write ."
     },
     "dependencies": {
         "colorthief": "^3.5.0"
     },
     "devDependencies": {
+        "@playwright/test": "^1.62.1",
         "@solidjs/router": "^1.0.0",
         "@thewaver/ss-utils": "^0.0.19",
         "@trivago/prettier-plugin-sort-imports": "^6.0.2",
@@ -46,7 +50,8 @@
         "typescript": "^6.0.3",
         "vite": "^8.2.0",
         "vite-plugin-checker": "^0.14.5",
-        "vite-plugin-solid": "^2.11.14"
+        "vite-plugin-solid": "^2.11.14",
+        "vitest": "^4.1.10"
     },
     "peerDependencies": {
         "@thewaver/ss-utils": "^0.0.19",

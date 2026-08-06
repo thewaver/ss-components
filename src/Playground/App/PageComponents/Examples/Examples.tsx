@@ -21,7 +21,7 @@ export const PageExamples = (props: ExamplesProps) => {
             <div class={styles.examplesRoot}>
                 <For each={props.getItems()}>
                     {(example, getExampleIndex) => (
-                        <div class={styles.exampleContainer}>
+                        <div class={styles.exampleContainer} data-example={example.name}>
                             <div class={styles.exampleTitle}>
                                 {`${example.name}:`}
                                 {example.src && (

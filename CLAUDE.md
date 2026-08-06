@@ -16,7 +16,7 @@ observed behaviour, so an explanation only decodable by someone who already know
 change ships on trust rather than understanding.
 
 **Anything with no observable behaviour passes through unexamined.** Their gate catches whatever a user
-could see. It cannot catch this file, `conventions.md`, `review.md`, `verify/`, or build config —
+could see. It cannot catch this file, `conventions.md`, `review.md`, `e2e/`, or build config —
 nothing there changes what the Playground does. Write into that category only when asked or when it is
 clearly warranted, keep it small, and say plainly in the reply when a change lands there, so they can
 choose to look.

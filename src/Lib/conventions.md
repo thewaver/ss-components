@@ -21,8 +21,8 @@ exercises it. Vanilla-extract for styles, Vite for both builds.
   it fills and exported with the playground-wide `Page` prefix — `PageButtonContent`,
   `PageCheckboxContent`, `PageTooltipContent`. `App/PageComponents` keeps the playground's own page
   furniture instead: `PageVariants`, `PageExamples`, `PageCodeBox`.
-- **`verify/`** — the interaction suite. Not published, not type-checked, imports from neither tree:
-  it drives the built Playground over the DevTools Protocol. See _"Verifying interaction"_ below.
+- **`e2e/`** — the interaction suite, in Playwright. Not published, imports from neither tree: it drives
+  the built Playground in a real browser. See _"Verifying interaction"_ below.
 
 ### Layering
 
@@ -48,7 +48,8 @@ Read a neighbouring component before writing a new one.
 npm run build:lib          # vite lib build + tsup .d.ts emit
 npm run build:playground
 npm start                  # dev server
-npm run verify:dom         # build the playground, then drive it in headless Chrome
+npm test                   # vitest, the pure-function half
+npm run verify:dom         # playwright: build the playground, then drive it in a real browser
 npm run format             # prettier, 4 spaces, 120 cols, import sorting
 npx tsc --noEmit -p tsconfig.json
 ```
@@ -1583,91 +1584,108 @@ by both families, so filing it under `Input` would misdescribe it.
 a directory convention rather than a barrel — `Input` sorts between `ImageSwitcher` and
 `InteractionWrapper` and the block reads as a unit there.
 
-**How the rendered DOM can be checked without a test environment.** Headless Chrome can dump a
-built page, which is enough to verify anything expressed as markup — tab order, roles, ARIA,
-painter classes:
-
-```
-npm run build:playground && npm run preview
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-    --headless --disable-gpu --virtual-time-budget=3000 --dump-dom http://localhost:4173/radio
-```
-
-That is how the roving tab order, per-group `name` isolation, `role="radiogroup"`, the dropped
-`role="switch"` on a mixed toggle and the mixed painter classes were confirmed. It cannot click or
-type; that half is `verify/` — see _"Verifying interaction"_ below.
-
-**Every route renders fully, so an empty dump is a real empty result and must not be explained away as
-a quirk of headless mode.** `/radio` comes back with all five radio groups, both painter decorations
-and their inline colours.
-
-The failure that does exist is the URL. `vite preview` binds the **IPv6** loopback, so `http://localhost:4173`
-resolves for some clients and `http://127.0.0.1:4173` is refused outright — and a refused connection
-dumps Chromium's error page, which is a plausible-looking 300 KB of HTML containing none of your
-markup. Use `http://[::1]:4173/…` and check the dump contains something you expect before reading
-anything into what it does not contain.
-
-On Windows the browser is at
-`C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`, and the preview server has to
-outlive the shell that started it.
-
-### Verifying interaction: `verify/` at the repo root
+### Verifying interaction: `e2e/` at the repo root
 
 **It lives at the repo root, beside `src`, and that is the whole of the placement argument.** `src/Lib`
 would ship it — `package.json` publishes only `dist`, but the folder is the library and the library is
 what it tests. `src/Playground` would bundle it into the demo. It is neither: it drives the _built_
-playground over a socket and imports nothing from either tree, so it sits outside both. `npm run
-verify:dom` is the entry point, `verify:dom [name…]` filters by spec, and `--skip-build` reuses
-`playground-dist`.
+Playground over a socket and imports nothing from either tree, so it sits outside both. `npm run
+verify:dom` is the entry point and `verify:dom:ui` opens Playwright's own runner.
 
-**Plain ESM JavaScript, no dependency, no build step.** `tsconfig.json` includes only `src`, so nothing
-here is type-checked, and that is the accepted cost of the alternative being a second tsconfig plus a
-compile step in front of a test run. `node verify/main.js` is the whole toolchain: Node's own `fetch` and
-`WebSocket` reach the DevTools Protocol, and `spawn` starts the preview server and the browser.
+**Playwright, rather than a driver of our own.** This suite used to be about 900 lines of hand-written
+DevTools Protocol plumbing with no dependency, justified on the grounds that a dependency would need a
+second tsconfig and a compile step. That trade did not hold. Every "trap" the driver documented — which
+key event type carries text, scrolling before measuring, waiting out a transition, discovering which
+loopback family the preview server bound — is a problem Playwright solved years ago, and the one it did
+_not_ solve is the one that cost the most: the driver measured an element's position and clicked that
+point a frame later, so anything that re-anchored in between was clicked where it used to be. That is
+what made `Select` and `Menu` pass alone and fail after `Tabs`. Playwright re-checks that an element is
+visible, stable and hit-testable at the instant it acts, and gives every test a fresh page, so neither
+failure mode is expressible.
 
-**Specs are stringified and run inside the page, so a helper may not close over anything.** `page.eval(fn,
-…args)` serialises `fn` and calls it with JSON arguments, which means every helper in `verify/dom.js` is
-self-contained and none of them call each other. That is why there is a little duplication in there — an
-`accessibleText` that strips `[aria-hidden]` appears three times rather than being factored out, because a
-factored version would not survive the trip.
+**One test per behaviour, not one per component.** The old specs were a single long scenario per
+control, which meant state accumulated within a file and a failure halfway through hid everything after
+it. Each behaviour is now its own `test`, `beforeEach` navigates, and the run is parallel across
+workers — the whole suite finishes in about fifteen seconds.
 
-**Every trap is closed by the driver rather than left to each spec**, so a new spec inherits the fix
-rather than rediscovering it. Each of these reads as a bug in the component rather than in the harness,
-which is why they are recorded:
+**Assertions target `data-variant="<name>"` on each Playground variant and `[data-readout]` inside it**,
+so a spec reads state the way the page displays it rather than reaching into Solid. `PageExamples` stamps
+`data-example` for the same reason. Prefer the auto-retrying `expect(locator)` forms over reading a value
+and asserting on it, because they are what make a wait unnecessary.
 
-- **Non-printable keys go out as `rawKeyDown`**, not `keyDown` — the latter also generates a `char`
-  event and double-fires handlers. **Printable keys need `keyDown` _with_ a `text` field**, or nothing
-  is typed at all. `Enter` needs both, so the driver picks from one table.
-- **`locate` scrolls into view, waits a frame, then measures.** Once a page grows past the window,
-  `getBoundingClientRect` returns an off-screen point and the dispatched click silently lands on
-  something else, or nothing. It also polls for a non-zero box, since an element mid-`scale` measures
-  as nothing.
-- **The base URL is discovered by probing both loopback families**, so `vite preview`'s IPv6 binding
-  cannot present as a server that never came up.
-- **A preview server already holding the port is refused, not reused.** `--strictPort` makes the new
-  one exit, and a readiness probe would then find the old one and run every spec against a stale
-  build — which looks exactly like a pile of component regressions.
-- **Wait out a transition before asserting on it** — reading a fading element's `opacity` right after a
-  keystroke returns a mid-flight value like `0.055`. Prefer waiting on the **condition**
-  (`page.waitUntilGone`) over `page.settle(ms)`, because a slow page takes arbitrarily longer than the
-  transition duration.
+Two things Playwright cannot do for us, both recorded because each reads as a component bug:
 
-Assertions target `data-variant="<name>"` on each Playground variant and `[data-readout]` inside it, so a
-spec reads state the way the page displays it rather than reaching into Solid. One spec file per control
-under `verify/specs/`; `verify/main.js` lists them.
+- **`aria-disabled` controls need `{ force: true }` to be clicked.** Playwright's actionability check
+  treats `aria-disabled="true"` as disabled and refuses to click, which is exactly the interaction this
+  library needs to prove does nothing — disabled is `aria-disabled` here and never the native attribute,
+  so every disabled control is one Playwright would rather not touch. Forcing the click skips the
+  stability checks too, which costs nothing on a control with no popup.
+- **Opening a popup is two steps that land in either order**, so waiting on the popup being visible is
+  not enough. `Menu` mounts, points at a highlighted item, and takes focus; a key pressed between the
+  second and third goes to the trigger and is silently lost. `e2e/menu.spec.ts` waits on both
+  `aria-activedescendant` and `toBeFocused` before pressing anything, and `Select` waits on the
+  highlight.
 
-**`page.frame()` races `requestAnimationFrame` against a timer, and that is not defensive habit.** Headless
-Chrome stops asking for frames once a page settles, and the main thread stays idle throughout — so
-`Runtime.evaluate` keeps answering instantly while only the rAF await hangs, which reads as a component
-that stopped responding rather than as a page that stopped painting. Waiting on the _condition_ is the
-right shape for anything the library drives (`page.waitUntilGone` exists for exactly that); the frame
-helper is for settling layout, and it must not be able to wedge a run.
+**Playwright has no IME API**, so `TextSync`'s composition gating is driven straight over the DevTools
+Protocol through `page.context().newCDPSession(page)` — the one place this suite still reaches past the
+library it is built on.
 
 **What it catches is the argument for it.** `TextSync` destroying an IME commit (see above) and
 `ElementFader` hanging its state machine on a single frame (below) are both bugs that are invisible in
 markup, and neither would have been found by looking at the page.
 
 `review.md` #12 carries what the suite still cannot see.
+
+### Unit tests: `vitest`, colocated, and only for functions
+
+`e2e/` can only reach what a click can reach. A function that takes rectangles and returns a placement
+has no page to be clicked on, so provoking its edge cases through a browser means building a Playground
+variant per case — which is why `AnchorUtils`'s flip-and-clamp logic went unchecked long enough to ship
+the overflow in `review.md` #13. `npm test` is the other half: it calls library functions directly.
+
+**One dependency, and no DOM.** `vitest` reads the repo's own Vite setup, and `vitest.config.ts` sets
+`environment: "node"` because nothing under test touches a document. A jsdom environment would invite
+component-rendering tests, which is the thing not to build here — jsdom has no layout engine, so every
+geometry question it could be asked comes back wrong, and everything else it could answer is already
+answered by `e2e/` against a real browser. The line is: **if it renders, it is a spec; if it returns a
+value, it is a unit test.**
+
+**Tests sit next to the function**, as `<Name>.test.ts` beside `<Name>.ts`, matching the rule that a
+component's types live in its own file rather than in a shared collection. They are inside `src/Lib` and
+are therefore type-checked by `npx tsc --noEmit`, which is the point — a test that no longer compiles
+against its subject is a test that has stopped describing it. They do not ship: `package.json` publishes
+`dist` only, and both the Vite lib build and the `tsup` d.ts emit start from `index.ts`, so nothing
+unreachable from there is ever emitted.
+
+**Assert the behaviour, not the implementation.** These functions are small enough that a test mirroring
+their arithmetic would pass forever and prove nothing. Each case names a situation — an out placement
+that would overflow flips to the side with room, a walk that wraps at both ends, a reserved docked panel
+pushing the flip earlier — and the numbers are worked out from that situation rather than read off the
+source.
+
+**What is covered is every `*.utils` module that neither touches the DOM nor builds JSX**: `Anchor`,
+`Navigation`, `Interaction`'s reachability predicate, `Audio`, `Select`'s flattening, `ElementHighlight`'s
+segment geometry, `RichText`'s parser and the whole of `CellAnimation` — geometry, origins, all
+thirty-seven weight functions, zones and breakpoints. The weights are covered by property rather than by
+value: every type is asserted to stay inside 0..1, to be deterministic, and — for the origin-free ones —
+to be unaffected by moving the origin. Pinning thirty-seven grids of numbers would encode the arithmetic
+rather than describe it, and would have to be re-blessed wholesale by any change.
+
+**What is deliberately not covered, and why it is not laziness:**
+
+- **Anything that takes an element or a Solid owner.** `Focus`, `ElementObserver`, `ElementFader`,
+  `TextSync`, `Anchor`'s own factory, `InteractionUtils.wrapElement` and `Viewport`'s rect adjustment all
+  need a real layout to say anything true. They are `e2e/`'s half.
+- **The SVG defs builders.** `SVGPatternDefsUtils`, `SVGGradientDefsUtils` and `SVGAnimationUtils` return
+  JSX, and their arithmetic — the tiling offsets for each pattern, the gradient stop interpolation in
+  `resolveStops` — is written inline inside the element being built or kept private to the module. There
+  is real geometry in there and it is currently unreachable without either rendering or a refactor that
+  separates the arithmetic from the markup. `review.md` #14 records it.
+- **A known-broken case is pinned rather than fixed.** `CellAnimation.utils.test.ts` asserts the
+  out-of-range weights that `review.md` #5 describes, with the measured numbers. It passes today and will
+  fail the moment anyone fixes the bug, which is the point — both candidate fixes change output across
+  every affected weight, so the test has to be re-blessed as part of the fix rather than quietly surviving
+  it.
 
 ### `ElementFader`: the frame that starts a transition needs a fallback
 
