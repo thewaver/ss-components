@@ -12,7 +12,6 @@ exercises it. Vanilla-extract for styles, Vite for both builds, no test runner.
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | [`src/Lib/conventions.md`](src/Lib/conventions.md) | **Settled decisions and the reasoning behind them.** Long. This is the "why", and it is authoritative. |
 | [`src/Lib/review.md`](src/Lib/review.md)           | **Open problems** — bugs, smells, missing implementation. Numbered, contiguous from 1.                 |
-| [`src/Lib/select.md`](src/Lib/select.md)           | The design brief for `Select`, the next component to build. Decided but not implemented.               |
 
 `conventions.md` is not documentation of the code — it is the record of arguments already had, so
 they are not re-litigated. If you are about to make an architectural call, check whether it is
@@ -24,6 +23,10 @@ already in there. If you make a new one, add it.
   essentially no comments and that is deliberate.
 - **When an item in `review.md` is fixed or dropped, delete it outright** and renumber the rest to
   stay contiguous. Nothing is marked "resolved" in place.
+- **No changelogs anywhere in the docs.** `review.md` carries only what is still open;
+  `conventions.md` carries only the reasoning behind a decision. Nothing records "what landed", "what
+  just shipped" or how many assertions passed — once a thing is done, its only traces are the code and
+  its `conventions.md` entry. Do not add a status or state section to this file.
 - **Read a neighbouring component before writing a new one.** House style is tight and consistent:
   `const DEFAULT_X = …` at module scope, `createMemo` for derived props with a default, one blank
   line between logical blocks, no destructuring of `props`.
@@ -91,23 +94,36 @@ npm run preview            # must outlive the shell that started it
 own error page — a plausible-looking 300 KB of HTML containing none of your markup. Always confirm
 the dump contains something you expect before concluding anything from what it lacks.
 
-Edge renders every route fully, contrary to an earlier note in `conventions.md` that has since been
-corrected. What this cannot do is click or type.
+Edge renders every route fully. What this cannot do is click or type.
 
-## State as of 2026-08-06
+### Verifying interaction — clicks and keystrokes, still no dependency
 
-Everything below is **committed to nothing** — it is working-tree only. Check `git status` first.
+`--dump-dom` cannot click. Driving the same headless browser over the DevTools Protocol can, with
+nothing added to `package.json`:
 
-Just landed, all typechecking and both builds clean:
+```bash
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+    --headless=new --disable-gpu --remote-debugging-port=9222 --window-size=1600,1200 \
+    --user-data-dir=./chrome-profile about:blank &
+```
 
-1. **`Tabs` rebuilt on `InteractionWrapper`** with an array of `Tab<T>` records replacing the old
-   `getTabCount` + `getHrefs` + `computeIsDisabled` triple. Selection is by value. It was the last
-   component setting native `disabled`.
-2. **`Abstracts/Anchor/`** extracted from `Tooltip` — the placement math plus
-   `Anchor.createPortalPosition`, so a dropdown can reuse the positioning without inheriting
-   hover-to-open. `TooltipPlacement` became `AnchorPlacement`.
-3. **`InteractionFlags<TExtra>`** — `checkedState`, `isEmpty` and `isReadOnly` moved out of the
-   universal flag set into per-control extras. Closed the old `review.md` #3.
+From Node 22, `fetch` `http://127.0.0.1:9222/json/list`, connect to the page target's
+`webSocketDebuggerUrl` with the built-in `WebSocket`, then use `Input.dispatchMouseEvent`,
+`Input.dispatchKeyEvent` and `Runtime.evaluate`.
 
-Next: `Select`. See [`src/Lib/select.md`](src/Lib/select.md). It is blocked on one decision,
-`review.md` #8.
+Three traps, each of which reads as a bug in the component rather than in the harness:
+
+- **Non-printable keys need `rawKeyDown`**, not `keyDown` — the latter also generates a `char` event
+  and double-fires handlers. **Printable keys need `keyDown` _with_ a `text` field**, or nothing is
+  typed at all.
+- **`scrollIntoView` before every click.** Once a page grows past the window, `getBoundingClientRect`
+  returns an off-screen point and the dispatched click silently lands on something else, or nothing.
+- **Wait out any transition before asserting on it.** Reading a fading element's `opacity` right after
+  a keystroke returns a mid-flight value like `0.055`.
+
+`review.md` #2 covers what is missing here, which is that no such script is committed.
+
+## Where to start
+
+`git status` first — work here is often uncommitted. Then `review.md` for what is open, and
+`conventions.md` for why anything already there is the way it is.

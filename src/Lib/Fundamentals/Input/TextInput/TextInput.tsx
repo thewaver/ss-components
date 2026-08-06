@@ -1,8 +1,9 @@
 import type { Accessor } from "solid-js";
-import { createEffect, createMemo, createRenderEffect, createSignal, onCleanup } from "solid-js";
+import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
 import { CSSUtils, StringUtils } from "@thewaver/ss-utils";
 
+import { TextSync } from "../../../Abstracts/TextSync/TextSync";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { LabelUtils } from "../Label/Label.utils";
 import type { TextInputElementProps, TextInputProps, TextInputType } from "./TextInput.types";
@@ -44,39 +45,20 @@ const TextInputElement = (props: TextInputElementProps) => {
     const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
 
     const [getElementRef, setElementRef] = createSignal<HTMLInputElement>();
-    const [getIsComposing, setIsComposing] = createSignal(false);
 
     const getIsDisabled = () => props.getFlags().isDisabled ?? false;
 
     const getIsReadOnly = () => props.getFlags().isReadOnly;
 
-    const syncElement = (element: HTMLInputElement) => {
-        const value = props.getValue();
-
-        if (getIsComposing() || element.value === value) return;
-
-        const { selectionStart, selectionEnd } = element;
-
-        element.value = value;
-
-        if (selectionStart === null || selectionEnd === null) return;
-
-        element.setSelectionRange(selectionStart, selectionEnd);
-    };
-
-    const reportValue = (element: HTMLInputElement) => {
-        void props.onInput?.(element.value);
-
-        syncElement(element);
-    };
-
-    createRenderEffect(() => {
-        const element = getElementRef();
-
-        if (!element) return;
-
-        syncElement(element);
-    });
+    const { handleInput, handleCompositionStart, handleCompositionEnd } = TextSync.createValueSync(
+        getElementRef,
+        props.getValue,
+        {
+            onInput: (value) => {
+                void props.onInput?.(value);
+            },
+        },
+    );
 
     return (
         <>
@@ -108,19 +90,9 @@ const TextInputElement = (props: TextInputElementProps) => {
                 aria-disabled={getIsDisabled() || undefined}
                 aria-readonly={getIsReadOnly() || undefined}
                 aria-invalid={props.getFlags().hasError || undefined}
-                onInput={(e) => {
-                    if (getIsComposing()) return;
-
-                    reportValue(e.currentTarget);
-                }}
-                onCompositionStart={() => {
-                    setIsComposing(true);
-                }}
-                onCompositionEnd={(e) => {
-                    setIsComposing(false);
-
-                    reportValue(e.currentTarget);
-                }}
+                onInput={(e) => handleInput(e.currentTarget)}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={(e) => handleCompositionEnd(e.currentTarget)}
                 onMouseEnter={(e) => {
                     if (getIsDisabled()) return;
 

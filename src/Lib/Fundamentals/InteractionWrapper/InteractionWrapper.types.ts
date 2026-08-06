@@ -36,7 +36,7 @@ export type InteractionWrapperProps<TExtra extends object = {}> = AccessorProps<
     }
 > & {
     getExtraFlags?: Accessor<TExtra>;
-    getTooltipDefs?: Accessor<InteractionTooltipDefs<TExtra>>;
+    getTooltipDefs?: Accessor<InteractionTooltipDefs<TExtra> | undefined>;
     renderDecoration?: (getFlags: () => InteractionFlags<TExtra>) => JSX.Element;
     renderControl: (
         setElementRef: (element: HTMLElement) => void,

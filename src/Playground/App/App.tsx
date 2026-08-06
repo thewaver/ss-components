@@ -16,6 +16,7 @@ import { ModalPage } from "./Pages/ModalPage/ModalPage";
 import { RadioPage } from "./Pages/RadioPage/RadioPage";
 import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
 import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
+import { SelectPage } from "./Pages/SelectPage/SelectPage";
 import { ShapePage } from "./Pages/ShapePage/ShapePage";
 import { SurfacePage } from "./Pages/SurfacePage/SurfacePage";
 import { TextInputPage } from "./Pages/TextInputPage/TextInputPage";
@@ -96,6 +97,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "ScreenWiper",
         component: () => <ScreenWiperPage />,
+    },
+    {
+        name: "Select",
+        component: () => <SelectPage />,
     },
     {
         name: "Shape",

@@ -8,14 +8,13 @@ decisions and the reasoning behind them live in `conventions.md`.
 ### Index
 
 1. `Show when={... ?? EMPTY_ARRAY} keyed` can't fire as written — _parked_
-2. Nothing that needs a click or a keystroke has ever been verified — _open_
+2. Nothing that verifies interaction lives in the repo — _open_
 3. The Playground's blanket `input` rules now fight a real component — _open_
 4. One-shot positioned effects have nowhere to go — _open_
 5. Neither animation component can paint its own background — _open_
 6. Cell animation timing is linear-only — _open_
 7. Parity-based weights break when the origin lands on a half-pixel — _open_
-8. `getTooltipDefs` is switched on presence, which a data-driven list cannot express cleanly — _open_
-9. `Select` is designed but not built — _open_
+8. `Select` — six things deliberately not built — _open_
 
 ---
 
@@ -56,30 +55,31 @@ export type SVGAnimationDefs = {
 
 ---
 
-## 2. Nothing that needs a click or a keystroke has ever been verified
+## 2. Nothing that verifies interaction lives in the repo
 
-There is no test environment, and every entry written here has ended with some version of "reasoned
-about, not seen working". That was tolerable while the library was mostly rendering; it is not any
-more, because the controls now carry real behaviour whose failures are invisible in markup.
+Interaction can be driven with no dependency at all — headless Chrome over the DevTools Protocol from
+Node, per `CLAUDE.md` → _"Verifying interaction"_, which records the invocation and the three traps.
+The problem is that no such script is committed, so nothing is repeatable and every behaviour below is
+unexercised on any given day.
 
-Currently unexercised, all of it in `Fundamentals/Input`: the tri-state resolution when a mixed
-control is clicked, the refused-write resync in `BinarySwitch.syncElement` (the whole reason that
-function exists), the radio arrow walk and its skip-a-disabled-option-but-still-focus-a-reachable-one
-rule, `Label`'s caption click reaching a disabled control and being stopped, and the `aria-label`
-suppression's warning branch, which has no path in the Playground at all and so has never run.
+The work left is to make it runnable from the repo: a `verify:dom` npm script and one assertion file
+per control. That needs a decision about where non-shipped tooling lives, since `src/Lib` and
+`src/Playground` are both wrong homes for it.
 
-`TextInput` made this worse rather than incrementally longer, because it is the first control that
-is **entirely** keystrokes. Nothing in `TextInput.syncElement` can be seen in markup: not the caret
-restore after a transforming setter, not the resync after a refusing one, not the composition
-gating, not the `null` selection guard that keeps `type="email"` from throwing. `readonly` as the
-disabled mechanism is likewise invisible — the attribute is checkable, the fact that it actually
-stops a paste is not.
+What such a suite has to cover, all of it invisible in markup and none of it currently checked:
 
-Markup can still be checked without any dependency: headless Chrome with `--dump-dom` against
-`npm run preview`, which is how the roving tab order and the ARIA roles were confirmed
-(`conventions.md` records the invocation and the Edge caveat). The gap is interaction, and closing
-it means either a driver (Playwright, which is a real dependency decision) or a DOM-level test
-runner. Deferred deliberately when `TextInput` landed rather than overlooked.
+- `BinarySwitch` — the tri-state resolution when a mixed control is clicked, and the refused-write
+  resync in `syncElement`, which is the whole reason that function exists.
+- `RadioGroup` — the arrow walk and its skip-a-disabled-option-but-still-focus-a-reachable-one rule.
+- `Label` — a caption click reaching a disabled control and being stopped, and the `aria-label`
+  suppression warning, which has no path in the Playground at all and so has never run.
+- `TextInput` / `TextSync` — the composition gating, and the `null` selection guard that keeps
+  `type="email"` from throwing. `readonly` as the disabled mechanism is checkable as an attribute, but
+  the fact that it actually stops a paste is not.
+- `Select` / `MultiSelect` — the whole surface, since it is the largest behavioural component here.
+
+Markup alone stays cheaper to check with `--dump-dom` against `npm run preview` (`conventions.md`
+records that invocation and the Edge caveat). The protocol driver is for everything else.
 
 ---
 
@@ -171,36 +171,31 @@ centre-of-an-even-grid as a position.
 
 ---
 
-## 8. `getTooltipDefs` is switched on presence, which a data-driven list cannot express cleanly
+## 8. `Select` — six things deliberately not built
 
-`InteractionWrapper` decides both whether to render a `Tooltip` and whether a disabled control is
-reachable from `props.getTooltipDefs !== undefined` — the presence of the prop, not the value it
-returns. That is deliberate and correct for a control written by hand, and _"presence as a guard
-fails toward the safe default"_ in `conventions.md` is the reasoning behind it.
+The decisions behind what exists are in `conventions.md` under the three `Select` headings. These are
+the gaps, each with the reason it is still a gap.
 
-It does not survive contact with a group that renders its items from records. A per-item
-`tooltipDefs` field has to reach the wrapper as a prop that is sometimes absent, so the group must
-forward it conditionally — `getTab().tooltipDefs && (() => getTab().tooltipDefs!)` — and pass a
-function that returns `undefined` if it does not, which crashes the spread into `Tooltip`. Solid's
-props getters make the conditional form reactive, so it does work, but it is a trap laid for whoever
-writes the next group, and the failure is a runtime crash rather than a type error.
-
-`Tabs` sidesteps it by not carrying the field (see `conventions.md`). `Select` cannot: an option that
-is disabled for a reason is exactly the case reachability exists for. The fix is to let the value
-decide — render the `Tooltip` on `getTooltipDefs?.() !== undefined` and compute reachability from the
-same — which costs the guard its "only when a prop was explicitly set" property and needs that
-trade-off thought through before it lands.
-
----
-
-## 9. `Select` is designed but not built
-
-The shape is settled — data-driven records identified by value, one `InteractionWrapper` per option,
-a popup on `Abstracts/Anchor` rather than on `Tooltip` — and `Tabs` was refactored to that shape
-first so it is exercised by something shipped. The full brief, the rejected alternatives and the
-build order live in `select.md`; this entry exists so the index stays the one place outstanding work
-is listed.
-
-It is blocked on item 8 above, which every option depends on, and carries four undecided questions
-of its own: single versus multi as one component or two, whether the field composes `TextInput`,
-whether the component or the consumer owns filtering, and how groups are represented.
+- **Typeahead is absent, and consumer-owned filtering did not solve it after all.** Filtering changes
+  the list; typeahead moves the highlight without changing it, so it cannot reuse the consumer's
+  filter. It still needs either a string per option — a second source for text the painter already
+  renders — or a consumer predicate duplicating the matcher they already wrote. The honest answer for
+  anyone who wants it today is to turn on autocomplete instead.
+- **A consumer whose filter injects a non-matching option can see the highlight land on it.** While
+  filtering, the highlight goes to the first option rather than to the selection, because the component
+  knows which options are _present_, not which ones _matched_. The fix belongs in the consumer's
+  filter; the trade-off is recorded in `conventions.md`.
+- **A group header cannot show partial selection.** `SelectOptionFlags.isSelected` is a boolean, and a
+  multi-select group header wants the `checkedState` tri-state `BinarySwitchFlags` already has. This is
+  the one place the two controls might legitimately share a type rather than each declaring its own.
+- **The group box is not paintable, only its header is.** The library owns
+  `<div role="group" aria-label>` so the role cannot end up in consumer markup; the consumer fills the
+  header via `renderGroup`. Handing it a `renderOptions` thunk in `renderPopup`'s shape would give it
+  the whole box, and is available if something needs it.
+- **Virtualization is still possible but nothing uses it.** The record shape was chosen to keep it
+  open. Only one thing now assumes every option is mounted: each option scrolls _itself_ into view off
+  its own `isHighlighted` flag, which a virtualizer would have to replace with its own scroll-to.
+- **Open state is private, and dismissal does not restore the query.** There is no `openSignal`, so a
+  consumer cannot close the popup programmatically; if that is ever wanted it is a `*Signal` prop by
+  the existing rule. Escape and blur clear the query rather than restoring the selected option's text,
+  because restoring it would need the per-option string this design does not have.

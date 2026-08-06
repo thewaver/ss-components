@@ -1,4 +1,4 @@
-import { createMemo, createSignal } from "solid-js";
+import { Show, createMemo, createSignal } from "solid-js";
 
 import type { InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
 import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
@@ -16,11 +16,13 @@ export const InteractionWrapper = <TExtra extends object = {}>(props: Interactio
 
     const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
 
+    const getTooltipDefs = createMemo(() => props.getTooltipDefs?.());
+
     const getIsReachable = createMemo(() =>
         InteractionUtils.computeIsReachable(
             getIsDisabled(),
             props.getIsReachableWhenDisabled?.() ?? false,
-            props.getTooltipDefs !== undefined,
+            getTooltipDefs() !== undefined,
         ),
     );
 
@@ -62,20 +64,22 @@ export const InteractionWrapper = <TExtra extends object = {}>(props: Interactio
                 <div class={styles.interactionDecorationWrapper}>{props.renderDecoration(getFlags)}</div>
             )}
 
-            {props.getTooltipDefs && (
-                <Tooltip
-                    {...props.getTooltipDefs()}
-                    renderContent={(getVisibilityTarget, getTransitionDurationMs, getPlacement) =>
-                        props.getTooltipDefs!().renderContent(
-                            getVisibilityTarget,
-                            getTransitionDurationMs,
-                            getPlacement,
-                            getFlags,
-                        )
-                    }
-                    getAnchorRef={getElementRef}
-                />
-            )}
+            <Show when={getTooltipDefs()}>
+                {(getDefs) => (
+                    <Tooltip
+                        {...getDefs()}
+                        renderContent={(getVisibilityTarget, getTransitionDurationMs, getPlacement) =>
+                            getDefs().renderContent(
+                                getVisibilityTarget,
+                                getTransitionDurationMs,
+                                getPlacement,
+                                getFlags,
+                            )
+                        }
+                        getAnchorRef={getElementRef}
+                    />
+                )}
+            </Show>
         </div>
     );
 };

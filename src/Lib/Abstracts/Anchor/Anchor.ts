@@ -99,6 +99,6 @@ export namespace Anchor {
             contentResizeObserver.observe(contentRef);
         });
 
-        return { getPlacement, getPosition, setContentRef };
+        return { getAnchorRect, getPlacement, getPosition, setContentRef };
     };
 }

@@ -200,6 +200,29 @@ needs `aria-describedby`, and composite widgets where skipping disabled items ma
 incomplete. A control that is reachable while disabled must keep its focus ring — focus landing
 somewhere invisible is worse than being skipped.
 
+**The third clause reads the value, not the prop — settled 2026-08-06, with `Select`.** It was
+`props.getTooltipDefs !== undefined` and is now `props.getTooltipDefs?.() !== undefined`, which also
+decides whether the `Tooltip` renders at all. This is not a loosening of the guard, and the wording
+above is what makes that clear: the clause asks _"is there anything to reveal"_, which is a property
+of the value. Prop presence was an exact proxy for it only because a hand-written control that passes
+`getTooltipDefs` always returns something from it. A group rendering items from records breaks the
+proxy — the field is absent on most options, so the group must forward
+`getOption().tooltipDefs && (() => getOption().tooltipDefs!)` and a function returning `undefined`
+crashes the spread into `Tooltip`. Reading the value makes the honest form (`() =>
+getOption().tooltipDefs`) the only form, and it types: `Accessor<InteractionTooltipDefs<TExtra> |
+undefined>`.
+
+**Presence as a guard survives where it is load-bearing, which is the opt-in.** Nothing about this
+lets hover text turn a control reachable by accident — `getIsReachableWhenDisabled` is still a prop
+the consumer sets explicitly, and it is still the clause that carries "only when asked". The
+`console.warn` for reachability-without-a-tooltip stays presence-based on purpose: it catches the
+authoring mistake it was written for (reachability wired up with no tooltip prop at all) and stays
+quiet for a group that forwards both fields unconditionally and legitimately has options with neither.
+
+The render is a `<Show when={getTooltipDefs()}>` with the accessor child form rather than a
+`&&` plus `!`. Non-keyed, so a record rebuilt under `<Index>` does not remount a visible tooltip and
+restart its fade; the accessor child is what removes the non-null assertion.
+
 **Disabled + reachable has to look disabled — identically, not approximately.** Reachability is an
 accessibility affordance, not a state: a control that looks actionable but does nothing is worse than
 one that plainly reads as unavailable. Under the old mechanism split this failed on screen — in
@@ -1116,6 +1139,223 @@ invisible; under the generic it is an error at the call site.
 `CheckedState` moved from `Interaction.types.ts` to `BinarySwitch.types.ts`. `isReadOnly` left the
 universal set with it, so `getIsReadOnly` is declared on `TextInputState` rather than inherited —
 read-only is a text concept here, and a future control that wants it declares it too.
+
+### Controls: `Select`, and who owns a floating list
+
+Settled **2026-08-06**. This and the two `Select` headings after it are what remains of a design brief
+that was deleted once it shipped; `review.md` #8 carries what was deliberately left out of it.
+
+**One `mousedown` `preventDefault()` on the popup root is what makes the whole model work.** The
+options live in the `Viewport` portal, so clicking one would move focus out of the field and blur it.
+Refusing the default action of `mousedown` — the same mechanism `wrapElement` uses to refuse focus on
+a disabled control — means focus never leaves the field at all. Three things fall out of that single
+line, and they are the reasons `Tooltip` could not have been the dropdown: an option click cannot
+dismiss the popup before the click resolves; `aria-activedescendant` is honest, because focus really
+is still on the field; and **close-on-blur becomes correct rather than fatal**, so there is no
+document-level outside-click listener. Clicking anywhere outside blurs the field, and blur closes.
+
+**The field is a `<button role="combobox">`.** The APG select-only pattern uses a `<div tabindex="0">`,
+which would mean re-implementing focusability and activation that a button has for free, and this
+repo's rule is that the leaf is a real element with real semantics. `Enter` and `Space` are handled in
+`keydown` with `preventDefault()`, which suppresses the button's synthesised click — otherwise every
+keyboard activation would toggle twice.
+
+**Options are `role="option"` divs, never buttons, and never tab stops.** `getIsTabbable={() => false}`
+puts every one at `tabIndex -1`; a button inside a listbox would break the option semantics. The
+consequence a painter has to know: **`isFocused` is never true for an option**, because focus is on
+the field. That is why options get their own extras.
+
+**`isHighlighted`, not `isActive`.** `SelectOptionFlags = { isHighlighted, isSelected }`.
+`InteractionFlags.isActive` already means "held down" across every control, so the
+`aria-activedescendant` target needed a different word rather than an overload of that one.
+
+**The highlight is a value, resolved to an index — never a stored index.** Same shape as `Tabs`'
+roving entry: a `highlightedValue` signal, and a memo that resolves it against the navigable indexes
+and falls back to the selected option, then to the first navigable one. Opening therefore highlights
+the current selection with no imperative set anywhere, and a list that changes under a filter cannot
+leave the highlight pointing at a different option.
+
+**The painter owns the panel, so the option list arrives as a thunk.** `renderPopup(renderOptions,
+getVisibilityTarget, getTransitionDurationMs, getPlacement, getFlags)` — the consumer returns its own
+bordered, scrolling, animating box with `{renderOptions()}` inside it. The alternative considered was
+the `renderDecoration` shape, an absolutely-positioned painter behind a library-owned list; it was
+rejected because a decoration cannot scroll with the content, which would have forced `max-height` and
+`overflow` into library props. `role="listbox"` stays on the library's positioned root and the options
+are descendants at whatever depth the painter nests them, which ARIA allows as long as nothing between
+them carries a conflicting role.
+
+**Geometry is the library's, including the width floor.** `Anchor.createPortalPosition` now also
+returns `getAnchorRect`, and the popup root sets `min-width` from it. A painter cannot compute this —
+it is portalled away from the field and has no access to its box — and a dropdown narrower than the
+control it belongs to is a positioning artefact, not a style choice. Everything above the floor
+(width, max-height, padding, colour) stays the painter's, exactly as `getMinWidth` on
+`InteractionWrapper` already draws that line for adornment insets.
+
+**`pointer-events` is switched off for the closing fade.** `ElementFader` keeps the popup mounted for
+the duration of the transition, so without this a click during those 200ms would select a second time
+from a list that is visually leaving. The inline style overrides the `pointer-events: all` the class
+needs while open.
+
+**Single-select first, and no shared private composite yet.** `valueSignal: Signal<T | undefined>` is
+what a consumer already holds for a form field; `Signal<T[]>` for both cases would tax the common one
+and make "nothing selected" representable two ways. Multi differs in behaviour — the popup stays open
+on pick, selection is a set, the field summarises — so the `BinarySwitch` shape (private composite,
+thin presets) is the likely end state, but erecting it before there is a second consumer would be
+guessing at the seam. The standing rule applies: private until something else needs it.
+
+**The keyboard walk stops on reachable-disabled options and refuses to select them**, matching
+`RadioGroup`. `getNavigableIndexes` calls `InteractionUtils.computeIsReachable` with the option's own
+three fields rather than re-deriving the rule, so the group and the wrapper cannot disagree about
+which options the walk may land on.
+
+**`scrollIntoView({ block: "nearest" })` on the highlighted option** is the only way the library can
+reach a scroll container the painter owns. It runs from an effect on the highlight, so it covers
+opening onto a selection far down the list as well as the walk.
+
+### Controls: `Select`'s autocomplete, and why the consumer filters
+
+Settled **2026-08-06**, step 8 of the brief, built directly after the rest. The question was whether
+`Select` owns a default matcher with a `computeIsMatch` escape hatch or owns only the query string.
+
+**The consumer filters, and the precedent that decided it is the Playground's own left menu.** `Tabs`
+has no filtering API at all: `AppContent` owns the search box, owns the query, and derives `getTabs`
+from a filtered list. The rules it wrote are the argument — it keeps every category header regardless
+of the query, and **keeps the currently selected item even when it does not match**. Neither is
+expressible by a library matcher over an unknown `T`, and the second one silently breaks a select whose
+default matcher would filter the selected option away. The `Select` page makes the same point from the
+other end: it matches an airport on **either its city or its IATA code**, two fields the library cannot
+know exist. Ownership follows knowledge — the consumer knows what its `T` means, so it does the
+matching.
+
+**`Select` owns the query, because the query is the field's text.** That is the one part the consumer
+cannot own: `querySignal: Signal<string>` is a `*Signal` by the existing rule, since the component
+writes it on every keystroke and the consumer reads it to derive `getOptions`. The loop through the
+consumer is a plain memo, not a cycle.
+
+**"No matches" stopped being a flag.** The candidate `hasNoMatches` in the original brief is gone
+rather than deferred: the consumer filtered, so it already knows the result is empty, and its empty
+state is its own JSX inside `renderPopup`. A flag would have been the library telling the consumer
+something the consumer just computed.
+
+**The mode is `querySignal`'s presence, and this is the one sanctioned use of that.** No
+`getIsAutoComplete` boolean beside it. _"Presence as a trigger fails invisibly"_ warns about a prop
+whose real purpose is something else quietly changing semantics; a query string has exactly one
+purpose, an editable field with nowhere to put its text is incoherent, and forgetting the prop yields
+a working non-editable select — so it fails toward the safe default, which is the sanctioned half of
+that rule. The precedent is `Tab<T>`'s `href` choosing `<a>` over `<button>`: a data field with one
+meaning selecting the element.
+
+**One leaf, two elements, in the `TabsItem` shape.** `SelectField` holds a `commonProps` object of
+getters for the ARIA that both share and a `<Show>` that renders either a `<button>` or an `<input>`.
+The `<input>` follows _"Overlay geometry"_ — painter first in flow, input at `inset: 0` over it — so
+the focus ring still lands around the painted box, and `getPadding` plus `computeTextStyle` are the
+same two props `TextInput` uses for the same reason. `TextInputTextStyle` is imported rather than
+re-declared: it is a whitelist of text properties, the concept is identical, and duplicating a
+twelve-key `Pick` to avoid a sibling import would be the worse trade.
+
+**The painter draws the selection, the input draws the query, and `isFiltering` decides which is
+visible.** This is why that candidate flag earned its place. The two texts are stacked by the overlay
+geometry, so the painter fades its own value text out while the query is non-empty and back in when it
+clears — meaning no option ever needs a `label` field for the field to display a selection.
+
+**The component clears the query, and it waits for the fade to finish.** Closing ends the interaction,
+so the query is the component's to reset; doing it on `close()` repopulated the consumer's list while
+the popup was still fading, which visibly re-grew the box. It now runs off
+`ElementFader`'s `getHasTransitionFinished`, and guards on the query already being empty so it never
+writes on mount.
+
+**An editable field takes the keyboard back.** `Space` types a space instead of selecting, and
+`Home` / `End` move the caret instead of jumping to the first or last option — both are gated on the
+mode rather than handled unconditionally, because hijacking either in a text field is a bug rather than
+a shortcut. `Enter`, `Escape`, `Tab` and the arrows are unchanged. Typing opens the popup and resets
+the highlight to nothing, so each keystroke re-highlights the first option of the new list.
+
+**While filtering, the highlight prefers the first option over the selection.** Without this, typing
+`lis` with `Oslo` already selected would leave the highlight on `Oslo` and `Enter` would re-pick it.
+The limit is worth stating because it is inherent to the consumer owning the filter: the component
+knows which options are _present_, not which ones _matched_, so a consumer that injects a
+non-matching option into the filtered list can still see the highlight land on it. That is the
+consumer's rule to fix in its own filter, and it is why the left menu's keep-the-selected-item rule
+must not be copied into a select.
+
+**`TextSync` came out of `TextInput` because a second consumer arrived.** `Abstracts/TextSync/` now
+holds `createValueSync(ref, value, opts)` — the element/value sync, the caret restore after a
+transforming setter and the IME composition gating. It is the exact code `TextInput.syncElement` had;
+extracting it was preferred to duplicating fifteen lines of caret arithmetic into `Select`, which is
+the standing rule fired in the direction it points once something else needs it.
+
+### Controls: option groups, and `Select` / `MultiSelect` as presets
+
+Settled **2026-08-06**, completing the brief. Both features landed together because they answer the
+same question from opposite ends: what the option list is a list _of_, and what a selection is.
+
+**A group is a record with children, in the same array as ungrouped options.**
+`SelectItem<T> = SelectOption<T> | SelectOptionGroup<T>`, discriminated by
+`SelectUtils.getIsGroup` (`"options" in item`), so a list can mix both and a group cannot be
+malformed — there is no sibling marker to get out of order, and no second prop to keep in step with
+the first. `SelectOption<T>` is a closed record shape, so the `in` check cannot be fooled by a `T`
+that happens to have an `options` field of its own.
+
+**The tree is a rendering concern only; everything else works off the flat list.**
+`SelectUtils.getFlatOptions` gives the traversal order, and the keyboard, the highlight, the ids and
+the selection all index into that — so the arrow walk crosses group boundaries without knowing groups
+exist, and `Home` / `End` reach the ends of the whole list rather than of a group. The one piece of
+bookkeeping is `getItemOffsets`, mapping each top-level item to where its options start in the flat
+list, which is what lets a nested `<Index>` hand each slot its flat index.
+
+**The library owns `role="group"` and its name; the consumer paints the header.** The group wrapper is
+a bare `<div role="group" aria-label={label}>`, and `renderGroup(getGroup)` fills in the visible
+header inside it. Two things were rejected: `display: contents` on the wrapper, because Chromium has
+historically dropped such elements from the accessibility tree and the role is the whole point of the
+element; and handing the consumer a `renderGroup(getGroup, renderOptions)` thunk in `renderPopup`'s
+shape, which would have put the ARIA role in consumer markup. The cost is that a consumer cannot style
+the group box itself, only its header — recorded rather than solved, because the thunk form is
+available later if something needs it.
+
+**Option refs are gone, and each option scrolls itself into view.** The old array keyed by index could
+not survive a tree, since a flat index shifts when a preceding group is filtered. `SelectOptionItem`
+now watches its own `isHighlighted` flag and calls `scrollIntoView({ block: "nearest" })` on its own
+element, which is correct at any nesting depth and deletes the bookkeeping rather than fixing it.
+
+**`SelectComposite` is private, `Select` and `MultiSelect` are thin presets over it** — the
+`BinarySwitch` shape, down to `SelectPresetProps<T>` being an `Omit` of the composite's props and each
+preset spreading `{...props}` over the parts it supplies. `index.ts` exports the two presets and the
+types but not the composite, which is exactly how `BinarySwitch` is kept internal. The seam is four
+props: `getSelectedOptions`, `computeIsSelected`, `onPick` and `getIsMultiple`. Everything else — the
+popup, the query, the keyboard, the ARIA — is written once.
+
+**Multi is a preset rather than a mode flag because the value's _type_ changes.**
+`Signal<T | undefined>` versus `Signal<T[]>` cannot be reconciled by a boolean prop, and a single
+`Signal<T[]>` for both would tax the common case and give "nothing selected" two spellings. The
+composite therefore never sees a value at all: it asks the preset which options are selected and tells
+it what was picked. `MultiSelect` toggles membership; `Select` replaces. That the composite has no
+opinion about either is why `renderContent` takes `getSelectedOptions` plural and `Select`'s preset
+narrows it back to `getSelectedOptions()[0]`.
+
+**Picking in a multi list keeps it open, and moves the highlight to what was picked.** The second half
+was found by driving it: with the highlight left alone, arrowing after a mouse pick continued from the
+_first selected_ option rather than from the row just clicked. `aria-multiselectable="true"` goes on
+the listbox; `isSelected` stays a boolean, and a tri-state for a partially-selected group header is the
+one thing multi might still want from `BinarySwitchFlags`.
+
+**`inert` is what disables a closing popup, not `pointer-events`.** This was a real bug, found the same
+way. The fading popup carried `pointer-events: none` on its root, which looked sufficient and was not:
+`pointer-events` is inherited, but every option sets `pointer-events: all` explicitly — it has to, to
+beat `interactionRoot`'s `none` — and an explicit value on a descendant beats an inherited one from an
+ancestor. So a click aimed at whatever sat under a closing popup was silently swallowed by an option
+of a list that was already visually gone. `inert` disables an entire subtree for pointer events, focus
+and the accessibility tree regardless of what descendants declare, which is precisely the intent;
+`FocusUtils.isReachable` already tests `[inert]`, so the codebase had assumed support for it all
+along. **The general rule: `pointer-events` on an ancestor cannot switch off a subtree, only `inert`
+can.**
+
+**These are the behaviours a `Select` guarantees, and the ones to re-check after touching it** — none
+of them are visible in markup, and the last two are here because they were wrong once:
+`Enter` on a reachable-disabled option changes nothing and leaves the popup open; clicking an option
+leaves `document.activeElement` on the field; a disabled field neither opens nor takes focus while its
+reachable twin stays at `tabIndex 0`; the arrow walk skips a disabled option _inside_ a group and then
+crosses into the next one; a multi list stays open across a pick and moves its highlight to the row
+picked; and a closing popup lets a click through to whatever is underneath it.
 
 ### Folder layout: `Fundamentals/Input`
 
