@@ -1,8 +1,73 @@
-# Lib conventions
+# Conventions
 
-Settled decisions for `src/Lib`, recorded so they are not re-litigated. This is the reasoning
+Settled decisions for this project, recorded so they are not re-litigated. This is the reasoning
 that would otherwise live in code comments. Open problems live in `review.md`; nothing here is a
-task.
+task. How to work with the user is in `CLAUDE.md` at the repo root.
+
+Most of what follows is about `src/Lib`, which is the part with a contract. The repo-level
+sections come first.
+
+## Repo
+
+### The three trees
+
+`@thewaver/ss-components` is a SolidJS component library plus a Playground app that documents and
+exercises it. Vanilla-extract for styles, Vite for both builds.
+
+- **`src/Lib`** — the published library. Everything under here ships. It is also the only tree with
+  a support contract, which matters for the argument recorded under _"Compatibility arguments"_ below.
+- **`src/Playground`** — the demo app. Not published, and the home of every consumer-side painter.
+  Those live in `App/StyledComponents`, each named `<LibComponent>Content` after the shell whose slot
+  it fills and exported with the playground-wide `Page` prefix — `PageButtonContent`,
+  `PageCheckboxContent`, `PageTooltipContent`. `App/PageComponents` keeps the playground's own page
+  furniture instead: `PageVariants`, `PageExamples`, `PageCodeBox`.
+- **`verify/`** — the interaction suite. Not published, not type-checked, imports from neither tree:
+  it drives the built Playground over the DevTools Protocol. See _"Verifying interaction"_ below.
+
+### Layering
+
+`Abstracts/` is logic that renders no DOM — namespaced utils and hook-like factories.
+`Fundamentals/` renders DOM. `Composites/` combines Fundamentals. `Fundamentals/Input/` groups the
+controls that carry a user-editable value; the argument for that grouping is under _"Folder layout"_.
+`src/Lib/index.ts` enumerates every export path individually and stays sorted — it is not a barrel.
+
+### House style
+
+`const DEFAULT_X = …` at module scope, `createMemo` for derived props with a default, one blank line
+between logical blocks, no destructuring of `props`. Types live in the owning component's own
+`<Component>.types.ts`, next to the component — never in a shared per-directory types file collecting
+types for sibling components, even when more than one consumes them. `StressTestDefs` beside
+`StressTestProps` is the precedent; a shared `Xs.types.ts` is something to unwind rather than extend,
+and names in these files drop the redundant directory prefix (`ExampleDefs`, not `PageExampleDefs`).
+
+Read a neighbouring component before writing a new one.
+
+### Commands
+
+```bash
+npm run build:lib          # vite lib build + tsup .d.ts emit
+npm run build:playground
+npm start                  # dev server
+npm run verify:dom         # build the playground, then drive it in headless Chrome
+npm run format             # prettier, 4 spaces, 120 cols, import sorting
+npx tsc --noEmit -p tsconfig.json
+```
+
+### Compatibility arguments cite `src/Lib` and nothing else
+
+When arguing that some modern CSS or JS feature is safe to use here, **only `src/Lib` counts**. It is
+the published package and the only thing with a support contract. `src/Playground` is a development
+harness, and `src/Playground/App/Samples` in particular is scratch content — citing either as proof of
+an established baseline is not an argument.
+
+**A use that carries a fallback is not evidence for a use that doesn't.** Relative colour syntax
+appears 71 times in Samples but twice in `src/Lib`, both in `Composites/Surface/Surface.css.ts`, and
+both written with vanilla-extract's array-value form — `backgroundColor: [fillColorVar, "rgb(from …)"]`
+— which emits the plain variable first and the relative-colour declaration second, so an engine that
+does not understand the newer syntax drops it and keeps a working colour. That is graceful degradation,
+not a hard dependency. Before claiming a baseline, check where the feature actually lives and whether
+the existing uses degrade; if the new code has no fallback, say so rather than leaning on precedent
+that does.
 
 ## API naming
 
@@ -1532,13 +1597,11 @@ That is how the roving tab order, per-group `name` isolation, `role="radiogroup"
 `role="switch"` on a mixed toggle and the mixed painter classes were confirmed. It cannot click or
 type; that half is `verify/` — see _"Verifying interaction"_ below.
 
-_Corrected **2026-08-06**: this previously said Edge's headless `--dump-dom` on Windows returns the
-shell with an empty route outlet, and that a failure to see page content there is the browser rather
-than the page. That is wrong and the advice was dangerous — it tells you to disbelieve a real empty
-result. Edge renders every route fully; `/radio` came back with all five radio groups, both painter
-decorations and their inline colours._
+**Every route renders fully, so an empty dump is a real empty result and must not be explained away as
+a quirk of headless mode.** `/radio` comes back with all five radio groups, both painter decorations
+and their inline colours.
 
-The actual failure is the URL. `vite preview` binds the **IPv6** loopback, so `http://localhost:4173`
+The failure that does exist is the URL. `vite preview` binds the **IPv6** loopback, so `http://localhost:4173`
 resolves for some clients and `http://127.0.0.1:4173` is refused outright — and a refused connection
 dumps Chromium's error page, which is a plausible-looking 300 KB of HTML containing none of your
 markup. Use `http://[::1]:4173/…` and check the dump contains something you expect before reading
@@ -1549,9 +1612,6 @@ On Windows the browser is at
 outlive the shell that started it.
 
 ### Verifying interaction: `verify/` at the repo root
-
-Settled **2026-08-06**, closing the oldest item on the review list. The invocation was already recorded
-above; what was missing was anything committed, so nothing was repeatable.
 
 **It lives at the repo root, beside `src`, and that is the whole of the placement argument.** `src/Lib`
 would ship it — `package.json` publishes only `dist`, but the folder is the library and the library is
@@ -1571,14 +1631,30 @@ self-contained and none of them call each other. That is why there is a little d
 `accessibleText` that strips `[aria-hidden]` appears three times rather than being factored out, because a
 factored version would not survive the trip.
 
-**The three traps in `CLAUDE.md` are closed by the driver rather than left to each spec.** Non-printable
-keys go out as `rawKeyDown` and printable ones as `keyDown` carrying `text`, chosen from one table;
-`locate` scrolls into view, waits a frame and only then measures; and the base URL is discovered by probing
-both loopback families, so `vite preview`'s IPv6 binding cannot present as a server that never came up.
-Two more were found in the writing and are closed the same way: a preview server already holding the port
-is **refused** rather than reused, because `--strictPort` makes the new one exit and the readiness probe
-would then happily run every spec against whatever build the old one was serving; and `locate` polls for a
-non-zero box, because an element part-way through a `scale` transition measures as nothing.
+**Every trap is closed by the driver rather than left to each spec**, so a new spec inherits the fix
+rather than rediscovering it. Each of these reads as a bug in the component rather than in the harness,
+which is why they are recorded:
+
+- **Non-printable keys go out as `rawKeyDown`**, not `keyDown` — the latter also generates a `char`
+  event and double-fires handlers. **Printable keys need `keyDown` _with_ a `text` field**, or nothing
+  is typed at all. `Enter` needs both, so the driver picks from one table.
+- **`locate` scrolls into view, waits a frame, then measures.** Once a page grows past the window,
+  `getBoundingClientRect` returns an off-screen point and the dispatched click silently lands on
+  something else, or nothing. It also polls for a non-zero box, since an element mid-`scale` measures
+  as nothing.
+- **The base URL is discovered by probing both loopback families**, so `vite preview`'s IPv6 binding
+  cannot present as a server that never came up.
+- **A preview server already holding the port is refused, not reused.** `--strictPort` makes the new
+  one exit, and a readiness probe would then find the old one and run every spec against a stale
+  build — which looks exactly like a pile of component regressions.
+- **Wait out a transition before asserting on it** — reading a fading element's `opacity` right after a
+  keystroke returns a mid-flight value like `0.055`. Prefer waiting on the **condition**
+  (`page.waitUntilGone`) over `page.settle(ms)`, because a slow page takes arbitrarily longer than the
+  transition duration.
+
+Assertions target `data-variant="<name>"` on each Playground variant and `[data-readout]` inside it, so a
+spec reads state the way the page displays it rather than reaching into Solid. One spec file per control
+under `verify/specs/`; `verify/main.js` lists them.
 
 **`page.frame()` races `requestAnimationFrame` against a timer, and that is not defensive habit.** Headless
 Chrome stops asking for frames once a page settles, and the main thread stays idle throughout — so
@@ -1587,9 +1663,9 @@ that stopped responding rather than as a page that stopped painting. Waiting on 
 right shape for anything the library drives (`page.waitUntilGone` exists for exactly that); the frame
 helper is for settling layout, and it must not be able to wedge a run.
 
-**What it found on its first run is the argument for it**, and both were real: `TextSync` destroying an
-IME commit (see above), and `ElementFader` hanging its state machine on a single frame (below). Neither is
-visible in markup and neither would have been found by looking at the page.
+**What it catches is the argument for it.** `TextSync` destroying an IME commit (see above) and
+`ElementFader` hanging its state machine on a single frame (below) are both bugs that are invisible in
+markup, and neither would have been found by looking at the page.
 
 `review.md` #12 carries what the suite still cannot see.
 

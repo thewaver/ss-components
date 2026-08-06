@@ -1,9 +1,10 @@
 # Lib code review
 
-Outstanding problems in `src/Lib` — bugs, code and architectural smells, missing implementation.
-Nothing else belongs here. Once an item is fixed or dropped it is deleted outright rather than
-marked resolved, and the remaining items are renumbered to stay contiguous from 1. Settled
-decisions and the reasoning behind them live in `conventions.md`.
+Outstanding work in `src/Lib` — bugs, code and architectural smells, missing implementation, pending
+decisions. Nothing else belongs here. Once an item is done or dropped it is deleted outright rather
+than marked resolved, and the remaining items are renumbered to stay contiguous from 1. If closing it
+settled a decision that drives future work, that decision moves to `conventions.md`; the record of
+having done the work does not go anywhere.
 
 ### Index
 
@@ -54,11 +55,10 @@ primitive privately inside them.
 
 **Out of the cost ordering, deliberately:**
 
-- **The form story (item 11) should be decided far earlier than its size suggests**, and it is now the
-  oldest thing on this list. It is the one item whose cost _grows_ with delay: every control built without
-  it grows its own half of error and validation plumbing, and each becomes a retrofit. Four controls
-  landed since this was written — `Progress`, `FileInput`, `ColorInput` and the two `Modal` presets — and
-  each carries its own `hasError` with nothing on the other end of it.
+- **The form story (item 11) should be decided far earlier than its size suggests.** It is the one item
+  whose cost _grows_ with delay: every control built without it grows its own half of error and validation
+  plumbing, and each becomes a retrofit. `Progress`, `FileInput`, `ColorInput` and the two `Modal` presets
+  each carry their own `hasError` with nothing on the other end of it.
 - **Toasts are not blocked by any primitive, only by a shape decision** — an out-of-tree queue and an API
   that is called rather than bound, which nothing here has. That makes them schedulable at any point, and
   worth doing standalone rather than wedged next to something else.
@@ -302,9 +302,9 @@ shift across a boundary.
 is missing, ordered by how much of it is a new architectural problem rather than by how much markup it
 is.
 
-**The Playground's raw natives used to be read as the evidence for this list, and that trap is now
-closed**: every one of its 43 props-panel controls is a library control, and the single remaining native
-is a `<textarea>` waiting on the entry below. Nothing on this list can be inferred from that page any more.
+**This list cannot be inferred from the Playground**, and reading its raw natives as the evidence for it
+is the trap: every one of its 43 props-panel controls is a library control, and the single remaining
+native is a `<textarea>` waiting on the entry below.
 
 ### Value-carrying controls with no equivalent here
 
@@ -409,20 +409,27 @@ activates its focused button by keyboard rather than clicking it, and why `page.
 `requestAnimationFrame` against a timer instead of trusting it. Anything whose _only_ observable is a
 transitioned geometry is out of reach; anything observable as state, an attribute or a class is not.
 
-**The same stall found a real bug and may be hiding others of that shape.** `ElementFader` used to hang
-its whole state machine on one `requestAnimationFrame`, so on a page that stopped painting a dismissed
-`Modal` stayed mounted with its focus trap. It now races a fallback timer. Every other rAF consumer —
-`ElementObserver.createViewportRectObserver`, and through it `Anchor`, `Tooltip` and `Select`'s
-positioning — has the same dependency and no such fallback, and a stalled page would leave a popup
-anchored to where its field used to be. Whether that deserves the same treatment is undecided: a
-positioner that stops updating when nothing is painting is arguably correct, while a state machine that
-stops advancing is not.
+**The same stall may be hiding more bugs of the shape it already caught in `ElementFader`.** Every rAF
+consumer other than that one — `ElementObserver.createViewportRectObserver`, and through it `Anchor`,
+`Tooltip` and `Select`'s positioning — hangs on a frame with no fallback, and a stalled page would leave
+a popup anchored to where its field used to be. Whether that deserves the same treatment is undecided:
+a positioner that stops updating when nothing is painting is arguably correct, while a state machine
+that stops advancing is not.
 
-**Five shipped components have no spec at all**: `Button`, `Tooltip`, `Modal` itself (only its two
-presets are covered), `Surface`, and both animation components. `Popover` has none of its own either,
-but every line of it is driven through `Select` and `Menu`; the `Tabs` spec covers its keyboard walk
+**Shipped components with no spec at all**: `Button`, `Tooltip`, `Modal` itself (`verify/specs/modal.spec.js`
+covers only the `Drawer` and `AlertDialog` presets), `Surface`, both animation components, `Checkbox`,
+`MultiSelect`, `RichText`, `Typewriter`, `ScreenWiper`, `ImageSwitcher`, `AudioSwitcher`, `Corners`,
+`Shape` and `Viewport`. Some of that is covered by proxy and some is not, and the distinction is what
+decides priority: `Popover` has no spec of its own but every line of it is driven through `Select` and
+`Menu`, and `Radio` is driven through `radioGroup.spec.js` — whereas `Checkbox` and `MultiSelect` are
+value-carrying controls with nothing exercising them at all. The `Tabs` spec covers its keyboard walk
 through the Playground's left menu and nothing else, so its floater, its `href` / `linkComponent` split
 and its selection are still markup-dump territory.
+
+**Pure functions are unreachable from a suite that only clicks.** `Anchor.utils`'s flip-and-clamp
+placement, `NavigationUtils.computeNextPosition` and the `CellAnimation` weight formulas in item 5 are
+all rects-in / value-out, and provoking their edge cases through a browser means building a Playground
+page per case. There is no test runner in the repo, so nothing calls a library function directly.
 
 **Nothing checks appearance.** The suite reads the DOM, so the parity rule that forced
 `aria-disabled`-everywhere — that disabled and disabled-but-reachable must look _identical_ — is still
