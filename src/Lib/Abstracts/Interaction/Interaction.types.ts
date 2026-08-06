@@ -1,12 +1,7 @@
-export type CheckedState = boolean | "mixed";
-
 export type ExternalInteractionFlags = {
     isDisabled?: boolean;
-    isReadOnly?: boolean;
     isPressed?: boolean;
     hasError?: boolean;
-    checkedState?: CheckedState;
-    isEmpty?: boolean;
 };
 
 export type InternalInteractionFlags = {
@@ -15,4 +10,4 @@ export type InternalInteractionFlags = {
     isFocused?: boolean;
 };
 
-export type InteractionFlags = InternalInteractionFlags & ExternalInteractionFlags;
+export type InteractionFlags<TExtra extends object = {}> = InternalInteractionFlags & ExternalInteractionFlags & TExtra;

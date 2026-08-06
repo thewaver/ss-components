@@ -1,17 +1,64 @@
-import { For, type JSX, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import { Index, type JSX, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
-import type { TabProps } from "./Tabs.types";
+import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
+import type { TabsDir, TabsItemProps, TabsProps } from "./Tabs.types";
 
 import * as styles from "./Tabs.css";
 
 const DEFAULT_TABS_TRANSITION_DURATION_MS = 200;
 const DEFAULT_TABS_GAP = 0;
-const DEFAULT_TABS_DIR = "row";
+const DEFAULT_TABS_DIR: TabsDir = "row";
 
-export const Tabs = (props: TabProps) => {
+const TabsItem = <T,>(props: TabsItemProps<T>) => {
+    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+
+    const handleClick = (e: MouseEvent) => {
+        if (getIsDisabled()) {
+            e.preventDefault();
+            return;
+        }
+
+        props.onSelect(props.getTab().value);
+    };
+
+    const commonProps: Omit<JSX.HTMLAttributes<HTMLElement>, "ref"> = {
+        "class": styles.tabsItem,
+        "role": "tab",
+        get "aria-disabled"() {
+            return getIsDisabled() || undefined;
+        },
+        get "aria-selected"() {
+            return props.getIsSelected();
+        },
+    };
+
+    return (
+        <Show
+            when={props.getTab().href}
+            fallback={
+                <button type="button" ref={(element) => props.ref?.(element)} {...commonProps} onClick={handleClick}>
+                    {props.renderContent(props.getFlags)}
+                </button>
+            }
+        >
+            <Dynamic
+                component={props.linkComponent ?? "a"}
+                ref={(element: HTMLElement) => props.ref?.(element)}
+                href={props.getTab().href!}
+                {...commonProps}
+                onClick={handleClick}
+            >
+                {props.renderContent(props.getFlags)}
+            </Dynamic>
+        </Show>
+    );
+};
+
+export const Tabs = <T,>(props: TabsProps<T>) => {
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
-    const [getFocusedIndex, setFocusedIndex] = createSignal<number>();
+    const [getItemRefs, setItemRefs] = createSignal<(HTMLElement | undefined)[]>([]);
+    const [getFocusedValue, setFocusedValue] = createSignal<T | undefined>();
     const [getFloaterBounds, setFloaterBounds] = createSignal<
         { [k in "top" | "left" | "width" | "height"]: string } | undefined
     >();
@@ -24,44 +71,50 @@ export const Tabs = (props: TabProps) => {
 
     const getTabGap = createMemo(() => props.getTabGap?.() ?? DEFAULT_TABS_GAP);
 
-    const getTabArray = createMemo(() => Array.from({ length: props.getTabCount() }, (_, i) => i));
+    const setItemRef = (index: number, element: HTMLElement) => {
+        setItemRefs((prev) => {
+            const next = [...prev];
 
-    const getTabElements = () => {
-        const rootRef = getRootRef();
+            next[index] = element;
 
-        return rootRef ? (Array.from(rootRef.querySelectorAll(":scope > a, :scope > button")) as HTMLElement[]) : [];
+            return next;
+        });
     };
 
-    const getIsDisabledAt = (index: number) => props.computeIsDisabled?.(index) ?? false;
+    const getSelectedIndex = createMemo(() => {
+        const selectedValue = props.getSelectedValue();
 
-    const getNextEnabledIndex = (from: number, delta: number) => {
-        const count = props.getTabCount();
+        return props.getTabs().findIndex((tab) => tab.value === selectedValue);
+    });
 
-        for (let step = 1; step <= count; step++) {
-            const candidate = (((from + delta * step) % count) + count) % count;
+    const getNavigableIndexes = createMemo(() =>
+        props.getTabs().reduce<number[]>((acc, tab, index) => {
+            if (!tab.isDisabled) acc.push(index);
 
-            if (!getIsDisabledAt(candidate)) return candidate;
-        }
-
-        return from;
-    };
+            return acc;
+        }, []),
+    );
 
     const getRovingIndex = createMemo(() => {
-        const focusedIndex = getFocusedIndex();
+        const navigable = getNavigableIndexes();
+        const tabs = props.getTabs();
+        const focusedValue = getFocusedValue();
+
+        const focusedIndex = navigable.find((index) => tabs[index].value === focusedValue);
 
         if (focusedIndex !== undefined) return focusedIndex;
 
-        const selectedIndex = props.getSelectedIndex();
+        const selectedIndex = getSelectedIndex();
 
-        if (selectedIndex !== undefined && !getIsDisabledAt(selectedIndex)) return selectedIndex;
+        if (navigable.includes(selectedIndex)) return selectedIndex;
 
-        return getNextEnabledIndex(-1, 1);
+        return navigable[0];
     });
 
     createEffect(() => {
-        props.getSelectedIndex();
+        props.getSelectedValue();
 
-        setFocusedIndex(undefined);
+        setFocusedValue(() => undefined);
     });
 
     createEffect(() => {
@@ -71,48 +124,50 @@ export const Tabs = (props: TabProps) => {
             selectedItemObserver?.disconnect();
         });
 
-        props.getTabCount();
-
         const rootRef = getRootRef();
-        const selectedIndex = props.getSelectedIndex();
+        const selectedItem = getItemRefs()[getSelectedIndex()];
+        const selectedWrapper = selectedItem?.offsetParent as HTMLElement | null;
 
-        if (!rootRef) return;
-
-        const selectedTab = selectedIndex !== undefined ? getTabElements()[selectedIndex] : undefined;
-
-        if (!selectedTab) return;
+        if (!rootRef || !selectedWrapper) return;
 
         selectedItemObserver = new ResizeObserver(() => {
             setFloaterBounds({
-                top: `${selectedTab.offsetTop}px`,
-                left: `${selectedTab.offsetLeft}px`,
-                width: `${selectedTab.offsetWidth}px`,
-                height: `${selectedTab.offsetHeight}px`,
+                top: `${selectedWrapper.offsetTop}px`,
+                left: `${selectedWrapper.offsetLeft}px`,
+                width: `${selectedWrapper.offsetWidth}px`,
+                height: `${selectedWrapper.offsetHeight}px`,
             });
         });
         selectedItemObserver.observe(rootRef);
-        selectedItemObserver.observe(selectedTab);
+        selectedItemObserver.observe(selectedWrapper);
     });
 
     const handleKeyDown = (e: KeyboardEvent) => {
-        if (props.getTabCount() < 1) return;
+        const navigable = getNavigableIndexes();
+
+        if (navigable.length < 1) return;
 
         const isRow = getDir() === "row";
-        const current = getRovingIndex();
+        const from = navigable.indexOf(getRovingIndex() ?? navigable[0]);
+
+        const step = (delta: number) =>
+            navigable[(((from + delta) % navigable.length) + navigable.length) % navigable.length];
 
         let next: number | undefined;
 
-        if (e.key === (isRow ? "ArrowRight" : "ArrowDown")) next = getNextEnabledIndex(current, 1);
-        else if (e.key === (isRow ? "ArrowLeft" : "ArrowUp")) next = getNextEnabledIndex(current, -1);
-        else if (e.key === "Home") next = getNextEnabledIndex(-1, 1);
-        else if (e.key === "End") next = getNextEnabledIndex(0, -1);
+        if (e.key === (isRow ? "ArrowRight" : "ArrowDown")) next = step(1);
+        else if (e.key === (isRow ? "ArrowLeft" : "ArrowUp")) next = step(-1);
+        else if (e.key === "Home") next = navigable[0];
+        else if (e.key === "End") next = navigable[navigable.length - 1];
 
         if (next === undefined) return;
 
         e.preventDefault();
 
-        setFocusedIndex(next);
-        getTabElements()[next]?.focus();
+        const nextValue = props.getTabs()[next].value;
+
+        setFocusedValue(() => nextValue);
+        getItemRefs()[next]?.focus();
     };
 
     return (
@@ -133,59 +188,27 @@ export const Tabs = (props: TabProps) => {
                 </div>
             )}
 
-            <For each={getTabArray()}>
-                {(_, getIndex) => {
-                    const isLink = createMemo(() => props.getHrefs?.()?.[getIndex()]);
-                    const isDisabled = createMemo(() => getIsDisabledAt(getIndex()));
-
-                    const commonProps: JSX.ButtonHTMLAttributes<any> = {
-                        "class": styles.tabsItem,
-                        "role": "tab",
-                        get "aria-disabled"() {
-                            return isDisabled();
-                        },
-                        get "aria-selected"() {
-                            return getIndex() === props.getSelectedIndex();
-                        },
-                        get "tabIndex"() {
-                            return getIndex() === getRovingIndex() ? 0 : -1;
-                        },
-                    };
-
-                    return (
-                        <Show
-                            when={isLink()}
-                            fallback={
-                                <button
-                                    type="button"
-                                    {...commonProps}
-                                    disabled={isDisabled()}
-                                    onClick={() => {
-                                        props.onSelectionChange?.(getIndex());
-                                    }}
-                                >
-                                    {props.renderTab(getIndex())}
-                                </button>
-                            }
-                        >
-                            <Dynamic
-                                component={props.linkComponent ?? "a"}
-                                href={props.getHrefs!()[getIndex()]}
-                                {...commonProps}
-                                onClick={(e) => {
-                                    if (isDisabled()) {
-                                        e.preventDefault();
-                                        return;
-                                    }
-                                    props.onSelectionChange?.(getIndex());
-                                }}
-                            >
-                                {props.renderTab(getIndex())}
-                            </Dynamic>
-                        </Show>
-                    );
-                }}
-            </For>
+            <Index each={props.getTabs()}>
+                {(getTab, index) => (
+                    <InteractionWrapper
+                        getSizing={() => "fill"}
+                        getIsDisabled={() => getTab().isDisabled ?? false}
+                        getIsTabbable={() => index === getRovingIndex()}
+                        ref={(element) => setItemRef(index, element)}
+                        renderControl={(setElementRef, getFlags) => (
+                            <TabsItem
+                                ref={setElementRef}
+                                getTab={getTab}
+                                getFlags={getFlags}
+                                getIsSelected={() => index === getSelectedIndex()}
+                                linkComponent={props.linkComponent}
+                                renderContent={(getItemFlags) => props.renderTab(getTab, getItemFlags)}
+                                onSelect={(value) => props.onSelectionChange?.(value)}
+                            />
+                        )}
+                    />
+                )}
+            </Index>
         </div>
     );
 };

@@ -5,10 +5,18 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.fontSize": 14,
     "chat.editor.fontSize": 14,
-    "chat.fontSize": 16,
+    "chat.fontSize": 14,
     "debug.console.fontSize": 14,
     "scm.inputFontSize": 14,
     "terminal.integrated.fontSize": 14,
     "markdown.preview.fontSize": 14,
-    "editor.minimap.sectionHeaderFontSize": 10
+    "editor.minimap.sectionHeaderFontSize": 10,
+    "screencastMode.fontSize": 56,
+    "claudeCodeUiPatch.chatCodeBlockFontSize": 14,
+    "claudeCodeUiPatch.chatDiffCardFontSize": 14,
+    "claudeCodeUiPatch.planPreviewCodeBlockFontSize": 14,
+    "claudeCodeUiPatch.planPreviewCommentBadgeFontSize": 12,
+    "claudeCodeUiPatch.planPreviewCommentInputFontSize": 14,
+    "claudeCodeUiPatch.planPreviewCommentQuoteFontSize": 14,
+    "markdown.preview.lineHeight": 1.5
 }

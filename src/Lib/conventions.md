@@ -983,6 +983,140 @@ This is the `computeIsReachable` situation — a settled rule, and two copies wo
 moved to `Label.utils.ts` under the same namespace idiom as `InteractionUtils`, and the warning lost
 its `BinarySwitch:` prefix.
 
+### Controls: `Tabs` as records, and the shape a data-driven group has to take
+
+Settled **2026-08-06**, as the rehearsal for `Select`. `Tabs` predated the control model and was the
+last component still contradicting it: it hand-rolled its `<button>` / `<a>` and set the native
+`disabled` attribute, which _"Disabled is one mechanism for every control"_ forbids outright. It is
+now `InteractionWrapper` per item plus an unexported `TabsItem` leaf, in the `Button` shape.
+
+**Parallel arrays became one array of records.** `getTabCount` + `getHrefs` + `computeIsDisabled`
+were three sources indexed against each other; they are now `getTabs: Accessor<Tab<T>[]>` with
+`Tab<T> = { value, href?, isDisabled? }`. This is the answer to the objection recorded against
+data-driven groups under `RadioGroup` — that they "grow a `compute*` prop per capability and
+re-expose all of them per index". That is true of _indexed callbacks_, not of data: a capability is
+a field on a record, and adding one costs nothing at the call site. The two shapes are not
+equivalent and the earlier entry should be read as ruling out the callback form only.
+
+**Identity is the value, never the position.** `getSelectedIndex` / `onSelectionChange(index)`
+became `getSelectedValue` / `onSelectionChange(value)`. An index is only stable while the list is,
+and the list is exactly what a filtered or searchable group changes — the Playground's own left menu
+filters as you type. Everything internal (the roving entry, the floater, the arrow walk) resolves
+through the value and treats the index as a lookup result.
+
+**`<Index>`, not `<For>`, and that is why `renderTab` takes an accessor.** The records are rebuilt on
+every filter keystroke, so `<For>`'s by-reference keying would discard and remount every row —
+losing focus and every ref with it. `<Index>` keys by position and lets the record change under a
+stable node, which means the painter must subscribe rather than receive a snapshot: `renderTab(getTab,
+getFlags)`. This is _"if calling `fn(x())` would lose a subscription the callee needs, pass `x`"_,
+and it is the one place where the choice of list primitive dictates a prop's shape.
+
+**Refs replace `querySelectorAll`.** The old `:scope > a, :scope > button` walk could not survive the
+wrapper — the items are no longer direct children — and would not have survived option groups or a
+painter that renders a `Button` either. Each slot reports its control element through
+`InteractionWrapper`'s `ref` passthrough, so the element list is keyed by the same index as the data
+and the two cannot desynchronise. Registration in the `RadioGroup` sense is not needed: the group
+already owns the array, so nothing has to announce itself or be sorted by `compareDocumentPosition`.
+
+**Selection stays one-way, deliberately, and this is where `Tabs` and `RadioGroup` legitimately
+differ.** `RadioGroup` takes `valueSignal` because it owns its value. A `Tabs` with `hrefs` does not:
+selection is derived from the route, which is the case _"Signal tuples for two-way state"_ already
+records as the shape's cost — "a route param has no setter to hand over". `getSelectedValue` plus
+`onSelectionChange` keeps the router as the owner.
+
+**The floater measures the wrapper, not the control.** `interactionRoot` is `position: relative`, so
+wrapping each item reparented the control's `offsetParent` from the tab list to its own wrapper and
+`offsetTop` / `offsetLeft` started reporting `0`. The observer hops one level —
+`control.offsetParent` — which is exact rather than approximate: the wrapper's box equals the painted
+box by construction, and `offset*` is unaffected by `Viewport`'s `transform: scale()` where
+`getBoundingClientRect` would not be.
+
+**`tooltipDefs` is not on the record yet, and the reason is a real hazard rather than YAGNI.**
+`InteractionWrapper` branches on `props.getTooltipDefs !== undefined` — prop _presence_, not value —
+so a record field would have to be forwarded conditionally, and a tab that gains or loses a tooltip
+mid-life under `<Index>` reuse would not pick it up. Solid's props getters do make the conditional
+reactive, so it can be made to work; it is left out here because `Tabs` has no use for it and
+untested API is worse than absent API. `Select` will want it, and this is the thing to solve there.
+
+**A consumer selecting on `:disabled` breaks when a control stops lying about it.** The Playground's
+`tabCategory` reset the cursor through `:disabled &` and silently stopped applying; it is now
+`[aria-disabled='true'] &`. Worth stating because it is the visible tail of the mechanism decision —
+consumer stylesheets written against native disabled do not fail loudly.
+
+**Verified by headless dump**, per the invocation below: `role="tablist"`, one `tabindex="0"` across
+the whole list with every other item at `-1`, `aria-selected` on the right item, the category item
+carrying `aria-disabled="true"` and **no** `disabled` attribute, and a floater positioned at a real
+offset — which is also the proof that the `offsetParent` hop resolves and that `ref` forwards through
+the router's `A`. Interaction is still unverified, per `review.md`.
+
+### `Anchor`: the positioning half of a floating layer, extracted
+
+Settled **2026-08-06**, as the other half of the `Select` groundwork. A dropdown needs everything
+`Tooltip` knows about placing a box against an element and nothing it knows about when to show one.
+
+**The split is behaviour from markup, and the existing rule decides where it falls.** _"It renders
+DOM, so it is not an `Abstract`"_ means the extraction cannot be the popup itself — only the effect.
+`Abstracts/Anchor/` therefore holds `AnchorUtils` (the placement math, formerly `TooltipUtils`,
+moved unchanged) and `Anchor.createPortalPosition(getAnchorRef, getIsVisible, opts)`, which observes
+the anchor, measures the content, resolves the collision-safe placement and returns
+`{ getPlacement, getPosition, setContentRef }`. `Tooltip` lost sixty lines and kept every one of its
+triggers, its `aria-describedby` handling, its `role` and its markup.
+
+**The name carries the coordinate space**, per the rule the observer names already follow:
+`createPortalPosition` returns a position in the `Viewport` portal's space, which is what the
+consumer assigns to `top` / `left` on a portalled element — not a document or client position. The
+anchor rect underneath it still comes from `ElementObserver.createViewportRectObserver`, so the
+scale factor is divided out exactly once, in the place that already did it.
+
+**What stays duplicated is the dozen lines of `<Show><Portal><div>`, deliberately.** Both consumers
+portal into the same mount and position absolutely, but they disagree about everything else — a
+tooltip is `role="tooltip"` and `pointer-events: none`, a listbox is clickable, focusable and
+`role="listbox"` — so a shared component would be a two-mode component. Behaviour is shared;
+markup is not.
+
+`Tooltip` is not renamed. `AnchorPlacement` replaces `TooltipPlacement` (and its `H` / `V` halves)
+because the type is now the shared vocabulary rather than one component's, and nothing outside the
+library referenced it.
+
+### Controls: the flags are extensible, and a painter is typed to its own control
+
+Settled **2026-08-06**, closing `review.md`'s third item on the trigger it named — `Select` wants
+`isOpen`, `isFiltering` and more, which is well past the "two or more private flags" threshold.
+
+**`InteractionFlags<TExtra>` is generic with a `{}` default, so nothing that had no extras changed.**
+`Button` and `Tabs` still write `InteractionFlags`. A control with private state declares it —
+`BinarySwitchFlags = { checkedState }`, `TextInputFlags = { isEmpty, isReadOnly }` — and threads it
+as `InteractionWrapperProps<BinarySwitchFlags>`, so its painters receive exactly what it can produce
+and nothing else.
+
+**The wrapper receives the extras as one accessor, not as a prop per flag.** `getExtraFlags?:
+Accessor<TExtra>` is merged into `getFlags` last. This replaces the `getCheckedState` / `getIsEmpty` /
+`getIsReadOnly` props and, with them, the `Omit`s that existed to hide those props from consumers:
+`BinarySwitchProps` omitted `getCheckedState` and `TextInputProps` omitted `getIsEmpty` precisely
+because the control owned the value and two sources for one state is the failure to prevent. That is
+now structural — a private flag is never a public prop in the first place — and only
+`getExtraFlags` is omitted, once, per preset.
+
+**The generic props are declared by hand.** `renderControl`, `renderDecoration` and `tooltipDefs` all
+mention `TExtra`, and `AccessorProps` drops a key whose skippability cannot resolve while the
+parameter is unbound. `renderControl` and `renderDecoration` would in fact have survived (a function
+type is not a naked parameter), but they sit with the others so the block reads as one rule rather
+than three cases, and so the next prop added there cannot get it wrong.
+
+**Extras are required fields, not optional ones.** `checkedState: CheckedState` rather than
+`checkedState?:`, because the control always produces one — a painter reading `getFlags().checkedState`
+no longer has to handle an `undefined` its control cannot emit. The universal flags stay optional,
+since a wrapper genuinely may not know.
+
+**The type immediately found an over-typed painter**, which is the return on the refactor:
+`PageTextInputAdornment` had been typed as a text-input painter but reads only `isHovered` and
+`isDisabled`, and the Playground puts it inside a `Button`. Under one flat flag type that was
+invisible; under the generic it is an error at the call site.
+
+`CheckedState` moved from `Interaction.types.ts` to `BinarySwitch.types.ts`. `isReadOnly` left the
+universal set with it, so `getIsReadOnly` is declared on `TextInputState` rather than inherited —
+read-only is a text concept here, and a future control that wants it declares it too.
+
 ### Folder layout: `Fundamentals/Input`
 
 `BinarySwitch`, `Checkbox`, `Toggle`, `Radio`, `RadioGroup`, `TextInput` and `Label` live under
@@ -1009,10 +1143,21 @@ That is how the roving tab order, per-group `name` isolation, `role="radiogroup"
 `role="switch"` on a mixed toggle and the mixed painter classes were confirmed. It cannot click or
 type, so behaviour is a different problem — see `review.md`.
 
-The invocation is Chrome-specific in practice. Edge's headless `--dump-dom` on Windows returns the
-shell with an empty route outlet — the left menu and every generated `href` are present, the page
-itself is not — for `/radio` as much as for anything added since, at any `--virtual-time-budget`. So
-a failure to see page content there is the browser, not the page.
+_Corrected **2026-08-06**: this previously said Edge's headless `--dump-dom` on Windows returns the
+shell with an empty route outlet, and that a failure to see page content there is the browser rather
+than the page. That is wrong and the advice was dangerous — it tells you to disbelieve a real empty
+result. Edge renders every route fully; `/radio` came back with all five radio groups, both painter
+decorations and their inline colours._
+
+The actual failure is the URL. `vite preview` binds the **IPv6** loopback, so `http://localhost:4173`
+resolves for some clients and `http://127.0.0.1:4173` is refused outright — and a refused connection
+dumps Chromium's error page, which is a plausible-looking 300 KB of HTML containing none of your
+markup. Use `http://[::1]:4173/…` and check the dump contains something you expect before reading
+anything into what it does not contain.
+
+On Windows the browser is at
+`C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`, and the preview server has to
+outlive the shell that started it.
 
 ### `ScreenWiper`: CSS shapes, not SVG
 

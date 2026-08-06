@@ -26,7 +26,7 @@ import { MEASURE_BOX_PADDING } from "../../PageComponents/MeasureBox/MeasureBox.
 import * as styles from "./CellAnimationPage.css";
 
 const IMAGE_CONTAINER_SIZE = 240 + MEASURE_BOX_PADDING * 2;
-const STRESS_CELL_COUNT: Point2d = { x: 7, y: 7 };
+const STRESS_CELL_COUNT: Point2d = { x: 11, y: 11 };
 const STRESS_ITEM_SIZE = 120 + MEASURE_BOX_PADDING * 2;
 const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
     { count: 8, cols: 4, gap: 10, size: STRESS_ITEM_SIZE },
@@ -141,7 +141,7 @@ export const CellAnimationPage = () => {
     const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
     const [getAnimationIterationDelayMs, setAnimationIterationDelayMs] = createSignal(1000);
     const [getShouldShowWeights, setShouldShowWeights] = createSignal(false);
-    const [cellCount, setCellCount] = createStore<Point2d>({ x: 7, y: 7 });
+    const [cellCount, setCellCount] = createStore<Point2d>({ ...STRESS_CELL_COUNT });
     const [weightOpts, setWeightOpts] = createStore<CellAnimationWeights.WeightOpts>({
         shouldMakeUnique: false,
         shouldNormalize: false,

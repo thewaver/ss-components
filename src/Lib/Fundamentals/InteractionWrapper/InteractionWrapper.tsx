@@ -9,7 +9,7 @@ import * as styles from "./InteractionWrapper.css";
 
 const DEFAULT_INTERACTION_SIZING: InteractionSizing = "fit-content";
 
-export const InteractionWrapper = (props: InteractionWrapperProps) => {
+export const InteractionWrapper = <TExtra extends object = {}>(props: InteractionWrapperProps<TExtra>) => {
     const [getElementRef, setElementRef] = createSignal<HTMLElement>();
 
     const getSizing = createMemo(() => props.getSizing?.() ?? DEFAULT_INTERACTION_SIZING);
@@ -29,14 +29,12 @@ export const InteractionWrapper = (props: InteractionWrapperProps) => {
         getIsTabbable: props.getIsTabbable,
     });
 
-    const getFlags = createMemo((): InteractionFlags => ({
+    const getFlags = createMemo((): InteractionFlags<TExtra> => ({
         ...getInternalFlags(),
         isDisabled: getIsDisabled(),
-        isReadOnly: props.getIsReadOnly?.(),
         isPressed: props.getIsPressed?.(),
         hasError: props.getHasError?.(),
-        checkedState: props.getCheckedState?.(),
-        isEmpty: props.getIsEmpty?.(),
+        ...(props.getExtraFlags?.() ?? ({} as TExtra)),
     }));
 
     if (props.getIsReachableWhenDisabled && !props.getTooltipDefs) {

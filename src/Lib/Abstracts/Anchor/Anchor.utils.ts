@@ -1,9 +1,9 @@
 import { Point2d, Rect, Size2d } from "@thewaver/ss-utils";
 
-import type { TooltipHPlacement, TooltipVPlacement } from "./Tooltip.types";
+import type { AnchorHPlacement, AnchorVPlacement } from "./Anchor.types";
 
-export namespace TooltipUtils {
-    export const getHPlacementShift = (hPlacement: TooltipHPlacement, anchorRect: Rect, contentSize: Size2d) => {
+export namespace AnchorUtils {
+    export const getHPlacementShift = (hPlacement: AnchorHPlacement, anchorRect: Rect, contentSize: Size2d) => {
         switch (hPlacement) {
             case "left-in": {
                 return anchorRect.x;
@@ -23,7 +23,7 @@ export namespace TooltipUtils {
         }
     };
 
-    export const getVPlacementShift = (vPlacement: TooltipVPlacement, anchorRect: Rect, contentSize: Size2d) => {
+    export const getVPlacementShift = (vPlacement: AnchorVPlacement, anchorRect: Rect, contentSize: Size2d) => {
         switch (vPlacement) {
             case "top-in": {
                 return anchorRect.y;
@@ -43,7 +43,7 @@ export namespace TooltipUtils {
         }
     };
 
-    export const getHPlacementOffset = (hPlacement: TooltipHPlacement, offsetX: number) => {
+    export const getHPlacementOffset = (hPlacement: AnchorHPlacement, offsetX: number) => {
         switch (hPlacement) {
             case "left-in":
             case "right-out":
@@ -56,7 +56,7 @@ export namespace TooltipUtils {
         }
     };
 
-    export const getVPlacementOffset = (vPlacement: TooltipVPlacement, offsetY: number) => {
+    export const getVPlacementOffset = (vPlacement: AnchorVPlacement, offsetY: number) => {
         switch (vPlacement) {
             case "top-in":
             case "bottom-out":
@@ -70,13 +70,13 @@ export namespace TooltipUtils {
     };
 
     export const getSafeHPlacement = (
-        hPlacement: TooltipHPlacement,
+        hPlacement: AnchorHPlacement,
         anchorRect: Rect,
         contentSize: Size2d,
         screenSize: Size2d,
         offsetSize?: Point2d,
         reservedScreenSize?: Size2d,
-    ): TooltipHPlacement => {
+    ): AnchorHPlacement => {
         const offset = getHPlacementOffset(hPlacement, offsetSize?.x ?? 0);
         const reservedW = reservedScreenSize?.width ?? 0;
         const left = anchorRect.x + offset;
@@ -112,13 +112,13 @@ export namespace TooltipUtils {
     };
 
     export const getSafeVPlacement = (
-        vPlacement: TooltipVPlacement,
+        vPlacement: AnchorVPlacement,
         anchorRect: Rect,
         contentSize: Size2d,
         screenSize: Size2d,
         offsetSize?: Point2d,
         reservedScreenSize?: Size2d,
-    ): TooltipVPlacement => {
+    ): AnchorVPlacement => {
         const offset = getVPlacementOffset(vPlacement, offsetSize?.y ?? 0);
         const reservedH = reservedScreenSize?.height ?? 0;
         const top = anchorRect.y + offset;

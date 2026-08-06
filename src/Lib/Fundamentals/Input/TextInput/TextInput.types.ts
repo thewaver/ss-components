@@ -11,6 +11,11 @@ import type {
 
 export type TextInputType = "text" | "email" | "number" | "password" | "search" | "tel" | "url";
 
+export type TextInputFlags = {
+    isEmpty: boolean;
+    isReadOnly: boolean;
+};
+
 export type TextInputMode = "none" | "text" | "tel" | "url" | "email" | "numeric" | "decimal" | "search";
 
 export type TextInputTextStyle = Pick<
@@ -30,10 +35,10 @@ export type TextInputTextStyle = Pick<
 >;
 
 export type TextInputCbs = {
-    computeTextStyle?: (getFlags: () => InteractionFlags) => TextInputTextStyle;
-    renderPlaceholder?: (getFlags: () => InteractionFlags) => JSX.Element;
-    renderLeading?: (getFlags: () => InteractionFlags) => JSX.Element;
-    renderTrailing?: (getFlags: () => InteractionFlags) => JSX.Element;
+    computeTextStyle?: (getFlags: () => InteractionFlags<TextInputFlags>) => TextInputTextStyle;
+    renderPlaceholder?: (getFlags: () => InteractionFlags<TextInputFlags>) => JSX.Element;
+    renderLeading?: (getFlags: () => InteractionFlags<TextInputFlags>) => JSX.Element;
+    renderTrailing?: (getFlags: () => InteractionFlags<TextInputFlags>) => JSX.Element;
     onInput?: (value: string) => void | Promise<void>;
     onMouseEnter?: (e: MouseEvent) => void | Promise<void>;
     onMouseLeave?: (e: MouseEvent) => void | Promise<void>;
@@ -43,6 +48,7 @@ export type TextInputState = {
     type?: TextInputType;
     name?: string;
     ariaLabel?: string;
+    isReadOnly?: boolean;
     autoComplete?: JSX.HTMLAutocomplete;
     inputMode?: TextInputMode;
     min?: number;
@@ -52,7 +58,7 @@ export type TextInputState = {
 
 export type TextInputElementProps = AccessorProps<
     TextInputCbs &
-        InteractionControlProps &
+        InteractionControlProps<TextInputFlags> &
         TextInputState & {
             value: string;
             textInset: JSX.CSSProperties;
@@ -62,10 +68,13 @@ export type TextInputElementProps = AccessorProps<
         }
 >;
 
-export type TextInputProps = Omit<InteractionWrapperProps, "renderControl" | "getIsEmpty" | "getMinWidth"> &
+export type TextInputProps = Omit<
+    InteractionWrapperProps<TextInputFlags>,
+    "renderControl" | "getExtraFlags" | "getMinWidth"
+> &
     AccessorProps<
         TextInputCbs &
-            Pick<InteractionControlProps, "id" | "renderContent"> &
+            Pick<InteractionControlProps<TextInputFlags>, "id" | "renderContent"> &
             TextInputState & {
                 padding?: CSSPadding | number;
                 gap?: number;

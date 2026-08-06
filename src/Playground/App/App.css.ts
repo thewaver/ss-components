@@ -35,7 +35,7 @@ export const tabCategory = style({
     textTransform: "uppercase",
 
     selectors: {
-        ":disabled &": {
+        "[aria-disabled='true'] &": {
             cursor: "default",
         },
     },

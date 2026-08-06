@@ -48,7 +48,7 @@ const TextInputElement = (props: TextInputElementProps) => {
 
     const getIsDisabled = () => props.getFlags().isDisabled ?? false;
 
-    const getIsReadOnly = () => props.getFlags().isReadOnly ?? false;
+    const getIsReadOnly = () => props.getFlags().isReadOnly;
 
     const syncElement = (element: HTMLInputElement) => {
         const value = props.getValue();
@@ -188,7 +188,10 @@ export const TextInput = (props: TextInputProps) => {
     return (
         <InteractionWrapper
             {...props}
-            getIsEmpty={() => props.valueSignal[0]() === ""}
+            getExtraFlags={() => ({
+                isEmpty: props.valueSignal[0]() === "",
+                isReadOnly: props.getIsReadOnly?.() ?? false,
+            })}
             getMinWidth={() => getLeadingInset() + getTrailingInset()}
             renderControl={(setElementRef, getFlags) => (
                 <TextInputElement

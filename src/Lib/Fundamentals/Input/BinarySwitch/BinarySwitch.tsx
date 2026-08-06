@@ -2,7 +2,7 @@ import { createRenderEffect, createSignal } from "solid-js";
 
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { LabelUtils } from "../Label/Label.utils";
-import type { BinarySwitchElementProps, BinarySwitchProps } from "./BinarySwitch.types";
+import type { BinarySwitchElementProps, BinarySwitchFlags, BinarySwitchProps } from "./BinarySwitch.types";
 
 import * as styles from "./BinarySwitch.css";
 
@@ -77,7 +77,9 @@ const BinarySwitchElement = (props: BinarySwitchElementProps) => {
 export const BinarySwitch = (props: BinarySwitchProps) => (
     <InteractionWrapper
         {...props}
-        getCheckedState={() => (props.getIsMixed?.() ? "mixed" : props.getIsChecked())}
+        getExtraFlags={(): BinarySwitchFlags => ({
+            checkedState: props.getIsMixed?.() ? "mixed" : props.getIsChecked(),
+        })}
         renderControl={(setElementRef, getFlags) => (
             <BinarySwitchElement
                 ref={setElementRef}

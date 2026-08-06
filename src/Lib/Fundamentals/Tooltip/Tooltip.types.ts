@@ -2,28 +2,20 @@ import type { JSX } from "solid-js";
 
 import { Point2d, Size2d } from "@thewaver/ss-utils";
 
+import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
 
-export type TooltipHPlacement = "left-in" | "left-out" | "right-in" | "right-out" | "center";
-
-export type TooltipVPlacement = "top-in" | "top-out" | "bottom-in" | "bottom-out" | "center";
-
-export type TooltipPlacement = {
-    x: TooltipHPlacement;
-    y: TooltipVPlacement;
-};
-
 export type TooltipProps = AccessorProps<{
-    placement: TooltipPlacement;
+    placement: AnchorPlacement;
     offset?: Point2d;
     reservedScreenSize?: Size2d;
     transitionDurationMs?: number;
     focusShowDelayMs?: number;
     anchorRef: HTMLElement | undefined;
-    computeZIndex?: (placement: TooltipPlacement) => number;
+    computeZIndex?: (placement: AnchorPlacement) => number;
     renderContent: (
         getVisibilityTarget: () => 0 | 1,
         getTransitionDurationMs: () => number,
-        getPlacement: () => TooltipPlacement,
+        getPlacement: () => AnchorPlacement,
     ) => JSX.Element;
 }>;

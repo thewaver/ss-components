@@ -1,3 +1,6 @@
+export * from "./Abstracts/Anchor/Anchor";
+export type * from "./Abstracts/Anchor/Anchor.types";
+export * from "./Abstracts/Anchor/Anchor.utils";
 export type * from "./Abstracts/Anim/Anim.types";
 export * from "./Abstracts/Audio/Audio.utils";
 export * from "./Abstracts/ColorExtractor/ColorExtractor.context";
@@ -65,7 +68,6 @@ export * from "./Fundamentals/Tabs/Tabs";
 export type * from "./Fundamentals/Tabs/Tabs.types";
 export * from "./Fundamentals/Tooltip/Tooltip";
 export type * from "./Fundamentals/Tooltip/Tooltip.types";
-export * from "./Fundamentals/Tooltip/Tooltip.utils";
 export * from "./Fundamentals/Typewriter/Typewriter";
 export type * from "./Fundamentals/Typewriter/Typewriter.types";
 export * from "./Fundamentals/Viewport/Viewport.context";

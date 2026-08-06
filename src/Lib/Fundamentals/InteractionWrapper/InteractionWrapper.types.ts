@@ -1,36 +1,45 @@
-import type { JSX } from "solid-js";
+import type { Accessor, JSX } from "solid-js";
 
+import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
 import type { ExternalInteractionFlags, InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
-import type { TooltipPlacement, TooltipProps } from "../Tooltip/Tooltip.types";
+import type { TooltipProps } from "../Tooltip/Tooltip.types";
 
 export type InteractionSizing = "fit-content" | "fill";
 
-export type InteractionControlProps = {
+export type InteractionControlProps<TExtra extends object = {}> = {
     id?: string;
-    flags: InteractionFlags;
+    flags: InteractionFlags<TExtra>;
     ref?: (element: HTMLElement) => void;
-    renderContent: (getFlags: () => InteractionFlags) => JSX.Element;
+    renderContent: (getFlags: () => InteractionFlags<TExtra>) => JSX.Element;
 };
 
-export type InteractionTooltipDefs = Omit<TooltipProps, "getAnchorRef" | "renderContent"> & {
+export type InteractionTooltipDefs<TExtra extends object = {}> = Omit<
+    TooltipProps,
+    "getAnchorRef" | "renderContent"
+> & {
     renderContent: (
         getVisibilityTarget: () => 0 | 1,
         getTransitionDurationMs: () => number,
-        getPlacement: () => TooltipPlacement,
-        getFlags: () => InteractionFlags,
+        getPlacement: () => AnchorPlacement,
+        getFlags: () => InteractionFlags<TExtra>,
     ) => JSX.Element;
 };
 
-export type InteractionWrapperProps = AccessorProps<
+export type InteractionWrapperProps<TExtra extends object = {}> = AccessorProps<
     ExternalInteractionFlags & {
         sizing?: InteractionSizing;
         minWidth?: number;
         isReachableWhenDisabled?: boolean;
         isTabbable?: boolean;
-        tooltipDefs?: InteractionTooltipDefs;
         ref?: (element: HTMLElement) => void;
-        renderDecoration?: (getFlags: () => InteractionFlags) => JSX.Element;
-        renderControl: (setElementRef: (element: HTMLElement) => void, getFlags: () => InteractionFlags) => JSX.Element;
     }
->;
+> & {
+    getExtraFlags?: Accessor<TExtra>;
+    getTooltipDefs?: Accessor<InteractionTooltipDefs<TExtra>>;
+    renderDecoration?: (getFlags: () => InteractionFlags<TExtra>) => JSX.Element;
+    renderControl: (
+        setElementRef: (element: HTMLElement) => void,
+        getFlags: () => InteractionFlags<TExtra>,
+    ) => JSX.Element;
+};

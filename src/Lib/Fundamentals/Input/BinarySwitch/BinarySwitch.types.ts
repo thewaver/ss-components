@@ -8,6 +8,12 @@ import type {
 
 export type BinarySwitchType = "checkbox" | "radio";
 
+export type CheckedState = boolean | "mixed";
+
+export type BinarySwitchFlags = {
+    checkedState: CheckedState;
+};
+
 export type BinarySwitchCbs = {
     onChange?: (isChecked: boolean) => void | Promise<void>;
     onMouseEnter?: (e: MouseEvent) => void | Promise<void>;
@@ -23,10 +29,14 @@ export type BinarySwitchState = {
     isMixed?: boolean;
 };
 
-export type BinarySwitchElementProps = AccessorProps<BinarySwitchCbs & InteractionControlProps & BinarySwitchState>;
+export type BinarySwitchElementProps = AccessorProps<
+    BinarySwitchCbs & InteractionControlProps<BinarySwitchFlags> & BinarySwitchState
+>;
 
-export type BinarySwitchProps = Omit<InteractionWrapperProps, "renderControl" | "getCheckedState"> &
-    AccessorProps<BinarySwitchCbs & Pick<InteractionControlProps, "id" | "renderContent"> & BinarySwitchState>;
+export type BinarySwitchProps = Omit<InteractionWrapperProps<BinarySwitchFlags>, "renderControl" | "getExtraFlags"> &
+    AccessorProps<
+        BinarySwitchCbs & Pick<InteractionControlProps<BinarySwitchFlags>, "id" | "renderContent"> & BinarySwitchState
+    >;
 
 export type BinarySwitchPresetProps = Omit<BinarySwitchProps, "getType" | "getIsSwitch" | "getName" | "getIsChecked"> &
     AccessorProps<{ checkedSignal: Signal<boolean> }>;

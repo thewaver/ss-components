@@ -5,6 +5,7 @@ import { A, Route, type RouteSectionProps, Router } from "@solidjs/router";
 import { FunctionUtils, Size2d, StringUtils } from "@thewaver/ss-utils";
 
 import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
+import type { Tab } from "../../Lib/Fundamentals/Tabs/Tabs.types";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
 import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
 import { CellAnimationPage } from "./Pages/CellAnimationPage/CellAnimationPage";
@@ -121,34 +122,39 @@ const TAB_CONFIGS: TabConfig[] = [
     },
 ];
 
-const TAB_CONFIG_INDEXES = Object.fromEntries(TAB_CONFIGS.map((c, idx) => [componentToRouteName(c.name), idx]));
+const TAB_CONFIGS_BY_ROUTE = Object.fromEntries(
+    TAB_CONFIGS.filter(isComponentConfig).map((c) => [componentToRouteName(c.name), c as TabConfig]),
+);
 
 export function AppContent(props: RouteSectionProps) {
-    const [getTabIndex, setTabIndex] = createSignal<number>();
+    const [getSelectedConfig, setSelectedConfig] = createSignal<TabConfig>();
     const [getSearchTerm, setSearchTerm] = createSignal("");
 
-    const getTabConfig = createMemo(() => {
-        const tabIndex = getTabIndex();
+    const getVisibleConfigs = createMemo(() => {
+        const selectedConfig = getSelectedConfig();
         const searchTerm = getSearchTerm();
 
-        if (!getSearchTerm()) return TAB_CONFIGS;
+        if (!searchTerm) return TAB_CONFIGS;
         return TAB_CONFIGS.filter(
-            (item, idx) =>
-                !isComponentConfig(item) || idx === tabIndex || item.name.toLocaleLowerCase().includes(searchTerm),
+            (item) =>
+                !isComponentConfig(item) ||
+                item === selectedConfig ||
+                item.name.toLocaleLowerCase().includes(searchTerm),
         );
     });
 
-    const getHrefs = createMemo(() => {
-        const tabConfig = getTabConfig();
-
-        return tabConfig.map((c) => (isComponentConfig(c) ? componentToRouteName(c.name) : ""));
-    });
+    const getTabs = createMemo((): Tab<TabConfig>[] =>
+        getVisibleConfigs().map((config) => ({
+            value: config,
+            href: isComponentConfig(config) ? componentToRouteName(config.name) : undefined,
+            isDisabled: !isComponentConfig(config),
+        })),
+    );
 
     createEffect(() => {
         const pathName = props.location.pathname;
-        const index = TAB_CONFIG_INDEXES[pathName];
 
-        setTabIndex(index);
+        setSelectedConfig(() => TAB_CONFIGS_BY_ROUTE[pathName]);
     });
 
     return (
@@ -165,26 +171,24 @@ export function AppContent(props: RouteSectionProps) {
 
                 <Tabs
                     getDir={() => "column"}
-                    getSelectedIndex={getTabIndex}
-                    getTabCount={() => getTabConfig().length}
-                    computeIsDisabled={(index) => !isComponentConfig(getTabConfig()[index])}
-                    onSelectionChange={setTabIndex}
-                    getHrefs={getHrefs}
+                    getTabs={getTabs}
+                    getSelectedValue={getSelectedConfig}
+                    onSelectionChange={(config) => setSelectedConfig(() => config)}
                     linkComponent={A}
                     renderFloater={() => <div class={styles.tabFloater} />}
-                    renderTab={(index) => (
+                    renderTab={(getTab) => (
                         <div
-                            class={isComponentConfig(getTabConfig()[index]) ? styles.tabItem : styles.tabCategory}
-                            classList={{ [styles.isSelected]: index === getTabIndex() }}
+                            class={isComponentConfig(getTab().value) ? styles.tabItem : styles.tabCategory}
+                            classList={{ [styles.isSelected]: getTab().value === getSelectedConfig() }}
                         >
-                            {getTabConfig()[index].name}
+                            {getTab().value.name}
                         </div>
                     )}
                 />
             </div>
 
             <div class={styles.tabPage}>
-                {getTabIndex() && <div class={styles.tabPageTitle}>{getTabConfig()[getTabIndex()!].name}</div>}
+                {getSelectedConfig() && <div class={styles.tabPageTitle}>{getSelectedConfig()!.name}</div>}
                 {props.children}
             </div>
         </div>

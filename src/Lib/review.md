@@ -9,12 +9,13 @@ decisions and the reasoning behind them live in `conventions.md`.
 
 1. `Show when={... ?? EMPTY_ARRAY} keyed` can't fire as written — _parked_
 2. Nothing that needs a click or a keystroke has ever been verified — _open_
-3. `ExternalInteractionFlags` is becoming the union of every control's private state — _open_
-4. The Playground's blanket `input` rules now fight a real component — _open_
-5. One-shot positioned effects have nowhere to go — _open_
-6. Neither animation component can paint its own background — _open_
-7. Cell animation timing is linear-only — _open_
-8. Parity-based weights break when the origin lands on a half-pixel — _open_
+3. The Playground's blanket `input` rules now fight a real component — _open_
+4. One-shot positioned effects have nowhere to go — _open_
+5. Neither animation component can paint its own background — _open_
+6. Cell animation timing is linear-only — _open_
+7. Parity-based weights break when the origin lands on a half-pixel — _open_
+8. `getTooltipDefs` is switched on presence, which a data-driven list cannot express cleanly — _open_
+9. `Select` is designed but not built — _open_
 
 ---
 
@@ -82,26 +83,7 @@ runner. Deferred deliberately when `TextInput` landed rather than overlooked.
 
 ---
 
-## 3. `ExternalInteractionFlags` is becoming the union of every control's private state
-
-It started as four fields every wrapped control could have. It now also carries `checkedState`
-(`BinarySwitch` only), and `isEmpty` and `isReadOnly` (`TextInput` only). Each addition was right on
-its own terms and followed the one before it, but the type is drifting toward a bag where most
-fields are meaningless for most controls, and every painter reads a flag set wider than its control
-can produce.
-
-The alternative is making the flags extensible — `InteractionWrapperProps<TExtra>` with
-`renderContent: (getFlags: () => InteractionFlags & TExtra) => JSX.Element` — so a control declares
-its own additions and a painter is typed to exactly what it can receive. That is a real refactor
-touching every leaf, every preset and every painter, and it is not worth doing for three fields.
-
-Recorded so the trigger is a decision rather than a drift: **the next control that wants two or more
-private flags should get the generic instead.** `TextArea` is the likely candidate, and a
-`Select` or a `Slider` after it.
-
----
-
-## 4. The Playground's blanket `input` rules now fight a real component
+## 3. The Playground's blanket `input` rules now fight a real component
 
 `style.css` styles `input:not([type="range"])`, `select` and `textarea` with padding, border,
 background and font — specificity 0,1,1, which outranks any class. That is already why
@@ -125,7 +107,7 @@ which is its own change.
 
 ---
 
-## 5. One-shot positioned effects have nowhere to go
+## 4. One-shot positioned effects have nowhere to go
 
 `renderDecoration(getFlags)` hands a painter a snapshot of state, and the flags describe state
 only — never events, never pointer geometry. A painter can watch `isActive` flip with its own
@@ -142,7 +124,7 @@ control that wants no effect pays for a listener it ignores.
 
 ---
 
-## 6. Neither animation component can paint its own background
+## 5. Neither animation component can paint its own background
 
 Both require a `getSrc` and slice that image. The React-era component could instead fill each cell
 with `currentColor` over its own children, which is what made a reveal-over-content effect possible —
@@ -152,7 +134,7 @@ Worth deciding once, for both.
 
 ---
 
-## 7. Cell animation timing is linear-only
+## 6. Cell animation timing is linear-only
 
 `computeLocalTimeline` maps the timeline linearly and `sampleTrack` interpolates linearly between
 stops, so nothing can ease. The React-era component took a timing function per keyframe
@@ -163,7 +145,7 @@ needs nothing outside the samples file.
 
 ---
 
-## 8. Parity-based weights break when the origin lands on a half-pixel
+## 7. Parity-based weights break when the origin lands on a half-pixel
 
 `CellAnimationGeometry.isEvenRow` and its siblings test `dist.y % 2 === 0`, which silently assumes
 the distance is a whole number. It is not: a `center`, `left` or `right` origin is `(count - 1) / 2`,
@@ -186,3 +168,39 @@ Two candidate fixes, neither taken here because both change output across all ei
 distance before testing parity, which keeps integer cases identical and makes half-integer ones
 alternate sensibly; or bound the origin to whole cells, which is a narrower change but removes
 centre-of-an-even-grid as a position.
+
+---
+
+## 8. `getTooltipDefs` is switched on presence, which a data-driven list cannot express cleanly
+
+`InteractionWrapper` decides both whether to render a `Tooltip` and whether a disabled control is
+reachable from `props.getTooltipDefs !== undefined` — the presence of the prop, not the value it
+returns. That is deliberate and correct for a control written by hand, and _"presence as a guard
+fails toward the safe default"_ in `conventions.md` is the reasoning behind it.
+
+It does not survive contact with a group that renders its items from records. A per-item
+`tooltipDefs` field has to reach the wrapper as a prop that is sometimes absent, so the group must
+forward it conditionally — `getTab().tooltipDefs && (() => getTab().tooltipDefs!)` — and pass a
+function that returns `undefined` if it does not, which crashes the spread into `Tooltip`. Solid's
+props getters make the conditional form reactive, so it does work, but it is a trap laid for whoever
+writes the next group, and the failure is a runtime crash rather than a type error.
+
+`Tabs` sidesteps it by not carrying the field (see `conventions.md`). `Select` cannot: an option that
+is disabled for a reason is exactly the case reachability exists for. The fix is to let the value
+decide — render the `Tooltip` on `getTooltipDefs?.() !== undefined` and compute reachability from the
+same — which costs the guard its "only when a prop was explicitly set" property and needs that
+trade-off thought through before it lands.
+
+---
+
+## 9. `Select` is designed but not built
+
+The shape is settled — data-driven records identified by value, one `InteractionWrapper` per option,
+a popup on `Abstracts/Anchor` rather than on `Tooltip` — and `Tabs` was refactored to that shape
+first so it is exercised by something shipped. The full brief, the rejected alternatives and the
+build order live in `select.md`; this entry exists so the index stays the one place outstanding work
+is listed.
+
+It is blocked on item 8 above, which every option depends on, and carries four undecided questions
+of its own: single versus multi as one component or two, whether the field composes `TextInput`,
+whether the component or the consumer owns filtering, and how groups are represented.

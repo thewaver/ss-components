@@ -1,6 +1,7 @@
 import type { InteractionFlags } from "../../../../Lib/Abstracts/Interaction/Interaction.types";
+import type { TextInputFlags } from "../../../../Lib/Fundamentals/Input/TextInput/TextInput.types";
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
 export type TextInputContentProps = AccessorProps<{
-    flags: InteractionFlags;
+    flags: InteractionFlags<TextInputFlags>;
 }>;
