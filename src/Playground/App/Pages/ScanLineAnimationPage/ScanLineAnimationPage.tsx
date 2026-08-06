@@ -1,4 +1,4 @@
-import { For, createMemo, createSignal } from "solid-js";
+import { createMemo, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 
 import {
@@ -9,6 +9,12 @@ import { ScanlineAnimation } from "../../../../Lib/Fundamentals/ScanlineAnimatio
 import type { ScanlineAnimationController } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.types";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
+import {
+    PageFileField,
+    PageGroupedSelectField,
+    PageNumberField,
+    PageSelectField,
+} from "../../PageComponents/Field/Field";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
@@ -36,6 +42,25 @@ import { MEASURE_BOX_PADDING } from "../../PageComponents/MeasureBox/MeasureBox.
 import * as styles from "./ScanlineAnimationPage.css";
 
 const IMAGE_CONTAINER_SIZE = 240 + MEASURE_BOX_PADDING * 2;
+const MIN_SMOOTHNESS = 0.1;
+const MAX_SMOOTHNESS = 1;
+const SMOOTHNESS_STEP = 0.1;
+const MIN_SHIFT_PERCENT = 5;
+const MAX_SHIFT_PERCENT = 25;
+const SHIFT_PERCENT_STEP = 5;
+const MIN_CHUNKYNESS = 0.1;
+const MAX_CHUNKYNESS = 1;
+const CHUNKYNESS_STEP = 0.1;
+const MIN_PEAK_SCALE_PERCENT = 120;
+const MAX_PEAK_SCALE_PERCENT = 200;
+const PEAK_SCALE_PERCENT_STEP = 10;
+const MIN_LINE_COUNT = 8;
+const MAX_LINE_COUNT = 240;
+const LINE_COUNT_STEP = 4;
+const MIN_DURATION_MS = 100;
+const MAX_DURATION_MS = 5000;
+const DURATION_STEP_MS = 100;
+const MIN_ITERATION_DELAY_MS = 0;
 const STRESS_LINE_COUNT = 120;
 const STRESS_ITEMS: (StressTestDefs & { size: number; kind: "transform" | "filter" })[] = (
     ["transform", "filter"] as const
@@ -157,13 +182,13 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
 const SmoothnessInput = (props: { getter: () => number; setter: (value: number) => void }) => {
     return (
         <PageProp getLabel={() => "Smoothness (0-1)"}>
-            <input
-                type="number"
-                min={0.1}
-                max={1}
-                step={0.1}
-                value={props.getter()}
-                onInput={(e) => props.setter(Math.min(Math.max(Number(e.target.value), 0.1), 1))}
+            <PageNumberField
+                getValue={props.getter}
+                getMin={() => MIN_SMOOTHNESS}
+                getMax={() => MAX_SMOOTHNESS}
+                getStep={() => SMOOTHNESS_STEP}
+                getAriaLabel={() => "Smoothness"}
+                onInput={props.setter}
             />
         </PageProp>
     );
@@ -175,12 +200,12 @@ const DirInput = (props: {
 }) => {
     return (
         <PageProp getLabel={() => "Direction"}>
-            <select
-                value={props.getter()}
-                onChange={(e) => props.setter(e.target.value as CellAnimationBreakpoints.Direction)}
-            >
-                <For each={CellAnimationBreakpoints.DIRECTIONS}>{(dir) => <option value={dir}>{dir}</option>}</For>
-            </select>
+            <PageSelectField
+                getValue={props.getter}
+                getValues={() => CellAnimationBreakpoints.DIRECTIONS}
+                getAriaLabel={() => "Direction"}
+                onChange={props.setter}
+            />
         </PageProp>
     );
 };
@@ -199,32 +224,24 @@ const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
             <PagePropsPanel getScope={() => "local"}>
                 <PageProp getLabel={() => "Max shift (%)"}>
-                    <input
-                        type="number"
-                        min={5}
-                        max={25}
-                        step={5}
-                        value={keyframeOpts.shiftPercent}
-                        onInput={(e) =>
-                            setKeyframeOpts("shiftPercent", (prev) =>
-                                Math.min(Math.max(Number(e.target.value) ?? prev, 5), 25),
-                            )
-                        }
+                    <PageNumberField
+                        getValue={() => keyframeOpts.shiftPercent!}
+                        getMin={() => MIN_SHIFT_PERCENT}
+                        getMax={() => MAX_SHIFT_PERCENT}
+                        getStep={() => SHIFT_PERCENT_STEP}
+                        getAriaLabel={() => "Shift percent"}
+                        onInput={(value) => setKeyframeOpts("shiftPercent", value)}
                     />
                 </PageProp>
 
                 <PageProp getLabel={() => "Chunkyness (0-1)"}>
-                    <input
-                        type="number"
-                        min={0.1}
-                        max={1}
-                        step={0.1}
-                        value={keyframeOpts.chunkyness}
-                        onInput={(e) =>
-                            setKeyframeOpts("chunkyness", (prev) =>
-                                Math.min(Math.max(Number(e.target.value) ?? prev, 0.1), 1),
-                            )
-                        }
+                    <PageNumberField
+                        getValue={() => keyframeOpts.chunkyness}
+                        getMin={() => MIN_CHUNKYNESS}
+                        getMax={() => MAX_CHUNKYNESS}
+                        getStep={() => CHUNKYNESS_STEP}
+                        getAriaLabel={() => "Chunkyness"}
+                        onInput={(value) => setKeyframeOpts("chunkyness", value)}
                     />
                 </PageProp>
             </PagePropsPanel>
@@ -253,17 +270,13 @@ const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
             <PagePropsPanel getScope={() => "local"}>
                 <PageProp getLabel={() => "Peak Scale (%)"}>
-                    <input
-                        type="number"
-                        min={120}
-                        max={200}
-                        step={10}
-                        value={keyframeOpts.peakScalePercent}
-                        onInput={(e) =>
-                            setKeyframeOpts("peakScalePercent", (prev) =>
-                                Math.min(Math.max(Number(e.target.value) ?? prev, 120), 200),
-                            )
-                        }
+                    <PageNumberField
+                        getValue={() => keyframeOpts.peakScalePercent!}
+                        getMin={() => MIN_PEAK_SCALE_PERCENT}
+                        getMax={() => MAX_PEAK_SCALE_PERCENT}
+                        getStep={() => PEAK_SCALE_PERCENT_STEP}
+                        getAriaLabel={() => "Peak scale percent"}
+                        onInput={(value) => setKeyframeOpts("peakScalePercent", value)}
                     />
                 </PageProp>
 
@@ -298,17 +311,13 @@ const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
             <PagePropsPanel getScope={() => "local"}>
                 <PageProp getLabel={() => "Shift (%)"}>
-                    <input
-                        type="number"
-                        min={5}
-                        max={25}
-                        step={5}
-                        value={keyframeOpts.shiftPercent}
-                        onInput={(e) =>
-                            setKeyframeOpts("shiftPercent", (prev) =>
-                                Math.min(Math.max(Number(e.target.value) ?? prev, 5), 25),
-                            )
-                        }
+                    <PageNumberField
+                        getValue={() => keyframeOpts.shiftPercent!}
+                        getMin={() => MIN_SHIFT_PERCENT}
+                        getMax={() => MAX_SHIFT_PERCENT}
+                        getStep={() => SHIFT_PERCENT_STEP}
+                        getAriaLabel={() => "Shift percent"}
+                        onInput={(value) => setKeyframeOpts("shiftPercent", value)}
                     />
                 </PageProp>
 
@@ -343,17 +352,13 @@ const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
             <PagePropsPanel getScope={() => "local"}>
                 <PageProp getLabel={() => "Shift (%)"}>
-                    <input
-                        type="number"
-                        min={5}
-                        max={25}
-                        step={5}
-                        value={keyframeOpts.shiftPercent}
-                        onInput={(e) =>
-                            setKeyframeOpts("shiftPercent", (prev) =>
-                                Math.min(Math.max(Number(e.target.value) ?? prev, 5), 25),
-                            )
-                        }
+                    <PageNumberField
+                        getValue={() => keyframeOpts.shiftPercent!}
+                        getMin={() => MIN_SHIFT_PERCENT}
+                        getMax={() => MAX_SHIFT_PERCENT}
+                        getStep={() => SHIFT_PERCENT_STEP}
+                        getAriaLabel={() => "Shift percent"}
+                        onInput={(value) => setKeyframeOpts("shiftPercent", value)}
                     />
                 </PageProp>
 
@@ -456,11 +461,7 @@ export const ScanlineAnimationPage = () => {
     const [getAnimationIterationDelayMs, setAnimationIterationDelayMs] = createSignal(1000);
     const [getWeightType, setWeightType] = createSignal<CellAnimationWeights.OriginFreeWeightType>("sequenceLinear");
 
-    const handleFile = (e: Event) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-
-        if (!file) return;
-
+    const handleFile = (file: File) => {
         setSrc(URL.createObjectURL(file));
     };
 
@@ -526,64 +527,53 @@ export const ScanlineAnimationPage = () => {
         <div class={styles.root}>
             <PagePropsPanel getScope={() => "global"}>
                 <PageProp getLabel={() => "Image"}>
-                    <input type="file" accept="image/*" onChange={handleFile} />
+                    <PageFileField
+                        getAccept={() => "image/*"}
+                        getPrompt={() => "Pick an image"}
+                        getAriaLabel={() => "Image"}
+                        onPick={handleFile}
+                    />
                 </PageProp>
 
                 <PageProp getLabel={() => "Weight"}>
-                    <select
-                        value={getWeightType()}
-                        onChange={(e) => setWeightType(e.target.value as CellAnimationWeights.OriginFreeWeightType)}
-                    >
-                        <For each={GROUPPED_WEIGHTS}>
-                            {([groupKey, groupValue]) => (
-                                <optgroup label={groupKey}>
-                                    <For each={groupValue}>{(weight) => <option value={weight}>{weight}</option>}</For>
-                                </optgroup>
-                            )}
-                        </For>
-                    </select>
+                    <PageGroupedSelectField
+                        getValue={getWeightType}
+                        getGroups={() => GROUPPED_WEIGHTS}
+                        getAriaLabel={() => "Weight"}
+                        onChange={(weight) => setWeightType(() => weight)}
+                    />
                 </PageProp>
 
                 <PageProp getLabel={() => "Line count"}>
-                    <input
-                        type="number"
-                        min={8}
-                        max={240}
-                        step={4}
-                        value={getLineCount()}
-                        onInput={(e) =>
-                            setLineCount((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 8), 240))
-                        }
+                    <PageNumberField
+                        getValue={getLineCount}
+                        getMin={() => MIN_LINE_COUNT}
+                        getMax={() => MAX_LINE_COUNT}
+                        getStep={() => LINE_COUNT_STEP}
+                        getAriaLabel={() => "Line count"}
+                        onInput={setLineCount}
                     />
                 </PageProp>
 
                 <PageProp getLabel={() => "Animation duration (ms)"}>
-                    <input
-                        type="number"
-                        min={100}
-                        max={5000}
-                        step={100}
-                        value={getAnimationDurationMs()}
-                        onInput={(e) =>
-                            setAnimationDurationMs((prev) =>
-                                Math.min(Math.max(Number(e.target.value) ?? prev, 100), 5000),
-                            )
-                        }
+                    <PageNumberField
+                        getValue={getAnimationDurationMs}
+                        getMin={() => MIN_DURATION_MS}
+                        getMax={() => MAX_DURATION_MS}
+                        getStep={() => DURATION_STEP_MS}
+                        getAriaLabel={() => "Animation duration"}
+                        onInput={setAnimationDurationMs}
                     />
                 </PageProp>
 
                 <PageProp getLabel={() => "Iteration delay (ms)"}>
-                    <input
-                        type="number"
-                        min={0}
-                        max={5000}
-                        step={100}
-                        value={getAnimationIterationDelayMs()}
-                        onInput={(e) =>
-                            setAnimationIterationDelayMs((prev) =>
-                                Math.min(Math.max(Number(e.target.value) ?? prev, 0), 5000),
-                            )
-                        }
+                    <PageNumberField
+                        getValue={getAnimationIterationDelayMs}
+                        getMin={() => MIN_ITERATION_DELAY_MS}
+                        getMax={() => MAX_DURATION_MS}
+                        getStep={() => DURATION_STEP_MS}
+                        getAriaLabel={() => "Iteration delay"}
+                        onInput={setAnimationIterationDelayMs}
                     />
                 </PageProp>
             </PagePropsPanel>

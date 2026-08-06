@@ -26,6 +26,7 @@
         "dev": "vite build --config ./vite.lib.config.ts --watch",
         "preview": "vite preview --config ./vite.config.ts",
         "start": "vite --config ./vite.config.ts --host",
+        "verify:dom": "node verify/main.js",
         "format": "prettier --write ."
     },
     "dependencies": {

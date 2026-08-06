@@ -8,83 +8,65 @@ decisions and the reasoning behind them live in `conventions.md`.
 ### Index
 
 1. `Show when={... ?? EMPTY_ARRAY} keyed` can't fire as written — _parked_
-2. Nothing that verifies interaction lives in the repo — _open_
-3. The Playground's blanket `input` rules now fight a real component — _open_
-4. One-shot positioned effects have nowhere to go — _open_
-5. Neither animation component can paint its own background — _open_
-6. Cell animation timing is linear-only — _open_
-7. Parity-based weights break when the origin lands on a half-pixel — _open_
-8. `Select` — six things deliberately not built — _open_
-9. `Range` is not built — _open_
-10. Date, time and calendar are not built — _open_
-11. Other core controls the library does not have — _open_
-12. Machinery those controls need, none of which exists — _open_
+2. One-shot positioned effects have nowhere to go — _open_
+3. Neither animation component can paint its own background — _open_
+4. Cell animation timing is linear-only — _open_
+5. Parity-based weights break when the origin lands on a half-pixel — _open_
+6. `Select` — six things deliberately not built — _open_
+7. `Range` is not built — _open_
+8. Date, time and calendar are not built — _open_
+9. Other core controls the library does not have — _open_
+10. Machinery those controls need, none of which exists — _open_
+11. What the verification suite still cannot see — _open_
 
 ### Build order
 
-Covers the unbuilt controls in items 9 to 12. The ordering principle is **how much of the existing base
+Covers the unbuilt controls in items 7 to 10. The ordering principle is **how much of the existing base
 a thing reuses**: anything that is a preset or a composition of what already works comes before anything
 that needs a new primitive, and anything blocked on an architectural decision comes last, so the
 decision is made once with several consumers in view rather than inferred from the first one.
 
 Two things break that ordering on purpose, and both are noted where they fall.
 
-**Tier 0 — before any of it.** Both of these make everything after cheaper rather than being features.
-
-1. **A committed verification script (item 2).** Every control below is behaviour, and behaviour here is
-   invisible in markup. Without a runnable suite each new one is a fresh manual re-check of everything
-   that came before.
-2. **Migrate the Playground's raw natives (item 3).** 39 of 43 are controls that already ship. This is
-   cheap, it retires a pile of `!important`, and it gets `Select` and `Checkbox` a consumer that is not
-   the page written to demonstrate them — which is where the next round of bugs will come from.
-
-**Tier 1 — presets and compositions, no new mechanism.** Each is a small file over something shipped.
-
-3. **`Drawer` and `AlertDialog`** — `Modal` presets. Placement and slide are paint; the mandatory
-   initial focus target is the only new library code.
-4. **`Progress`** — no interaction at all, so no `InteractionWrapper`: an ARIA value mapping plus a
-   painter slot. The one new thing it settles is what a non-interactive Fundamental looks like.
-5. **`FileInput`** — the existing overlay geometry, wrapper and flags, unchanged. Its one rule is that
-   activation must stay native, so gating a disabled field is the `Button` `onClick` pattern.
-6. **A native `ColorInput` field** — the swatch and OS dialog are native, so as a plain field it is
-   Tier 1. The custom picker surface is a different thing and lands in Tier 3, because it is a 2D drag.
-
 **Tier 2 — new components whose every mechanism already exists somewhere.**
 
-7. **Extract `Popover` from `Select`, then build `Menu`.** `Anchor`, `ElementFader`, the portal, the
+1. **Extract `Popover` from `Select`, then build `Menu`.** `Anchor`, `ElementFader`, the portal, the
    `mousedown` refusal and `inert` are all written; what is new is a menu's roles and activation
    semantics, on a keyboard walk that is 1D like `Select`'s. Do the extraction first because three later
    items want it — `Menu`, `DatePicker`, the `ColorInput` picker — and take the shared dismissal
    `Abstract` with it, since that is its third consumer.
-8. **`TextArea`** — extract the text composite `conventions.md` already promises, then two presets. New
-   work is auto-height measurement, which is the same primitive as the next item, so pair them.
-9. **`Accordion`** — trivial ARIA over the auto-height animation from 8.
-10. **The 1D walk becomes an `Abstract`** — `Tabs`, `RadioGroup` and `Select` contain the same
-    navigable-index arithmetic three times. Extracting it here is a refactor with no new component,
-    verifiable against three shipped behaviours, and it is the honest place to start item 12's keyboard
-    work rather than inside a calendar.
+2. **`TextArea`** — extract the text composite `conventions.md` already promises, then two presets. New
+   work is auto-height measurement, which is the same primitive as the next item, so pair them. It is
+   also the last raw native left in the Playground, so it closes that migration rather than adding to it.
+3. **`Accordion`** — trivial ARIA over the auto-height animation from 2.
+4. **The 1D walk becomes an `Abstract`** — `Tabs`, `RadioGroup` and `Select` contain the same
+   navigable-index arithmetic three times. Extracting it here is a refactor with no new component,
+   verifiable against three shipped behaviours, and it is the honest place to start item 10's keyboard
+   work rather than inside a calendar.
 
 **Tier 3 — blocked on a primitive that has to be designed first.** Do not start these by inventing the
 primitive privately inside them.
 
-11. **Pointer drag and track geometry (item 4's opt-in design), then `Range`.** Once a drag can be
-    expressed and a value can map to a measured track, `Range` itself is ordinary. Deciding whether both
-    thumb counts are custom is part of the same pass.
-12. **The custom `ColorInput` picker surface** — the same drag primitive in two dimensions, so it
-    follows `Range` and reuses it rather than the reverse.
-13. **The 2D roving keyboard, grown from the `Abstract` in 10, then `Calendar`.**
-14. **A mask layer over `TextSync`, plus the date-dependency decision, then `DateInput`** — and only
-    then `DatePicker`, which is `Calendar` plus the `Popover` from 7. Date-time and ranges compose from
-    those rather than being new components.
-15. **`Tree`** — the 2D keyboard from 13 plus `Select`'s tree-flattening model. Wants virtualization,
-    which is also `Select`'s loose end in item 8, so that `Abstract` belongs here.
+5. **Pointer drag and track geometry (item 2's opt-in design), then `Range`.** Once a drag can be
+   expressed and a value can map to a measured track, `Range` itself is ordinary. Deciding whether both
+   thumb counts are custom is part of the same pass.
+6. **The custom `ColorInput` picker surface** — the same drag primitive in two dimensions, so it
+   follows `Range` and reuses it rather than the reverse. The field itself ships; this is the surface
+   that would replace the OS dialog.
+7. **The 2D roving keyboard, grown from the `Abstract` in 4, then `Calendar`.**
+8. **A mask layer over `TextSync`, plus the date-dependency decision, then `DateInput`** — and only
+   then `DatePicker`, which is `Calendar` plus the `Popover` from 1. Date-time and ranges compose from
+   those rather than being new components.
+9. **`Tree`** — the 2D keyboard from 7 plus `Select`'s tree-flattening model. Wants virtualization,
+   which is also `Select`'s loose end in item 6, so that `Abstract` belongs here.
 
 **Out of the cost ordering, deliberately:**
 
-- **The form story (item 12) should be decided far earlier than its size suggests** — ideally during
-  Tier 1. It is the one item whose cost _grows_ with delay: every control built without it grows its own
-  half of error and validation plumbing, and each becomes a retrofit. It does not have to be built early,
-  but the contract has to exist before there are four more controls to retrofit.
+- **The form story (item 10) should be decided far earlier than its size suggests**, and it is now the
+  oldest thing on this list. It is the one item whose cost _grows_ with delay: every control built without
+  it grows its own half of error and validation plumbing, and each becomes a retrofit. Four controls
+  landed since this was written — `Progress`, `FileInput`, `ColorInput` and the two `Modal` presets — and
+  each carries its own `hasError` with nothing on the other end of it.
 - **Toasts are not blocked by any primitive, only by a shape decision** — an out-of-tree queue and an API
   that is called rather than bound, which nothing here has. That makes them schedulable at any point, and
   worth doing standalone rather than wedged next to something else.
@@ -130,67 +112,7 @@ export type SVGAnimationDefs = {
 
 ---
 
-## 2. Nothing that verifies interaction lives in the repo
-
-Interaction can be driven with no dependency at all — headless Chrome over the DevTools Protocol from
-Node, per `CLAUDE.md` → _"Verifying interaction"_, which records the invocation and the three traps.
-The problem is that no such script is committed, so nothing is repeatable and every behaviour below is
-unexercised on any given day.
-
-The work left is to make it runnable from the repo: a `verify:dom` npm script and one assertion file
-per control. That needs a decision about where non-shipped tooling lives, since `src/Lib` and
-`src/Playground` are both wrong homes for it.
-
-What such a suite has to cover, all of it invisible in markup and none of it currently checked:
-
-- `BinarySwitch` — the tri-state resolution when a mixed control is clicked, and the refused-write
-  resync in `syncElement`, which is the whole reason that function exists.
-- `RadioGroup` — the arrow walk and its skip-a-disabled-option-but-still-focus-a-reachable-one rule.
-- `Label` — a caption click reaching a disabled control and being stopped, and the `aria-label`
-  suppression warning, which has no path in the Playground at all and so has never run.
-- `TextInput` / `TextSync` — the composition gating, and the `null` selection guard that keeps
-  `type="email"` from throwing. `readonly` as the disabled mechanism is checkable as an attribute, but
-  the fact that it actually stops a paste is not.
-- `Select` / `MultiSelect` — the whole surface, since it is the largest behavioural component here.
-
-Markup alone stays cheaper to check with `--dump-dom` against `npm run preview` (`conventions.md`
-records that invocation and the Edge caveat). The protocol driver is for everything else.
-
----
-
-## 3. The Playground's blanket `input` rules now fight a real component
-
-`style.css` styles `input:not([type="range"])`, `select` and `textarea` with padding, border,
-background and font — specificity 0,1,1, which outranks any class. That is already why
-`BinarySwitch.css.ts` carries a block of `!important` resets, and it is a fair trade there because
-the library's checkbox input is a blank slate nobody else styles.
-
-`TextInput` broke the trade, because the element the rules hit is one the **consumer** must style.
-The consumer's half of that is now gone — `computeTextStyle` applies as an inline style, which
-outranks every selector, and `TextInputContent.css.ts` dropped the four `globalStyle` blocks it only
-had to buy a specificity point. What remains is the library's own escalation: `cursor` is reset with
-`!important` purely because `input:hover:not(…)` at 0,3,1 would otherwise force `pointer` onto a
-text field, and the box resets in `TextInput.css.ts` and `BinarySwitch.css.ts` carry `!important`
-for the same reason.
-
-The root cause is that those rules exist to style the Playground's **own** chrome — the search box,
-the props panels — and were written before the library shipped anything they could collide with.
-Scoping them to that chrome would remove the escalation on both sides and probably let several of
-`BinarySwitch.css.ts`'s `!important`s go too. Not done here because it touches roughly thirty
-unclassed `<input>` call sites across `ShapePage`, `ScanLineAnimationPage` and `TypewriterPage`,
-which is its own change.
-
-**Most of that chrome no longer needs to be raw, and this is a migration rather than a gap.** Of the 43
-raw native controls in the panels, 39 are things the library already ships: 21 `input[type="number"]`
-and one `input[type="text"]` are `TextInput`, 11 `<select>` are `Select`, 6 `input[type="checkbox"]` are
-`Checkbox`. Migrating them shrinks what the blanket rules have to cover before they are scoped, and
-exercises those components against a real consumer instead of a variants page — which is worth more than
-the CSS cleanup on its own, since `Select`'s only consumer today is a page written to show it off. The
-four that cannot migrate (one `<textarea>`, two file, one colour) are in item 11.
-
----
-
-## 4. One-shot positioned effects have nowhere to go
+## 2. One-shot positioned effects have nowhere to go
 
 `renderDecoration(getFlags)` hands a painter a snapshot of state, and the flags describe state
 only — never events, never pointer geometry. A painter can watch `isActive` flip with its own
@@ -207,7 +129,7 @@ control that wants no effect pays for a listener it ignores.
 
 ---
 
-## 5. Neither animation component can paint its own background
+## 3. Neither animation component can paint its own background
 
 Both require a `getSrc` and slice that image. The React-era component could instead fill each cell
 with `currentColor` over its own children, which is what made a reveal-over-content effect possible —
@@ -217,7 +139,7 @@ Worth deciding once, for both.
 
 ---
 
-## 6. Cell animation timing is linear-only
+## 4. Cell animation timing is linear-only
 
 `computeLocalTimeline` maps the timeline linearly and `sampleTrack` interpolates linearly between
 stops, so nothing can ease. The React-era component took a timing function per keyframe
@@ -228,7 +150,7 @@ needs nothing outside the samples file.
 
 ---
 
-## 7. Parity-based weights break when the origin lands on a half-pixel
+## 5. Parity-based weights break when the origin lands on a half-pixel
 
 `CellAnimationGeometry.isEvenRow` and its siblings test `dist.y % 2 === 0`, which silently assumes
 the distance is a whole number. It is not: a `center`, `left` or `right` origin is `(count - 1) / 2`,
@@ -254,7 +176,7 @@ centre-of-an-even-grid as a position.
 
 ---
 
-## 8. `Select` — six things deliberately not built
+## 6. `Select` — six things deliberately not built
 
 The decisions behind what exists are in `conventions.md` under the three `Select` headings. These are
 the gaps, each with the reason it is still a gap.
@@ -285,7 +207,7 @@ the gaps, each with the reason it is still a gap.
 
 ---
 
-## 9. `Range` is not built
+## 7. `Range` is not built
 
 A slider, single-thumb and two-thumb. Nothing in the repo has ever had one — `style.css` styles
 `input[type="range"]` and nothing on any page uses it.
@@ -298,10 +220,10 @@ hands a painter flags and lets it decide what to draw; a slider has to convert a
 along a track and back again, and the track's length is a measured box. That is a geometry primitive
 nothing here has, and it belongs in `Abstracts/` rather than in the control.
 
-**It is the first control that needs a pointer drag**, which item 4 records the painter contract cannot
-express — flags carry state, never events or pointer position. A slider is what makes item 4 concrete
+**It is the first control that needs a pointer drag**, which item 2 records the painter contract cannot
+express — flags carry state, never events or pointer position. A slider is what makes item 2 concrete
 rather than theoretical, and it needs _continuous_ pointer position during a drag, not the one-shot
-contact point that item described. Settle item 4's opt-in design first, or `Range` will invent its own.
+contact point that item described. Settle item 2's opt-in design first, or `Range` will invent its own.
 
 **A two-thumb range cannot be a native `<input type="range">`.** The overlay-geometry rule — painter in
 flow sizing the box, real input absolutely over it — carries every other input in this library and covers
@@ -315,7 +237,7 @@ step), whether the two thumbs may cross, and vertical orientation.
 
 ---
 
-## 10. Date, time and calendar are not built
+## 8. Date, time and calendar are not built
 
 **Not one component.** It decomposes into at least four, and the decomposition is the first decision:
 
@@ -334,7 +256,7 @@ Three blockers, each shared with another item:
 **The grid needs a 2D roving keyboard, and every walk in this library is 1D.** `Tabs`, `RadioGroup` and
 `Select` all step through a flat list of navigable indexes. A calendar's arrows move by day and by week,
 `Home`/`End` mean start and end of week, `PageUp`/`PageDown` mean month, and the walk crosses month
-boundaries. See item 12 — this should become an `Abstract` rather than a fourth hand-rolled walk.
+boundaries. See item 10 — this should become an `Abstract` rather than a fourth hand-rolled walk.
 
 **A mask is more than `TextSync`'s transforming setter.** `TextSync` preserves the caret when a setter
 rewrites the value, which is the right base, but a mask also has to skip literal separators, decide what
@@ -348,19 +270,16 @@ shift across a boundary.
 
 ---
 
-## 11. Other core controls the library does not have
+## 9. Other core controls the library does not have
 
 `Fundamentals/Input` covers `TextInput`, `Checkbox`, `Toggle`, `Radio`, `RadioGroup`, `Select`,
-`MultiSelect` and `Label`; `Fundamentals` adds `Button`, `Tabs`, `Tooltip` and `Modal`. Beyond items 9
-and 10, this is what is missing, ordered by how much of it is a new architectural problem rather than by
-how much markup it is.
+`MultiSelect`, `FileInput`, `ColorInput` and `Label`; `Fundamentals` adds `Button`, `Tabs`, `Tooltip`,
+`Modal`, `Drawer`, `AlertDialog` and `Progress`. Beyond items 7 and 8, this is what is missing, ordered by
+how much of it is a new architectural problem rather than by how much markup it is.
 
-**The Playground's raw natives are not the evidence for this list**, and reading them that way is a trap
-worth naming. Its props panels hold 43 of them, and 39 — 11 `<select>`, 21 `input[type="number"]`, 6
-`input[type="checkbox"]`, one `input[type="text"]` — are controls the library **already ships**, left
-un-migrated because the panels predate them. That is a migration backlog and it belongs to item 3. Only
-four sites point at something genuinely absent: one `<textarea>`, two `input[type="file"]`, one
-`input[type="color"]`.
+**The Playground's raw natives used to be read as the evidence for this list, and that trap is now
+closed**: every one of its 43 props-panel controls is a library control, and the single remaining native
+is a `<textarea>` waiting on the entry below. Nothing on this list can be inferred from that page any more.
 
 ### Value-carrying controls with no equivalent here
 
@@ -370,22 +289,15 @@ is that the overlay-geometry rule assumes the painter sizes a fixed box: a texta
 scrolls its own content, so the painted box has to follow content height, and the input's scroll must not
 desynchronise from a painter that does not scroll.
 
-**`FileInput`.** The one control whose activation **must** stay native, because nothing else can open
-the file dialog. That makes it a good fit for the shell/painter split — a real `<input type="file">`
-under a painted box — and it should be scoped without drag-and-drop, which is a drop-target concern
-belonging to whatever surface wants it rather than to the field.
-
-**`ColorInput`.** The native swatch and the OS colour dialog cannot be painted or replaced, so the
-honest scope is a field that owns the value plus a picker surface the painter draws.
-`Abstracts/ColorExtractor` already exists and is the wrong half of the problem — it reads colour out of
-images.
-
 **A number stepper, which is a preset and possibly not wanted at all.** `TextInput` already carries
-`type="number"`, `min`, `max` and `step`, so a numeric field is not missing; the 21 raw number inputs in
-the Playground are migration, not a gap. What a `NumberInput` preset would add is the affordance the
-library's own CSS removes — `textInputElement` suppresses the webkit spinner — plus press-and-hold
-repeat and clamping on blur rather than per keystroke. Worth deciding whether that is wanted before
-building it, since a painter can already put two `Button`s in `renderTrailing`.
+`type="number"`, `min`, `max` and `step`, so a numeric field is not missing. What a `NumberInput` preset
+would add is the affordance the library's own CSS removes — `textInputElement` suppresses the webkit
+spinner — plus press-and-hold repeat and clamping on blur rather than per keystroke. **The Playground now
+argues for it.** `PageNumberField` exists precisely because a panel holding a number has to keep a local
+`Signal<string>`, mirror the owner's number into it, parse, clamp and report — thirty lines that every
+consumer with a numeric field will write the same way, and it clamps per keystroke because that is what
+falls out of the mirror. A preset owning the string/number codec is the thing that would delete it. A
+painter can already put two `Button`s in `renderTrailing`, so the affordance was never the hard part.
 
 ### Overlays and feedback
 
@@ -395,20 +307,12 @@ second consumer" rule. **A `Menu` is that second consumer**, so it is the concre
 carrying values, so there is no selected state, `Enter` activates and dismisses, and submenus need
 nested popups with their own placement. Dismissal is the other half: outside-click, `Escape` and focus
 return are hand-rolled in both `Modal` and `Select` today, and a third copy is the trigger to extract
-them too (see item 12).
+them too (see item 10).
 
 **Toasts.** The only item here whose hard part is not the markup: a notification stack needs a queue
 that outlives the component that raised it, which means state owned outside the tree and an API that is
 called rather than bound. Every control here takes signals in props; nothing has ever been imperative.
 That shape is the decision, and it should be made before any of it is built.
-
-**`Progress`.** `role="progressbar"`, determinate and indeterminate. The bar and the spinner are paint,
-so a painter draws them, but the value-to-ARIA mapping and the indeterminate animation's timing are the
-library's.
-
-**`Drawer` and `AlertDialog` are `Modal` presets, not components** — an edge placement plus a slide,
-and `role="alertdialog"` plus a mandatory initial focus target. Worth recording so nobody builds them
-twice.
 
 ### Structure
 
@@ -437,16 +341,16 @@ of the contract by definition — the Playground already builds three of them as
 
 ---
 
-## 12. Machinery those controls need, none of which exists
+## 10. Machinery those controls need, none of which exists
 
-Grouped here because each one is shared by several of the controls in items 9 to 11, and because building
+Grouped here because each one is shared by several of the controls in items 7 to 9, and because building
 any of those without first deciding these would bake the decision in by accident.
 
 - **A 2D roving keyboard model.** `Tabs`, `RadioGroup` and `Select` all walk a 1D list of navigable
   indexes with the same wrap-around arithmetic, three times over. `Calendar`, `Tree` and any grid need
   two axes, where the row and column steps differ and `Home`/`End`/`PageUp` mean something per axis.
   This is the point at which the walk itself should become an `Abstract` rather than a fourth copy.
-- **Pointer drag capture, and pointer geometry in the flags contract.** Item 4 records that
+- **Pointer drag capture, and pointer geometry in the flags contract.** Item 2 records that
   `renderContent`/`renderDecoration` receive state and never events or pointer position. `Range` cannot
   be built without it, so the opt-in design that item asks for has to be settled first.
 - **Dismissal as an `Abstract`.** Outside-click, `Escape` and focus return exist twice — `Modal` traps
@@ -457,10 +361,52 @@ any of those without first deciding these would bake the decision in by accident
 - **Masking and formatting.** `TextSync` handles a setter that transforms or refuses while preserving
   the caret. A mask is more: the caret must skip literal characters, and a formatted number or date has
   a display form and a value form that are not the same string.
-- **Virtualization.** Already recorded as a `Select` loose end in item 8; `Tree` and any grid need the
+- **Virtualization.** Already recorded as a `Select` loose end in item 6; `Tree` and any grid need the
   same thing, so it is an `Abstract`, not a per-control feature.
 - **A form story, which is the largest gap and is not a component.** Controls carry `hasError` and
   nothing else: there is no association between a field and its message (no `aria-describedby` wiring,
   which is what makes an error announceable), no validation contract, no submit or reset, and no way to
   ask a group of controls whether they are valid. `Label` solves the accessible **name** and stops
-  there. Every control built above will otherwise grow its own half of this by accident.
+  there. Every control built above will otherwise grow its own half of this by accident — `FileInput` and
+  `ColorInput` both shipped carrying `hasError` and nothing on the other end of it, so the count of
+  controls to retrofit is now eleven.
+- **A `Signal<string>` codec, which is the smallest of these and the one with a consumer already.** Every
+  control here owns its value as a `*Signal`, and every value that is not a string needs a mirror: a local
+  signal, an effect that writes the owner's value in when the two disagree, and a parse on the way out.
+  `PageNumberField`, `PageSelectField`, `PageCheckField` and `PageColorField` are four copies of that
+  shape, and a consumer with a store rather than signals will write a fifth. What is undecided is whether
+  the answer is an `Abstract` that builds the mirror, or a controls-take-getter-plus-setter escape hatch
+  next to `*Signal` — and _"Signal tuples for two-way state"_ already records the cost this is the tail of:
+  "the owner has to _have_ a signal".
+
+---
+
+## 11. What the verification suite still cannot see
+
+`verify/` drives real clicks and keystrokes over the DevTools Protocol, and `npm run verify:dom` runs it.
+What is worth stating is the shape of its blind spots, because a green run reads as broader coverage than
+it is.
+
+**It cannot assert on anything that needs a CSS transition to have finished.** Headless Chrome stops
+producing frames once a page settles, and a `transform` transition is compositor-driven, so a panel
+transitioning from `scale(0)` never grows and its box measures zero. This is why the `AlertDialog` spec
+activates its focused button by keyboard rather than clicking it, and why `page.frame()` races
+`requestAnimationFrame` against a timer instead of trusting it. Anything whose _only_ observable is a
+transitioned geometry is out of reach; anything observable as state, an attribute or a class is not.
+
+**The same stall found a real bug and may be hiding others of that shape.** `ElementFader` used to hang
+its whole state machine on one `requestAnimationFrame`, so on a page that stopped painting a dismissed
+`Modal` stayed mounted with its focus trap. It now races a fallback timer. Every other rAF consumer —
+`ElementObserver.createViewportRectObserver`, and through it `Anchor`, `Tooltip` and `Select`'s
+positioning — has the same dependency and no such fallback, and a stalled page would leave a popup
+anchored to where its field used to be. Whether that deserves the same treatment is undecided: a
+positioner that stops updating when nothing is painting is arguably correct, while a state machine that
+stops advancing is not.
+
+**Six shipped components have no spec at all**: `Button`, `Tabs`, `Tooltip`, `Modal` itself (only its two
+presets are covered), `Surface`, and both animation components. `Tabs` is the notable one, since
+`conventions.md` records its behaviour as verified by markup dump only.
+
+**Nothing checks appearance.** The suite reads the DOM, so the parity rule that forced
+`aria-disabled`-everywhere — that disabled and disabled-but-reachable must look _identical_ — is still
+only ever checked by eye.

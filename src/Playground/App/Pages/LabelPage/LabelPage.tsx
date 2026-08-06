@@ -24,6 +24,7 @@ export const LabelPage = () => {
     const toggleSignal = createSignal(true);
     const columnSignal = createSignal(false);
     const disabledSignal = createSignal(true);
+    const suppressedSignal = createSignal(false);
     const planSignal = createSignal<PlanValue>("free");
 
     const getVariants = createMemo(() => {
@@ -88,6 +89,21 @@ export const LabelPage = () => {
                             )}
                         </For>
                     </RadioGroup>
+                ),
+            },
+            {
+                name: "Suppressed aria-label",
+                readout: () => `checked: ${suppressedSignal[0]()} — the caption wins, and the console says so`,
+                component: () => (
+                    <Label>
+                        <Checkbox
+                            checkedSignal={suppressedSignal}
+                            getAriaLabel={() => "Announced as something else"}
+                            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+                        />
+
+                        <div class={pageStyles.labelCaption}>Subscribe to the newsletter</div>
+                    </Label>
                 ),
             },
             {

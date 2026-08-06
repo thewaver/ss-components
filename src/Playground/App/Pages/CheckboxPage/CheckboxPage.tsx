@@ -19,6 +19,9 @@ export const CheckboxPage = () => {
     const firstChildSignal = createSignal(true);
     const secondChildSignal = createSignal(false);
 
+    const emailSignal = createSignal(true);
+    const smsSignal = createSignal(false);
+
     const getIsAllMixed = createMemo(() => firstChildSignal[0]() !== secondChildSignal[0]());
 
     createEffect(() => {
@@ -103,6 +106,38 @@ export const CheckboxPage = () => {
                             checkedSignal={secondChildSignal}
                             getAriaLabel={() => "Second child"}
                             renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+                        />
+                    </div>
+                ),
+            },
+            {
+                name: "Refused write",
+                readout: () =>
+                    `email: ${emailSignal[0]()} | sms: ${smsSignal[0]()} — whichever is the last one on refuses to go off`,
+                component: () => (
+                    <div class={pageStyles.controlRow}>
+                        <Checkbox
+                            checkedSignal={emailSignal}
+                            getAriaLabel={() => "Email"}
+                            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+                            onChange={(isChecked) => {
+                                if (isChecked || smsSignal[0]()) return;
+
+                                emailSignal[1](true);
+                            }}
+                        />
+
+                        <div class={pageStyles.controlRowLabel}>or</div>
+
+                        <Checkbox
+                            checkedSignal={smsSignal}
+                            getAriaLabel={() => "SMS"}
+                            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+                            onChange={(isChecked) => {
+                                if (isChecked || emailSignal[0]()) return;
+
+                                smsSignal[1](true);
+                            }}
                         />
                     </div>
                 ),

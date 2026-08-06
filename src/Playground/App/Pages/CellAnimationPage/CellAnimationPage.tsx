@@ -11,6 +11,13 @@ import {
 } from "../../../../Lib/Fundamentals/CellAnimation/CellAnimation.utils";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
+import {
+    PageCheckField,
+    PageFileField,
+    PageGroupedSelectField,
+    PageNumberField,
+    PageSelectField,
+} from "../../PageComponents/Field/Field";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
@@ -36,6 +43,18 @@ const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
 ];
 
 const DEFAULT_SOURCE = highlighter.codeToHtml(DefaultExampleRaw, getDefaultHighlighterConfig());
+
+const MIN_CELL_COUNT = 1;
+const MAX_CELL_COUNT = 40;
+const CELL_COUNT_STEP = 1;
+const MIN_SMOOTHNESS = 0.05;
+const MAX_SMOOTHNESS = 1;
+const SMOOTHNESS_STEP = 0.05;
+const MIN_DURATION_MS = 100;
+const MAX_DURATION_MS = 10000;
+const DURATION_STEP_MS = 100;
+const MIN_ITERATION_DELAY_MS = 0;
+const MAX_ITERATION_DELAY_MS = 5000;
 
 const extractOptionGroupWord = (key: string) => key.match(/^[a-z]+/)?.[0] ?? key;
 
@@ -151,11 +170,7 @@ export const CellAnimationPage = () => {
         smoothness: 0.25,
     });
 
-    const handleFile = (e: Event) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-
-        if (!file) return;
-
+    const handleFile = (file: File) => {
         setSrc(URL.createObjectURL(file));
     };
 
@@ -195,151 +210,126 @@ export const CellAnimationPage = () => {
         <div class={styles.root}>
             <PagePropsPanel getScope={() => "global"}>
                 <PageProp getLabel={() => "Image"}>
-                    <input type="file" accept="image/*" onChange={handleFile} />
+                    <PageFileField
+                        getAccept={() => "image/*"}
+                        getPrompt={() => "Pick an image"}
+                        getAriaLabel={() => "Image"}
+                        onPick={handleFile}
+                    />
                 </PageProp>
 
                 <PageProp getLabel={() => "Cell count (cols x rows)"}>
                     <div class={styles.valueList}>
-                        <input
-                            type="number"
-                            min={1}
-                            max={40}
-                            step={1}
-                            value={cellCount.x}
-                            onInput={(e) =>
-                                setCellCount("x", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 1), 40))
-                            }
+                        <PageNumberField
+                            getValue={() => cellCount.x}
+                            getMin={() => MIN_CELL_COUNT}
+                            getMax={() => MAX_CELL_COUNT}
+                            getStep={() => CELL_COUNT_STEP}
+                            getAriaLabel={() => "Columns"}
+                            onInput={(value) => setCellCount("x", value)}
                         />
-                        <input
-                            type="number"
-                            min={1}
-                            max={40}
-                            step={1}
-                            value={cellCount.y}
-                            onInput={(e) =>
-                                setCellCount("y", (prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 1), 40))
-                            }
+                        <PageNumberField
+                            getValue={() => cellCount.y}
+                            getMin={() => MIN_CELL_COUNT}
+                            getMax={() => MAX_CELL_COUNT}
+                            getStep={() => CELL_COUNT_STEP}
+                            getAriaLabel={() => "Rows"}
+                            onInput={(value) => setCellCount("y", value)}
                         />
                     </div>
                 </PageProp>
 
                 <PageProp getLabel={() => "Origin"}>
-                    <select
-                        disabled={!CellAnimationWeights.isOriginAware(getWeightType())}
-                        value={getOriginType()}
-                        onChange={(e) => setOriginType(e.target.value as CellAnimationOrigins.OriginType)}
-                    >
-                        <For each={CellAnimationOrigins.ORIGIN_TYPES}>
-                            {(origin) => <option value={origin}>{origin}</option>}
-                        </For>
-                    </select>
+                    <PageSelectField
+                        getValue={getOriginType}
+                        getValues={() => CellAnimationOrigins.ORIGIN_TYPES}
+                        getIsDisabled={() => !CellAnimationWeights.isOriginAware(getWeightType())}
+                        getAriaLabel={() => "Origin"}
+                        onChange={(origin) => setOriginType(() => origin)}
+                    />
                 </PageProp>
 
                 <PageProp getLabel={() => "Weight"}>
-                    <select
-                        value={getWeightType()}
-                        onChange={(e) => setWeightType(e.target.value as CellAnimationWeights.WeightType)}
-                    >
-                        <For each={GROUPPED_WEIGHTS}>
-                            {([groupKey, groupValue]) => (
-                                <optgroup label={groupKey}>
-                                    <For each={groupValue}>{(weight) => <option value={weight}>{weight}</option>}</For>
-                                </optgroup>
-                            )}
-                        </For>
-                    </select>
+                    <PageGroupedSelectField
+                        getValue={getWeightType}
+                        getGroups={() => GROUPPED_WEIGHTS}
+                        getAriaLabel={() => "Weight"}
+                        onChange={(weight) => setWeightType(() => weight)}
+                    />
                 </PageProp>
 
                 <PageProp getLabel={() => "Unique weights"}>
-                    <input
-                        type="checkbox"
-                        checked={!!weightOpts.shouldMakeUnique}
-                        onChange={() => setWeightOpts("shouldMakeUnique", (prev) => !prev)}
+                    <PageCheckField
+                        getValue={() => !!weightOpts.shouldMakeUnique}
+                        getAriaLabel={() => "Unique weights"}
+                        onChange={(value) => setWeightOpts("shouldMakeUnique", value)}
                     />
                 </PageProp>
 
                 <PageProp getLabel={() => "Normalize weights"}>
-                    <input
-                        type="checkbox"
-                        checked={!!weightOpts.shouldNormalize}
-                        onChange={() => setWeightOpts("shouldNormalize", (prev) => !prev)}
+                    <PageCheckField
+                        getValue={() => !!weightOpts.shouldNormalize}
+                        getAriaLabel={() => "Normalize weights"}
+                        onChange={(value) => setWeightOpts("shouldNormalize", value)}
                     />
                 </PageProp>
 
                 <PageProp getLabel={() => "Show weights"}>
-                    <input
-                        type="checkbox"
-                        checked={getShouldShowWeights()}
-                        onChange={() => setShouldShowWeights((prev) => !prev)}
+                    <PageCheckField
+                        getValue={getShouldShowWeights}
+                        getAriaLabel={() => "Show weights"}
+                        onChange={setShouldShowWeights}
                     />
                 </PageProp>
 
                 <PageProp getLabel={() => "Animation"}>
-                    <select
-                        value={getAnimationType()}
-                        onChange={(e) => setAnimationType(e.target.value as CellAnimationKeyframesConst.AnimationType)}
-                    >
-                        <For each={GROUPPED_ANIMATIONS}>
-                            {([groupKey, groupValue]) => (
-                                <optgroup label={groupKey}>
-                                    <For each={groupValue}>{(anim) => <option value={anim}>{anim}</option>}</For>
-                                </optgroup>
-                            )}
-                        </For>
-                    </select>
+                    <PageGroupedSelectField
+                        getValue={getAnimationType}
+                        getGroups={() => GROUPPED_ANIMATIONS}
+                        getAriaLabel={() => "Animation"}
+                        onChange={(anim) => setAnimationType(() => anim)}
+                    />
                 </PageProp>
 
                 <PageProp getLabel={() => "Direction"}>
-                    <select
-                        value={breakpointOpts.dir}
-                        onChange={(e) => setBreakpointOpts("dir", e.target.value as CellAnimationBreakpoints.Direction)}
-                    >
-                        <For each={CellAnimationBreakpoints.DIRECTIONS}>
-                            {(dir) => <option value={dir}>{dir}</option>}
-                        </For>
-                    </select>
+                    <PageSelectField
+                        getValue={() => breakpointOpts.dir!}
+                        getValues={() => CellAnimationBreakpoints.DIRECTIONS}
+                        getAriaLabel={() => "Direction"}
+                        onChange={(dir) => setBreakpointOpts("dir", dir)}
+                    />
                 </PageProp>
 
                 <PageProp getLabel={() => "Smoothness (0-1)"}>
-                    <input
-                        type="number"
-                        min={0.05}
-                        max={1}
-                        step={0.05}
-                        value={breakpointOpts.smoothness}
-                        onInput={(e) =>
-                            setBreakpointOpts("smoothness", Math.min(Math.max(Number(e.target.value), 0.05), 1))
-                        }
+                    <PageNumberField
+                        getValue={() => breakpointOpts.smoothness!}
+                        getMin={() => MIN_SMOOTHNESS}
+                        getMax={() => MAX_SMOOTHNESS}
+                        getStep={() => SMOOTHNESS_STEP}
+                        getAriaLabel={() => "Smoothness"}
+                        onInput={(value) => setBreakpointOpts("smoothness", value)}
                     />
                 </PageProp>
 
                 <PageProp getLabel={() => "Animation duration (ms)"}>
-                    <input
-                        type="number"
-                        min={100}
-                        max={10000}
-                        step={100}
-                        value={getAnimationDurationMs()}
-                        onInput={(e) =>
-                            setAnimationDurationMs((prev) =>
-                                Math.min(Math.max(Number(e.target.value) ?? prev, 100), 10000),
-                            )
-                        }
+                    <PageNumberField
+                        getValue={getAnimationDurationMs}
+                        getMin={() => MIN_DURATION_MS}
+                        getMax={() => MAX_DURATION_MS}
+                        getStep={() => DURATION_STEP_MS}
+                        getAriaLabel={() => "Animation duration"}
+                        onInput={setAnimationDurationMs}
                     />
                 </PageProp>
 
                 <PageProp getLabel={() => "Iteration delay (ms)"}>
-                    <input
-                        type="number"
-                        min={0}
-                        max={5000}
-                        step={100}
-                        value={getAnimationIterationDelayMs()}
-                        onInput={(e) =>
-                            setAnimationIterationDelayMs((prev) =>
-                                Math.min(Math.max(Number(e.target.value) ?? prev, 0), 5000),
-                            )
-                        }
+                    <PageNumberField
+                        getValue={getAnimationIterationDelayMs}
+                        getMin={() => MIN_ITERATION_DELAY_MS}
+                        getMax={() => MAX_ITERATION_DELAY_MS}
+                        getStep={() => DURATION_STEP_MS}
+                        getAriaLabel={() => "Iteration delay"}
+                        onInput={setAnimationIterationDelayMs}
                     />
                 </PageProp>
             </PagePropsPanel>

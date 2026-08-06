@@ -7,12 +7,18 @@ import { FunctionUtils, Size2d, StringUtils } from "@thewaver/ss-utils";
 import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
 import type { Tab } from "../../Lib/Fundamentals/Tabs/Tabs.types";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
+import { PageTextField } from "./PageComponents/Field/Field";
+import { AlertDialogPage } from "./Pages/AlertDialogPage/AlertDialogPage";
 import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
 import { CellAnimationPage } from "./Pages/CellAnimationPage/CellAnimationPage";
 import { CheckboxPage } from "./Pages/CheckboxPage/CheckboxPage";
+import { ColorInputPage } from "./Pages/ColorInputPage/ColorInputPage";
+import { DrawerPage } from "./Pages/DrawerPage/DrawerPage";
 import { ElementHighlightPage } from "./Pages/ElementHighlightPage/ElementHighlightPage";
+import { FileInputPage } from "./Pages/FileInputPage/FileInputPage";
 import { LabelPage } from "./Pages/LabelPage/LabelPage";
 import { ModalPage } from "./Pages/ModalPage/ModalPage";
+import { ProgressPage } from "./Pages/ProgressPage/ProgressPage";
 import { RadioPage } from "./Pages/RadioPage/RadioPage";
 import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
 import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
@@ -40,6 +46,8 @@ const isComponentConfig = (config: TabConfig): config is ComponentTabConfig => "
 
 const componentToRouteName = (name: string) => `/${StringUtils.camelToKebabCase(name)}`;
 
+const SEARCH_FIELD_WIDTH = 200;
+
 const TAB_CONFIGS: TabConfig[] = [
     {
         name: "Fundamentals",
@@ -50,6 +58,10 @@ const TAB_CONFIGS: TabConfig[] = [
         component: () => null,
     },
     */
+    {
+        name: "AlertDialog",
+        component: () => <AlertDialogPage />,
+    },
     {
         name: "Button",
         component: () => <ButtonPage />,
@@ -63,8 +75,20 @@ const TAB_CONFIGS: TabConfig[] = [
         component: () => <CheckboxPage />,
     },
     {
+        name: "ColorInput",
+        component: () => <ColorInputPage />,
+    },
+    {
+        name: "Drawer",
+        component: () => <DrawerPage />,
+    },
+    {
         name: "ElementHighlight",
         component: () => <ElementHighlightPage />,
+    },
+    {
+        name: "FileInput",
+        component: () => <FileInputPage />,
     },
     /*
     {
@@ -79,6 +103,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "Modal",
         component: () => <ModalPage />,
+    },
+    {
+        name: "Progress",
+        component: () => <ProgressPage />,
     },
     {
         name: "Radio",
@@ -144,7 +172,7 @@ export function AppContent(props: RouteSectionProps) {
             (item) =>
                 !isComponentConfig(item) ||
                 item === selectedConfig ||
-                item.name.toLocaleLowerCase().includes(searchTerm),
+                item.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()),
         );
     });
 
@@ -166,11 +194,12 @@ export function AppContent(props: RouteSectionProps) {
         <div class={styles.appContent}>
             <div class={styles.leftMenu}>
                 <div class={styles.searchContainer}>
-                    <input
-                        type="text"
-                        class={styles.searchInput}
-                        placeholder="Search"
-                        onInput={(e) => setSearchTerm(e.target.value.toLocaleLowerCase())}
+                    <PageTextField
+                        getValue={getSearchTerm}
+                        getWidth={() => SEARCH_FIELD_WIDTH}
+                        getPlaceholder={() => "Search"}
+                        getAriaLabel={() => "Search components"}
+                        onInput={setSearchTerm}
                     />
                 </div>
 

@@ -7,6 +7,13 @@ import { assignInlineVars } from "@vanilla-extract/dynamic";
 import { Shape } from "../../../../Lib/Fundamentals/Shape/Shape";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
+import {
+    PageCheckField,
+    PageColorField,
+    PageGroupedSelectField,
+    PageNumberField,
+    PageSelectField,
+} from "../../PageComponents/Field/Field";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { StressTest } from "../../PageComponents/StressTest/StressTest";
@@ -41,6 +48,40 @@ const splitEntriesIntoGroups = <K, T extends Record<string, K>>(
 
 const GROUPPED_GRADIENTS = splitEntriesIntoGroups(SVGDefsSamples.Gradient.SAMPLE_CONFIGS);
 const GROUPPED_PATTERNS = splitEntriesIntoGroups(SVGDefsSamples.Pattern.SAMPLE_CONFIGS);
+
+const CORNER_FIELD_WIDTH = 80;
+const MIN_EDGE_THICKNESS = 0;
+const MAX_EDGE_THICKNESS = 80;
+const EDGE_THICKNESS_STEP = 1;
+const MIN_JOIN_RADIUS = 0;
+const MAX_JOIN_RADIUS = 160;
+const JOIN_RADIUS_STEP = 5;
+const MIN_LAME_EXPONENT = -5;
+const MAX_LAME_EXPONENT = 5;
+const LAME_EXPONENT_STEP = 0.5;
+const MIN_CELL_SIZE = 10;
+const MAX_CELL_SIZE = 160;
+const CELL_SIZE_STEP = 10;
+const MIN_BLUR_WIDTH = 0;
+const MAX_BLUR_WIDTH = 40;
+const BLUR_WIDTH_STEP = 1;
+const MIN_DURATION_MS = 1000;
+const MAX_DURATION_MS = 5000;
+const DURATION_STEP_MS = 100;
+
+/**
+ * With individual corners off, every corner takes the value that was just typed — which is what makes
+ * the six fields read as one control rather than six that happen to agree.
+ */
+const spreadCornerValue = (previous: number[], index: number, value: number, hasIndividualCorners: boolean) => {
+    if (!hasIndividualCorners) return previous.map(() => value);
+
+    const next = [...previous];
+
+    next[index] = value;
+
+    return next;
+};
 
 const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
     {
@@ -224,26 +265,26 @@ export const ShapePage = () => {
         <div class={styles.root} style={assignInlineVars({ [styles.backgroundColor]: colors.background })}>
             <PagePropsPanel getScope={() => "global"}>
                 <PageProp getLabel={() => "Individual corner settings"}>
-                    <input
-                        type="checkbox"
-                        checked={getHasIndividualCorners()}
-                        onChange={() => setHasIndividualCorners((prev) => !prev)}
+                    <PageCheckField
+                        getValue={getHasIndividualCorners}
+                        getAriaLabel={() => "Individual corner settings"}
+                        onChange={setHasIndividualCorners}
                     />
                 </PageProp>
 
                 <PageProp getLabel={() => "Clip children"}>
-                    <input
-                        type="checkbox"
-                        checked={getShouldClipChildren()}
-                        onChange={() => setShouldClipChildren((prev) => !prev)}
+                    <PageCheckField
+                        getValue={getShouldClipChildren}
+                        getAriaLabel={() => "Clip children"}
+                        onChange={setShouldClipChildren}
                     />
                 </PageProp>
 
                 <PageProp getLabel={() => "Pad children"}>
-                    <input
-                        type="checkbox"
-                        checked={getShouldPadChildren()}
-                        onChange={() => setShouldPadChildren((prev) => !prev)}
+                    <PageCheckField
+                        getValue={getShouldPadChildren}
+                        getAriaLabel={() => "Pad children"}
+                        onChange={setShouldPadChildren}
                     />
                 </PageProp>
 
@@ -251,24 +292,17 @@ export const ShapePage = () => {
                     <div class={styles.valueList} style={{ "grid-template-columns": getTemplateColumns() }}>
                         <For each={getPointIterator()}>
                             {(_, getIndex) => (
-                                <input
-                                    type="number"
-                                    min={0}
-                                    max={80}
-                                    step={1}
-                                    value={getEdgeThicknesses()[getIndex()]}
-                                    onInput={(e) =>
-                                        setEdgeThicknesses((prev) => {
-                                            const value = Math.min(Math.max(Number(e.target.value) ?? prev, 0), 80);
-
-                                            if (!getHasIndividualCorners())
-                                                return [value, value, value, value, value, value];
-
-                                            const next = [...prev];
-                                            next[getIndex()] = value;
-
-                                            return next;
-                                        })
+                                <PageNumberField
+                                    getValue={() => getEdgeThicknesses()[getIndex()]}
+                                    getMin={() => MIN_EDGE_THICKNESS}
+                                    getMax={() => MAX_EDGE_THICKNESS}
+                                    getStep={() => EDGE_THICKNESS_STEP}
+                                    getWidth={() => CORNER_FIELD_WIDTH}
+                                    getAriaLabel={() => `Edge thickness ${getIndex() + 1}`}
+                                    onInput={(value) =>
+                                        setEdgeThicknesses((prev) =>
+                                            spreadCornerValue(prev, getIndex(), value, getHasIndividualCorners()),
+                                        )
                                     }
                                 />
                             )}
@@ -280,24 +314,17 @@ export const ShapePage = () => {
                     <div class={styles.valueList} style={{ "grid-template-columns": getTemplateColumns() }}>
                         <For each={getPointIterator()}>
                             {(_, getIndex) => (
-                                <input
-                                    type="number"
-                                    min={0}
-                                    max={160}
-                                    step={5}
-                                    value={getJoinRadii()[getIndex()]}
-                                    onInput={(e) =>
-                                        setJoinRadii((prev) => {
-                                            const value = Math.min(Math.max(Number(e.target.value) ?? prev, 0), 160);
-
-                                            if (!getHasIndividualCorners())
-                                                return [value, value, value, value, value, value];
-
-                                            const next = [...prev];
-                                            next[getIndex()] = value;
-
-                                            return next;
-                                        })
+                                <PageNumberField
+                                    getValue={() => getJoinRadii()[getIndex()]}
+                                    getMin={() => MIN_JOIN_RADIUS}
+                                    getMax={() => MAX_JOIN_RADIUS}
+                                    getStep={() => JOIN_RADIUS_STEP}
+                                    getWidth={() => CORNER_FIELD_WIDTH}
+                                    getAriaLabel={() => `Joint radius ${getIndex() + 1}`}
+                                    onInput={(value) =>
+                                        setJoinRadii((prev) =>
+                                            spreadCornerValue(prev, getIndex(), value, getHasIndividualCorners()),
+                                        )
                                     }
                                 />
                             )}
@@ -309,24 +336,17 @@ export const ShapePage = () => {
                     <div class={styles.valueList} style={{ "grid-template-columns": getTemplateColumns() }}>
                         <For each={getPointIterator()}>
                             {(_, getIndex) => (
-                                <input
-                                    type="number"
-                                    min={-5}
-                                    max={5}
-                                    step={0.5}
-                                    value={getLameExponents()[getIndex()]}
-                                    onInput={(e) =>
-                                        setLameExponents((prev) => {
-                                            const value = Math.min(Math.max(Number(e.target.value) ?? prev, -5), 5);
-
-                                            if (!getHasIndividualCorners())
-                                                return [value, value, value, value, value, value];
-
-                                            const next = [...prev];
-                                            next[getIndex()] = value;
-
-                                            return next;
-                                        })
+                                <PageNumberField
+                                    getValue={() => getLameExponents()[getIndex()]}
+                                    getMin={() => MIN_LAME_EXPONENT}
+                                    getMax={() => MAX_LAME_EXPONENT}
+                                    getStep={() => LAME_EXPONENT_STEP}
+                                    getWidth={() => CORNER_FIELD_WIDTH}
+                                    getAriaLabel={() => `Lamé exponent ${getIndex() + 1}`}
+                                    onInput={(value) =>
+                                        setLameExponents((prev) =>
+                                            spreadCornerValue(prev, getIndex(), value, getHasIndividualCorners()),
+                                        )
                                     }
                                 />
                             )}
@@ -335,75 +355,67 @@ export const ShapePage = () => {
                 </PageProp>
 
                 <PageProp getLabel={() => "Shape"}>
-                    <select
-                        value={getShapeKind()}
-                        onChange={(e) => setShapeKind(e.target.value as ShapeConst.DefaultShape)}
-                    >
-                        <For each={ShapeConst.DEFAULT_SHAPES}>
-                            {(config) => <option value={config}>{config}</option>}
-                        </For>
-                    </select>
+                    <PageSelectField
+                        getValue={getShapeKind}
+                        getValues={() => ShapeConst.DEFAULT_SHAPES}
+                        getAriaLabel={() => "Shape"}
+                        onChange={(shape) => setShapeKind(() => shape)}
+                    />
                 </PageProp>
 
                 <PageProp getLabel={() => "Stroke Pattern"}>
-                    <select
-                        value={getStrokeConfigKey()}
-                        onChange={(e) =>
-                            setStrokeConfigKey(e.target.value as keyof typeof SVGDefsSamples.Gradient.SAMPLE_CONFIGS)
+                    <PageGroupedSelectField
+                        getValue={getStrokeConfigKey}
+                        getGroups={() =>
+                            Object.entries(GROUPPED_GRADIENTS).map(
+                                ([groupKey, groupValue]) =>
+                                    [groupKey, Object.keys(groupValue)] as [
+                                        string,
+                                        (keyof typeof SVGDefsSamples.Gradient.SAMPLE_CONFIGS)[],
+                                    ],
+                            )
                         }
-                    >
-                        <For each={Object.entries(GROUPPED_GRADIENTS)}>
-                            {([groupKey, groupValue]) => (
-                                <optgroup label={groupKey}>
-                                    <For each={Object.keys(groupValue)}>
-                                        {(config) => <option value={config}>{config}</option>}
-                                    </For>
-                                </optgroup>
-                            )}
-                        </For>
-                    </select>
+                        getAriaLabel={() => "Stroke pattern"}
+                        onChange={(config) => setStrokeConfigKey(() => config)}
+                    />
                 </PageProp>
 
                 <PageProp getLabel={() => "Fill Pattern"}>
-                    <select
-                        value={getFillConfigKey()}
-                        onChange={(e) =>
-                            setFillConfigKey(e.target.value as keyof typeof SVGDefsSamples.Pattern.SAMPLE_CONFIGS)
+                    <PageGroupedSelectField
+                        getValue={getFillConfigKey}
+                        getGroups={() =>
+                            Object.entries(GROUPPED_PATTERNS).map(
+                                ([groupKey, groupValue]) =>
+                                    [groupKey, Object.keys(groupValue)] as [
+                                        string,
+                                        (keyof typeof SVGDefsSamples.Pattern.SAMPLE_CONFIGS)[],
+                                    ],
+                            )
                         }
-                    >
-                        <For each={Object.entries(GROUPPED_PATTERNS)}>
-                            {([groupKey, groupValue]) => (
-                                <optgroup label={groupKey}>
-                                    <For each={Object.keys(groupValue)}>
-                                        {(config) => <option value={config}>{config}</option>}
-                                    </For>
-                                </optgroup>
-                            )}
-                        </For>
-                    </select>
+                        getAriaLabel={() => "Fill pattern"}
+                        onChange={(config) => setFillConfigKey(() => config)}
+                    />
                 </PageProp>
 
                 <PageProp getLabel={() => "Fill Cell Size (px)"}>
-                    <input
-                        type="number"
-                        min={10}
-                        max={160}
-                        step={10}
-                        value={getCellSize()}
-                        onInput={(e) =>
-                            setCellSize((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 10), 160))
-                        }
+                    <PageNumberField
+                        getValue={getCellSize}
+                        getMin={() => MIN_CELL_SIZE}
+                        getMax={() => MAX_CELL_SIZE}
+                        getStep={() => CELL_SIZE_STEP}
+                        getAriaLabel={() => "Fill cell size"}
+                        onInput={setCellSize}
                     />
                 </PageProp>
 
                 <PageProp getLabel={() => "Colors"}>
                     <div class={styles.colorList}>
-                        <For each={Object.entries(colors)}>
-                            {([key, value]) => (
-                                <input
-                                    type="color"
-                                    value={value}
-                                    onChange={(e) => setColors(key as keyof typeof colors, e.target.value)}
+                        <For each={Object.keys(colors)}>
+                            {(key) => (
+                                <PageColorField
+                                    getValue={() => colors[key as keyof typeof colors]}
+                                    getAriaLabel={() => key}
+                                    onInput={(value) => setColors(key as keyof typeof colors, value)}
                                 />
                             )}
                         </For>
@@ -411,46 +423,38 @@ export const ShapePage = () => {
                 </PageProp>
 
                 <PageProp getLabel={() => "Blur (px)"}>
-                    <input
-                        type="number"
-                        min={0}
-                        max={40}
-                        step={1}
-                        value={getBlurWidth()}
-                        onInput={(e) =>
-                            setBlurWidth((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 0), 40))
-                        }
+                    <PageNumberField
+                        getValue={getBlurWidth}
+                        getMin={() => MIN_BLUR_WIDTH}
+                        getMax={() => MAX_BLUR_WIDTH}
+                        getStep={() => BLUR_WIDTH_STEP}
+                        getAriaLabel={() => "Blur width"}
+                        onInput={setBlurWidth}
                     />
                 </PageProp>
 
                 <PageProp getLabel={() => "Animation duration (ms)"}>
-                    <input
-                        type="number"
-                        min={1000}
-                        max={5000}
-                        step={100}
-                        value={getAnimationDurationMs()}
-                        onInput={(e) =>
-                            setAnimationDurationMs((prev) =>
-                                Math.min(Math.max(Number(e.target.value) ?? prev, 1000), 5000),
-                            )
-                        }
+                    <PageNumberField
+                        getValue={getAnimationDurationMs}
+                        getMin={() => MIN_DURATION_MS}
+                        getMax={() => MAX_DURATION_MS}
+                        getStep={() => DURATION_STEP_MS}
+                        getAriaLabel={() => "Animation duration"}
+                        onInput={setAnimationDurationMs}
                     />
                 </PageProp>
 
                 <PageProp getLabel={() => "Iteration Pattern"}>
-                    <select
-                        value={getIterationConfigKey()}
-                        onChange={(e) =>
-                            setIterationConfigKey(
-                                e.target.value as keyof typeof SVGDefsSamples.Iteration.SAMPLE_CONFIGS,
-                            )
+                    <PageSelectField
+                        getValue={getIterationConfigKey}
+                        getValues={() =>
+                            Object.keys(
+                                SVGDefsSamples.Iteration.SAMPLE_CONFIGS,
+                            ) as (keyof typeof SVGDefsSamples.Iteration.SAMPLE_CONFIGS)[]
                         }
-                    >
-                        <For each={Object.keys(SVGDefsSamples.Iteration.SAMPLE_CONFIGS)}>
-                            {(config) => <option value={config}>{config}</option>}
-                        </For>
-                    </select>
+                        getAriaLabel={() => "Iteration pattern"}
+                        onChange={(config) => setIterationConfigKey(() => config)}
+                    />
                 </PageProp>
             </PagePropsPanel>
 

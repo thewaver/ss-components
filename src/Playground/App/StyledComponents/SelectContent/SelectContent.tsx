@@ -18,6 +18,7 @@ export const computePageSelectTextStyle = (getFlags: () => InteractionFlags<Sele
 export const PageSelectContent = (props: ParentProps<SelectContentProps>) => (
     <div
         class={styles.selectContent}
+        style={{ width: props.getWidth ? `${props.getWidth()}px` : undefined }}
         classList={{
             [styles.isEmpty]: props.getFlags().isEmpty,
             [styles.isFiltering]: props.getFlags().isFiltering,

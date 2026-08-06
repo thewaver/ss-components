@@ -1,4 +1,4 @@
-import { createEffect, onCleanup } from "solid-js";
+import { createEffect, onCleanup, untrack } from "solid-js";
 
 const FOCUSABLE_SELECTOR = [
     "a[href]",
@@ -79,7 +79,11 @@ export namespace FocusUtils {
         }
     };
 
-    export const autoFocus = (getRef: () => HTMLElement | undefined, getIsVisible: () => boolean) =>
+    export const autoFocus = (
+        getRef: () => HTMLElement | undefined,
+        getIsVisible: () => boolean,
+        opts?: { getInitialRef?: () => HTMLElement | undefined },
+    ) =>
         createEffect(() => {
             const ref = getRef();
             const isVisible = getIsVisible();
@@ -87,8 +91,9 @@ export namespace FocusUtils {
             if (!ref || !isVisible) return;
 
             const previouslyFocused = (document.activeElement as HTMLElement | null) ?? undefined;
+            const initialRef = untrack(() => opts?.getInitialRef?.());
 
-            getFirstFocusableChild(ref)?.focus();
+            (initialRef ?? getFirstFocusableChild(ref))?.focus();
 
             onCleanup(() => {
                 if (!previouslyFocused?.isConnected) return;

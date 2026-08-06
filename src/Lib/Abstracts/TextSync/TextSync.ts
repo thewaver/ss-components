@@ -48,9 +48,9 @@ export namespace TextSync {
                 setIsComposing(true);
             },
             handleCompositionEnd: (element: HTMLInputElement) => {
-                setIsComposing(false);
+                opts.onInput(element.value);
 
-                reportValue(element);
+                setIsComposing(false);
             },
         };
     };

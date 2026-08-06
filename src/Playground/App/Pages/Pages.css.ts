@@ -69,3 +69,11 @@ export const overlayOn = style({
 export const overlayOff = style({
     backdropFilter: "none",
 });
+
+const overlayScrim = style({
+    backgroundColor: "rgba(from var(--clr-bkg-primary) r g b / 60%)",
+});
+
+export const overlayScrimOn = style([overlayScrim, { opacity: 1 }]);
+
+export const overlayScrimOff = style([overlayScrim, { opacity: 0 }]);

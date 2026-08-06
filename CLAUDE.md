@@ -5,6 +5,8 @@ exercises it. Vanilla-extract for styles, Vite for both builds, no test runner.
 
 - `src/Lib` — the published library. Everything under here ships.
 - `src/Playground` — the demo app. Not published; it is also where every consumer-side painter lives.
+- `verify/` — the interaction suite. Not published, not type-checked, imports from neither tree: it drives
+  the built Playground over the DevTools Protocol.
 
 ## Read these first
 
@@ -74,14 +76,30 @@ individually and stays sorted — it is not a barrel.
 npm run build:lib          # vite lib build + tsup .d.ts emit
 npm run build:playground
 npm start                  # dev server
+npm run verify:dom         # build the playground, then drive it in headless Chrome
 npm run format             # prettier, 4 spaces, 120 cols, import sorting
 npx tsc --noEmit -p tsconfig.json
 ```
 
-### Verifying rendered DOM without a test runner
+### Verifying behaviour: `npm run verify:dom`
 
-There is no test environment (`review.md` #2). Anything expressed as markup — roles, ARIA, tab
-order, painter classes, inline styles from flags — can still be checked by dumping a built page:
+**Run this after touching any control.** It builds the Playground, starts `vite preview`, drives real
+clicks and keystrokes in headless Chrome, and asserts on the result. One spec file per control under
+`verify/specs/`; `npm run verify:dom select textinput` filters by name, `-- --skip-build` reuses the last
+build. Add a spec whenever you add a control — `verify/main.js` lists them.
+
+Every trap below is already handled inside `verify/driver.js`, so a new spec inherits the fix rather than
+rediscovering it. What the suite still cannot see is `review.md` #11 — chiefly anything whose only
+observable is a finished CSS transition, because headless Chrome stops producing frames once a page
+settles.
+
+Assertions target `data-variant="<name>"` on each Playground variant and `[data-readout]` inside it, so a
+spec reads state the way the page displays it rather than reaching into Solid.
+
+### Verifying rendered DOM without a browser driver
+
+Anything expressed as markup — roles, ARIA, tab order, painter classes, inline styles from flags — is
+cheaper to check by dumping a built page than by writing a spec:
 
 ```bash
 npm run build:playground
@@ -96,32 +114,30 @@ the dump contains something you expect before concluding anything from what it l
 
 Edge renders every route fully. What this cannot do is click or type.
 
-### Verifying interaction — clicks and keystrokes, still no dependency
+### The traps `verify/driver.js` closes for you
 
-`--dump-dom` cannot click. Driving the same headless browser over the DevTools Protocol can, with
-nothing added to `package.json`:
-
-```bash
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-    --headless=new --disable-gpu --remote-debugging-port=9222 --window-size=1600,1200 \
-    --user-data-dir=./chrome-profile about:blank &
-```
-
-From Node 22, `fetch` `http://127.0.0.1:9222/json/list`, connect to the page target's
-`webSocketDebuggerUrl` with the built-in `WebSocket`, then use `Input.dispatchMouseEvent`,
-`Input.dispatchKeyEvent` and `Runtime.evaluate`.
-
-Three traps, each of which reads as a bug in the component rather than in the harness:
+Recorded because each reads as a bug in the component rather than in the harness, and because a
+hand-rolled one-off script will hit all of them again:
 
 - **Non-printable keys need `rawKeyDown`**, not `keyDown` — the latter also generates a `char` event
   and double-fires handlers. **Printable keys need `keyDown` _with_ a `text` field**, or nothing is
-  typed at all.
-- **`scrollIntoView` before every click.** Once a page grows past the window, `getBoundingClientRect`
-  returns an off-screen point and the dispatched click silently lands on something else, or nothing.
-- **Wait out any transition before asserting on it.** Reading a fading element's `opacity` right after
-  a keystroke returns a mid-flight value like `0.055`.
-
-`review.md` #2 covers what is missing here, which is that no such script is committed.
+  typed at all. `page.press` picks from one table; `Enter` needs both.
+- **`scrollIntoView` before every click, then wait a frame before measuring.** Once a page grows past the
+  window, `getBoundingClientRect` returns an off-screen point and the dispatched click silently lands on
+  something else, or nothing. `page.locate` also polls for a non-zero box, since an element mid-`scale`
+  measures as nothing.
+- **Wait out any transition before asserting on it** — reading a fading element's `opacity` right after a
+  keystroke returns a mid-flight value like `0.055` — but prefer waiting on the **condition**
+  (`page.waitUntilGone`) over `page.settle(ms)`, because a slow page takes arbitrarily longer than the
+  transition duration.
+- **`requestAnimationFrame` is not reliable in headless.** Frames stop once a page settles while the main
+  thread stays responsive, so an rAF await hangs while `Runtime.evaluate` keeps answering. `page.frame()`
+  races a timer against it.
+- **A preview server already on the port is refused, not reused.** `--strictPort` makes the new `vite
+preview` exit, and a readiness probe would then find the old one and run every spec against a stale
+  build — which looks exactly like a pile of component regressions.
+- **`vite preview` binds IPv6.** The base URL is discovered by probing `[::1]` and `127.0.0.1`; a refused
+  connection dumps Chromium's error page, a plausible-looking 300 KB of HTML containing none of your markup.
 
 ## Where to start
 

@@ -15,6 +15,7 @@ export const computePageTextInputTextStyle = (getFlags: () => InteractionFlags):
 export const PageTextInputContent = (props: TextInputContentProps) => (
     <div
         class={styles.textInputContent}
+        style={{ width: props.getWidth ? `${props.getWidth()}px` : undefined }}
         classList={{
             [styles.isHovered]: props.getFlags().isHovered,
             [styles.isReadOnly]: props.getFlags().isReadOnly,

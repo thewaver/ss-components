@@ -4,4 +4,5 @@ import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
 export type TextInputContentProps = AccessorProps<{
     flags: InteractionFlags<TextInputFlags>;
+    width?: number;
 }>;

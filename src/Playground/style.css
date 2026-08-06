@@ -69,15 +69,14 @@
     filter: brightness(120%);
 }
 
-label {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-}
-
-input:not([type="range"]),
-select,
+/*
+ * Element selectors here only reach the app's own remaining chrome, which is a single <textarea>.
+ * They used to cover input and select too, and at specificity 0,1,1 they outranked every class a
+ * library control could carry — so each control had to escalate to !important just to be the blank
+ * slate its painter draws over. Every one of those call sites is now a library control, so the rules
+ * are scoped to what is genuinely still raw. Anything added here that matches an element the library
+ * owns puts that escalation straight back.
+ */
 textarea {
     color: var(--clr-text);
     background-color: black;
@@ -89,62 +88,14 @@ textarea {
     line-height: 1.25;
 }
 
-input[type="checkbox"],
-input[type="radio"] {
-    padding: 0;
-    margin-inline: 0;
-    margin-block: 10px;
-    width: 20px;
-    height: 20px;
-}
-
-input[type="color"] {
-    padding: 0;
-    margin: 0;
-    width: 40px;
-    height: 40px;
-}
-
-input:not([type="range"])::placeholder,
-select::placeholder,
 textarea::placeholder {
     color: var(--clr-text);
     opacity: 0.5;
 }
 
-input:hover:not(:disabled, [aria-disabled="true"]),
-select:hover:not(:disabled, [aria-disabled="true"]),
-textarea:hover:not(:disabled, [aria-disabled="true"]),
-label:hover:not(:disabled) {
+textarea:hover:not(:disabled, [aria-disabled="true"]) {
     cursor: pointer;
-}
-
-input:hover:not(:disabled, [aria-disabled="true"]),
-select:hover:not(:disabled, [aria-disabled="true"]),
-textarea:hover:not(:disabled, [aria-disabled="true"]),
-button:hover:not(:disabled, [aria-disabled="true"]) {
     filter: brightness(120%);
-}
-
-input[type="range"],
-input[type="select"] {
-    width: 160px;
-}
-
-input[type="number"] {
-    width: 80px;
-}
-
-optgroup {
-    color: rgb(from var(--clr-text-secondary) r g b / 50%);
-    font-size: 0.75rem;
-    text-transform: uppercase;
-}
-
-option {
-    color: var(--clr-text);
-    font-size: 1rem;
-    text-transform: initial;
 }
 
 a,

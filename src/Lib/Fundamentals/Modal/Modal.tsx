@@ -6,11 +6,13 @@ import { CSSUtils, StringUtils } from "@thewaver/ss-utils";
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { FocusUtils } from "../../Abstracts/Focus/Focus.utils";
 import { useViewportContext } from "../Viewport/Viewport.context";
-import type { ModalProps } from "./Modal.types";
+import type { ModalAlignment, ModalProps, ModalRole } from "./Modal.types";
 
 import * as styles from "./Modal.css";
 
 const DEFAULT_MODAL_TRANSITION_DURATION_MS = 200;
+const DEFAULT_MODAL_ROLE: ModalRole = "dialog";
+const DEFAULT_MODAL_ALIGNMENT: ModalAlignment = "center";
 
 export const Modal = (props: ModalProps) => {
     const viewportContext = useViewportContext();
@@ -21,6 +23,8 @@ export const Modal = (props: ModalProps) => {
         () => props.getTransitionDurationMs?.() ?? DEFAULT_MODAL_TRANSITION_DURATION_MS,
     );
 
+    const getAlignment = createMemo(() => props.getAlignment?.() ?? DEFAULT_MODAL_ALIGNMENT);
+
     const getMargins = createMemo(() => {
         return props.getMargins?.() ?? CSSUtils.spreadMargin(0);
     });
@@ -30,10 +34,16 @@ export const Modal = (props: ModalProps) => {
         { getTransitionDurationMs, onShow: props.onShow, onHide: props.onHide },
     );
 
-    FocusUtils.autoFocus(getContainerRef, getIsVisible);
+    FocusUtils.autoFocus(getContainerRef, getIsVisible, { getInitialRef: props.getInitialFocusRef });
 
     const handleDismiss = () => {
         props.visibilitySignal[1](false);
+    };
+
+    const handleOverlayClick = () => {
+        if (props.getIsDismissableOnOverlayClick?.() === false) return;
+
+        handleDismiss();
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -68,8 +78,11 @@ export const Modal = (props: ModalProps) => {
                     el.style.display = "contents";
                 }}
             >
-                <div class={styles.modalRoot} onKeyDown={(e) => FocusUtils.focusTrapKeyDown(e, getContainerRef())}>
-                    <div class={styles.modalOverlay} onClick={handleDismiss}>
+                <div
+                    class={[styles.modalRoot, styles.modalAlignmentVariants[getAlignment()]].join(" ")}
+                    onKeyDown={(e) => FocusUtils.focusTrapKeyDown(e, getContainerRef())}
+                >
+                    <div class={styles.modalOverlay} onClick={handleOverlayClick}>
                         {props.renderOverlay(getTransitionTarget, getTransitionDurationMs)}
                     </div>
                     <div
@@ -80,10 +93,11 @@ export const Modal = (props: ModalProps) => {
                             "max-width": `calc(100% - ${getMargins().marginLeft + getMargins().marginRight}px)`,
                             "max-height": `calc(100% - ${getMargins().marginTop + getMargins().marginBottom}px)`,
                         }}
-                        role="dialog"
+                        role={props.getRole?.() ?? DEFAULT_MODAL_ROLE}
                         aria-modal="true"
                         aria-label={props.getAriaLabel?.()}
                         aria-labelledby={props.getAriaLabelledBy?.()}
+                        aria-describedby={props.getAriaDescribedBy?.()}
                     >
                         {props.renderContent(getTransitionTarget, getTransitionDurationMs)}
                     </div>

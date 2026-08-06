@@ -1,8 +1,9 @@
-import { For, createMemo, createSignal } from "solid-js";
+import { createMemo, createSignal } from "solid-js";
 
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
+import { PageNumberField, PageSelectField } from "../../PageComponents/Field/Field";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
@@ -24,6 +25,9 @@ const TEXT_EFFECT_MAP: Record<(typeof TEXT_EFFECTS)[number], string> = {
 };
 
 const STARTING_WIDTH = 240;
+const MIN_CONTAINER_WIDTH = 40;
+const MAX_CONTAINER_WIDTH = 560;
+const CONTAINER_WIDTH_STEP = 4;
 const COMPLEX_SOURCE = highlighter.codeToHtml(ComplexExampleRaw, getDefaultHighlighterConfig());
 const CUSTOM_SOURCE = highlighter.codeToHtml(CustomExampleRaw, getDefaultHighlighterConfig());
 
@@ -87,25 +91,23 @@ export const TypewriterPage = () => {
         <div class={styles.root}>
             <PagePropsPanel getScope={() => "global"}>
                 <PageProp getLabel={() => "Container width"}>
-                    <input
-                        type="number"
-                        min={40}
-                        max={560}
-                        step={4}
-                        value={getTextContainerWidth()}
-                        onInput={(e) =>
-                            setTextContainerWidth((prev) => Math.min(Math.max(Number(e.target.value) ?? prev, 40), 560))
-                        }
+                    <PageNumberField
+                        getValue={getTextContainerWidth}
+                        getMin={() => MIN_CONTAINER_WIDTH}
+                        getMax={() => MAX_CONTAINER_WIDTH}
+                        getStep={() => CONTAINER_WIDTH_STEP}
+                        getAriaLabel={() => "Container width"}
+                        onInput={setTextContainerWidth}
                     />
                 </PageProp>
 
                 <PageProp getLabel={() => "Effect"}>
-                    <select
-                        value={getTextEffect()}
-                        onChange={(e) => setTextEffect(e.target.value as (typeof TEXT_EFFECTS)[number])}
-                    >
-                        <For each={TEXT_EFFECTS}>{(effect) => <option value={effect}>{effect}</option>}</For>
-                    </select>
+                    <PageSelectField
+                        getValue={getTextEffect}
+                        getValues={() => TEXT_EFFECTS}
+                        getAriaLabel={() => "Effect"}
+                        onChange={(effect) => setTextEffect(() => effect)}
+                    />
                 </PageProp>
             </PagePropsPanel>
 

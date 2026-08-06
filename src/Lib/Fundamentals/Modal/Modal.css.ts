@@ -1,11 +1,32 @@
-import { style } from "@vanilla-extract/css";
+import { globalStyle, style, styleVariants } from "@vanilla-extract/css";
+
+export const modalAlignmentVariants = styleVariants({
+    center: {
+        justifyItems: "center",
+        alignItems: "center",
+    },
+    left: {
+        justifyItems: "start",
+        alignItems: "stretch",
+    },
+    right: {
+        justifyItems: "end",
+        alignItems: "stretch",
+    },
+    top: {
+        justifyItems: "stretch",
+        alignItems: "start",
+    },
+    bottom: {
+        justifyItems: "stretch",
+        alignItems: "end",
+    },
+});
 
 export const modalRoot = style({
     position: "relative",
 
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
+    display: "grid",
     width: "100%",
     height: "100%",
 });
@@ -21,5 +42,12 @@ export const modalOverlay = style({
 
 export const modalContainer = style({
     zIndex: 100,
+
+    display: "flex",
+    flexDirection: "column",
     pointerEvents: "all",
+});
+
+globalStyle(`${modalContainer} > *`, {
+    flexGrow: 1,
 });

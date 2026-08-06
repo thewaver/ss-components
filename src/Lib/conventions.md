@@ -20,6 +20,19 @@ Declare generic props by hand alongside the accessorized block: `RadioProps<T>` 
 `AccessorProps<{...}>`. The failure mode is confusing enough — the type compiles, the prop just
 vanishes — to be worth checking for whenever a generic component is added.
 
+**It also cannot express an optional prop whose own value may be `undefined`, and a ref is exactly
+that.** `AccessorizedPart` maps an optional key to `Accessor<Exclude<T[K], undefined>> | undefined`, so
+the `undefined` is stripped from the _return_ type and only the prop stays optional. Declaring
+`initialFocusRef?: HTMLElement` therefore yields `getInitialFocusRef?: Accessor<HTMLElement>`, which a
+consumer's `createSignal<HTMLElement>()` cannot satisfy — an element ref does not exist until mount, so
+its accessor is always `Accessor<HTMLElement | undefined>`. The existing refs sidestep it by being
+**required**: `Tooltip` declares `anchorRef: HTMLElement | undefined`, which is not optional, so the union
+survives. An _optional_ ref has to be declared by hand alongside the accessorized block, which is what
+`ModalProps` does with `getInitialFocusRef?: Accessor<HTMLElement | undefined>` and what
+`InteractionWrapperProps` already did with `getTooltipDefs?: Accessor<InteractionTooltipDefs | undefined>`
+for the same reason. Two holes, one rule: if the prop mentions a type parameter or its value can itself be
+`undefined`, write the accessor out.
+
 ### Prop prefixes
 
 | Kind                                          | Prefix                        | Examples                                                                                                                                                                                                          |
@@ -924,6 +937,17 @@ every keystroke rather than on a rejected toggle.
 
 Both are read inside the render effect, so ending a composition re-syncs on its own.
 
+_Corrected after the fact: that re-sync is real, and in the original ordering it destroyed the commit._
+`handleCompositionEnd` cleared the composing flag **before** reporting. Clearing it re-runs the render
+effect synchronously, `syncElement` then finds `element.value` holding the text the IME just committed and
+`getValue()` holding the pre-composition state, and writes the stale state over it — after which
+`reportValue` reads the clobbered element and reports the old string. Composing `にほ` into `Ada` and
+committing `日本` left both the DOM and the state at `Ada`. The report now runs first and the flag flips
+after, so the re-sync happens with state the owner has already accepted and finds nothing to write; a
+refusing or transforming owner still gets its correction, from the same effect, one step later. This was
+found by the first run of the interaction suite (see _"Verifying interaction"_ below), which is the entire
+argument for having one — the ordering reads as correct, and nothing about it is visible in markup.
+
 **Transforms compose through `onInput`, not through a derived signal.** `TextInput` writes
 `valueSignal` with the raw value and then calls `onInput`, exactly as `Checkbox` writes
 `checkedSignal` before reporting, so a consumer that wants upper-casing or digits-only writes the
@@ -1381,7 +1405,7 @@ npm run build:playground && npm run preview
 
 That is how the roving tab order, per-group `name` isolation, `role="radiogroup"`, the dropped
 `role="switch"` on a mixed toggle and the mixed painter classes were confirmed. It cannot click or
-type, so behaviour is a different problem — see `review.md`.
+type; that half is `verify/` — see _"Verifying interaction"_ below.
 
 _Corrected **2026-08-06**: this previously said Edge's headless `--dump-dom` on Windows returns the
 shell with an empty route outlet, and that a failure to see page content there is the browser rather
@@ -1398,6 +1422,226 @@ anything into what it does not contain.
 On Windows the browser is at
 `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`, and the preview server has to
 outlive the shell that started it.
+
+### Verifying interaction: `verify/` at the repo root
+
+Settled **2026-08-06**, closing the oldest item on the review list. The invocation was already recorded
+above; what was missing was anything committed, so nothing was repeatable.
+
+**It lives at the repo root, beside `src`, and that is the whole of the placement argument.** `src/Lib`
+would ship it — `package.json` publishes only `dist`, but the folder is the library and the library is
+what it tests. `src/Playground` would bundle it into the demo. It is neither: it drives the _built_
+playground over a socket and imports nothing from either tree, so it sits outside both. `npm run
+verify:dom` is the entry point, `verify:dom [name…]` filters by spec, and `--skip-build` reuses
+`playground-dist`.
+
+**Plain ESM JavaScript, no dependency, no build step.** `tsconfig.json` includes only `src`, so nothing
+here is type-checked, and that is the accepted cost of the alternative being a second tsconfig plus a
+compile step in front of a test run. `node verify/main.js` is the whole toolchain: Node's own `fetch` and
+`WebSocket` reach the DevTools Protocol, and `spawn` starts the preview server and the browser.
+
+**Specs are stringified and run inside the page, so a helper may not close over anything.** `page.eval(fn,
+…args)` serialises `fn` and calls it with JSON arguments, which means every helper in `verify/dom.js` is
+self-contained and none of them call each other. That is why there is a little duplication in there — an
+`accessibleText` that strips `[aria-hidden]` appears three times rather than being factored out, because a
+factored version would not survive the trip.
+
+**The three traps in `CLAUDE.md` are closed by the driver rather than left to each spec.** Non-printable
+keys go out as `rawKeyDown` and printable ones as `keyDown` carrying `text`, chosen from one table;
+`locate` scrolls into view, waits a frame and only then measures; and the base URL is discovered by probing
+both loopback families, so `vite preview`'s IPv6 binding cannot present as a server that never came up.
+Two more were found in the writing and are closed the same way: a preview server already holding the port
+is **refused** rather than reused, because `--strictPort` makes the new one exit and the readiness probe
+would then happily run every spec against whatever build the old one was serving; and `locate` polls for a
+non-zero box, because an element part-way through a `scale` transition measures as nothing.
+
+**`page.frame()` races `requestAnimationFrame` against a timer, and that is not defensive habit.** Headless
+Chrome stops asking for frames once a page settles, and the main thread stays idle throughout — so
+`Runtime.evaluate` keeps answering instantly while only the rAF await hangs, which reads as a component
+that stopped responding rather than as a page that stopped painting. Waiting on the _condition_ is the
+right shape for anything the library drives (`page.waitUntilGone` exists for exactly that); the frame
+helper is for settling layout, and it must not be able to wedge a run.
+
+**What it found on its first run is the argument for it**, and both were real: `TextSync` destroying an
+IME commit (see above), and `ElementFader` hanging its state machine on a single frame (below). Neither is
+visible in markup and neither would have been found by looking at the page.
+
+`review.md` #11 carries what the suite still cannot see.
+
+### `ElementFader`: the frame that starts a transition needs a fallback
+
+Settled **2026-08-06**. `setTarget` flips `transitionTarget` inside a `requestAnimationFrame` so the
+browser paints the pre-transition state first — without that the CSS transition has no start value to
+animate from. The bug was that the frame was the _only_ path: `setHasTransitionFinished(false)` happens
+immediately, `getIsVisible` is `transitionTarget === 1 || !hasTransitionFinished`, and the duration timer
+is only armed from inside the callback. So on a page that stops producing frames, a dismissed `Modal`
+never leaves — `getIsVisible` stays true, the `<Show>` stays mounted, and the focus trap stays with it.
+A backgrounded tab does exactly this.
+
+It now schedules the same idempotent `commit` from both a frame and a 100ms timer, whichever arrives
+first, and cancels the loser. The frame wins in every case where frames exist, so nothing about a normal
+transition changes; when they do not, the state machine advances without an animation, which is the
+correct outcome on a page that is not painting anyway.
+
+### Controls: `Progress`, and what a non-interactive Fundamental looks like
+
+Settled **2026-08-06**. The first component in `Fundamentals` that is neither an interaction nor a
+composition of one, so it settles the shape by being it.
+
+**No `InteractionWrapper`, and no flags.** There is nothing to hover, focus or activate, so a wrapper that
+owns events would be a wrapper owning nothing. The root is a bare `<div role="progressbar">` and the
+painter receives `getState`, not `getFlags` — `ProgressState` is the analogue, and calling it flags would
+claim an interaction contract this component does not have.
+
+**The painter is handed a normalised `ratio` as well as the raw value.** Clamping `(value - min) / span`
+into 0..1 is the one computation a painter must not be asked to repeat, because getting it wrong draws
+past the end of the track. `value`, `min` and `max` come along because a painter that renders "1.2 of
+2.4 MB" cannot get them anywhere else — this is the opposite of `TextInput`, which withholds the value
+precisely because the input already draws it. The rule is the same in both: hand over what the painter
+would otherwise have to double.
+
+**`ratio` is `number | undefined`, and the `undefined` is the mode.** An absent `getValue()` means
+indeterminate, and that is what ARIA means by it too — `aria-valuenow` is simply omitted. This is the
+sanctioned form of _"presence as a trigger"_: a progress value has exactly one meaning, and forgetting the
+prop yields a working indeterminate bar rather than a silent semantic change. It reads the **value**, not
+the prop, for the reason `getTooltipDefs` already records — an upload with no total yet returns
+`undefined` from a `getValue` that later returns numbers. Extras elsewhere are required fields so a
+painter never handles an `undefined` its control cannot emit; here the control genuinely can emit one, so
+the union is honest rather than an oversight.
+
+**The indeterminate animation is the painter's, which contradicts the note that raised this component.**
+`review.md` claimed the timing was the library's. It should not be: an indeterminate bar is a looping
+animation with no state behind it, CSS runs it on the compositor for free, and a library-owned clock would
+burn frames to hand a painter a phase it can already get from `@keyframes`. The library says _that_ the
+bar is indeterminate; how it moves is paint like everything else.
+
+**Placement is the library's, which contradicts the same note in the other direction** — see the `Modal`
+presets below, where the argument is the same and the conclusion is too.
+
+**`getSizing` defaults to `"fill"`, the inverse of `InteractionWrapper`'s default, and the type is
+declared here rather than imported.** A control's natural size is its content; a track's natural size is
+whatever contains it. Both vocabularies have the same two members and the same meaning, and the reason not
+to share the type is that sharing it would file a non-interactive component's geometry under
+`InteractionWrapper.types` — the import would be the only thing tying them together and it would misdescribe
+both.
+
+### Controls: `Drawer` and `AlertDialog` as `Modal` presets
+
+Settled **2026-08-06**. Both are the `Toggle`-over-`Checkbox` shape: a few lines that narrow the base and
+force what makes them what they are.
+
+**Placement is geometry, not paint, and that is a correction to the note that asked for these.** The
+review entry said "placement and slide are paint". The slide is — a painter transitions its own
+`transform` off `getVisibilityTarget`, exactly as `ModalPage` already scales. Placement is not: the box
+that carries `role="dialog"` is `Modal`'s, and only its position within `modalRoot` decides where the
+dialog is. Making it paint would mean stretching the container over the viewport and letting the painter
+position itself inside — which hands the dialog role a viewport-sized box and breaks the margin-derived
+`max-width`/`max-height` with it.
+
+**`modalRoot` became a grid so both axes can say `stretch`.** As a flex row there is no main-axis
+equivalent of `justify-items: stretch`, so a top-edge drawer could stick to the top or fill the width but
+not both without the item growing itself. Grid states each axis independently, and `modalContainer` is
+`display: flex; flex-direction: column` with `flex-grow: 1` on its child so the painter fills whichever
+axis the grid stretched. The absolutely positioned overlay is out of flow and unaffected.
+
+**`ModalAlignment`, not `ModalPlacement`.** `AnchorPlacement` is already the name for `{ x, y }` collision
+placement, and a `getPlacement` prop that means a string union on one component and that record on another
+is the "two contracts under one name" trap this log has hit before.
+
+**`Drawer` narrows to four edges and adds nothing else**, which is the whole preset: `DrawerEdge` drops
+`"center"`, and `getEdge` is required where `getAlignment` was optional. An edge-attached dialog that could
+be centred is not a drawer.
+
+**`AlertDialog` forces three things and hides all three.** `role="alertdialog"`, a **required**
+`getInitialFocusRef`, and overlay-click dismissal off. The role is why the focus target is mandatory rather
+than optional: an alert interrupts to demand a decision, so focus has to land on the control that answers
+it, and APG names that as the requirement. Overlay dismissal going off is the same argument continued — a
+dialog that demands an answer must not be answerable by clicking next to it. `Escape` still closes it,
+because every dialog must be escapable regardless of role. All three are `Omit`ted from `AlertDialogProps`,
+so a consumer cannot set them back; that is the `BinarySwitch` preset rule applied to a `Modal`.
+
+**`FocusUtils.autoFocus` reads the initial ref untracked, and "initial" is why.** The effect already
+depends on the container ref and on visibility; a third dependency that can change while the dialog is open
+would re-run it, re-capture `previouslyFocused` as whatever is focused _now_, and restore focus to the
+wrong element on close. Untracked also states the semantics exactly: the target as of the moment the dialog
+opened. A ref assigned during render is set before effects run, so the common path is unaffected.
+
+**`getIsDismissableOnOverlayClick` and `getAriaDescribedBy` are public on `Modal`**, since a form with
+unsaved changes wants the first and any dialog can want the second. Only the preset's own three are hidden.
+
+### Controls: `FileInput` and `ColorInput`, where the UA owns the activation
+
+Settled **2026-08-06**. Both are the `TextInput` arrangement — overlay geometry, wrapper, flags, a private
+leaf — and both exist because of one thing the library cannot take over.
+
+**Activation must stay native, so gating a disabled control is `preventDefault` on `click`.** Nothing but a
+user gesture on the real element can open a file dialog or the OS colour picker, so there is no JS path to
+gate and no `readonly` to lean on. `preventDefault` in `onClick` cancels the default action that opens
+them, which is `BinarySwitch`'s mechanism rather than `Button`'s early return — the review note said
+"`Button` `onClick` pattern" and returning early would have left both dialogs opening. `wrapElement`'s
+`mousedown` refusal keeps a disabled control from taking focus as before.
+
+**Suppressing the UA's own rendering is the same rule that kept `placeholder` and the number spinner out**,
+and each needed a different mechanism:
+
+- **A file input** hides `::file-selector-button` and sets `color: transparent` for the filename text. The
+  input stays transparent-but-present rather than `opacity: 0`, because opacity paints the outline too and
+  _"nothing that fades or filters may touch the element that owns the focus ring"_ still applies.
+- **A colour input** needs `visibility: hidden` on `::-webkit-color-swatch`, and a transparent background
+  is **not** enough — the UA paints the current colour onto the swatch through a path an author
+  `background` does not reach, so the swatch covers the painter with a solid rectangle whatever colour you
+  declare. This was visible on screen and invisible to every DOM assertion, which is worth remembering
+  as the shape of what markup checks cannot catch. `visibility` takes the swatch subtree out of paint and
+  leaves the input's own outline alone.
+
+**Both give the painter the value, and `TextInput` deliberately does not.** `FileInputFlags = { files }`
+and `ColorInputFlags = { value }`, because once the native rendering is suppressed nothing else draws
+them — the painter is the only thing that can show which files are picked or what colour is chosen. The
+rule is unchanged and this is the other side of it: withhold what the element already draws, hand over what
+it does not.
+
+**`syncElement` returns for a third time, with a third variation.** The premise is `BinarySwitch`'s: the
+browser mutates the control before the event fires, so an owner that refuses the write leaves the DOM
+disagreeing with state.
+
+- **`ColorInput`** is the easy case — assign `value` when it differs. A snapping owner ("nearest of four")
+  therefore sees its correction reach the element instead of the picker's raw colour.
+- **`FileInput`** cannot be pushed into an arbitrary state at all, because a `FileList` cannot be
+  constructed. Only the empty case is expressible, via `element.value = ""`, and that is the case that
+  matters: an owner that rejects a file and writes `[]` back would otherwise leave the input holding it,
+  and **re-picking the same file then fires no `change` event**, so the user cannot retry the thing they
+  were just told to fix. Everything else is a limitation recorded rather than solved.
+
+**Scoped without drag-and-drop, deliberately.** A drop target belongs to whatever surface wants to accept
+a drop, not to the field, and adding it would make `FileInput` own a second activation path.
+
+### The Playground's element selectors are scoped, and the library keeps its `!important`
+
+Settled **2026-08-06**, with the props-panel migration. All 43 raw controls in the panels are library
+controls now, and the single remaining native is a `<textarea>` waiting on `TextArea`.
+
+**`style.css` no longer styles `input` or `select` at all.** Those rules sat at specificity 0,1,1 and
+outranked any class a control could carry, which is what forced the escalation this log records under
+_"The input is a genuine blank slate"_. They exist to style the app's own chrome, that chrome is no longer
+raw, and they are now scoped to `textarea`. Two rules went with them rather than being narrowed: the
+blanket `label` block, because `labelRoot` already sets everything it did, and `button:hover { filter:
+brightness(120%) }`, because `filter` paints an element's outline and that rule was quietly dimming the
+focus ring of every hovered button — the exact failure the ring rule exists to prevent, found by removing
+the thing that hid it.
+
+**The library's own `!important` resets stay, and `review.md`'s guess that "several could go" is wrong.**
+The Playground is not the only consumer. A blank slate that loses to an element selector is broken, and
+element-level input styling is what every reset stylesheet in existence ships. What the scoping removes is
+the **consumer-side** escalation — a painter no longer has to reach its own input through a `globalStyle`
+to win — which is the half that was actually costing anyone anything.
+
+**The panels grew a family of field adapters, and that is the migration's real finding.** `PageNumberField`,
+`PageTextField`, `PageSelectField`, `PageGroupedSelectField`, `PageCheckField`, `PageColorField` and
+`PageFileField` live in one folder as one file, because seven two-line adapters in seven folders is worse
+than the family being visible in one place — the same call `Select.tsx` makes with its three private
+components. Each keeps a local `*Signal` and mirrors the panel's plain value into it. That mirror is
+written seven times and it is the thing `review.md` #10 now records as a gap: every control here owns its
+value as a signal, and a consumer whose state is a store has to build the bridge themselves.
 
 ### `ScreenWiper`: CSS shapes, not SVG
 

@@ -1,5 +1,7 @@
 import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
+const FRAME_FALLBACK_MS = 100;
+
 export namespace ElementFader {
     export const createFader = (
         getIsVisible: () => boolean,
@@ -11,12 +13,21 @@ export namespace ElementFader {
     ) => {
         let transitionTimeout: ReturnType<typeof setTimeout> | undefined;
         let pendingFrameId: number | undefined;
+        let pendingFallbackTimeout: ReturnType<typeof setTimeout> | undefined;
         let pendingTarget: 0 | 1 = 0;
 
-        onCleanup(() => {
+        const clearPending = () => {
             if (pendingFrameId !== undefined) {
                 cancelAnimationFrame(pendingFrameId);
             }
+            clearTimeout(pendingFallbackTimeout);
+
+            pendingFrameId = undefined;
+            pendingFallbackTimeout = undefined;
+        };
+
+        onCleanup(() => {
+            clearPending();
             clearTimeout(transitionTimeout);
         });
 
@@ -37,15 +48,18 @@ export namespace ElementFader {
 
             setHasTransitionFinished(false);
 
-            if (pendingFrameId !== undefined) cancelAnimationFrame(pendingFrameId);
+            clearPending();
 
-            pendingFrameId = requestAnimationFrame(() => {
-                pendingFrameId = undefined;
+            const commit = () => {
+                clearPending();
 
                 setTransitionTarget(target);
                 clearTimeout(transitionTimeout);
                 transitionTimeout = setTimeout(() => setHasTransitionFinished(true), opts.getTransitionDurationMs());
-            });
+            };
+
+            pendingFrameId = requestAnimationFrame(commit);
+            pendingFallbackTimeout = setTimeout(commit, FRAME_FALLBACK_MS);
 
             (target === 1 ? opts.onShow : opts.onHide)?.();
         };
