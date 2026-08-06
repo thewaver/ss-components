@@ -8,14 +8,14 @@ import { Select } from "../../../../Lib/Fundamentals/Input/Select/Select";
 import type { SelectItem, SelectOption } from "../../../../Lib/Fundamentals/Input/Select/Select.types";
 import { SelectUtils } from "../../../../Lib/Fundamentals/Input/Select/Select.utils";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
+import { PagePopoverSurface } from "../../StyledComponents/PopoverSurface/PopoverSurface";
 import { PageSelectContent, computePageSelectTextStyle } from "../../StyledComponents/SelectContent/SelectContent";
 import { PageSelectGroupContent } from "../../StyledComponents/SelectGroupContent/SelectGroupContent";
 import { PageSelectOptionContent } from "../../StyledComponents/SelectOptionContent/SelectOptionContent";
-import { PageSelectPopup } from "../../StyledComponents/SelectPopup/SelectPopup";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 
+import * as popupStyles from "../../StyledComponents/PopoverSurface/PopoverSurface.css";
 import { FIELD_CHEVRON_WIDTH, FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/SelectContent/SelectContent.css";
-import * as popupStyles from "../../StyledComponents/SelectPopup/SelectPopup.css";
 import * as pageStyles from "../Pages.css";
 
 type Airport = {
@@ -114,13 +114,13 @@ const renderSelectPopup = (
     getTransitionDurationMs: () => number,
     getPlacement: () => AnchorPlacement,
 ) => (
-    <PageSelectPopup
+    <PagePopoverSurface
         getVisibilityTarget={getVisibilityTarget}
         getTransitionDurationMs={getTransitionDurationMs}
         getPlacement={getPlacement}
     >
         {renderOptions()}
-    </PageSelectPopup>
+    </PagePopoverSurface>
 );
 
 export const SelectPage = () => {
@@ -281,7 +281,7 @@ export const SelectPage = () => {
                             </PageSelectOptionContent>
                         )}
                         renderPopup={(renderOptions, getVisibilityTarget, getTransitionDurationMs, getPlacement) => (
-                            <PageSelectPopup
+                            <PagePopoverSurface
                                 getVisibilityTarget={getVisibilityTarget}
                                 getTransitionDurationMs={getTransitionDurationMs}
                                 getPlacement={getPlacement}
@@ -289,9 +289,9 @@ export const SelectPage = () => {
                                 {getFilteredAirports().length ? (
                                     renderOptions()
                                 ) : (
-                                    <div class={popupStyles.selectPopupEmpty}>No airport matches that</div>
+                                    <div class={popupStyles.popoverSurfaceEmpty}>No airport matches that</div>
                                 )}
-                            </PageSelectPopup>
+                            </PagePopoverSurface>
                         )}
                     />
                 ),
@@ -369,7 +369,7 @@ export const SelectPage = () => {
                             <PageSelectOptionContent getFlags={getFlags}>{getOption().value}</PageSelectOptionContent>
                         )}
                         renderPopup={(renderOptions, getVisibilityTarget, getTransitionDurationMs, getPlacement) => (
-                            <PageSelectPopup
+                            <PagePopoverSurface
                                 getVisibilityTarget={getVisibilityTarget}
                                 getTransitionDurationMs={getTransitionDurationMs}
                                 getPlacement={getPlacement}
@@ -377,9 +377,9 @@ export const SelectPage = () => {
                                 {getFilteredGroups().length ? (
                                     renderOptions()
                                 ) : (
-                                    <div class={popupStyles.selectPopupEmpty}>No country matches that</div>
+                                    <div class={popupStyles.popoverSurfaceEmpty}>No country matches that</div>
                                 )}
-                            </PageSelectPopup>
+                            </PagePopoverSurface>
                         )}
                     />
                 ),

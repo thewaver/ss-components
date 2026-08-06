@@ -1,5 +1,6 @@
 import { createMemo, createSignal, createUniqueId, onCleanup } from "solid-js";
 
+import { NavigationUtils } from "../../../Abstracts/Navigation/Navigation.utils";
 import { RadioGroupContextProvider } from "./RadioGroup.context";
 import type { RadioGroupContextType, RadioGroupEntry } from "./RadioGroup.context.types";
 import type { RadioGroupDir, RadioGroupProps } from "./RadioGroup.types";
@@ -59,21 +60,18 @@ export const RadioGroup = <T,>(props: RadioGroupProps<T>) => {
 
         const focused = navigable.find((entry) => entry.getElementRef() === document.activeElement);
         const from = focused ?? getRovingEntry();
-        const index = from ? navigable.indexOf(from) : 0;
+        const position = NavigationUtils.computeNextPosition(
+            e.key,
+            from ? navigable.indexOf(from) : 0,
+            navigable.length,
+            { orientation: "both" },
+        );
 
-        const step = (delta: number) =>
-            navigable[(((index + delta) % navigable.length) + navigable.length) % navigable.length];
-
-        let next: RadioGroupEntry | undefined;
-
-        if (e.key === "ArrowRight" || e.key === "ArrowDown") next = step(1);
-        else if (e.key === "ArrowLeft" || e.key === "ArrowUp") next = step(-1);
-        else if (e.key === "Home") next = navigable[0];
-        else if (e.key === "End") next = navigable[navigable.length - 1];
-
-        if (!next) return;
+        if (position === undefined) return;
 
         e.preventDefault();
+
+        const next = navigable[position];
 
         next.getElementRef()?.focus();
 

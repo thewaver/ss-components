@@ -1,16 +1,13 @@
 import type { Accessor, JSX } from "solid-js";
 import { Index, Show, createEffect, createMemo, createSignal, createUniqueId } from "solid-js";
-import { Portal } from "solid-js/web";
 
 import { CSSUtils, StringUtils } from "@thewaver/ss-utils";
 
-import { Anchor } from "../../../Abstracts/Anchor/Anchor";
-import type { AnchorPlacement } from "../../../Abstracts/Anchor/Anchor.types";
-import { ElementFader } from "../../../Abstracts/ElementFader/ElementFader";
 import { InteractionUtils } from "../../../Abstracts/Interaction/Interaction.utils";
+import { NavigationUtils } from "../../../Abstracts/Navigation/Navigation.utils";
 import { TextSync } from "../../../Abstracts/TextSync/TextSync";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
-import { useViewportContext } from "../../Viewport/Viewport.context";
+import { Popover } from "../../Popover/Popover";
 import { LabelUtils } from "../Label/Label.utils";
 import type {
     SelectCompositeProps,
@@ -24,10 +21,7 @@ import { SelectUtils } from "./Select.utils";
 
 import * as styles from "./Select.css";
 
-const DEFAULT_SELECT_PLACEMENT: AnchorPlacement = { x: "left-in", y: "bottom-out" };
-const DEFAULT_SELECT_TRANSITION_DURATION_MS = 200;
 const DEFAULT_SELECT_PADDING = 0;
-const SELECT_POPUP_Z_INDEX = 1;
 const EMPTY_QUERY = "";
 const EMPTY_SELECTION: never[] = [];
 
@@ -151,12 +145,11 @@ const SelectOptionItem = (props: SelectOptionItemProps) => {
 };
 
 export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
-    const viewportContext = useViewportContext();
-
     const listboxId = createUniqueId();
 
     const [getFieldRef, setFieldRef] = createSignal<HTMLElement>();
     const [getIsOpen, setIsOpen] = createSignal(false);
+    const [getHasPopoverSettled, setHasPopoverSettled] = createSignal(true);
     const [getHighlightedValue, setHighlightedValue] = createSignal<T | undefined>();
 
     const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
@@ -169,10 +162,6 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
 
     const getIsFiltering = createMemo(() => getQuery() !== EMPTY_QUERY);
 
-    const getTransitionDurationMs = createMemo(
-        () => props.getTransitionDurationMs?.() ?? DEFAULT_SELECT_TRANSITION_DURATION_MS,
-    );
-
     const getSpreadPadding = createMemo(() => {
         const padding = props.getPadding?.() ?? DEFAULT_SELECT_PADDING;
 
@@ -180,20 +169,6 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
     });
 
     const getTextInset = createMemo(() => CSSUtils.spreadableToStyle(getSpreadPadding(), StringUtils.camelToKebabCase));
-
-    const { getIsVisible, getTransitionTarget, getHasTransitionFinished } = ElementFader.createFader(getIsOpen, {
-        getTransitionDurationMs,
-    });
-
-    const { getAnchorRect, getPlacement, getPosition, setContentRef } = Anchor.createPortalPosition(
-        getFieldRef,
-        getIsVisible,
-        {
-            getPlacement: () => props.getPlacement?.() ?? DEFAULT_SELECT_PLACEMENT,
-            getOffset: props.getOffset,
-            getReservedScreenSize: props.getReservedScreenSize,
-        },
-    );
 
     const getItemOffsets = createMemo(() => {
         let offset = 0;
@@ -272,7 +247,7 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
     };
 
     createEffect(() => {
-        if (getIsOpen() || !getHasTransitionFinished() || getQuery() === EMPTY_QUERY) return;
+        if (getIsOpen() || !getHasPopoverSettled() || getQuery() === EMPTY_QUERY) return;
 
         props.querySignal?.[1](EMPTY_QUERY);
     });
@@ -319,17 +294,15 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
 
         if (navigable.length < 1) return;
 
+        const isArrow = e.key === "ArrowDown" || e.key === "ArrowUp";
         const from = navigable.indexOf(getHighlightedIndex() ?? navigable[0]);
+        const position = NavigationUtils.computeNextPosition(e.key, from, navigable.length, {
+            hasEdgeKeys: !getIsFilterable(),
+        });
 
-        const step = (delta: number) =>
-            navigable[(((from + delta) % navigable.length) + navigable.length) % navigable.length];
+        if (position === undefined) return;
 
-        let next: number | undefined;
-
-        if (e.key === "ArrowDown") next = isOpen ? step(1) : getHighlightedIndex();
-        else if (e.key === "ArrowUp") next = isOpen ? step(-1) : getHighlightedIndex();
-        else if (!getIsFilterable() && e.key === "Home") next = navigable[0];
-        else if (!getIsFilterable() && e.key === "End") next = navigable[navigable.length - 1];
+        const next = isOpen || !isArrow ? navigable[position] : getHighlightedIndex();
 
         if (next === undefined) return;
 
@@ -425,34 +398,28 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
                         }}
                     />
 
-                    <Show when={getIsVisible()}>
-                        <Portal mount={viewportContext.getPortalRef()}>
-                            <div
-                                ref={setContentRef}
-                                id={listboxId}
-                                class={styles.selectPopupRoot}
-                                style={{
-                                    "visibility": getPosition() ? "visible" : "hidden",
-                                    "top": `${getPosition()?.y ?? 0}px`,
-                                    "left": `${getPosition()?.x ?? 0}px`,
-                                    "min-width": `${getAnchorRect()?.width ?? 0}px`,
-                                    "z-index": SELECT_POPUP_Z_INDEX,
-                                }}
-                                inert={!getIsOpen()}
-                                role="listbox"
-                                aria-multiselectable={getIsMultiple() || undefined}
-                                onMouseDown={(e) => e.preventDefault()}
-                            >
-                                {props.renderPopup(
-                                    renderOptions,
-                                    getTransitionTarget,
-                                    getTransitionDurationMs,
-                                    getPlacement,
-                                    getFlags,
-                                )}
-                            </div>
-                        </Portal>
-                    </Show>
+                    <Popover
+                        getId={() => listboxId}
+                        getRole={() => "listbox"}
+                        getAriaAttributes={() => ({ "aria-multiselectable": getIsMultiple() || undefined })}
+                        getPlacement={props.getPlacement}
+                        getOffset={props.getOffset}
+                        getReservedScreenSize={props.getReservedScreenSize}
+                        getTransitionDurationMs={props.getTransitionDurationMs}
+                        getHasAnchorMinWidth={() => true}
+                        getIsOpen={getIsOpen}
+                        getAnchorRef={getFieldRef}
+                        onTransitionStatusChange={setHasPopoverSettled}
+                        renderContent={(getVisibilityTarget, getTransitionDurationMs, getPlacement) =>
+                            props.renderPopup(
+                                renderOptions,
+                                getVisibilityTarget,
+                                getTransitionDurationMs,
+                                getPlacement,
+                                getFlags,
+                            )
+                        }
+                    />
                 </>
             )}
         />

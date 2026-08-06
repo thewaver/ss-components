@@ -1,12 +1,12 @@
 import type { ParentProps } from "solid-js";
 
-import type { SelectPopupProps } from "./SelectPopup.types";
+import type { PopoverSurfaceProps } from "./PopoverSurface.types";
 
-import * as styles from "./SelectPopup.css";
+import * as styles from "./PopoverSurface.css";
 
-export const PageSelectPopup = (props: ParentProps<SelectPopupProps>) => (
+export const PagePopoverSurface = (props: ParentProps<PopoverSurfaceProps>) => (
     <div
-        class={styles.selectPopup}
+        class={styles.popoverSurface}
         classList={{
             [styles.isVisible]: props.getVisibilityTarget() === 1,
             [styles.isFlipped]: props.getPlacement().y === "top-out",

@@ -1,0 +1,63 @@
+import type { Accessor, JSX } from "solid-js";
+
+import { Point2d, Size2d } from "@thewaver/ss-utils";
+
+import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
+import type { InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
+import type { AccessorProps } from "../../Utils/typeUtils";
+import type {
+    InteractionControlProps,
+    InteractionTooltipDefs,
+    InteractionWrapperProps,
+} from "../InteractionWrapper/InteractionWrapper.types";
+
+export type MenuFlags = {
+    isOpen: boolean;
+};
+
+export type MenuItemFlags = {
+    isHighlighted: boolean;
+};
+
+export type MenuItem<T> = {
+    value: T;
+    isDisabled?: boolean;
+    isReachableWhenDisabled?: boolean;
+    tooltipDefs?: InteractionTooltipDefs<MenuItemFlags>;
+};
+
+export type MenuTriggerProps = AccessorProps<
+    InteractionControlProps<MenuFlags> & {
+        menuId: string;
+        ariaLabel?: string;
+    }
+> & {
+    onToggle: () => void;
+    onKeyDown: (e: KeyboardEvent) => void;
+};
+
+export type MenuItemViewProps = AccessorProps<InteractionControlProps<MenuItemFlags>> & {
+    onActivate: () => void;
+};
+
+export type MenuProps<T> = Omit<InteractionWrapperProps<MenuFlags>, "renderControl" | "getExtraFlags"> &
+    AccessorProps<{
+        id?: string;
+        ariaLabel?: string;
+        placement?: AnchorPlacement;
+        offset?: Point2d;
+        reservedScreenSize?: Size2d;
+        transitionDurationMs?: number;
+    }> & {
+        getItems: Accessor<MenuItem<T>[]>;
+        renderContent: (getFlags: () => InteractionFlags<MenuFlags>) => JSX.Element;
+        renderItem: (getItem: Accessor<MenuItem<T>>, getFlags: () => InteractionFlags<MenuItemFlags>) => JSX.Element;
+        renderPopup: (
+            renderItems: () => JSX.Element,
+            getVisibilityTarget: () => 0 | 1,
+            getTransitionDurationMs: () => number,
+            getPlacement: () => AnchorPlacement,
+            getFlags: () => InteractionFlags<MenuFlags>,
+        ) => JSX.Element;
+        onActivate: (value: T) => void;
+    };

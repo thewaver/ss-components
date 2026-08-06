@@ -13,15 +13,16 @@ decisions and the reasoning behind them live in `conventions.md`.
 4. Cell animation timing is linear-only — _open_
 5. Parity-based weights break when the origin lands on a half-pixel — _open_
 6. `Select` — six things deliberately not built — _open_
-7. `Range` is not built — _open_
-8. Date, time and calendar are not built — _open_
-9. Other core controls the library does not have — _open_
-10. Machinery those controls need, none of which exists — _open_
-11. What the verification suite still cannot see — _open_
+7. `Menu` — six things deliberately not built — _open_
+8. `Range` is not built — _open_
+9. Date, time and calendar are not built — _open_
+10. Other core controls the library does not have — _open_
+11. Machinery those controls need, none of which exists — _open_
+12. What the verification suite still cannot see — _open_
 
 ### Build order
 
-Covers the unbuilt controls in items 7 to 10. The ordering principle is **how much of the existing base
+Covers the unbuilt controls in items 8 to 11. The ordering principle is **how much of the existing base
 a thing reuses**: anything that is a preset or a composition of what already works comes before anything
 that needs a new primitive, and anything blocked on an architectural decision comes last, so the
 decision is made once with several consumers in view rather than inferred from the first one.
@@ -30,39 +31,30 @@ Two things break that ordering on purpose, and both are noted where they fall.
 
 **Tier 2 — new components whose every mechanism already exists somewhere.**
 
-1. **Extract `Popover` from `Select`, then build `Menu`.** `Anchor`, `ElementFader`, the portal, the
-   `mousedown` refusal and `inert` are all written; what is new is a menu's roles and activation
-   semantics, on a keyboard walk that is 1D like `Select`'s. Do the extraction first because three later
-   items want it — `Menu`, `DatePicker`, the `ColorInput` picker — and take the shared dismissal
-   `Abstract` with it, since that is its third consumer.
-2. **`TextArea`** — extract the text composite `conventions.md` already promises, then two presets. New
+1. **`TextArea`** — extract the text composite `conventions.md` already promises, then two presets. New
    work is auto-height measurement, which is the same primitive as the next item, so pair them. It is
    also the last raw native left in the Playground, so it closes that migration rather than adding to it.
-3. **`Accordion`** — trivial ARIA over the auto-height animation from 2.
-4. **The 1D walk becomes an `Abstract`** — `Tabs`, `RadioGroup` and `Select` contain the same
-   navigable-index arithmetic three times. Extracting it here is a refactor with no new component,
-   verifiable against three shipped behaviours, and it is the honest place to start item 10's keyboard
-   work rather than inside a calendar.
+2. **`Accordion`** — trivial ARIA over the auto-height animation from 1.
 
 **Tier 3 — blocked on a primitive that has to be designed first.** Do not start these by inventing the
 primitive privately inside them.
 
-5. **Pointer drag and track geometry (item 2's opt-in design), then `Range`.** Once a drag can be
+3. **Pointer drag and track geometry (item 2's opt-in design), then `Range`.** Once a drag can be
    expressed and a value can map to a measured track, `Range` itself is ordinary. Deciding whether both
    thumb counts are custom is part of the same pass.
-6. **The custom `ColorInput` picker surface** — the same drag primitive in two dimensions, so it
+4. **The custom `ColorInput` picker surface** — the same drag primitive in two dimensions, so it
    follows `Range` and reuses it rather than the reverse. The field itself ships; this is the surface
    that would replace the OS dialog.
-7. **The 2D roving keyboard, grown from the `Abstract` in 4, then `Calendar`.**
-8. **A mask layer over `TextSync`, plus the date-dependency decision, then `DateInput`** — and only
-   then `DatePicker`, which is `Calendar` plus the `Popover` from 1. Date-time and ranges compose from
-   those rather than being new components.
-9. **`Tree`** — the 2D keyboard from 7 plus `Select`'s tree-flattening model. Wants virtualization,
+5. **`NavigationUtils.computeNextCell` beside the 1D walk that now ships, then `Calendar`.**
+6. **A mask layer over `TextSync`, plus the date-dependency decision, then `DateInput`** — and only
+   then `DatePicker`, which is `Calendar` inside the `Popover` that now ships. Date-time and ranges
+   compose from those rather than being new components.
+7. **`Tree`** — the 2D walk from 5 plus `Select`'s tree-flattening model. Wants virtualization,
    which is also `Select`'s loose end in item 6, so that `Abstract` belongs here.
 
 **Out of the cost ordering, deliberately:**
 
-- **The form story (item 10) should be decided far earlier than its size suggests**, and it is now the
+- **The form story (item 11) should be decided far earlier than its size suggests**, and it is now the
   oldest thing on this list. It is the one item whose cost _grows_ with delay: every control built without
   it grows its own half of error and validation plumbing, and each becomes a retrofit. Four controls
   landed since this was written — `Progress`, `FileInput`, `ColorInput` and the two `Modal` presets — and
@@ -207,7 +199,39 @@ the gaps, each with the reason it is still a gap.
 
 ---
 
-## 7. `Range` is not built
+## 7. `Menu` — six things deliberately not built
+
+The decisions behind what exists are in `conventions.md` under _"`Popover` extracted, and `Menu` as the
+second consumer"_. These are the gaps, each with the reason it is still a gap.
+
+- **There are no groups and no separators.** `SelectItem<T>`'s discriminated record would carry them
+  unchanged, but a second copy of `getFlatOptions` plus `getItemOffsets` would come with it — and that
+  is the duplication `NavigationUtils` deliberately did _not_ absorb, since it walks positions and has
+  no opinion about what produced them. Flattening a tree into a navigable list is the next thing worth
+  extracting, and copying it first would make that harder rather than easier. A consumer that needs
+  sections today paints them into `renderPopup` around a flat list.
+- **There are no submenus.** They need a `Popover` anchored to an item rather than to the trigger, and
+  a second focus target — which is the first thing that breaks the one-focus-target model the whole
+  keyboard rests on. Whether a submenu keeps focus on the parent menu and re-points
+  `aria-activedescendant`, or takes focus itself, is the decision to make before any of it is built.
+- **`Tab` closes the menu and returns focus to the trigger rather than moving past it.** APG says move
+  to the next element after the trigger. The menu is portalled to the end of the document, so letting
+  `Tab` through lands focus wherever the portal sits, which is worse than not moving. The cost is one
+  extra `Tab`; fixing it properly means computing the trigger's next tab stop by hand.
+- **There is no typeahead**, for the same reason `Select` has none — it needs a string per item that
+  the painter already renders, or a consumer predicate. Unlike `Select` there is no autocomplete to
+  offer instead.
+- **The trigger is a button and only a button.** A right-click context menu and a split button are both
+  the same popup on a different opener, and both want `Menu` to accept an anchor and an open signal it
+  does not own. That is the same `openSignal` question `Select` records, and it should be answered once
+  for both.
+- **There is no `menuitemcheckbox` or `menuitemradio`.** Those carry state, which is the line this
+  control is on the other side of — `MenuFlags` has no selection and items have no `aria-checked`.
+  Adding them means deciding whether a stateful menu is this component or a `Select` with menu paint.
+
+---
+
+## 8. `Range` is not built
 
 A slider, single-thumb and two-thumb. Nothing in the repo has ever had one — `style.css` styles
 `input[type="range"]` and nothing on any page uses it.
@@ -237,7 +261,7 @@ step), whether the two thumbs may cross, and vertical orientation.
 
 ---
 
-## 8. Date, time and calendar are not built
+## 9. Date, time and calendar are not built
 
 **Not one component.** It decomposes into at least four, and the decomposition is the first decision:
 
@@ -253,10 +277,10 @@ the two composed rather than a third thing.
 
 Three blockers, each shared with another item:
 
-**The grid needs a 2D roving keyboard, and every walk in this library is 1D.** `Tabs`, `RadioGroup` and
-`Select` all step through a flat list of navigable indexes. A calendar's arrows move by day and by week,
-`Home`/`End` mean start and end of week, `PageUp`/`PageDown` mean month, and the walk crosses month
-boundaries. See item 10 — this should become an `Abstract` rather than a fourth hand-rolled walk.
+**The grid needs a 2D walk, and `NavigationUtils.computeNextPosition` is 1D.** A calendar's arrows move
+by day and by week, `Home`/`End` mean start and end of week, `PageUp`/`PageDown` mean month, and the
+walk crosses month boundaries. That is `computeNextCell` beside the existing function rather than a
+hand-rolled walk inside `Calendar` — see item 11.
 
 **A mask is more than `TextSync`'s transforming setter.** `TextSync` preserves the caret when a setter
 rewrites the value, which is the right base, but a mask also has to skip literal separators, decide what
@@ -270,12 +294,13 @@ shift across a boundary.
 
 ---
 
-## 9. Other core controls the library does not have
+## 10. Other core controls the library does not have
 
 `Fundamentals/Input` covers `TextInput`, `Checkbox`, `Toggle`, `Radio`, `RadioGroup`, `Select`,
 `MultiSelect`, `FileInput`, `ColorInput` and `Label`; `Fundamentals` adds `Button`, `Tabs`, `Tooltip`,
-`Modal`, `Drawer`, `AlertDialog` and `Progress`. Beyond items 7 and 8, this is what is missing, ordered by
-how much of it is a new architectural problem rather than by how much markup it is.
+`Popover`, `Menu`, `Modal`, `Drawer`, `AlertDialog` and `Progress`. Beyond items 8 and 9, this is what
+is missing, ordered by how much of it is a new architectural problem rather than by how much markup it
+is.
 
 **The Playground's raw natives used to be read as the evidence for this list, and that trap is now
 closed**: every one of its 43 props-panel controls is a library control, and the single remaining native
@@ -300,14 +325,6 @@ falls out of the mirror. A preset owning the string/number codec is the thing th
 painter can already put two `Button`s in `renderTrailing`, so the affordance was never the hard part.
 
 ### Overlays and feedback
-
-**`Popover` and `Menu`.** `Select`'s popup is deliberately private under the standing "private until a
-second consumer" rule. **A `Menu` is that second consumer**, so it is the concrete trigger to extract
-`Popover` from `Select` — and a menu is genuinely not a listbox: `menuitem`s _do_ things rather than
-carrying values, so there is no selected state, `Enter` activates and dismisses, and submenus need
-nested popups with their own placement. Dismissal is the other half: outside-click, `Escape` and focus
-return are hand-rolled in both `Modal` and `Select` today, and a third copy is the trigger to extract
-them too (see item 10).
 
 **Toasts.** The only item here whose hard part is not the markup: a notification stack needs a queue
 that outlives the component that raised it, which means state owned outside the tree and an API that is
@@ -341,21 +358,19 @@ of the contract by definition — the Playground already builds three of them as
 
 ---
 
-## 10. Machinery those controls need, none of which exists
+## 11. Machinery those controls need, none of which exists
 
-Grouped here because each one is shared by several of the controls in items 7 to 9, and because building
+Grouped here because each one is shared by several of the controls in items 8 to 10, and because building
 any of those without first deciding these would bake the decision in by accident.
 
-- **A 2D roving keyboard model.** `Tabs`, `RadioGroup` and `Select` all walk a 1D list of navigable
-  indexes with the same wrap-around arithmetic, three times over. `Calendar`, `Tree` and any grid need
-  two axes, where the row and column steps differ and `Home`/`End`/`PageUp` mean something per axis.
-  This is the point at which the walk itself should become an `Abstract` rather than a fourth copy.
+- **A 2D roving keyboard model.** The 1D walk is now `NavigationUtils.computeNextPosition` and all four
+  consumers are on it. `Calendar`, `Tree` and any grid need two axes, where the row and column steps
+  differ, `Home`/`End` mean start and end of row, `PageUp`/`PageDown` mean a page of rows, and the walk
+  crosses the collection's own boundaries. That is `computeNextCell` beside the existing function, and
+  it should not be written before there is a grid pulling on it.
 - **Pointer drag capture, and pointer geometry in the flags contract.** Item 2 records that
   `renderContent`/`renderDecoration` receive state and never events or pointer position. `Range` cannot
   be built without it, so the opt-in design that item asks for has to be settled first.
-- **Dismissal as an `Abstract`.** Outside-click, `Escape` and focus return exist twice — `Modal` traps
-  and restores focus, `Select` closes on blur and `Escape` — with different rules and no shared code.
-  `Popover` would be the third, which by the standing rule is when it gets extracted.
 - **Auto-height animation.** Needed by `Accordion`, and the general problem is measuring a target box
   and animating to it; `Abstracts/ElementObserver` is where it belongs.
 - **Masking and formatting.** `TextSync` handles a setter that transforms or refuses while preserving
@@ -381,7 +396,7 @@ any of those without first deciding these would bake the decision in by accident
 
 ---
 
-## 11. What the verification suite still cannot see
+## 12. What the verification suite still cannot see
 
 `verify/` drives real clicks and keystrokes over the DevTools Protocol, and `npm run verify:dom` runs it.
 What is worth stating is the shape of its blind spots, because a green run reads as broader coverage than
@@ -403,9 +418,11 @@ anchored to where its field used to be. Whether that deserves the same treatment
 positioner that stops updating when nothing is painting is arguably correct, while a state machine that
 stops advancing is not.
 
-**Six shipped components have no spec at all**: `Button`, `Tabs`, `Tooltip`, `Modal` itself (only its two
-presets are covered), `Surface`, and both animation components. `Tabs` is the notable one, since
-`conventions.md` records its behaviour as verified by markup dump only.
+**Five shipped components have no spec at all**: `Button`, `Tooltip`, `Modal` itself (only its two
+presets are covered), `Surface`, and both animation components. `Popover` has none of its own either,
+but every line of it is driven through `Select` and `Menu`; the `Tabs` spec covers its keyboard walk
+through the Playground's left menu and nothing else, so its floater, its `href` / `linkComponent` split
+and its selection are still markup-dump territory.
 
 **Nothing checks appearance.** The suite reads the DOM, so the parity rule that forced
 `aria-disabled`-everywhere — that disabled and disabled-but-reachable must look _identical_ — is still

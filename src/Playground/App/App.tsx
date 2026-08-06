@@ -17,6 +17,7 @@ import { DrawerPage } from "./Pages/DrawerPage/DrawerPage";
 import { ElementHighlightPage } from "./Pages/ElementHighlightPage/ElementHighlightPage";
 import { FileInputPage } from "./Pages/FileInputPage/FileInputPage";
 import { LabelPage } from "./Pages/LabelPage/LabelPage";
+import { MenuPage } from "./Pages/MenuPage/MenuPage";
 import { ModalPage } from "./Pages/ModalPage/ModalPage";
 import { ProgressPage } from "./Pages/ProgressPage/ProgressPage";
 import { RadioPage } from "./Pages/RadioPage/RadioPage";
@@ -99,6 +100,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "Label",
         component: () => <LabelPage />,
+    },
+    {
+        name: "Menu",
+        component: () => <MenuPage />,
     },
     {
         name: "Modal",

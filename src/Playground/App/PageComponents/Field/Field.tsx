@@ -10,10 +10,10 @@ import { TextInput } from "../../../../Lib/Fundamentals/Input/TextInput/TextInpu
 import { PageCheckboxContent } from "../../StyledComponents/CheckboxContent/CheckboxContent";
 import { PageColorInputContent } from "../../StyledComponents/ColorInputContent/ColorInputContent";
 import { PageFileInputContent } from "../../StyledComponents/FileInputContent/FileInputContent";
+import { PagePopoverSurface } from "../../StyledComponents/PopoverSurface/PopoverSurface";
 import { PageSelectContent } from "../../StyledComponents/SelectContent/SelectContent";
 import { PageSelectGroupContent } from "../../StyledComponents/SelectGroupContent/SelectGroupContent";
 import { PageSelectOptionContent } from "../../StyledComponents/SelectOptionContent/SelectOptionContent";
-import { PageSelectPopup } from "../../StyledComponents/SelectPopup/SelectPopup";
 import {
     PageTextInputContent,
     computePageTextInputTextStyle,
@@ -47,13 +47,13 @@ const renderFieldPopup = (
     getTransitionDurationMs: () => number,
     getPlacement: () => AnchorPlacement,
 ) => (
-    <PageSelectPopup
+    <PagePopoverSurface
         getVisibilityTarget={getVisibilityTarget}
         getTransitionDurationMs={getTransitionDurationMs}
         getPlacement={getPlacement}
     >
         {renderOptions()}
-    </PageSelectPopup>
+    </PagePopoverSurface>
 );
 
 /**

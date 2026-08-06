@@ -1,6 +1,7 @@
 import { Index, type JSX, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
+import { NavigationUtils } from "../../Abstracts/Navigation/Navigation.utils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import type { TabsDir, TabsItemProps, TabsProps } from "./Tabs.types";
 
@@ -147,23 +148,16 @@ export const Tabs = <T,>(props: TabsProps<T>) => {
 
         if (navigable.length < 1) return;
 
-        const isRow = getDir() === "row";
         const from = navigable.indexOf(getRovingIndex() ?? navigable[0]);
+        const position = NavigationUtils.computeNextPosition(e.key, from, navigable.length, {
+            orientation: getDir() === "row" ? "row" : "column",
+        });
 
-        const step = (delta: number) =>
-            navigable[(((from + delta) % navigable.length) + navigable.length) % navigable.length];
-
-        let next: number | undefined;
-
-        if (e.key === (isRow ? "ArrowRight" : "ArrowDown")) next = step(1);
-        else if (e.key === (isRow ? "ArrowLeft" : "ArrowUp")) next = step(-1);
-        else if (e.key === "Home") next = navigable[0];
-        else if (e.key === "End") next = navigable[navigable.length - 1];
-
-        if (next === undefined) return;
+        if (position === undefined) return;
 
         e.preventDefault();
 
+        const next = navigable[position];
         const nextValue = props.getTabs()[next].value;
 
         setFocusedValue(() => nextValue);

@@ -89,7 +89,7 @@ clicks and keystrokes in headless Chrome, and asserts on the result. One spec fi
 build. Add a spec whenever you add a control — `verify/main.js` lists them.
 
 Every trap below is already handled inside `verify/driver.js`, so a new spec inherits the fix rather than
-rediscovering it. What the suite still cannot see is `review.md` #11 — chiefly anything whose only
+rediscovering it. What the suite still cannot see is `review.md` #12 — chiefly anything whose only
 observable is a finished CSS transition, because headless Chrome stops producing frames once a page
 settles.
 

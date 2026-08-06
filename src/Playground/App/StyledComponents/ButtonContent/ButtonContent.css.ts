@@ -15,7 +15,7 @@ export const buttonContent = style([
 
         selectors: {
             [`&.${pageStyles.hasError}`]: {
-                boxShadow: "var(--shd-tiny), 0 0 0 2px var(--clr-error)",
+                boxShadow: "0 0 0 2px var(--clr-error), var(--shd-tiny)",
             },
             [`&.${pageStyles.isDisabled}`]: {
                 filter: "grayscale(1)",

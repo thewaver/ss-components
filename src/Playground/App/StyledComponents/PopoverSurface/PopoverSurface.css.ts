@@ -3,7 +3,7 @@ import { style } from "@vanilla-extract/css";
 export const isVisible = style({});
 export const isFlipped = style({});
 
-export const selectPopupEmpty = style({
+export const popoverSurfaceEmpty = style({
     padding: "8px 10px",
     color: "rgba(from var(--clr-text) r g b / 40%)",
     fontSize: "1rem",
@@ -11,7 +11,7 @@ export const selectPopupEmpty = style({
     whiteSpace: "nowrap",
 });
 
-export const selectPopup = style({
+export const popoverSurface = style({
     boxSizing: "border-box",
     width: "100%",
     maxHeight: 220,

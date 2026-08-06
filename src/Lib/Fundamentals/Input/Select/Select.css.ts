@@ -48,11 +48,6 @@ export const selectFilterField = style({
     },
 });
 
-export const selectPopupRoot = style({
-    position: "absolute",
-    pointerEvents: "all",
-});
-
 export const selectOption = style({
     width: "100%",
     cursor: "pointer",

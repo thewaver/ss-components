@@ -1167,7 +1167,7 @@ read-only is a text concept here, and a future control that wants it declares it
 ### Controls: `Select`, and who owns a floating list
 
 Settled **2026-08-06**. This and the two `Select` headings after it are what remains of a design brief
-that was deleted once it shipped; `review.md` #8 carries what was deliberately left out of it.
+that was deleted once it shipped; `review.md` #6 carries what was deliberately left out of it.
 
 **One `mousedown` `preventDefault()` on the popup root is what makes the whole model work.** The
 options live in the `Viewport` portal, so clicking one would move focus out of the field and blur it.
@@ -1381,6 +1381,131 @@ reachable twin stays at `tabIndex 0`; the arrow walk skips a disabled option _in
 crosses into the next one; a multi list stays open across a pick and moves its highlight to the row
 picked; and a closing popup lets a click through to whatever is underneath it.
 
+### Controls: `Popover` extracted, and `Menu` as the second consumer
+
+Settled **2026-08-06**. The standing "private until a second consumer" rule fired: `Menu` is that
+consumer, so `Select`'s floating layer became `Fundamentals/Popover/`.
+
+**This does not reverse _"What stays duplicated is the dozen lines of `<Show><Portal><div>`"_ — it
+is the same argument reaching the opposite answer on different inputs.** That entry refused to share
+markup between a tooltip and a listbox because they agree on nothing: one is `role="tooltip"` and
+`pointer-events: none`, the other is clickable, focusable and `role="listbox"`, and a component
+spanning both would be a two-mode component. A listbox and a menu are both _interactive_ floating
+layers and agree on every line of it. `Tooltip` therefore keeps its own dozen lines and stays out.
+
+**`Popover` owns everything that is true of a floating layer and nothing about what it contains:**
+the portal mount, `Anchor.createPortalPosition`, the `ElementFader`, `inert` while the fade closes,
+the `mousedown` refusal, `tabindex="-1"`, and the anchor-width floor. The content arrives as
+`renderContent(getVisibilityTarget, getTransitionDurationMs, getPlacement)` — `Tooltip`'s signature,
+because the painter needs the same three things for the same reasons.
+
+**The role is the consumer's, so the ARIA that role requires is the consumer's too.** `getRole` plus
+one `getAriaAttributes: Accessor<JSX.AriaAttributes>`, rather than a prop per role-specific
+attribute. `aria-multiselectable` is a listbox word and `aria-labelledby`-to-the-trigger is a menu
+word; a `Popover` that learned either would be growing a branch per consumer, which is what the bag
+prevents. It sits on the same element as the role because it has to — the options are descendants,
+so the role cannot be nested one level in.
+
+**The anchor-width floor is opt-in, because the argument for it was a listbox argument.** _"a
+dropdown narrower than the control it belongs to is a positioning artefact"_ holds for a field and
+its list; a menu hanging off an icon button has no such relationship and should size to its own
+content. `Select` passes `getHasAnchorMinWidth`, `Menu` does not.
+
+**The fader stays inside and reports out through `onTransitionStatusChange`**, the shape `Modal`
+already uses. A component cannot return values, and `Select` needs the settled flag to know when it
+may clear the query without visibly re-growing the box mid-fade.
+
+**`outline: none` on the root is deliberate and is not a colour decision.** The root is focusable
+only so it can host `aria-activedescendant`; the visible focus is the highlighted item, painted by
+the consumer. A ring around the whole surface would point at the wrong thing.
+
+**The initial focus is `Popover`'s, and a real bug is why.** `Menu` first called
+`FocusUtils.autoFocus` itself, and focus stayed on the trigger. The root carries
+`visibility: hidden` until `Anchor` has measured the content and produced a position — and a
+`visibility: hidden` element silently refuses `focus()`, so the call landed one frame early and did
+nothing. Being positioned is `Popover`'s own state, so `getHasAutoFocus` moved the call inside,
+gated on `getPosition() !== undefined`. **The gate is a memo of the boolean, not of the position**:
+the position object is rebuilt on every anchor observation, so depending on it directly would
+re-focus the surface on every scroll.
+
+**`Menu` moves focus to the menu, not to the items, and that is where `aria-activedescendant` is
+allowed to live.** ARIA supports the attribute on composite roles — `menu` is one, `button` is not —
+so the APG variant that keeps a single focus target puts both on the `role="menu"` element. The
+items are then `Select`'s options exactly: non-focusable `role="menuitem"` divs at
+`getIsTabbable={() => false}`, `isFocused` never true for one, and a highlight held as a value and
+resolved to an index rather than stored as an index. `FocusUtils.autoFocus` restores focus to the
+trigger on close through the same `onCleanup` that `Modal` relies on, which is its second consumer
+and the reason it was not re-invented.
+
+**Two keydown handlers rather than `Select`'s one**, because the two states have different focus
+owners: the trigger handles the closed menu (`Enter` / `Space` / `ArrowDown` open on the first item,
+`ArrowUp` opens on the last), the menu handles the open one (the walk, activation, dismissal). They
+cannot both be focused, so neither needs to test whether the menu is open.
+
+**Clicking the trigger while the menu is open would otherwise reopen it.** The `mousedown` moves
+focus to the trigger, the menu blurs, blur closes — and then the click's own toggle sees a closed
+menu and opens it again. The guard is `relatedTarget === trigger` in the blur handler: focus going
+to the trigger is not a dismissal, and the click that follows does the closing. Every other blur —
+an outside click anywhere — still closes with no document-level listener, which is the whole point
+of the model `Select` established.
+
+**`MenuFlags` is `{ isOpen }` and nothing else.** A menu carries no value, so there is no
+`isEmpty`, no `aria-selected`, no `SelectOptionFlags.isSelected` equivalent, and the callback is
+`onActivate` rather than `onPick`. That is the substantive difference between the two controls;
+everything else is shared.
+
+**Dismissal was not extracted as an `Abstract`, against the plan that scheduled this work.** The
+expectation was that `Popover` would be its third consumer. It is not: `Menu`'s dismissal turned out
+to be `Select`'s exactly — `Escape` in a keydown, close on the focused element's blur, no document
+listener — while `Modal`'s is a different mechanism entirely (a document keydown, an overlay click,
+a focus trap, an explicit restore). Two identical siblings and one that does not fit is not the
+shape that wants an `Abstract`; the thing genuinely shared with `Modal` was `FocusUtils.autoFocus`,
+which already existed.
+
+### The 1D walk is a pure function, not a hook
+
+Settled **2026-08-06**, once `Menu` made it a fourth copy. `Tabs`, `RadioGroup`, `Select` and `Menu`
+all carried the same wrap-around arithmetic character for character:
+
+```ts
+navigable[(((from + delta) % navigable.length) + navigable.length) % navigable.length];
+```
+
+**It is `NavigationUtils.computeNextPosition(key, from, length, opts)` rather than a
+`createRovingIndex` factory, and `RadioGroup` is the reason.** The `create*` names in `Abstracts/`
+all mean "owns reactive state and returns accessors" — `createFader`, `createPortalPosition`,
+`createValueSync`. A walker cannot be one, because the state is already owned by each component and
+owned _differently_: `Tabs`, `Select` and `Menu` hold a value signal and resolve it against the
+navigable list, while `RadioGroup` walks registered entry objects and takes its starting point from
+`document.activeElement` first, falling back to the roving entry. A factory that owned the cursor
+would have served three of the four and lost the one that motivated the extraction.
+
+**So it takes positions and returns a position, and knows nothing about what is being walked.** No
+generic parameter, no collection argument, no reactivity — every caller maps back through its own
+array, which is how `RadioGroup` keeps entries while the other three keep indexes. That also keeps
+it in `*Utils`, alongside `InteractionUtils` and `FocusUtils`, rather than in the `Anchor` /
+`ElementFader` family.
+
+**Two options, and both exist because a caller was already gating on them.** `orientation` decides
+which arrows step — `"row"` or `"column"` for `Tabs` by its `dir`, `"both"` for `RadioGroup`,
+`"column"` for `Select` and `Menu`, where `ArrowLeft` / `ArrowRight` must stay with the caret. It
+defaults to `"column"` because that is the narrowest of the three: a wrong default that ignores a
+key is recoverable, one that hijacks `ArrowLeft` inside a text field is a bug. `hasEdgeKeys` gates
+`Home` / `End`, which `Select` already suppressed while filterable for the same reason.
+
+**What did not move is the part that is genuinely per-control.** `Select`'s "a closed list opens on
+an arrow without moving the highlight" stays in `Select`, because it is a statement about its own
+open state rather than about walking. The rule the split follows: the `Abstract` answers _which
+position is next_, the control answers _whether to go there_.
+
+**`Tabs` got its first spec out of this**, since it was the one consumer whose keyboard had no
+coverage at all — `conventions.md` had recorded it as verified by markup dump only, which does not
+reach a walk. The Playground's own left menu is a real `Tabs` (column, disabled category headers,
+`href` on every entry), so the spec drives that rather than adding a page.
+
+`computeNextCell` for two axes belongs in the same file when `Calendar` arrives. That is the return
+on choosing a pure function: it grows by gaining a sibling rather than by gaining a mode.
+
 ### Folder layout: `Fundamentals/Input`
 
 `BinarySwitch`, `Checkbox`, `Toggle`, `Radio`, `RadioGroup`, `TextInput` and `Label` live under
@@ -1466,7 +1591,7 @@ helper is for settling layout, and it must not be able to wedge a run.
 IME commit (see above), and `ElementFader` hanging its state machine on a single frame (below). Neither is
 visible in markup and neither would have been found by looking at the page.
 
-`review.md` #11 carries what the suite still cannot see.
+`review.md` #12 carries what the suite still cannot see.
 
 ### `ElementFader`: the frame that starts a transition needs a fallback
 
@@ -1640,7 +1765,7 @@ to win — which is the half that was actually costing anyone anything.
 `PageFileField` live in one folder as one file, because seven two-line adapters in seven folders is worse
 than the family being visible in one place — the same call `Select.tsx` makes with its three private
 components. Each keeps a local `*Signal` and mirrors the panel's plain value into it. That mirror is
-written seven times and it is the thing `review.md` #10 now records as a gap: every control here owns its
+written seven times and it is the thing `review.md` #11 now records as a gap: every control here owns its
 value as a signal, and a consumer whose state is a store has to build the bridge themselves.
 
 ### `ScreenWiper`: CSS shapes, not SVG
