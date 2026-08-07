@@ -158,18 +158,6 @@ export namespace CellAnimationKeyframesConst {
         };
     };
 
-    const CAROUSEL_DEPTH_PERCENT = 240;
-
-    const POP_STOPS: CellStop[] = [
-        { at: 0, scaleX: 0, scaleY: 0 },
-        { at: 0.5, scaleX: 100, scaleY: 100, brightness: 80 },
-        { at: 0.75, scaleX: 150, scaleY: 150 },
-        { at: 1, scaleX: 100, scaleY: 100 },
-    ];
-
-    const withAnchor = (stops: CellStop[], originX: number, originY: number): CellStop[] =>
-        stops.map((stop, idx) => (idx === 0 || idx === stops.length - 1 ? { ...stop, originX, originY } : stop));
-
     export const ANIMATION_TYPES = [
         "zoomIn",
         "zoomOut",
@@ -228,25 +216,97 @@ export namespace CellAnimationKeyframesConst {
     export type AnimationType = (typeof ANIMATION_TYPES)[number];
 
     const animationRegistry: Record<AnimationType, CellAnimationFn> = {
-        zoomIn: fromStops([
+        blurDefault: fromStops([
+            { at: 0, opacity: 0, blur: 20 },
+            { at: 0.5, opacity: 100 },
+            { at: 1, blur: 0 },
+        ]),
+
+        bounceDefault: fromStops([
             { at: 0, scaleX: 0, scaleY: 0 },
+            { at: 0.25, scaleX: 50, scaleY: 200 },
+            { at: 0.5, scaleX: 200, scaleY: 50 },
+            { at: 0.75, scaleX: 50, scaleY: 200 },
             { at: 1, scaleX: 100, scaleY: 100 },
         ]),
 
-        zoomOut: fromStops([
-            { at: 0, opacity: 0, scaleX: 400, scaleY: 400, brightness: 80 },
+        carouselBottom: fromStops([
+            { at: 0, originY: 1, opacity: 0, rotateX: -90, depth: 240 },
             { at: 0.25, opacity: 100 },
-            { at: 1, scaleX: 100, scaleY: 100 },
+            { at: 1, originY: 1, rotateX: 0, depth: 0 },
         ]),
 
-        fadeInLinear: fromStops([
-            { at: 0, opacity: 0 },
-            { at: 1, opacity: 100 },
+        carouselLeft: fromStops([
+            { at: 0, originX: 0, opacity: 0, rotateY: -90, depth: 240 },
+            { at: 0.25, opacity: 100 },
+            { at: 1, originX: 0, rotateY: 0, depth: 0 },
+        ]),
+
+        carouselRight: fromStops([
+            { at: 0, originX: 1, opacity: 0, rotateY: 90, depth: 240 },
+            { at: 0.25, opacity: 100 },
+            { at: 1, originX: 1, rotateY: 0, depth: 0 },
+        ]),
+
+        carouselTop: fromStops([
+            { at: 0, originY: 0, opacity: 0, rotateX: 90, depth: 240 },
+            { at: 0.25, opacity: 100 },
+            { at: 1, originY: 0, rotateX: 0, depth: 0 },
+        ]),
+
+        dripDefault: fromStops([
+            { at: 0, originY: 1, opacity: 0, scaleY: 400, translateY: -1600 },
+            { at: 0.25, opacity: 100 },
+            { at: 0.75, scaleY: 0, translateY: 0 },
+            { at: 1, originY: 1, scaleY: 100, translateY: 0 },
+        ]),
+
+        elasticDown: fromStops([
+            { at: 0, originY: 0, opacity: 0, scaleY: 100, translateY: 400 },
+            { at: 0.25, opacity: 100 },
+            { at: 0.5, scaleY: 400, translateY: 0 },
+            { at: 1, originY: 0, scaleY: 100, translateY: 0 },
+        ]),
+
+        elasticLeft: fromStops([
+            { at: 0, originX: 1, opacity: 0, scaleX: 100, translateX: -400 },
+            { at: 0.25, opacity: 100 },
+            { at: 0.5, scaleX: 400, translateX: 0 },
+            { at: 1, originX: 1, scaleX: 100, translateX: 0 },
+        ]),
+
+        elasticRight: fromStops([
+            { at: 0, originX: 0, opacity: 0, scaleX: 100, translateX: 400 },
+            { at: 0.25, opacity: 100 },
+            { at: 0.5, scaleX: 400, translateX: 0 },
+            { at: 1, originX: 0, scaleX: 100, translateX: 0 },
+        ]),
+
+        elasticUp: fromStops([
+            { at: 0, originY: 1, opacity: 0, scaleY: 100, translateY: -400 },
+            { at: 0.25, opacity: 100 },
+            { at: 0.5, scaleY: 400, translateY: 0 },
+            { at: 1, originY: 1, scaleY: 100, translateY: 0 },
+        ]),
+
+        encircleCcw: fromStops([
+            { at: 0, originX: 1, originY: 1, scaleX: 0, scaleY: 0 },
+            { at: 0.33, originX: 1, originY: 0 },
+            { at: 0.66, originX: 0, originY: 0 },
+            { at: 1, originX: 0, originY: 1, scaleX: 100, scaleY: 100 },
+        ]),
+
+        encircleCw: fromStops([
+            { at: 0, originX: 0, originY: 0, scaleX: 0, scaleY: 0 },
+            { at: 0.33, originX: 1, originY: 0 },
+            { at: 0.66, originX: 1, originY: 1 },
+            { at: 1, originX: 0, originY: 1, scaleX: 100, scaleY: 100 },
         ]),
 
         fadeInFlash: fromStops([
             { at: 0, opacity: 0, saturate: 50, brightness: 200 },
             { at: 0.5, opacity: 100, saturate: 50, brightness: 200 },
+            { at: 1, saturate: 100, brightness: 100 },
         ]),
 
         fadeInFlicker: fromStops([
@@ -267,38 +327,88 @@ export namespace CellAnimationKeyframesConst {
             { at: 1, opacity: 100 },
         ]),
 
-        bounceDefault: fromStops([
+        fadeInLinear: fromStops([
+            { at: 0, opacity: 0 },
+            { at: 1, opacity: 100 },
+        ]),
+
+        hingeBottom: fromStops([
+            { at: 0, originY: 1, opacity: 0, rotateX: -90 },
+            { at: 0.25, opacity: 100 },
+            { at: 0.75, rotateX: 45 },
+            { at: 1, originY: 1, rotateX: 0 },
+        ]),
+
+        hingeLeft: fromStops([
+            { at: 0, originX: 0, opacity: 0, rotateY: -90 },
+            { at: 0.25, opacity: 100 },
+            { at: 0.75, rotateY: 45 },
+            { at: 1, originX: 0, rotateY: 0 },
+        ]),
+
+        hingeRight: fromStops([
+            { at: 0, originX: 1, opacity: 0, rotateY: 90 },
+            { at: 0.25, opacity: 100 },
+            { at: 0.75, rotateY: -45 },
+            { at: 1, originX: 1, rotateY: 0 },
+        ]),
+
+        hingeTop: fromStops([
+            { at: 0, originY: 0, opacity: 0, rotateX: 90 },
+            { at: 0.25, opacity: 100 },
+            { at: 0.75, rotateX: -45 },
+            { at: 1, originY: 0, rotateX: 0 },
+        ]),
+
+        hopLeft: fromStops([
+            { at: 0, opacity: 0, translateX: 400, translateY: 0, scaleX: 20, scaleY: 20 },
+            { at: 0.25, opacity: 100, translateX: 300, translateY: -200, scaleX: 40, scaleY: 40 },
+            { at: 0.5, translateX: 200, translateY: 0, scaleX: 60, scaleY: 60 },
+            { at: 0.75, translateX: 100, translateY: -100, scaleX: 80, scaleY: 80 },
+            { at: 1, translateX: 0, translateY: 0, scaleX: 100, scaleY: 100 },
+        ]),
+
+        hopRight: fromStops([
+            { at: 0, opacity: 0, translateX: -400, translateY: 0, scaleX: 20, scaleY: 20 },
+            { at: 0.25, opacity: 100, translateX: -300, translateY: -200, scaleX: 40, scaleY: 40 },
+            { at: 0.5, translateX: -200, translateY: 0, scaleX: 60, scaleY: 60 },
+            { at: 0.75, translateX: -100, translateY: -100, scaleX: 80, scaleY: 80 },
+            { at: 1, translateX: 0, translateY: 0, scaleX: 100, scaleY: 100 },
+        ]),
+
+        popBottomLeft: fromStops([
+            { at: 0, originX: 0, originY: 1, scaleX: 0, scaleY: 0 },
+            { at: 0.5, scaleX: 100, scaleY: 100, brightness: 80 },
+            { at: 0.75, scaleX: 150, scaleY: 150 },
+            { at: 1, originX: 0, originY: 1, scaleX: 100, scaleY: 100 },
+        ]),
+
+        popBottomRight: fromStops([
+            { at: 0, originX: 1, originY: 1, scaleX: 0, scaleY: 0 },
+            { at: 0.5, scaleX: 100, scaleY: 100, brightness: 80 },
+            { at: 0.75, scaleX: 150, scaleY: 150 },
+            { at: 1, originX: 1, originY: 1, scaleX: 100, scaleY: 100 },
+        ]),
+
+        popCenter: fromStops([
             { at: 0, scaleX: 0, scaleY: 0 },
-            { at: 0.25, scaleX: 50, scaleY: 200 },
-            { at: 0.5, scaleX: 200, scaleY: 50 },
-            { at: 0.75, scaleX: 50, scaleY: 200 },
+            { at: 0.5, scaleX: 100, scaleY: 100, brightness: 80 },
+            { at: 0.75, scaleX: 150, scaleY: 150 },
             { at: 1, scaleX: 100, scaleY: 100 },
         ]),
 
-        skewCw: fromStops([
-            { at: 0, skewX: -45, skewY: -45 },
-            { at: 1, skewX: 0, skewY: 0 },
+        popTopLeft: fromStops([
+            { at: 0, originX: 0, originY: 0, scaleX: 0, scaleY: 0 },
+            { at: 0.5, scaleX: 100, scaleY: 100, brightness: 80 },
+            { at: 0.75, scaleX: 150, scaleY: 150 },
+            { at: 1, originX: 0, originY: 0, scaleX: 100, scaleY: 100 },
         ]),
 
-        skewCcw: fromStops([
-            { at: 0, skewX: 45, skewY: 45 },
-            { at: 1, skewX: 0, skewY: 0 },
-        ]),
-
-        popCenter: fromStops(POP_STOPS),
-        popTopLeft: fromStops(withAnchor(POP_STOPS, 0, 0)),
-        popTopRight: fromStops(withAnchor(POP_STOPS, 1, 0)),
-        popBottomRight: fromStops(withAnchor(POP_STOPS, 1, 1)),
-        popBottomLeft: fromStops(withAnchor(POP_STOPS, 0, 1)),
-
-        pullVertical: fromStops([
-            { at: 0, scaleX: 0, scaleY: 100 },
-            { at: 1, scaleX: 100, scaleY: 100 },
-        ]),
-
-        pullHorizontal: fromStops([
-            { at: 0, scaleX: 100, scaleY: 0 },
-            { at: 1, scaleX: 100, scaleY: 100 },
+        popTopRight: fromStops([
+            { at: 0, originX: 1, originY: 0, scaleX: 0, scaleY: 0 },
+            { at: 0.5, scaleX: 100, scaleY: 100, brightness: 80 },
+            { at: 0.75, scaleX: 150, scaleY: 150 },
+            { at: 1, originX: 1, originY: 0, scaleX: 100, scaleY: 100 },
         ]),
 
         pullDown: fromStops([
@@ -306,14 +416,9 @@ export namespace CellAnimationKeyframesConst {
             { at: 1, originY: 0, scaleY: 100 },
         ]),
 
-        pullUp: fromStops([
-            { at: 0, originY: 1, scaleY: 0 },
-            { at: 1, originY: 1, scaleY: 100 },
-        ]),
-
-        pullRight: fromStops([
-            { at: 0, originX: 0, scaleX: 0 },
-            { at: 1, originX: 0, scaleX: 100 },
+        pullHorizontal: fromStops([
+            { at: 0, scaleX: 100, scaleY: 0 },
+            { at: 1, scaleX: 100, scaleY: 100 },
         ]),
 
         pullLeft: fromStops([
@@ -321,55 +426,41 @@ export namespace CellAnimationKeyframesConst {
             { at: 1, originX: 1, scaleX: 100 },
         ]),
 
-        shootUp: fromStops([
-            { at: 0, opacity: 0, translateY: 800, scaleX: 100, scaleY: 100 },
-            { at: 0.25, opacity: 100 },
-            { at: 0.66, translateY: -400, scaleX: 150, scaleY: 150 },
-            { at: 1, translateY: 0, scaleX: 100, scaleY: 100 },
+        pullRight: fromStops([
+            { at: 0, originX: 0, scaleX: 0 },
+            { at: 1, originX: 0, scaleX: 100 },
         ]),
 
-        shakeDown: fromStops([
-            { at: 0, opacity: 0, translateX: -100, translateY: -800, rotate: 20 },
-            { at: 0.25, opacity: 100, translateX: 100, translateY: -600, rotate: -20 },
-            { at: 0.5, translateX: -50, translateY: -400, rotate: 10 },
-            { at: 0.75, translateX: 50, translateY: -200, rotate: -10 },
-            { at: 1, translateX: 0, translateY: 0, rotate: 0 },
+        pullUp: fromStops([
+            { at: 0, originY: 1, scaleY: 0 },
+            { at: 1, originY: 1, scaleY: 100 },
         ]),
 
-        dripDefault: fromStops([
-            { at: 0, originY: 1, opacity: 0, scaleY: 400, translateY: -1600 },
-            { at: 0.25, opacity: 100 },
-            { at: 0.75, scaleY: 0, translateY: 0 },
-            { at: 1, originY: 1, scaleY: 100, translateY: 0 },
+        pullVertical: fromStops([
+            { at: 0, scaleX: 0, scaleY: 100 },
+            { at: 1, scaleX: 100, scaleY: 100 },
         ]),
 
-        elasticRight: fromStops([
-            { at: 0, originX: 0, opacity: 0, scaleX: 100, translateX: 400 },
-            { at: 0.25, opacity: 100 },
-            { at: 0.5, scaleX: 400, translateX: 0 },
-            { at: 1, originX: 0, scaleX: 100, translateX: 0 },
-        ]),
+        quadrantScatter: (timeline, defs) => {
+            const offset = (1 - timeline) * 200;
+            const scale = 20 + timeline * 80;
 
-        elasticLeft: fromStops([
-            { at: 0, originX: 1, opacity: 0, scaleX: 100, translateX: -400 },
-            { at: 0.25, opacity: 100 },
-            { at: 0.5, scaleX: 400, translateX: 0 },
-            { at: 1, originX: 1, scaleX: 100, translateX: 0 },
-        ]),
-
-        elasticUp: fromStops([
-            { at: 0, originY: 1, opacity: 0, scaleY: 100, translateY: -400 },
-            { at: 0.25, opacity: 100 },
-            { at: 0.5, scaleY: 400, translateY: 0 },
-            { at: 1, originY: 1, scaleY: 100, translateY: 0 },
-        ]),
-
-        elasticDown: fromStops([
-            { at: 0, originY: 0, opacity: 0, scaleY: 100, translateY: 400 },
-            { at: 0.25, opacity: 100 },
-            { at: 0.5, scaleY: 400, translateY: 0 },
-            { at: 1, originY: 0, scaleY: 100, translateY: 0 },
-        ]),
+            return {
+                translateX: CellAnimationZones.isInZone("right", defs)
+                    ? offset
+                    : CellAnimationZones.isInZone("left", defs)
+                      ? -offset
+                      : 0,
+                translateY: CellAnimationZones.isInZone("bottom", defs)
+                    ? offset
+                    : CellAnimationZones.isInZone("top", defs)
+                      ? -offset
+                      : 0,
+                scaleX: scale,
+                scaleY: scale,
+                opacity: timeline * 100,
+            };
+        },
 
         rollDownLeft: fromStops([
             { at: 0, opacity: 0, translateX: -400, translateY: -400, rotate: -90 },
@@ -395,30 +486,33 @@ export namespace CellAnimationKeyframesConst {
             { at: 1, translateX: 0, translateY: 0, rotate: 0 },
         ]),
 
-        hopRight: fromStops([
-            { at: 0, opacity: 0, translateX: -400, translateY: 0, scaleX: 20, scaleY: 20 },
-            { at: 0.25, opacity: 100, translateX: -300, translateY: -200, scaleX: 40, scaleY: 40 },
-            { at: 0.5, translateX: -200, translateY: 0, scaleX: 60, scaleY: 60 },
-            { at: 0.75, translateX: -100, translateY: -100, scaleX: 80, scaleY: 80 },
-            { at: 1, translateX: 0, translateY: 0, scaleX: 100, scaleY: 100 },
+        shakeDown: fromStops([
+            { at: 0, opacity: 0, translateX: -100, translateY: -800, rotate: 20 },
+            { at: 0.25, opacity: 100, translateX: 100, translateY: -600, rotate: -20 },
+            { at: 0.5, translateX: -50, translateY: -400, rotate: 10 },
+            { at: 0.75, translateX: 50, translateY: -200, rotate: -10 },
+            { at: 1, translateX: 0, translateY: 0, rotate: 0 },
         ]),
 
-        hopLeft: fromStops([
-            { at: 0, opacity: 0, translateX: 400, translateY: 0, scaleX: 20, scaleY: 20 },
-            { at: 0.25, opacity: 100, translateX: 300, translateY: -200, scaleX: 40, scaleY: 40 },
-            { at: 0.5, translateX: 200, translateY: 0, scaleX: 60, scaleY: 60 },
-            { at: 0.75, translateX: 100, translateY: -100, scaleX: 80, scaleY: 80 },
-            { at: 1, translateX: 0, translateY: 0, scaleX: 100, scaleY: 100 },
-        ]),
-
-        spinUpCw: fromStops([
-            { at: 0, originX: 4, originY: 4, opacity: 0, rotate: -360 },
+        shootUp: fromStops([
+            { at: 0, opacity: 0, translateY: 800, scaleX: 100, scaleY: 100 },
             { at: 0.25, opacity: 100 },
-            { at: 1, originX: 0.5, originY: 0.5, rotate: 0 },
+            { at: 0.66, translateY: -400, scaleX: 150, scaleY: 150 },
+            { at: 1, translateY: 0, scaleX: 100, scaleY: 100 },
         ]),
 
-        spinUpCcw: fromStops([
-            { at: 0, originX: 4, originY: 4, opacity: 0, rotate: 360 },
+        skewCcw: fromStops([
+            { at: 0, skewX: 45, skewY: 45 },
+            { at: 1, skewX: 0, skewY: 0 },
+        ]),
+
+        skewCw: fromStops([
+            { at: 0, skewX: -45, skewY: -45 },
+            { at: 1, skewX: 0, skewY: 0 },
+        ]),
+
+        spinDownCcw: fromStops([
+            { at: 0, originX: -4, originY: -4, opacity: 0, rotate: 360 },
             { at: 0.25, opacity: 100 },
             { at: 1, originX: 0.5, originY: 0.5, rotate: 0 },
         ]),
@@ -429,24 +523,16 @@ export namespace CellAnimationKeyframesConst {
             { at: 1, originX: 0.5, originY: 0.5, rotate: 0 },
         ]),
 
-        spinDownCcw: fromStops([
-            { at: 0, originX: -4, originY: -4, opacity: 0, rotate: 360 },
+        spinUpCcw: fromStops([
+            { at: 0, originX: 4, originY: 4, opacity: 0, rotate: 360 },
             { at: 0.25, opacity: 100 },
             { at: 1, originX: 0.5, originY: 0.5, rotate: 0 },
         ]),
 
-        swarmCw: fromStops([
-            { at: 0, translateX: -200, translateY: -200, scaleX: 0, scaleY: 0, rotate: -360 },
-            { at: 0.1, translateX: 200, translateY: -200, scaleX: 5, scaleY: 5, rotate: -360 },
-            { at: 0.2, translateX: 200, translateY: 200, scaleX: 10, scaleY: 10, rotate: -320 },
-            { at: 0.3, translateX: -200, translateY: 200, scaleX: 15, scaleY: 15, rotate: -280 },
-            { at: 0.4, translateX: -200, translateY: -100, scaleX: 20, scaleY: 20, rotate: -240 },
-            { at: 0.5, translateX: 100, translateY: -100, scaleX: 25, scaleY: 25, rotate: -200 },
-            { at: 0.6, translateX: 100, translateY: 100, scaleX: 30, scaleY: 30, rotate: -160 },
-            { at: 0.7, translateX: -100, translateY: 100, scaleX: 45, scaleY: 45, rotate: -120 },
-            { at: 0.8, translateX: -100, translateY: 0, scaleX: 60, scaleY: 60, rotate: -80 },
-            { at: 0.9, translateX: 0, translateY: 0, scaleX: 80, scaleY: 80, rotate: -40 },
-            { at: 1, translateX: 0, translateY: 0, scaleX: 100, scaleY: 100, rotate: 0 },
+        spinUpCw: fromStops([
+            { at: 0, originX: 4, originY: 4, opacity: 0, rotate: -360 },
+            { at: 0.25, opacity: 100 },
+            { at: 1, originX: 0.5, originY: 0.5, rotate: 0 },
         ]),
 
         swarmCcw: fromStops([
@@ -463,18 +549,18 @@ export namespace CellAnimationKeyframesConst {
             { at: 1, translateX: 0, translateY: 0, scaleX: 100, scaleY: 100, rotate: 0 },
         ]),
 
-        blurDefault: fromStops([
-            { at: 0, opacity: 0, blur: 20 },
-            { at: 0.5, opacity: 100 },
-            { at: 1, blur: 0 },
-        ]),
-
-        tumbleRight: fromStops([
-            { at: 0, opacity: 0, translateX: -200, translateY: 0, rotate: -180 },
-            { at: 0.25, opacity: 100, translateX: -150, translateY: 50, rotate: -135 },
-            { at: 0.5, translateX: -100, translateY: 0, rotate: -90 },
-            { at: 0.75, translateX: -50, translateY: 25, rotate: -45 },
-            { at: 1, translateX: 0, translateY: 0, rotate: 0 },
+        swarmCw: fromStops([
+            { at: 0, translateX: -200, translateY: -200, scaleX: 0, scaleY: 0, rotate: -360 },
+            { at: 0.1, translateX: 200, translateY: -200, scaleX: 5, scaleY: 5, rotate: -360 },
+            { at: 0.2, translateX: 200, translateY: 200, scaleX: 10, scaleY: 10, rotate: -320 },
+            { at: 0.3, translateX: -200, translateY: 200, scaleX: 15, scaleY: 15, rotate: -280 },
+            { at: 0.4, translateX: -200, translateY: -100, scaleX: 20, scaleY: 20, rotate: -240 },
+            { at: 0.5, translateX: 100, translateY: -100, scaleX: 25, scaleY: 25, rotate: -200 },
+            { at: 0.6, translateX: 100, translateY: 100, scaleX: 30, scaleY: 30, rotate: -160 },
+            { at: 0.7, translateX: -100, translateY: 100, scaleX: 45, scaleY: 45, rotate: -120 },
+            { at: 0.8, translateX: -100, translateY: 0, scaleX: 60, scaleY: 60, rotate: -80 },
+            { at: 0.9, translateX: 0, translateY: 0, scaleX: 80, scaleY: 80, rotate: -40 },
+            { at: 1, translateX: 0, translateY: 0, scaleX: 100, scaleY: 100, rotate: 0 },
         ]),
 
         tumbleLeft: fromStops([
@@ -485,92 +571,24 @@ export namespace CellAnimationKeyframesConst {
             { at: 1, translateX: 0, translateY: 0, rotate: 0 },
         ]),
 
-        encircleCw: fromStops([
-            { at: 0, originX: 0, originY: 0, scaleX: 0, scaleY: 0 },
-            { at: 0.33, originX: 1, originY: 0 },
-            { at: 0.66, originX: 1, originY: 1 },
-            { at: 1, originX: 0, originY: 1, scaleX: 100, scaleY: 100 },
+        tumbleRight: fromStops([
+            { at: 0, opacity: 0, translateX: -200, translateY: 0, rotate: -180 },
+            { at: 0.25, opacity: 100, translateX: -150, translateY: 50, rotate: -135 },
+            { at: 0.5, translateX: -100, translateY: 0, rotate: -90 },
+            { at: 0.75, translateX: -50, translateY: 25, rotate: -45 },
+            { at: 1, translateX: 0, translateY: 0, rotate: 0 },
         ]),
 
-        encircleCcw: fromStops([
-            { at: 0, originX: 1, originY: 1, scaleX: 0, scaleY: 0 },
-            { at: 0.33, originX: 1, originY: 0 },
-            { at: 0.66, originX: 0, originY: 0 },
-            { at: 1, originX: 0, originY: 1, scaleX: 100, scaleY: 100 },
+        zoomIn: fromStops([
+            { at: 0, scaleX: 0, scaleY: 0 },
+            { at: 1, scaleX: 100, scaleY: 100 },
         ]),
 
-        hingeTop: fromStops([
-            { at: 0, originY: 0, opacity: 0, rotateX: 90 },
+        zoomOut: fromStops([
+            { at: 0, opacity: 0, scaleX: 400, scaleY: 400, brightness: 80 },
             { at: 0.25, opacity: 100 },
-            { at: 0.75, rotateX: -45 },
-            { at: 1, originY: 0, rotateX: 0 },
+            { at: 1, scaleX: 100, scaleY: 100, brightness: 100 },
         ]),
-
-        hingeBottom: fromStops([
-            { at: 0, originY: 1, opacity: 0, rotateX: -90 },
-            { at: 0.25, opacity: 100 },
-            { at: 0.75, rotateX: 45 },
-            { at: 1, originY: 1, rotateX: 0 },
-        ]),
-
-        hingeLeft: fromStops([
-            { at: 0, originX: 0, opacity: 0, rotateY: -90 },
-            { at: 0.25, opacity: 100 },
-            { at: 0.75, rotateY: 45 },
-            { at: 1, originX: 0, rotateY: 0 },
-        ]),
-
-        hingeRight: fromStops([
-            { at: 0, originX: 1, opacity: 0, rotateY: 90 },
-            { at: 0.25, opacity: 100 },
-            { at: 0.75, rotateY: -45 },
-            { at: 1, originX: 1, rotateY: 0 },
-        ]),
-
-        carouselTop: fromStops([
-            { at: 0, originY: 0, opacity: 0, rotateX: 90, depth: CAROUSEL_DEPTH_PERCENT },
-            { at: 0.25, opacity: 100 },
-            { at: 1, originY: 0, rotateX: 0, depth: 0 },
-        ]),
-
-        carouselBottom: fromStops([
-            { at: 0, originY: 1, opacity: 0, rotateX: -90, depth: CAROUSEL_DEPTH_PERCENT },
-            { at: 0.25, opacity: 100 },
-            { at: 1, originY: 1, rotateX: 0, depth: 0 },
-        ]),
-
-        carouselLeft: fromStops([
-            { at: 0, originX: 0, opacity: 0, rotateY: -90, depth: CAROUSEL_DEPTH_PERCENT },
-            { at: 0.25, opacity: 100 },
-            { at: 1, originX: 0, rotateY: 0, depth: 0 },
-        ]),
-
-        carouselRight: fromStops([
-            { at: 0, originX: 1, opacity: 0, rotateY: 90, depth: CAROUSEL_DEPTH_PERCENT },
-            { at: 0.25, opacity: 100 },
-            { at: 1, originX: 1, rotateY: 0, depth: 0 },
-        ]),
-
-        quadrantScatter: (timeline, defs) => {
-            const offset = (1 - timeline) * 200;
-            const scale = 20 + timeline * 80;
-
-            return {
-                translateX: CellAnimationZones.isInZone("right", defs)
-                    ? offset
-                    : CellAnimationZones.isInZone("left", defs)
-                      ? -offset
-                      : 0,
-                translateY: CellAnimationZones.isInZone("bottom", defs)
-                    ? offset
-                    : CellAnimationZones.isInZone("top", defs)
-                      ? -offset
-                      : 0,
-                scaleX: scale,
-                scaleY: scale,
-                opacity: timeline * 100,
-            };
-        },
     };
 
     export const computeAnimation = (

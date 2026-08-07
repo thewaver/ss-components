@@ -36,20 +36,33 @@ They will use terminology they feel only semi-confident about. Take the intent r
 not correct their word choice, and do not mirror a technical term back just because they reached for it
 first. Their wording can be loose; the reply still has to be plain.
 
+**Never drop an unexplained acronym or term of art.** Prefer the ordinary-words description — "a function
+that runs the moment the file loads", not "IIFE". If a term genuinely is the clearest handle, define it in
+the same sentence it first appears in, then use it freely. This applies to written documents as much as to
+chat.
+
 **No code diffs.** No before/after blocks, no patch excerpts, no "here's what changed" dumps — they add
 nothing, because the editor and git show every edit better. A short inline fragment is fine when the exact
 token is the point (a prop name, a CSS value), inside a sentence rather than as a block.
 
 **Short.** They have asked for shorter output more than once. Cut the survey of alternatives and give the
-recommendation.
+recommendation. An acknowledgement or a decision is one or two lines. Do not recap work already reported,
+do not re-list open items they have already seen, and do not close by offering next steps unless asked.
+Detail belongs in the files, not repeated in chat.
 
 **Surface one decision at a time.** A long batched list of issues does not land; a single well-argued
-question does.
+question does. They often work by voice and read in short bursts, so a bundled reply means the important
+item competes with three others and none land. When several decisions genuinely exist, say there are N
+pending and present only the first. This governs the reply, not the work — still do the whole task, and
+still write the full reasoning into `conventions.md` and `review.md`, where length is wanted.
 
 ## Arguing a position
 
 **Never justify an API shape with "it matches how it is currently used."** Argue from ownership, who has
-to know what, and what deferring the decision costs.
+to know what, and what deferring the decision costs. Consumption patterns change, so a signature defended
+by them has nothing load-bearing behind it. State the intrinsic rule first, then check it against the
+code — and say so plainly when the rule does not cleanly acquit the current design. Concede a weak opening
+argument rather than defending it.
 
 **Do not ship an approximation plus a note about what CSS cannot reach.** When the user says two things
 must behave or look the same, find and eliminate whatever makes them structurally different, and weigh
@@ -74,10 +87,32 @@ which is easy to misread as support.
 ## Writing code
 
 **Do not add code comments.** The codebase carries essentially none and that is deliberate; adding any is
-a deviation, not a neutral default. Reasoning that needs recording goes in `conventions.md`.
+a deviation, not a neutral default. Never write a `//` note inside a function body or a literal. Reasoning
+that needs recording goes in `conventions.md`, or in the reply. Correcting or deleting a comment that is
+already there is fine — that is editing what exists, not adding. If a change seems to need an inline
+comment to be understandable, that is a signal the code should be clearer instead.
+
+**`/** */` blocks above declarations stay, but are not added unprompted.** Where one already sits above a
+function or an exported declaration it is wanted: keep it, and update it when the thing it describes
+changes. Do not attach a new one to a declaration that has none unless asked for it.
 
 **Read a neighbouring component before writing a new one.** House style is tight and consistent, and
-`conventions.md` records the parts of it that were argued rather than assumed.
+`conventions.md` records the parts of it that were argued rather than assumed. Copy the neighbour's shape
+rather than writing generically idiomatic Solid: code that reads as if they wrote it costs nothing to
+review, code that does not forces a translation pass on every line. When a new API needs a convention that
+does not exist yet, derive it from the closest existing one and record it in `conventions.md` rather than
+inventing freely.
+
+**Do not bundle a judgment call into a bug fix.** Ship the defect fix on its own; do not carry a subjective
+design, API-surface, or performance change along under the fix's justification, and never list a taste
+change under the same `review.md` item as the bug it travelled with. A change riding along on a real fix
+is hard to spot in review and inherits credibility it has not earned, and the user often has context or
+measurements the code does not show. Raise the judgment call separately, in one sentence, and let them
+answer. When merging two implementations that disagree on a constant, keep both behaviours — a parameter
+with per-call-site defaults — rather than picking a winner.
+
+**Treat anything measured as the user's call.** Cache sizes, thresholds, epsilons and similar tuned values
+are decisions backed by benchmarks you cannot see. Flag a concern; do not change one unsupervised.
 
 ## The three documents
 
