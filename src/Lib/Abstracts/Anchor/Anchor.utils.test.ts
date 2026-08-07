@@ -114,6 +114,42 @@ describe("getSafeHPlacement", () => {
             "left-out",
         );
     });
+
+    it("keeps the asked-for in placement when the content fits beside the edge it is aligned to", () => {
+        expect(safeH("left-in", { ...ANCHOR, x: 100 })).toBe("left-in");
+        expect(safeH("right-in", { ...ANCHOR, x: 700 })).toBe("right-in");
+    });
+
+    it("measures an in placement by where the content lands, not by where the anchor edge is", () => {
+        expect(
+            safeH("left-in", { ...ANCHOR, x: 900 }),
+            "a left-in anchored at 900 with 200 of content would end at 1100, off a 1000 screen",
+        ).toBe("right-in");
+        expect(
+            safeH("right-in", { ...ANCHOR, x: 20 }),
+            "and a right-in near the left edge grows backwards off it",
+        ).toBe("left-in");
+    });
+
+    it("never leaves the family it was asked for, because in and out mean different things", () => {
+        const clipped = { ...ANCHOR, x: 950, width: 300 };
+
+        expect(
+            safeH("left-in", clipped),
+            "an anchor hanging off the screen has no in placement that fits, and out is not an answer",
+        ).toMatch(/-in$/);
+        expect(safeH("right-in", clipped)).toMatch(/-in$/);
+        expect(safeH("left-out", { ...ANCHOR, x: 400 })).toMatch(/-out$/);
+    });
+
+    it("takes the least overflow when nothing in the family fits", () => {
+        const clipped = { ...ANCHOR, x: 980, width: 300 };
+
+        expect(
+            safeH("left-in", clipped),
+            "right-in starts at 1080 and left-in at 980, so left-in is the shorter fall off the edge",
+        ).toBe("left-in");
+    });
 });
 
 describe("getSafeVPlacement", () => {

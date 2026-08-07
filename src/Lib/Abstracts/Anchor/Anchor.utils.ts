@@ -69,6 +69,25 @@ export namespace AnchorUtils {
         }
     };
 
+    const H_FAMILIES: Record<AnchorHPlacement, readonly AnchorHPlacement[]> = {
+        "left-in": ["left-in", "right-in"],
+        "right-in": ["right-in", "left-in"],
+        "left-out": ["left-out", "right-out"],
+        "right-out": ["right-out", "left-out"],
+        "center": ["center", "left-in", "right-in"],
+    };
+
+    const V_FAMILIES: Record<AnchorVPlacement, readonly AnchorVPlacement[]> = {
+        "top-in": ["top-in", "bottom-in"],
+        "bottom-in": ["bottom-in", "top-in"],
+        "top-out": ["top-out", "bottom-out"],
+        "bottom-out": ["bottom-out", "top-out"],
+        "center": ["center", "top-in", "bottom-in"],
+    };
+
+    const getOverflow = (start: number, size: number, limit: number, reserved: number) =>
+        Math.max(0, reserved - start) + Math.max(0, start + size - (limit - reserved));
+
     export const getSafeHPlacement = (
         hPlacement: AnchorHPlacement,
         anchorRect: Rect,
@@ -77,38 +96,20 @@ export namespace AnchorUtils {
         offsetSize?: Point2d,
         reservedScreenSize?: Size2d,
     ): AnchorHPlacement => {
-        const offset = getHPlacementOffset(hPlacement, offsetSize?.x ?? 0);
+        const offsetX = offsetSize?.x ?? 0;
         const reservedW = reservedScreenSize?.width ?? 0;
-        const left = anchorRect.x + offset;
-        const right = anchorRect.x + anchorRect.width + offset;
 
-        if (hPlacement.includes("out")) {
-            const spaceR = screenSize.width - (right + contentSize.width + reservedW);
-            const spaceL = left - (contentSize.width + reservedW);
+        const getCandidateOverflow = (candidate: AnchorHPlacement) =>
+            getOverflow(
+                getHPlacementShift(candidate, anchorRect, contentSize)! + getHPlacementOffset(candidate, offsetX),
+                contentSize.width,
+                screenSize.width,
+                reservedW,
+            );
 
-            if (hPlacement === "right-out" && spaceR >= 0) return "right-out";
-            if (hPlacement === "left-out" && spaceL >= 0) return "left-out";
-            return spaceR >= spaceL ? "right-out" : "left-out";
-        }
-
-        if (hPlacement.includes("in")) {
-            const spaceR = screenSize.width - (left + reservedW);
-            const spaceL = right - reservedW;
-
-            if (hPlacement === "right-in" && spaceL >= 0) return "right-in";
-            if (hPlacement === "left-in" && spaceR >= 0) return "left-in";
-            return spaceL >= spaceR ? "right-in" : "left-in";
-        }
-
-        const center = left + anchorRect.width * 0.5;
-        const spaceR = screenSize.width - (center + contentSize.width * 0.5 + reservedW);
-        const spaceL = center - (contentSize.width * 0.5 + reservedW);
-
-        if (spaceL < 0 || spaceR < 0) {
-            return spaceL > spaceR ? "right-in" : "left-in";
-        }
-
-        return "center";
+        return H_FAMILIES[hPlacement].reduce((best, candidate) =>
+            getCandidateOverflow(candidate) < getCandidateOverflow(best) ? candidate : best,
+        );
     };
 
     export const getSafeVPlacement = (
@@ -119,37 +120,19 @@ export namespace AnchorUtils {
         offsetSize?: Point2d,
         reservedScreenSize?: Size2d,
     ): AnchorVPlacement => {
-        const offset = getVPlacementOffset(vPlacement, offsetSize?.y ?? 0);
+        const offsetY = offsetSize?.y ?? 0;
         const reservedH = reservedScreenSize?.height ?? 0;
-        const top = anchorRect.y + offset;
-        const bottom = anchorRect.y + anchorRect.height + offset;
 
-        if (vPlacement.includes("out")) {
-            const spaceB = screenSize.height - (bottom + contentSize.height + reservedH);
-            const spaceT = top - (contentSize.height + reservedH);
+        const getCandidateOverflow = (candidate: AnchorVPlacement) =>
+            getOverflow(
+                getVPlacementShift(candidate, anchorRect, contentSize)! + getVPlacementOffset(candidate, offsetY),
+                contentSize.height,
+                screenSize.height,
+                reservedH,
+            );
 
-            if (vPlacement === "bottom-out" && spaceB >= 0) return "bottom-out";
-            if (vPlacement === "top-out" && spaceT >= 0) return "top-out";
-            return spaceB >= spaceT ? "bottom-out" : "top-out";
-        }
-
-        if (vPlacement.includes("in")) {
-            const spaceB = screenSize.height - (top + reservedH);
-            const spaceT = bottom - reservedH;
-
-            if (vPlacement === "bottom-in" && spaceT >= 0) return "bottom-in";
-            if (vPlacement === "top-in" && spaceB >= 0) return "top-in";
-            return spaceT >= spaceB ? "bottom-in" : "top-in";
-        }
-
-        const center = top + anchorRect.height * 0.5;
-        const spaceB = screenSize.height - (center + contentSize.height * 0.5 + reservedH);
-        const spaceT = center - (contentSize.height * 0.5 + reservedH);
-
-        if (spaceT < 0 || spaceB < 0) {
-            return spaceT > spaceB ? "bottom-in" : "top-in";
-        }
-
-        return "center";
+        return V_FAMILIES[vPlacement].reduce((best, candidate) =>
+            getCandidateOverflow(candidate) < getCandidateOverflow(best) ? candidate : best,
+        );
     };
 }

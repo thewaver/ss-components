@@ -56,6 +56,16 @@ must behave or look the same, find and eliminate whatever makes them structurall
 the cost of that, rather than layering a rule on top of a divergence and logging the residual as an open
 question. The `aria-disabled`-everywhere decision came out of exactly this correction.
 
+**Do not verify the user's claims about history.** If they say the code used to be a certain way, or that
+they wrote a given part, take it and move on. They may be wrong; unless accepting it would change what
+gets built, being right about it costs tokens and buys nothing. `git log` is for one thing only: a
+practical regression — something that worked from a consumer's point of view and now does not.
+
+**Authorship claims are about who holds the rationale, not about blame.** "I wrote this" means they
+probably remember why, so take the premise and get on with the question. "You wrote this" means their
+review did not stop there and something may now be surprising — so the thing being asked for is the
+reasoning, not a defence and not a check of whether it is true.
+
 **Look facts up; do not offer recollection as the answer.** For browser or platform support, MDN and
 caniuse are expected sources. Probing the local toolchain is a useful supplement but not a substitute —
 it reveals only what that tool happens to encode, and says nothing about features it has no data for,

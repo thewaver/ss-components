@@ -20,8 +20,7 @@ having done the work does not go anywhere.
 10. Other core controls the library does not have — _open_
 11. Machinery those controls need, none of which exists — _open_
 12. What the verification suite still cannot see — _open_
-13. `AnchorUtils.getSafeHPlacement`'s `in` branch never reads the content size — _open_
-14. The SVG defs' geometry cannot be reached without rendering — _open_
+13. The SVG defs' geometry cannot be reached without rendering — _open_
 
 ### Build order
 
@@ -418,10 +417,10 @@ limit: what wants settling first is whether a committed baseline image is wanted
 given every painter lives in the Playground and a deliberate restyle would then have to re-bless the
 baselines.
 
-**Components with a Playground page and no spec driving it**: `CellAnimation`, `ScanlineAnimation`,
-`ScreenWiper`, `ElementHighlight` and `Typewriter`. The first four are the hard case rather than the
-neglected one — what they produce is a transition over time, so a spec over them would assert structure
-and call it coverage. What would actually cover them is the screenshot decision above.
+**Three components have a Playground page and no spec driving it**: `CellAnimation`,
+`ScanlineAnimation` and `ScreenWiper`. All three are the hard case rather than the neglected one — what
+they produce is motion over time, so a DOM-reading spec over them would assert structure and call it
+coverage. What would actually cover them is the screenshot decision above, and nothing else will.
 
 **Components with no Playground page at all**, so nothing can drive them until one exists:
 `AudioSwitcher`, `ImageSwitcher` and `RichText`, all three commented out of `TAB_CONFIGS` in
@@ -446,29 +445,7 @@ it.
 
 ---
 
-## 13. `AnchorUtils.getSafeHPlacement`'s `in` branch never reads the content size
-
-The `out` branch subtracts `contentSize` when it works out whether the content fits, and the centre
-branch subtracts half of it. The `in` branch subtracts neither: `spaceR` is
-`screenSize.width - (left + reservedW)` and `spaceL` is `right - reservedW`, both measured from an
-anchor edge, so the check asks whether the _anchor_ is on screen rather than whether the content will
-be. `getSafeVPlacement` has the same shape.
-
-The consequence, measured: with a 1000-wide screen, an anchor at `x: 900` 50 wide and a content 200
-wide, `getSafeHPlacement("left-in", …)` returns `left-in`, `getHPlacementShift` then puts the content
-at 900, and its right edge lands at 1100 — 100px off-screen, from the function whose entire job is to
-prevent that.
-
-It is invisible today because the two consumers that pass an `in` placement — `Select`'s popup and
-`Tooltip` — are both narrower than or close to their anchor, so the anchor being on screen implies the
-content is. Any consumer whose floating layer is wider than its trigger reaches it immediately. The fix
-is a one-line change on each of the four `space*` expressions; what wants deciding is whether the `in`
-placements should also be allowed to flip to their `out` siblings when neither side fits, which is a
-behaviour change rather than a correction.
-
----
-
-## 14. The SVG defs' geometry cannot be reached without rendering
+## 13. The SVG defs' geometry cannot be reached without rendering
 
 `SVGPatternDefsUtils` is 321 lines of tiling arithmetic — the row and column offsets that make a grid, a
 diagonal, a half-drop, a triangle and two hex packings line up — and every one of those `compute*`

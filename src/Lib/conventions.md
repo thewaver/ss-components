@@ -31,6 +31,15 @@ exercises it. Vanilla-extract for styles, Vite for both builds.
 controls that carry a user-editable value; the argument for that grouping is under _"Folder layout"_.
 `src/Lib/index.ts` enumerates every export path individually and stays sorted — it is not a barrel.
 
+**`Composites/` is deliberately not exported, and neither is `BinarySwitch`.** `index.ts` carries
+`Abstracts` and `Fundamentals` only. A composite is a demonstration of how the Fundamentals combine
+rather than a thing with its own contract, so shipping one would freeze a composition the consumer is
+better off writing themselves — `Surface` is built and exercised in the Playground and reachable from
+source, and that is the whole of its intended audience. `BinarySwitch` is internal for the same reason
+from the other direction: only `BinarySwitch.types` ships, because `Checkbox`, `Toggle` and `Radio` are
+its presets and the base itself is an implementation detail of those three. Worth stating because a
+missing export otherwise reads as an oversight — it has been raised as a bug once already.
+
 ### House style
 
 `const DEFAULT_X = …` at module scope, `createMemo` for derived props with a default, one blank line
@@ -1162,6 +1171,32 @@ carrying `aria-disabled="true"` and **no** `disabled` attribute, and a floater p
 offset — which is also the proof that the `offsetParent` hop resolves and that `ref` forwards through
 the router's `A`. Interaction is still unverified, per `review.md`.
 
+### `Anchor`: a placement may fall back within its family and never outside it
+
+`getSafeHPlacement` and its vertical twin choose between candidates by asking each one where the content
+would actually land — `getHPlacementShift` plus that candidate's own `getHPlacementOffset` — and taking
+the least overflow. They used to hand-derive a "space" figure per branch from the anchor's edges, which
+is how the `in` branch came to ignore the content size entirely and place content off-screen in 78 of a
+240-case sweep. Deriving the span from the functions that do the positioning makes that class of error
+unexpressible, and fixes a second one for free: the offset was previously computed once from the
+_requested_ placement and then reused to judge its mirror, whose offset has the opposite sign.
+
+**A placement never crosses between `in` and `out`.** `in` means the content is aligned to an anchor edge
+and overlaps it; `out` means it sits beside the anchor. Choosing between them is the consumer stating a
+relationship, not a hint — a tooltip that hops from inside its anchor to outside it has changed what it
+means, not just where it is. So `left-in` may become `right-in` and `left-out` may become `right-out`,
+and nothing else. `center` may fall back to either `in`, since a centred layer already overlaps.
+
+The cost is accepted and measured: when an anchor is itself clipped by the viewport there are cases where
+no `in` placement fits and an `out` one would have. All of them require the anchor to be partly
+off-screen — with the anchor fully visible, the family is always sufficient.
+
+**Content that fits nowhere takes the least-overflow candidate and is allowed to run off the screen.**
+`getPosition` applies the shift as computed and never clamps. Clamping would keep the content visible at
+the price of detaching it from the edge it was aligned to, which is the same trade as crossing families
+and is refused for the same reason: a layer that no longer touches its anchor has stopped describing the
+relationship the consumer asked for. A layer wider than the viewport is the consumer's to size.
+
 ### `Anchor`: the positioning half of a floating layer, extracted
 
 Settled **2026-08-06**, as the other half of the `Select` groundwork. A dropdown needs everything
@@ -1626,6 +1661,12 @@ Two things Playwright cannot do for us, both recorded because each reads as a co
   `aria-activedescendant` and `toBeFocused` before pressing anything, and `Select` waits on the
   highlight.
 
+- **An element under a looping CSS animation can never be clicked.** Playwright waits for a stable
+  bounding box before it acts, and a container running an infinite keyframe slide never has one, so the
+  click waits out the full timeout and reads as a broken component. `e2e/elementHighlight.spec.ts`
+  focuses its triggers and presses Enter instead: no geometry is involved, and a keyboard user reaching a
+  moving button is the same journey.
+
 **Playwright has no IME API**, so `TextSync`'s composition gating is driven straight over the DevTools
 Protocol through `page.context().newCDPSession(page)` — the one place this suite still reaches past the
 library it is built on.
@@ -1641,7 +1682,7 @@ markup, and neither would have been found by looking at the page.
 `e2e/` can only reach what a click can reach. A function that takes rectangles and returns a placement
 has no page to be clicked on, so provoking its edge cases through a browser means building a Playground
 variant per case — which is why `AnchorUtils`'s flip-and-clamp logic went unchecked long enough to ship
-the overflow in `review.md` #13. `npm test` is the other half: it calls library functions directly.
+the overflow in `review.md` #5. `npm test` is the other half: it calls library functions directly.
 
 **One dependency, and no DOM.** `vitest` reads the repo's own Vite setup, and `vitest.config.ts` sets
 `environment: "node"` because nothing under test touches a document. A jsdom environment would invite
