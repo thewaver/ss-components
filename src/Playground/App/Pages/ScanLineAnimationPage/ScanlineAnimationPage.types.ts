@@ -1,4 +1,5 @@
-import type { CellAnimationWeights } from "../../../../Lib/Fundamentals/CellAnimation/CellAnimation.utils";
+import type { Point2d } from "@thewaver/ss-utils";
+
 import type { ScanlineAnimationController } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.types";
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
@@ -7,6 +8,6 @@ export type ScanlineAnimationExampleProps = AccessorProps<{
     lineCount: number;
     animationDurationMs: number;
     animationIterationDelayMs: number;
-    weightType: CellAnimationWeights.OriginFreeWeightType;
+    computeCellWeights: (count: Point2d) => number[][];
     onMount: (controller: ScanlineAnimationController) => void;
 }>;

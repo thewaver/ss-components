@@ -1105,6 +1105,88 @@ This is the `computeIsReachable` situation — a settled rule, and two copies wo
 moved to `Label.utils.ts` under the same namespace idiom as `InteractionUtils`, and the warning lost
 its `BinarySwitch:` prefix.
 
+### Controls: `Range`
+
+Settled **2026-08-07**. `review.md` predicted this would be the most architecturally novel control
+left and got the central call wrong, which is the most useful thing to record about it.
+
+**A two-thumb range _is_ two native `<input type="range">` elements, one per thumb.** The prediction
+was that two thumbs had nowhere to go under the overlay-geometry rule, so both thumb counts would
+have to be custom. They do not. Each thumb is its own input, absolutely positioned `inset: 0` over
+the same painter, so a pair is the single case rendered twice and the two modes cannot diverge in
+paint, keyboard or ARIA. Keeping native also keeps `step`, `Home`/`End`, `PageUp`/`PageDown`, drag,
+and the track-click jump, none of which anyone has to write.
+
+`Range` therefore did **not** need `review.md` #2's pointer primitive, and item 2 stays open for the
+thing that actually needs it — a two-dimensional colour surface, which has no native equivalent.
+
+**Crossing is prevented by the inputs' own `min` and `max`, not by JS.** Thumb `n`'s `min` is thumb
+`n-1`'s current value and its `max` is thumb `n+1`'s, so the browser clamps a drag and a keypress
+identically and no guard can be forgotten. The cost is the tie: when two thumbs sit on the same
+value, neither can move through the other, so which one you grab decides which way you can go.
+`raiseNearestThumb` resolves that on `pointermove` — the input whose value is nearest the pointer
+gets `z-index: 1`, and on an exact tie the side of the pointer decides. Verified in a browser: with
+both thumbs driven to 80, pressing below and dragging left frees the low thumb, pressing above and
+dragging right frees the high one.
+
+**Ranking has to happen on `pointermove`, before the press.** `pointerdown` is too late — the
+browser has already picked the event target and begun its native drag by the time the handler runs.
+The move handler is skipped while a button is held (`e.buttons === 0`) so a drag in progress cannot
+be stolen by the thumb it is sliding past.
+
+**The library owns the thumb's hit size; the painter owns its appearance.** `appearance: none` on a
+range leaves the thumb with no size in Chromium, which kills dragging, so `Range.css.ts` must style
+`::-webkit-slider-thumb` and `::-moz-range-thumb` — transparent, sized from `getThumbSize`. That
+number and the painter's visible thumb have to agree, and nothing enforces it. This is exactly
+`TextInput`'s padding-versus-inset cost, and the Playground pays it the same way: `RANGE_THUMB_SIZE`
+is one constant shared by the painter and the call site.
+
+It is also why the painter is handed `ratios` rather than percentages. A thumb's centre travels
+between `thumbSize / 2` and `length - thumbSize / 2`, never the full track, so a painter placing a
+thumb at `left: ratio%` would overhang both ends. The painter positions with
+`calc(ratio * (100% - thumbSize))`, which it can only write because it knows the thumb size.
+
+**One prop per mode, and giving neither or both warns.** `valueSignal: Signal<number>` drives one
+thumb; `rangeSignal: Signal<RangeValues>` drives a pair. A single `Signal<number | RangeValues>`
+would force every consumer of a plain slider to narrow a union on every read, and a generic would
+hit the `AccessorProps` hole recorded above. Mode is structural rather than a `getMode` prop because
+the value's shape already carries it.
+
+**The selection is `{ start, end }`, and the scale keeps `min` / `max`.** The pair's fields were
+`min` / `max` for one draft, which collided badly: `getMin` would have been the floor of the track
+while `rangeSignal[0]().min` was the floor of the selected band — two different things under one word,
+one axis apart. `getMin` / `getMax` had the stronger claim on those names, since they match the native
+attributes and `TextInputState` already uses them for the same purpose.
+
+`start` / `end` was chosen over `from` / `to` on published precedent rather than taste. Adobe's React
+Spectrum `RangeSlider` takes exactly `{ start, end }` — `defaultValue={{ start: 12, end: 36 }}` — and
+MUI's own prose describes its array as "the start and end of a range" even though its API is
+`number[]`. Radix is `value: number[]`, so it offers no field names either way. The only major library
+found using named fields other than `start` / `end` is Ionic, with `{ lower, upper }` — and its type
+is `number | { lower, upper }`, the single union this component deliberately avoided. Nothing checked
+uses `from` / `to` for a slider; that reads as a date-range and filter idiom.
+
+`RangeValues` and `RangeSpan` are the same shape on purpose: the selection is in scale units and
+`flags.fill` is the same span expressed as 0..1 ratios, so sharing the vocabulary is the point.
+
+**Disabled refuses the write and pushes the element back.** A range has no `readonly`, so the guard
+is the `BinarySwitch` shape: the browser moves the thumb before firing `input`, so when the value is
+refused `syncElement` writes state back over it. Both paths run it, since the accepted path is also
+where an owner may clamp or reject.
+
+**Vertical is `writing-mode: vertical-lr` plus `direction: rtl`, and it has no fallback — accepted
+2026-08-07.** The `direction` is what puts the low value at the bottom; without it a vertical slider
+runs downwards. Per MDN, vertical form controls via `writing-mode` "only gained full browser support
+in 2024", and this is `src/Lib`, so the baseline was put to the user rather than assumed, and taken:
+two years is long enough. The older routes could not have been layered underneath in any case —
+`appearance: slider-vertical` cannot be combined with the `appearance: none` that strips the UA
+paint, and Firefox's `orient="vertical"` is non-standard. On an engine older than that, a vertical
+`Range` renders horizontal rather than degrading gracefully.
+
+This is the first hard modern-CSS dependency in `src/Lib` with no fallback, which makes it the
+precedent the _"Compatibility arguments"_ section above will be cited against. It is a real one: it
+was argued from a dated support claim and sanctioned explicitly, not inferred from the Playground.
+
 ### Controls: `Tabs` as records, and the shape a data-driven group has to take
 
 Settled **2026-08-06**, as the rehearsal for `Select`. `Tabs` predated the control model and was the
@@ -1675,7 +1757,7 @@ library it is built on.
 `ElementFader` hanging its state machine on a single frame (below) are both bugs that are invisible in
 markup, and neither would have been found by looking at the page.
 
-`review.md` #12 carries what the suite still cannot see.
+`review.md` #11 carries what the suite still cannot see.
 
 ### Unit tests: `vitest`, colocated, and only for functions
 
@@ -1721,7 +1803,7 @@ rather than describe it, and would have to be re-blessed wholesale by any change
   JSX, and their arithmetic — the tiling offsets for each pattern, the gradient stop interpolation in
   `resolveStops` — is written inline inside the element being built or kept private to the module. There
   is real geometry in there and it is currently unreachable without either rendering or a refactor that
-  separates the arithmetic from the markup. `review.md` #14 records it.
+  separates the arithmetic from the markup. `review.md` #12 records it.
 - **A known-broken case is pinned rather than fixed.** `CellAnimation.utils.test.ts` asserts the
   out-of-range weights that `review.md` #5 describes, with the measured numbers. It passes today and will
   fail the moment anyone fixes the bug, which is the point — both candidate fixes change output across
@@ -1900,7 +1982,7 @@ to win — which is the half that was actually costing anyone anything.
 `PageFileField` live in one folder as one file, because seven two-line adapters in seven folders is worse
 than the family being visible in one place — the same call `Select.tsx` makes with its three private
 components. Each keeps a local `*Signal` and mirrors the panel's plain value into it. That mirror is
-written seven times and it is the thing `review.md` #11 now records as a gap: every control here owns its
+written seven times and it is the thing `review.md` #10 now records as a gap: every control here owns its
 value as a signal, and a consumer whose state is a store has to build the bridge themselves.
 
 ### `ScreenWiper`: CSS shapes, not SVG
@@ -1935,6 +2017,35 @@ Not exercised: the `circle` shape has no Playground variant, so `border-radius: 
 `(pos, count, origin)`, and `computeBreakpoints(weight, opts)` turns that into the slice of the
 global timeline the cell owns — direction is weight inversion, smoothness is the width of the window.
 
+**The library names no weight and knows nothing about origins — settled 2026-08-07.**
+`CellAnimation` took `getOriginType`, `getWeightType` and `getWeightOpts`, so the nine named origins
+and the thirty-seven named weights were the only ones a consumer could have. That is the wrong
+ownership: a consumer who wants an origin the library never thought of, or a distribution driven by
+their own data, had no way in at all. Every named origin and weight moved to
+`src/Playground/App/Samples` as ordinary sample code that a consumer can copy, extend or ignore.
+
+**The weights slot is a callback taking the count.** The grid the component draws is not the grid the
+consumer asked for — the requested count is clamped against the measured pixel size, since cells
+thinner than a pixel cannot draw. A weight grid built from the consumer's own numbers would therefore
+be the wrong shape whenever that clamp bites, and a wrong shape breaks indexing, so the component
+hands the effective count to `computeCellWeights`. Missing weights fall back to `0` per cell rather
+than throwing, because the grid now arrives from outside.
+
+**The origin never enters the library at all, not even as data on the defs.** An evaluator's whole
+use for it is "am I left of the origin, or right of it" — the direction a cell moves — so it was
+tempting to keep an `origin` field on `CellAnimationEvaluationDefs` and have the component thread a
+`Point2d` through. It does not. `CellAnimationEvaluationDefs` is `{ pos, count, weight, size }`, and
+a consumer who needs an origin merges their own in at the call site, the way the Playground's
+`DefaultExample` does. The reason is that a threaded origin would be a value the component stores,
+validates and re-renders on while never reading it — API surface that only forwards. The consumer
+already holds the point, since they computed the weights from it.
+
+Two consequences worth stating. Whoever wants origin-aware zones or keyframes types their own defs as
+`CellAnimationEvaluationDefs & { origin: Point2d }`, which is what `CellAnimationZones.isInZone` and
+`CellAnimationKeyframes.computeAnimation` take. And a consumer whose origin is derived from the grid
+has to derive it from the count they requested, not the count the component settled on — the same
+clamp above, and the one place this shape is weaker than threading the value.
+
 **`ScanlineAnimation` is a preset over this, not a second engine.** A scanline is a 1×N grid, so a
 line is a cell and `getLineCount` is the only prop it adds; the five orderings it used to own became
 the `sequence*` weight functions, which are exact rather than approximate. It kept its own name and
@@ -1946,12 +2057,12 @@ single column, so every weight reading `dist.x` collapses: six go outright const
 `lineColumnAlternate`, `lineColumnConvergent`, `radarDouble`, `radarQuad`, `quadrantDefault` — four
 more fall to two values, and most survivors are a plain row ramp wearing a name like `spiral` or
 `checkered`. The distance-based weights that do survive work, but they are the only reason an origin
-would exist on a line, and a control that is meaningful for three of nine options reads as broken. So
-`ScanlineAnimation` offers `ORIGIN_FREE_WEIGHT_TYPES` — the five `sequence*` permutations, which are
-the orderings it owned before the merge, plus `randomDefault` — and has no `getOriginType` at all.
-`CellAnimation` keeps the full set and calls `isOriginAware` to disable its own origin control when
-the selected weight ignores it. Both narrowings live in the type rather than in the Playground's
-dropdown, because filtering only the UI leaves the same trap set for the next consumer.
+would exist on a line, and a control that is meaningful for three of nine options reads as broken.
+This used to be enforced in the library: `ScanlineAnimation` narrowed its `weightType` to
+`ORIGIN_FREE_WEIGHT_TYPES` and exposed no origin at all. With the vocabulary gone from the library
+there is nothing left to narrow, so the constraint is now the Playground's — its Scanline page offers
+only the origin-free weights and pins the origin to `{ x: 0, y: 0 }`. Recorded because it is a real
+loss: the type used to make the trap unreachable, and now only the sample avoids it.
 
 **Cell geometry is integral and the requested count is honoured exactly.** Edges are
 `round(idx * total / count)`, so every cell starts on a whole pixel and the remainder is spread across
@@ -1972,10 +2083,25 @@ sub-pixel rounding is not a substitute for looking at it. Only the drawn box gro
 first column rather than shifting the slicing. `defs.size` reports the drawn box, because that is what
 the browser resolves a percentage `translateX` against.
 
-**Whole-grid operations cannot live in a per-cell evaluator**, which is why the component owns
-weights while the consumer owns breakpoints. `shouldMakeUnique` and `shouldNormalize` rank every
-cell against every other, and the memoised grid also stops `randomDefault` reshuffling every frame.
-The evaluator receives `{ pos, count, origin, weight }`, so a zone predicate can drive motion.
+**Whole-grid operations cannot live in a per-cell evaluator**, which is why weights are computed once
+per count rather than per frame. `shouldMakeUnique` and `shouldNormalize` rank every cell against
+every other, and memoising the grid also stops `randomDefault` reshuffling every frame. The component
+still owns that memo; what changed is that it calls the consumer's function to fill it.
+
+**Grid geometry belongs to `ss-utils`, not here.** The per-axis distance between two cells, the
+clamp of a point into a grid, and the distance from a cell to the further of the two edges it sits
+between are `Point2dUtils.getDelta`, `getBoundPoint` and `getFarthestBound` — added in `ss-utils`
+0.0.20 for exactly this. `CellAnimationUtils` keeps only what has no equivalent there: the parity
+predicates (`isEvenRow`, `isEvenColumn`, `isEvenRing`, `isEvenCheckered`), which read a distance
+rather than measure one.
+
+**`getFarthestBound` is not a drop-in for the old `getMaxDistance`, and the difference is
+load-bearing.** It reports the honest `0` on a single-cell grid; the original floored the result at
+`1`. Every distance-based weight divides by that number, so the floor is what stops a 1×1 grid
+producing `Infinity`. That floor is a property of the weight functions, not of the geometry, so it
+lives with them in `CellAnimationWeights.const.ts` rather than being pushed back into a general
+util. `computeCellWeights` is pinned on a 1×1 grid so a future simplification that drops it fails
+loudly.
 
 **An anchor is a translate, not a new value key.** Scaling or rotating about an anchor `a` equals the
 centre-anchored transform `M` plus a translate of `(I - M)·a`, and translate percentages resolve

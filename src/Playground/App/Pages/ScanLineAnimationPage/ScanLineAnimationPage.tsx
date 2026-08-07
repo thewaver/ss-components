@@ -1,10 +1,8 @@
 import { createMemo, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 
-import {
-    CellAnimationBreakpoints,
-    CellAnimationWeights,
-} from "../../../../Lib/Fundamentals/CellAnimation/CellAnimation.utils";
+import type { Point2d } from "@thewaver/ss-utils";
+
 import { ScanlineAnimation } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
 import type { ScanlineAnimationController } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.types";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
@@ -20,7 +18,9 @@ import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { StressTest } from "../../PageComponents/StressTest/StressTest";
 import type { StressTestDefs } from "../../PageComponents/StressTest/StressText.types";
-import { ScanlineAnimationKeyframesConst } from "../../Samples/ScanlineAnimation.const";
+import { CellAnimationBreakpoints } from "../../Samples/CellAnimationBreakpoints.const";
+import { CellAnimationWeights } from "../../Samples/CellAnimationWeights.const";
+import { ScanlineAnimationKeyframes } from "../../Samples/ScanlineAnimationKeyframes.const";
 import knight from "../../knight.png";
 import { BrightnessExample } from "./Examples/Brightness";
 import BrightnessExampleRaw from "./Examples/Brightness.tsx?raw";
@@ -62,6 +62,7 @@ const MAX_DURATION_MS = 5000;
 const DURATION_STEP_MS = 100;
 const MIN_ITERATION_DELAY_MS = 0;
 const STRESS_LINE_COUNT = 120;
+const SCANLINE_ORIGIN: Point2d = { x: 0, y: 0 };
 const STRESS_ITEMS: (StressTestDefs & { size: number; kind: "transform" | "filter" })[] = (
     ["transform", "filter"] as const
 )
@@ -143,15 +144,15 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
                     const foo =
                         STRESS_ITEMS[getConfigIndex()].kind === "transform"
                             ? random < 1
-                                ? ScanlineAnimationKeyframesConst.computeHorizontalSnake
+                                ? ScanlineAnimationKeyframes.computeHorizontalSnake
                                 : random < 2
-                                  ? ScanlineAnimationKeyframesConst.computeHorizontalSplit
-                                  : ScanlineAnimationKeyframesConst.computeHorizontalStretch
+                                  ? ScanlineAnimationKeyframes.computeHorizontalSplit
+                                  : ScanlineAnimationKeyframes.computeHorizontalStretch
                             : random < 1
-                              ? ScanlineAnimationKeyframesConst.computeHorizontalBrightness
+                              ? ScanlineAnimationKeyframes.computeHorizontalBrightness
                               : random < 2
-                                ? ScanlineAnimationKeyframesConst.computeHorizontalHue
-                                : ScanlineAnimationKeyframesConst.computeHorizontalGrayscale;
+                                ? ScanlineAnimationKeyframes.computeHorizontalHue
+                                : ScanlineAnimationKeyframes.computeHorizontalGrayscale;
 
                     return (
                         <PageMeasureBox
@@ -250,7 +251,7 @@ const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 };
 
 const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalStretchOpts>({
+    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalStretchOpts>({
         peakScalePercent: 150,
     });
     const [breakpointOpts, setBreakpointOpts] = createStore<CellAnimationBreakpoints.BreakpointOpts>({
@@ -291,7 +292,7 @@ const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 };
 
 const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalSnakeOpts>({
+    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalSnakeOpts>({
         shiftPercent: 5,
     });
     const [breakpointOpts, setBreakpointOpts] = createStore<CellAnimationBreakpoints.BreakpointOpts>({
@@ -332,7 +333,7 @@ const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 };
 
 const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalSplitOpts>({
+    const [keyframeOpts, setKeyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalSplitOpts>({
         shiftPercent: 10,
     });
     const [breakpointOpts, setBreakpointOpts] = createStore<CellAnimationBreakpoints.BreakpointOpts>({
@@ -373,7 +374,7 @@ const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 };
 
 const BrightnessExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [keyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalBrightnessOpts>({});
+    const [keyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalBrightnessOpts>({});
     const [breakpointOpts, setBreakpointOpts] = createStore<CellAnimationBreakpoints.BreakpointOpts>({
         dir: "asc",
         smoothness: 0.5,
@@ -401,7 +402,7 @@ const BrightnessExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 };
 
 const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [keyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalGrayscaleOpts>({});
+    const [keyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalGrayscaleOpts>({});
     const [breakpointOpts, setBreakpointOpts] = createStore<CellAnimationBreakpoints.BreakpointOpts>({
         dir: "asc",
         smoothness: 0.5,
@@ -429,7 +430,7 @@ const GrayscaleExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 };
 
 const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
-    const [keyframeOpts] = createStore<ScanlineAnimationKeyframesConst.HorizontalHueOpts>({});
+    const [keyframeOpts] = createStore<ScanlineAnimationKeyframes.HorizontalHueOpts>({});
     const [breakpointOpts, setBreakpointOpts] = createStore<CellAnimationBreakpoints.BreakpointOpts>({
         dir: "asc",
         smoothness: 0.5,
@@ -472,11 +473,12 @@ export const ScanlineAnimationPage = () => {
             onMount: (controller) => {
                 controllers.push(controller);
             },
+            computeCellWeights: (count) =>
+                CellAnimationWeights.computeCellWeights(getWeightType(), count, SCANLINE_ORIGIN),
             getSrc,
             getLineCount,
             getAnimationDurationMs,
             getAnimationIterationDelayMs,
-            getWeightType,
         };
 
         return [

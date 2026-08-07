@@ -1,14 +1,9 @@
-import { For, Show, createMemo, createSignal } from "solid-js";
+import { createMemo, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 
 import type { Point2d } from "@thewaver/ss-utils";
 
 import type { CellAnimationController } from "../../../../Lib/Fundamentals/CellAnimation/CellAnimation.types";
-import {
-    CellAnimationBreakpoints,
-    CellAnimationOrigins,
-    CellAnimationWeights,
-} from "../../../../Lib/Fundamentals/CellAnimation/CellAnimation.utils";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import {
@@ -23,7 +18,10 @@ import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { StressTest } from "../../PageComponents/StressTest/StressTest";
 import type { StressTestDefs } from "../../PageComponents/StressTest/StressText.types";
-import { CellAnimationKeyframesConst } from "../../Samples/CellAnimation.const";
+import { CellAnimationKeyframes } from "../../Samples/CellAnimation.const";
+import { CellAnimationBreakpoints } from "../../Samples/CellAnimationBreakpoints.const";
+import { CellAnimationOrigins } from "../../Samples/CellAnimationOrigins.const";
+import { CellAnimationWeights } from "../../Samples/CellAnimationWeights.const";
 import knight_profile from "../../knight_profile.webp";
 import type { CellAnimationExampleProps } from "./CellAnimationPage.types";
 import { DefaultExample } from "./Examples/Default";
@@ -72,53 +70,14 @@ const groupOptions = <T extends string>(keys: readonly T[]) => {
 };
 
 const GROUPPED_WEIGHTS = groupOptions(CellAnimationWeights.WEIGHT_TYPES);
-const GROUPPED_ANIMATIONS = groupOptions(CellAnimationKeyframesConst.ANIMATION_TYPES);
+const GROUPPED_ANIMATIONS = groupOptions(CellAnimationKeyframes.ANIMATION_TYPES);
 
-const WeightInspector = (props: CellAnimationExampleProps) => {
-    const getOrigin = createMemo(() => CellAnimationOrigins.computeOrigin(props.getOriginType(), props.getCellCount()));
-
-    const getWeights = createMemo(() =>
-        CellAnimationWeights.computeCellWeights(
-            props.getWeightType(),
-            props.getCellCount(),
-            getOrigin(),
-            props.getWeightOpts(),
-        ),
-    );
-
-    return (
-        <div class={styles.weightGrid} style={{ "grid-template-columns": `repeat(${props.getCellCount().x}, 1fr)` }}>
-            <For each={getWeights()}>
-                {(row, getRowIndex) => (
-                    <For each={row}>
-                        {(weight, getColumnIndex) => (
-                            <div
-                                class={
-                                    getOrigin().x === getColumnIndex() && getOrigin().y === getRowIndex()
-                                        ? styles.weightOriginCell
-                                        : styles.weightCell
-                                }
-                            >
-                                {weight.toFixed(2)}
-                            </div>
-                        )}
-                    </For>
-                )}
-            </For>
-        </div>
-    );
-};
-
-const DefaultExampleWrapper = (props: CellAnimationExampleProps & { getShouldShowWeights: () => boolean }) => {
+const DefaultExampleWrapper = (props: CellAnimationExampleProps) => {
     return (
         <div class={styles.exampleRoot}>
             <PageMeasureBox getWidth={() => IMAGE_CONTAINER_SIZE}>
                 <DefaultExample {...props} />
             </PageMeasureBox>
-
-            <Show when={props.getShouldShowWeights()}>
-                <WeightInspector {...props} />
-            </Show>
         </div>
     );
 };
@@ -156,10 +115,9 @@ export const CellAnimationPage = () => {
     const [getSrc, setSrc] = createSignal(knight_profile);
     const [getOriginType, setOriginType] = createSignal<CellAnimationOrigins.OriginType>("center");
     const [getWeightType, setWeightType] = createSignal<CellAnimationWeights.WeightType>("circularDefault");
-    const [getAnimationType, setAnimationType] = createSignal<CellAnimationKeyframesConst.AnimationType>("zoomIn");
+    const [getAnimationType, setAnimationType] = createSignal<CellAnimationKeyframes.AnimationType>("zoomIn");
     const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
     const [getAnimationIterationDelayMs, setAnimationIterationDelayMs] = createSignal(1000);
-    const [getShouldShowWeights, setShouldShowWeights] = createSignal(false);
     const [cellCount, setCellCount] = createStore<Point2d>({ ...STRESS_CELL_COUNT });
     const [weightOpts, setWeightOpts] = createStore<CellAnimationWeights.WeightOpts>({
         shouldMakeUnique: false,
@@ -169,6 +127,8 @@ export const CellAnimationPage = () => {
         dir: "asc",
         smoothness: 0.25,
     });
+
+    const getOrigin = createMemo(() => CellAnimationOrigins.computeOrigin(getOriginType(), cellCount));
 
     const handleFile = (file: File) => {
         setSrc(URL.createObjectURL(file));
@@ -181,11 +141,11 @@ export const CellAnimationPage = () => {
             onMount: (controller) => {
                 controllers.push(controller);
             },
+            computeCellWeights: (count) =>
+                CellAnimationWeights.computeCellWeights(getWeightType(), count, getOrigin(), weightOpts),
             getSrc,
             getCellCount: () => cellCount,
-            getOriginType,
-            getWeightType,
-            getWeightOpts: () => weightOpts,
+            getOrigin,
             getBreakpointOpts: () => breakpointOpts,
             getAnimationType,
             getAnimationDurationMs,
@@ -195,7 +155,7 @@ export const CellAnimationPage = () => {
         return [
             {
                 name: "Default",
-                component: () => <DefaultExampleWrapper {...commonProps} getShouldShowWeights={getShouldShowWeights} />,
+                component: () => <DefaultExampleWrapper {...commonProps} />,
                 src: DEFAULT_SOURCE,
             },
             {
@@ -271,14 +231,6 @@ export const CellAnimationPage = () => {
                         getValue={() => !!weightOpts.shouldNormalize}
                         getAriaLabel={() => "Normalize weights"}
                         onChange={(value) => setWeightOpts("shouldNormalize", value)}
-                    />
-                </PageProp>
-
-                <PageProp getLabel={() => "Show weights"}>
-                    <PageCheckField
-                        getValue={getShouldShowWeights}
-                        getAriaLabel={() => "Show weights"}
-                        onChange={setShouldShowWeights}
                     />
                 </PageProp>
 

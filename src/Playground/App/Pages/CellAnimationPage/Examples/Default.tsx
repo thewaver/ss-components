@@ -1,17 +1,22 @@
 import { CellAnimation } from "../../../../../Lib/Fundamentals/CellAnimation/CellAnimation";
-import { CellAnimationBreakpoints } from "../../../../../Lib/Fundamentals/CellAnimation/CellAnimation.utils";
-import { CellAnimationKeyframesConst } from "../../../Samples/CellAnimation.const";
+import { CellAnimationKeyframes } from "../../../Samples/CellAnimation.const";
+import { CellAnimationBreakpoints } from "../../../Samples/CellAnimationBreakpoints.const";
 import type { CellAnimationExampleProps } from "../CellAnimationPage.types";
 
-export const DefaultExample = ({ getAnimationType, getBreakpointOpts, ...otherProps }: CellAnimationExampleProps) => {
+export const DefaultExample = ({
+    getAnimationType,
+    getBreakpointOpts,
+    getOrigin,
+    ...otherProps
+}: CellAnimationExampleProps) => {
     return (
         <CellAnimation
             {...otherProps}
             computeCellAnimation={(defs, timeline) =>
-                CellAnimationKeyframesConst.computeAnimation(
+                CellAnimationKeyframes.computeAnimation(
                     getAnimationType(),
                     CellAnimationBreakpoints.computeBreakpoints(defs.weight, getBreakpointOpts()),
-                    defs,
+                    { ...defs, origin: getOrigin() },
                     timeline,
                 )
             }

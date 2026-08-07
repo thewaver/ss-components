@@ -21,6 +21,7 @@ import { MenuPage } from "./Pages/MenuPage/MenuPage";
 import { ModalPage } from "./Pages/ModalPage/ModalPage";
 import { ProgressPage } from "./Pages/ProgressPage/ProgressPage";
 import { RadioPage } from "./Pages/RadioPage/RadioPage";
+import { RangePage } from "./Pages/RangePage/RangePage";
 import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
 import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
 import { SelectPage } from "./Pages/SelectPage/SelectPage";
@@ -116,6 +117,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "Radio",
         component: () => <RadioPage />,
+    },
+    {
+        name: "Range",
+        component: () => <RangePage />,
     },
     /*
     {

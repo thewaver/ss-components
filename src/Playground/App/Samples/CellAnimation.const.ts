@@ -1,13 +1,10 @@
-import { type CSSAnimationKey, MathUtils } from "@thewaver/ss-utils";
+import { type CSSAnimationKey, MathUtils, Point2d } from "@thewaver/ss-utils";
 
-import {
-    CellAnimationBreakpoints,
-    type CellAnimationEvaluationDefs,
-    type CellAnimationEvaluationResult,
-    CellAnimationZones,
-} from "../../../Lib";
+import type { CellAnimationEvaluationDefs, CellAnimationEvaluationResult } from "../../../Lib";
+import { CellAnimationBreakpoints } from "./CellAnimationBreakpoints.const";
+import { CellAnimationZones } from "./CellAnimationZones.const";
 
-export namespace CellAnimationKeyframesConst {
+export namespace CellAnimationKeyframes {
     type CellStop = { at: number; originX?: number; originY?: number; depth?: number } & Partial<
         Record<CSSAnimationKey, number>
     >;
@@ -20,7 +17,10 @@ export namespace CellAnimationKeyframesConst {
 
     type CompiledCellStops = Record<string, CellStopTrack>;
 
-    type CellAnimationFn = (timeline: number, defs: CellAnimationEvaluationDefs) => CellAnimationEvaluationResult;
+    type CellAnimationFn = (
+        timeline: number,
+        defs: CellAnimationEvaluationDefs & { origin: Point2d },
+    ) => CellAnimationEvaluationResult;
 
     const RESULT_DECIMAL_PLACES = 3;
 
@@ -159,60 +159,59 @@ export namespace CellAnimationKeyframesConst {
     };
 
     export const ANIMATION_TYPES = [
-        "zoomIn",
-        "zoomOut",
-        "fadeInLinear",
+        "blurDefault",
+        "bounceDefault",
+        "carouselBottom",
+        "carouselLeft",
+        "carouselRight",
+        "carouselTop",
+        "dripDefault",
+        "elasticDown",
+        "elasticLeft",
+        "elasticRight",
+        "elasticUp",
+        "encircleCcw",
+        "encircleCw",
         "fadeInFlash",
         "fadeInFlicker",
-        "bounceDefault",
-        "skewCw",
-        "skewCcw",
+        "fadeInLinear",
+        "hingeBottom",
+        "hingeLeft",
+        "hingeRight",
+        "hingeTop",
+        "hopLeft",
+        "hopRight",
+        "popBottomLeft",
+        "popBottomRight",
         "popCenter",
         "popTopLeft",
         "popTopRight",
-        "popBottomRight",
-        "popBottomLeft",
-        "pullVertical",
-        "pullHorizontal",
         "pullDown",
-        "pullUp",
-        "pullRight",
+        "pullHorizontal",
         "pullLeft",
-        "shootUp",
-        "shakeDown",
-        "dripDefault",
-        "elasticRight",
-        "elasticLeft",
-        "elasticUp",
-        "elasticDown",
+        "pullRight",
+        "pullUp",
+        "pullVertical",
+        "quadrantScatter",
         "rollDownLeft",
         "rollDownRight",
         "rollUpLeft",
         "rollUpRight",
-        "hopRight",
-        "hopLeft",
-        "spinUpCw",
-        "spinUpCcw",
-        "spinDownCw",
+        "shakeDown",
+        "shootUp",
+        "skewCcw",
+        "skewCw",
         "spinDownCcw",
-        "swarmCw",
+        "spinDownCw",
+        "spinUpCcw",
+        "spinUpCw",
         "swarmCcw",
-        "blurDefault",
-        "tumbleRight",
+        "swarmCw",
         "tumbleLeft",
-        "encircleCw",
-        "encircleCcw",
-        "hingeTop",
-        "hingeBottom",
-        "hingeLeft",
-        "hingeRight",
-        "carouselTop",
-        "carouselBottom",
-        "carouselLeft",
-        "carouselRight",
-        "quadrantScatter",
+        "tumbleRight",
+        "zoomIn",
+        "zoomOut",
     ] as const;
-
     export type AnimationType = (typeof ANIMATION_TYPES)[number];
 
     const animationRegistry: Record<AnimationType, CellAnimationFn> = {
@@ -594,7 +593,7 @@ export namespace CellAnimationKeyframesConst {
     export const computeAnimation = (
         type: AnimationType,
         breakpoints: CellAnimationBreakpoints.BreakpointTupleTriple,
-        defs: CellAnimationEvaluationDefs,
+        defs: CellAnimationEvaluationDefs & { origin: Point2d },
         timeline: number,
     ): CellAnimationEvaluationResult =>
         animationRegistry[type](CellAnimationBreakpoints.computeLocalTimeline(breakpoints, timeline), defs);

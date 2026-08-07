@@ -57,6 +57,8 @@ export * from "./Fundamentals/Input/MultiSelect/MultiSelect";
 export type * from "./Fundamentals/Input/MultiSelect/MultiSelect.types";
 export * from "./Fundamentals/Input/Radio/Radio";
 export type * from "./Fundamentals/Input/Radio/Radio.types";
+export * from "./Fundamentals/Input/Range/Range";
+export type * from "./Fundamentals/Input/Range/Range.types";
 export * from "./Fundamentals/Input/RadioGroup/RadioGroup";
 export type * from "./Fundamentals/Input/RadioGroup/RadioGroup.context.types";
 export type * from "./Fundamentals/Input/RadioGroup/RadioGroup.types";

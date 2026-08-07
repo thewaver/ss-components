@@ -1,8 +1,8 @@
 import { createSignal } from "solid-js";
 
-import { CellAnimationBreakpoints } from "../../../../../Lib/Fundamentals/CellAnimation/CellAnimation.utils";
 import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
+import { CellAnimationBreakpoints } from "../../../Samples/CellAnimationBreakpoints.const";
 import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.types";
 
 const BREAKPOINT_GROUPS = [

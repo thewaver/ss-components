@@ -4,7 +4,7 @@ import { type Point2d, type Size2d } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import type { CellAnimationEvaluationDefs, CellAnimationProps } from "./CellAnimation.types";
-import { CellAnimationOrigins, CellAnimationUtils, CellAnimationWeights } from "./CellAnimation.utils";
+import { CellAnimationUtils } from "./CellAnimation.utils";
 
 import * as styles from "./CellAnimation.css";
 
@@ -12,10 +12,9 @@ const DEFAULT_CELL_ANIMATION_DURATION_MS = 2000;
 const DEFAULT_CELL_ANIMATION_ITERATION_COUNT = Infinity;
 const DEFAULT_CELL_ANIMATION_ITERATION_DELAY_MS = 0;
 const DEFAULT_CELL_ANIMATION_SIZE_ANCHOR = "width";
-const DEFAULT_CELL_ANIMATION_ORIGIN_TYPE = "center";
+const DEFAULT_CELL_ANIMATION_WEIGHT = 0;
 const CELL_ANIMATION_PERSPECTIVE_RATIO = 1.5;
 const CELL_ANIMATION_BLEED_PX = 1;
-const DEFAULT_CELL_ANIMATION_WEIGHT_TYPE = "circularDefault";
 
 export const CellAnimation = (props: CellAnimationProps) => {
     const getAnimationDurationMs = createMemo(
@@ -31,12 +30,6 @@ export const CellAnimation = (props: CellAnimationProps) => {
     );
 
     const getSizeAnchor = createMemo(() => props.getSizeAnchor?.() ?? DEFAULT_CELL_ANIMATION_SIZE_ANCHOR);
-
-    const getOriginType = createMemo(() => props.getOriginType?.() ?? DEFAULT_CELL_ANIMATION_ORIGIN_TYPE);
-
-    const getWeightType = createMemo(() => props.getWeightType?.() ?? DEFAULT_CELL_ANIMATION_WEIGHT_TYPE);
-
-    const getWeightOpts = createMemo(() => props.getWeightOpts?.());
 
     const getAriaLabel = createMemo(() => props.getAriaLabel?.());
 
@@ -62,11 +55,11 @@ export const CellAnimation = (props: CellAnimationProps) => {
         { equals: (prev, next) => prev.x === next.x && prev.y === next.y },
     );
 
-    const getOrigin = createMemo(() => CellAnimationOrigins.computeOrigin(getOriginType(), getCellCount()));
-
-    const getCellWeights = createMemo(() =>
-        CellAnimationWeights.computeCellWeights(getWeightType(), getCellCount(), getOrigin(), getWeightOpts()),
+    const getPerspective = createMemo(
+        () => Math.max(getRootSize().width, getRootSize().height) * CELL_ANIMATION_PERSPECTIVE_RATIO,
     );
+
+    const getCellWeights = createMemo(() => props.computeCellWeights?.(getCellCount()) ?? []);
 
     const getColumnEdges = createMemo(() => {
         const width = getRootSize().width;
@@ -96,19 +89,14 @@ export const CellAnimation = (props: CellAnimationProps) => {
 
     const getCellDefs = createMemo<Omit<CellAnimationEvaluationDefs, "size">[]>(() => {
         const count = getCellCount();
-        const origin = getOrigin();
         const weights = getCellWeights();
 
         return Array.from({ length: count.x * count.y }, (_, idx) => {
             const pos = { x: idx % count.x, y: Math.floor(idx / count.x) };
 
-            return { pos, count, origin, weight: weights[pos.y][pos.x] };
+            return { pos, count, weight: weights[pos.y]?.[pos.x] ?? DEFAULT_CELL_ANIMATION_WEIGHT };
         });
     });
-
-    const getPerspective = createMemo(
-        () => Math.max(getRootSize().width, getRootSize().height) * CELL_ANIMATION_PERSPECTIVE_RATIO,
-    );
 
     const getEvaluationDefs = createMemo<CellAnimationEvaluationDefs[]>(() =>
         getCellDefs().map((defs) => {
@@ -136,8 +124,6 @@ export const CellAnimation = (props: CellAnimationProps) => {
             clearTimeout(timeout);
         });
 
-        const cellDefs = getEvaluationDefs();
-
         const rootRef = getRootRef();
         const containerRef = getContainerRef();
         const duration = getAnimationDurationMs();
@@ -146,6 +132,7 @@ export const CellAnimation = (props: CellAnimationProps) => {
         const currentIteration = getCurrentIteration();
         const isWindowVisible = getIsWindowVisible();
         const isPlaying = getIsPlaying();
+        const cellDefs = getEvaluationDefs();
 
         if (!isWindowVisible || !isPlaying || !rootRef || !containerRef || currentIteration >= maxIterations) return;
 

@@ -24,7 +24,7 @@ having done the work does not go anywhere.
 
 ### Build order
 
-Covers the unbuilt controls in items 8 to 11. The ordering principle is **how much of the existing base
+Covers the unbuilt controls in items 8 to 10. The ordering principle is **how much of the existing base
 a thing reuses**: anything that is a preset or a composition of what already works comes before anything
 that needs a new primitive, and anything blocked on an architectural decision comes last, so the
 decision is made once with several consumers in view rather than inferred from the first one.
@@ -41,22 +41,20 @@ Two things break that ordering on purpose, and both are noted where they fall.
 **Tier 3 — blocked on a primitive that has to be designed first.** Do not start these by inventing the
 primitive privately inside them.
 
-3. **Pointer drag and track geometry (item 2's opt-in design), then `Range`.** Once a drag can be
-   expressed and a value can map to a measured track, `Range` itself is ordinary. Deciding whether both
-   thumb counts are custom is part of the same pass.
-4. **The custom `ColorInput` picker surface** — the same drag primitive in two dimensions, so it
-   follows `Range` and reuses it rather than the reverse. The field itself ships; this is the surface
-   that would replace the OS dialog.
-5. **`NavigationUtils.computeNextCell` beside the 1D walk that now ships, then `Calendar`.**
-6. **A mask layer over `TextSync`, plus the date-dependency decision, then `DateInput`** — and only
+3. **The custom `ColorInput` picker surface** — a pointer drag in two dimensions. `Range` shipped
+   without needing item 2's primitive, because a native `<input type="range">` per thumb carries the
+   drag; a colour surface has no native equivalent, so this is where item 2 stops being theoretical.
+   The field itself ships; this is the surface that would replace the OS dialog.
+4. **`NavigationUtils.computeNextCell` beside the 1D walk that now ships, then `Calendar`.**
+5. **A mask layer over `TextSync`, plus the date-dependency decision, then `DateInput`** — and only
    then `DatePicker`, which is `Calendar` inside the `Popover` that now ships. Date-time and ranges
    compose from those rather than being new components.
-7. **`Tree`** — the 2D walk from 5 plus `Select`'s tree-flattening model. Wants virtualization,
+6. **`Tree`** — the 2D walk from 4 plus `Select`'s tree-flattening model. Wants virtualization,
    which is also `Select`'s loose end in item 6, so that `Abstract` belongs here.
 
 **Out of the cost ordering, deliberately:**
 
-- **The form story (item 11) should be decided far earlier than its size suggests.** It is the one item
+- **The form story (item 10) should be decided far earlier than its size suggests.** It is the one item
   whose cost _grows_ with delay: every control built without it grows its own half of error and validation
   plumbing, and each becomes a retrofit. `Progress`, `FileInput`, `ColorInput` and the two `Modal` presets
   each carry their own `hasError` with nothing on the other end of it.
@@ -143,36 +141,27 @@ needs nothing outside the samples file.
 
 ---
 
-## 5. Parity-based weights break when the origin lands on a half-pixel
+## 5. `spiralSingle` overshoots 1 when the origin lands on a half-pixel
 
-`CellAnimationGeometry.isEvenRow` and its siblings test `dist.y % 2 === 0`, which silently assumes
-the distance is a whole number. It is not: a `center`, `left` or `right` origin is `(count - 1) / 2`,
-so on an **even** count the origin sits on a half-integer and every distance from it does too. The
-parity test is then false for every cell, so the alternating branch never runs and the weight
-function degenerates into whichever branch is the fallback.
+A `center`, `left` or `right` origin is `(count - 1) / 2`, so on an **even** count it sits on a
+half-integer and every distance from it does too. Sweeping every weight type over a 1×8 column with a
+centre origin leaves exactly one out of range: `spiralSingle` reaches `1.008`, where every other
+weight function stays inside 0..1. Nothing crashes, because `computeBreakpoints` clamps its progress,
+but two cells collide at the extreme.
 
-Measured on a 1×8 column with a centre origin: `lineRowAlternate` spans only `0 … 0.429`, so no cell
-ever starts at the beginning of the timeline, and `lineRowConvergent` returns `-0.071`, outside the
-0..1 range every other weight function honours. Nothing crashes, because `computeBreakpoints` clamps
-its progress, but the pattern the name promises is gone and two cells collide at the extreme.
+`spiralSingle` reads no parity predicate, which is why it survived the fix below and has to be
+handled on its own terms. `CellAnimationWeights.const.test.ts` pins the measured value, so a fix that
+leaves it out of range fails rather than passing quietly.
 
-Eighteen of the thirty-seven weights read one of these predicates, so the blast radius is every
-`*Alternate`, `*Convergent`, `zigzag*`, `roll*`, `entwine*` and `checkered*` entry. It is invisible by
-default only because the Playground ships a 7×7 grid, whose centre origin lands on whole cells, and
-`ScanlineAnimation` cannot reach it at all now that it exposes no origin. It is inherited from the
-React original, which had the same formulas.
-
-**A half-integer origin also breaks one weight that reads no parity predicate at all.** Sweeping every
-weight type over the same 1×8 column turned up `spiralSingle` reaching `1.008` — an overshoot rather
-than the collapse the parity weights show, so it is a second symptom of the same trigger and not part of
-the eighteen. Whichever fix is taken has to be checked against it rather than assumed to cover it.
-`CellAnimation.utils.test.ts` pins all three measured cases, so a fix that leaves any of them out of
-range fails rather than passing quietly.
-
-Two candidate fixes, neither taken here because both change output across all eighteen: round the
-distance before testing parity, which keeps integer cases identical and makes half-integer ones
-alternate sensibly; or bound the origin to whole cells, which is a narrower change but removes
-centre-of-an-even-grid as a position.
+**The eighteen parity weights that shared this trigger are fixed.** They tested `dist.y % 2 === 0`,
+which is false for every half-integer, so the alternating branch never ran and each function
+degenerated into its fallback branch — `lineRowAlternate` spanned only `0 … 0.429` and
+`lineRowConvergent` returned `-0.071`. They now call `MathUtils.isEven`, which truncates before the
+bit test, so half-integer distances alternate as the names promise: on the same column
+`lineRowAlternate` is `[0, 0.643, 0.286, 0.929, 0.929, 0.286, 0.643, 0]` and `lineRowConvergent`
+spans `0.071 … 0.929`. This is the "round the distance before testing parity" option that was
+recorded here as a candidate; whole-number distances are unaffected, so nothing changed on the odd
+grids the Playground ships by default.
 
 ---
 
@@ -239,37 +228,7 @@ second consumer"_. These are the gaps, each with the reason it is still a gap.
 
 ---
 
-## 8. `Range` is not built
-
-A slider, single-thumb and two-thumb. Nothing in the repo has ever had one — `style.css` styles
-`input[type="range"]` and nothing on any page uses it.
-
-It is the most architecturally novel control left, for three reasons that have nothing to do with how it
-looks:
-
-**It is the first control whose value maps to a coordinate rather than to paint.** Every existing control
-hands a painter flags and lets it decide what to draw; a slider has to convert a value into a position
-along a track and back again, and the track's length is a measured box. That is a geometry primitive
-nothing here has, and it belongs in `Abstracts/` rather than in the control.
-
-**It is the first control that needs a pointer drag**, which item 2 records the painter contract cannot
-express — flags carry state, never events or pointer position. A slider is what makes item 2 concrete
-rather than theoretical, and it needs _continuous_ pointer position during a drag, not the one-shot
-contact point that item described. Settle item 2's opt-in design first, or `Range` will invent its own.
-
-**A two-thumb range cannot be a native `<input type="range">`.** The overlay-geometry rule — painter in
-flow sizing the box, real input absolutely over it — carries every other input in this library and covers
-a single-thumb slider fine. It has nowhere to go for two thumbs. So the first call to make is whether
-both cases are custom, or whether the single-thumb case keeps the native input and the two diverge.
-Precedent says one composite with presets (`BinarySwitch`, `SelectComposite`), which points at custom
-for both.
-
-Also unresolved and cheap to get wrong: keyboard stepping (`step`, plus a coarser `PageUp`/`PageDown`
-step), whether the two thumbs may cross, and vertical orientation.
-
----
-
-## 9. Date, time and calendar are not built
+## 8. Date, time and calendar are not built
 
 **Not one component.** It decomposes into at least four, and the decomposition is the first decision:
 
@@ -288,7 +247,7 @@ Three blockers, each shared with another item:
 **The grid needs a 2D walk, and `NavigationUtils.computeNextPosition` is 1D.** A calendar's arrows move
 by day and by week, `Home`/`End` mean start and end of week, `PageUp`/`PageDown` mean month, and the
 walk crosses month boundaries. That is `computeNextCell` beside the existing function rather than a
-hand-rolled walk inside `Calendar` — see item 11.
+hand-rolled walk inside `Calendar` — see item 10.
 
 **A mask is more than `TextSync`'s transforming setter.** `TextSync` preserves the caret when a setter
 rewrites the value, which is the right base, but a mask also has to skip literal separators, decide what
@@ -302,11 +261,11 @@ shift across a boundary.
 
 ---
 
-## 10. Other core controls the library does not have
+## 9. Other core controls the library does not have
 
 `Fundamentals/Input` covers `TextInput`, `Checkbox`, `Toggle`, `Radio`, `RadioGroup`, `Select`,
 `MultiSelect`, `FileInput`, `ColorInput` and `Label`; `Fundamentals` adds `Button`, `Tabs`, `Tooltip`,
-`Popover`, `Menu`, `Modal`, `Drawer`, `AlertDialog` and `Progress`. Beyond items 8 and 9, this is what
+`Popover`, `Menu`, `Modal`, `Drawer`, `AlertDialog`, `Progress` and `Range`. Beyond item 8, this is what
 is missing, ordered by how much of it is a new architectural problem rather than by how much markup it
 is.
 
@@ -366,9 +325,9 @@ of the contract by definition — the Playground already builds three of them as
 
 ---
 
-## 11. Machinery those controls need, none of which exists
+## 10. Machinery those controls need, none of which exists
 
-Grouped here because each one is shared by several of the controls in items 8 to 10, and because building
+Grouped here because each one is shared by several of the controls in items 8 and 9, and because building
 any of those without first deciding these would bake the decision in by accident.
 
 - **A 2D roving keyboard model.** The 1D walk is now `NavigationUtils.computeNextPosition` and all four
@@ -404,7 +363,7 @@ any of those without first deciding these would bake the decision in by accident
 
 ---
 
-## 12. What the verification suite still cannot see
+## 11. What the verification suite still cannot see
 
 `e2e/` drives real clicks and keystrokes in a real browser through Playwright, and `npm run verify:dom`
 runs it. What is worth stating is the shape of its blind spots, because a green run reads as broader
@@ -445,7 +404,7 @@ it.
 
 ---
 
-## 13. The SVG defs' geometry cannot be reached without rendering
+## 12. The SVG defs' geometry cannot be reached without rendering
 
 `SVGPatternDefsUtils` is 321 lines of tiling arithmetic — the row and column offsets that make a grid, a
 diagonal, a half-drop, a triangle and two hex packings line up — and every one of those `compute*`
@@ -464,3 +423,39 @@ an array of points, with the JSX builder consuming it. That is a real refactor o
 should be taken once, for all three, rather than for whichever one next grows a bug. It is worth noting
 that the packing offsets are exactly the kind of thing that is wrong by half a cell for months without
 anyone noticing, because a wrong tiling still tiles.
+
+---
+
+## 13. Planned: strip `style.css`, add a theme, and add opinionated control presets
+
+Recorded **2026-08-07** as advance notice, not as work to start. The user's plan, in three parts:
+
+**Gut most of `style.css`, so anything that is not a library element stands out.** The Playground's
+app-level stylesheet currently paints a lot that the library deliberately does not, which means a raw
+element and a library control can look similar by accident. Removing it turns that into a visible
+difference rather than a thing you have to know. Expect a period where the Playground looks broken in
+places, and expect that to be the point.
+
+Two things to watch, because they were argued into their current shape against this stylesheet and
+lose their justification if it is not read carefully. The `!important` resets in `BinarySwitch.css.ts`,
+`TextInput.css.ts` and `Range.css.ts` exist because element selectors like `input:not([type="range"])`
+outrank a class — _"The library's own `!important` resets stay"_ in `conventions.md` argues they must
+survive anyway, since the Playground is not the only consumer, so removing the stylesheet is **not**
+evidence they can go. And `interactionRoot > * { margin: 0 !important }` guards against a painter's
+margin now, not only the app's.
+
+**A theme file.** No shape decided. The library paints nothing and holds no colours, so a theme is
+entirely a consumer-side artifact; the current `--clr-*` / `--shd-*` / `--anim-duration` custom
+properties in the Playground are the de facto one.
+
+**A more final-consumer-like layer of controls — `MyButton` and friends — that trade API surface for
+decided behaviour.** The stated example: no `renderContent` tooltip renderer, just tooltip content as
+a string. This is the opposite direction from every argument recorded in `conventions.md` about slots
+and flags, and deliberately so: those arguments are about what a **library** owes a consumer who has
+not been met yet, and this layer is what a consumer who has been met actually writes. Worth knowing
+because a narrowing that is correct here would be wrong one level down, and the two layers will sit in
+the same repo.
+
+The open question, when it starts: whether this layer lives in `src/Playground` as the demo it
+currently is, or becomes a second published entry point. That decides whether it needs a support
+contract, which decides everything else about it.

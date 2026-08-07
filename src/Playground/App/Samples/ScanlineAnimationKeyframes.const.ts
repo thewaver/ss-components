@@ -1,12 +1,9 @@
 import { MathUtils } from "@thewaver/ss-utils";
 
-import type {
-    CellAnimationBreakpoints,
-    ScanlineAnimationEvaluationDefs,
-    ScanlineAnimationEvaluationResult,
-} from "../../../Lib";
+import type { ScanlineAnimationEvaluationDefs, ScanlineAnimationEvaluationResult } from "../../../Lib";
+import type { CellAnimationBreakpoints } from "./CellAnimationBreakpoints.const";
 
-export namespace ScanlineAnimationKeyframesConst {
+export namespace ScanlineAnimationKeyframes {
     const peak = (a: number, b: number, x: number) => {
         const mid = (a + b) * 0.5;
 
