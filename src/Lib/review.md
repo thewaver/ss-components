@@ -14,7 +14,7 @@ having done the work does not go anywhere.
 4. Cell animation timing is linear-only — _open_
 5. `spiralSingle` overshoots 1 when the origin lands on a half-pixel — _open_
 6. `Select` — six things deliberately not built — _open_
-7. `Menu` — six things deliberately not built — _open_
+7. `Menu` — five things deliberately not built — _open_
 8. Date, time and calendar are not built — _open_
 9. Other core controls the library does not have — _open_
 10. Machinery those controls need, none of which exists — _open_
@@ -197,10 +197,11 @@ the gaps, each with the reason it is still a gap.
 
 ---
 
-## 7. `Menu` — six things deliberately not built
+## 7. `Menu` — five things deliberately not built
 
 The decisions behind what exists are in `conventions.md` under _"`Popover` extracted, and `Menu` as the
-second consumer"_. These are the gaps, each with the reason it is still a gap.
+second consumer"_ and _"`Menu` submenus: a level per popup, focus moving between them"_. These are the
+gaps, each with the reason it is still a gap.
 
 - **There are no groups and no separators.** `SelectItem<T>`'s discriminated record would carry them
   unchanged, but a second copy of `getFlatOptions` plus `getItemOffsets` would come with it — and that
@@ -208,10 +209,6 @@ second consumer"_. These are the gaps, each with the reason it is still a gap.
   no opinion about what produced them. Flattening a tree into a navigable list is the next thing worth
   extracting, and copying it first would make that harder rather than easier. A consumer that needs
   sections today paints them into `renderPopup` around a flat list.
-- **There are no submenus.** They need a `Popover` anchored to an item rather than to the trigger, and
-  a second focus target — which is the first thing that breaks the one-focus-target model the whole
-  keyboard rests on. Whether a submenu keeps focus on the parent menu and re-points
-  `aria-activedescendant`, or takes focus itself, is the decision to make before any of it is built.
 - **`Tab` closes the menu and returns focus to the trigger rather than moving past it.** APG says move
   to the next element after the trigger. The menu is portalled to the end of the document, so letting
   `Tab` through lands focus wherever the portal sits, which is worse than not moving. The cost is one

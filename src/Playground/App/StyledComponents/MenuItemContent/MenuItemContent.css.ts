@@ -5,6 +5,7 @@ import { themeVars } from "../../Theme.css";
 export const isHovered = style({});
 export const isActive = style({});
 export const isHighlighted = style({});
+export const isOpen = style({});
 export const isDisabled = style({});
 
 export const menuItemContent = style({
@@ -23,6 +24,9 @@ export const menuItemContent = style({
         [`&.${isHighlighted}`]: {
             backgroundColor: `rgb(from ${themeVars.color.surface.contrast} r g b / 10%)`,
         },
+        [`&.${isOpen}`]: {
+            backgroundColor: `rgb(from ${themeVars.color.surface.contrast} r g b / 20%)`,
+        },
         [`&.${isHovered}`]: {
             backgroundColor: `rgb(from ${themeVars.color.surface.contrast} r g b / 20%)`,
         },
@@ -39,4 +43,10 @@ export const menuItemContent = style({
 export const menuItemShortcut = style({
     opacity: 0.4,
     fontSize: themeVars.fontSize.xSmall,
+});
+
+export const menuItemSubmenuMark = style({
+    opacity: 0.6,
+    fontSize: themeVars.fontSize.medium,
+    lineHeight: 1,
 });

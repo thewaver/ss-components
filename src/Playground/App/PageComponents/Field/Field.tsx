@@ -254,7 +254,7 @@ export const PageColorField = (props: PageColorFieldProps) => {
             valueSignal={valueSignal}
             getIsDisabled={props.getIsDisabled}
             getAriaLabel={props.getAriaLabel}
-            renderContent={(getFlags) => <PageColorInputContent getFlags={getFlags} />}
+            renderContent={(getFlags) => <PageColorInputContent getFlags={getFlags} getIsCompact={() => true} />}
             onInput={props.onInput}
         />
     );

@@ -11,6 +11,8 @@ import { PageMenuTriggerContent } from "../../StyledComponents/MenuTriggerConten
 import { PagePopoverSurface } from "../../StyledComponents/PopoverSurface/PopoverSurface";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 
+import { POPOVER_SURFACE_INSET } from "../../StyledComponents/PopoverSurface/PopoverSurface.css";
+
 type Action = {
     name: string;
     shortcut?: string;
@@ -62,6 +64,33 @@ const LAYERS: MenuItem<Action>[] = Array.from({ length: 20 }, (_, index) => ({
     value: { name: `Layer ${index + 1}` },
 }));
 
+const NESTED_ACTIONS: MenuItem<Action>[] = [
+    {
+        value: { name: "New" },
+        items: [
+            { value: { name: "Project" } },
+            {
+                value: { name: "From template" },
+                items: [{ value: { name: "Blank" } }, { value: { name: "Dashboard" } }, { value: { name: "Report" } }],
+            },
+            { value: { name: "Import" } },
+        ],
+    },
+    { value: { name: "Open", shortcut: "Ctrl+O" } },
+    {
+        value: { name: "Share" },
+        items: [
+            { value: { name: "Copy link", shortcut: "Ctrl+L" } },
+            { value: { name: "Email" }, isDisabled: true },
+            {
+                value: { name: "Export" },
+                items: [{ value: { name: "PDF" } }, { value: { name: "PNG" } }],
+            },
+        ],
+    },
+    { value: { name: "Delete", shortcut: "Del" } },
+];
+
 const renderMenuPopup = (
     renderItems: () => JSX.Element,
     getVisibilityTarget: () => 0 | 1,
@@ -87,6 +116,7 @@ export const MenuPage = () => {
     const [getLastAction, setLastAction] = createSignal(NOTHING_RUN);
     const [getLastDisabledAction, setLastDisabledAction] = createSignal(NOTHING_RUN);
     const [getLastReachableAction, setLastReachableAction] = createSignal(NOTHING_RUN);
+    const [getLastNestedAction, setLastNestedAction] = createSignal(NOTHING_RUN);
     const [getLastFlippedAction, setLastFlippedAction] = createSignal(NOTHING_RUN);
     const [getLastLayerAction, setLastLayerAction] = createSignal(NOTHING_RUN);
 
@@ -137,6 +167,23 @@ export const MenuPage = () => {
                         renderItem={renderMenuItem}
                         renderPopup={renderMenuPopup}
                         onActivate={(action) => setLastReachableAction(action.name)}
+                    />
+                ),
+            },
+            {
+                name: "Submenus",
+                readout: () => `${getLastNestedAction()} — ArrowRight steps in, ArrowLeft steps back out`,
+                component: () => (
+                    <Menu
+                        getItems={() => NESTED_ACTIONS}
+                        getAriaLabel={() => "File actions"}
+                        getSubmenuOffset={() => ({ x: POPOVER_SURFACE_INSET, y: -POPOVER_SURFACE_INSET })}
+                        renderContent={(getFlags) => (
+                            <PageMenuTriggerContent getFlags={getFlags}>File</PageMenuTriggerContent>
+                        )}
+                        renderItem={renderMenuItem}
+                        renderPopup={renderMenuPopup}
+                        onActivate={(action) => setLastNestedAction(action.name)}
                     />
                 ),
             },

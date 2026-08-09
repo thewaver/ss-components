@@ -15,12 +15,17 @@ export type MenuFlags = {
     isOpen: boolean;
 };
 
+export type MenuHighlightPosition = "first" | "last";
+
 export type MenuItemFlags = {
     isHighlighted: boolean;
+    hasSubmenu: boolean;
+    isOpen: boolean;
 };
 
 export type MenuItem<T> = {
     value: T;
+    items?: MenuItem<T>[];
     isDisabled?: boolean;
     isReachableWhenDisabled?: boolean;
     tooltipDefs?: InteractionTooltipDefs<MenuItemFlags>;
@@ -36,8 +41,51 @@ export type MenuTriggerProps = AccessorProps<
     onKeyDown: (e: KeyboardEvent) => void;
 };
 
-export type MenuItemViewProps = AccessorProps<InteractionControlProps<MenuItemFlags>> & {
+export type MenuItemViewProps = AccessorProps<
+    InteractionControlProps<MenuItemFlags> & {
+        submenuId?: string;
+    }
+> & {
     onActivate: () => void;
+    onHover: () => void;
+};
+
+export type MenuRenderItem<T> = (
+    getItem: Accessor<MenuItem<T>>,
+    getFlags: () => InteractionFlags<MenuItemFlags>,
+) => JSX.Element;
+
+export type MenuRenderPopup = (
+    renderItems: () => JSX.Element,
+    getVisibilityTarget: () => 0 | 1,
+    getTransitionDurationMs: () => number,
+    getPlacement: () => AnchorPlacement,
+    getFlags: () => InteractionFlags<MenuFlags>,
+) => JSX.Element;
+
+export type MenuLevelProps<T> = AccessorProps<{
+    id: string;
+    rootId: string;
+    labelledBy: string;
+    isOpen: boolean;
+    isSubmenu: boolean;
+    initialHighlightPosition?: MenuHighlightPosition;
+    anchorRef: HTMLElement | undefined;
+    triggerRef: HTMLElement | undefined;
+    placement?: AnchorPlacement;
+    offset?: Point2d;
+    submenuPlacement: AnchorPlacement;
+    submenuOffset?: Point2d;
+    reservedScreenSize?: Size2d;
+    transitionDurationMs?: number;
+    openerFlags: InteractionFlags<MenuFlags>;
+}> & {
+    getItems: Accessor<MenuItem<T>[]>;
+    renderItem: MenuRenderItem<T>;
+    renderPopup: MenuRenderPopup;
+    onActivate: (value: T) => void;
+    onClose: () => void;
+    onDismiss: () => void;
 };
 
 export type MenuProps<T> = Omit<InteractionWrapperProps<MenuFlags>, "renderControl" | "getExtraFlags"> &
@@ -46,18 +94,14 @@ export type MenuProps<T> = Omit<InteractionWrapperProps<MenuFlags>, "renderContr
         ariaLabel?: string;
         placement?: AnchorPlacement;
         offset?: Point2d;
+        submenuPlacement?: AnchorPlacement;
+        submenuOffset?: Point2d;
         reservedScreenSize?: Size2d;
         transitionDurationMs?: number;
     }> & {
         getItems: Accessor<MenuItem<T>[]>;
         renderContent: (getFlags: () => InteractionFlags<MenuFlags>) => JSX.Element;
-        renderItem: (getItem: Accessor<MenuItem<T>>, getFlags: () => InteractionFlags<MenuItemFlags>) => JSX.Element;
-        renderPopup: (
-            renderItems: () => JSX.Element,
-            getVisibilityTarget: () => 0 | 1,
-            getTransitionDurationMs: () => number,
-            getPlacement: () => AnchorPlacement,
-            getFlags: () => InteractionFlags<MenuFlags>,
-        ) => JSX.Element;
+        renderItem: MenuRenderItem<T>;
+        renderPopup: MenuRenderPopup;
         onActivate: (value: T) => void;
     };

@@ -23,6 +23,7 @@ const toNearestPaletteColor = (value: string) => {
 
 export const ColorInputPage = () => {
     const defaultSignal = createSignal("#3366ff");
+    const compactSignal = createSignal("#3366ff");
     const snappingSignal = createSignal(PALETTE[0]);
     const disabledSignal = createSignal("#888888");
     const reachableSignal = createSignal("#888888");
@@ -39,6 +40,19 @@ export const ColorInputPage = () => {
                         valueSignal={defaultSignal}
                         getAriaLabel={() => "Brand colour"}
                         renderContent={(getFlags) => <PageColorInputContent getFlags={getFlags} />}
+                    />
+                ),
+            },
+            {
+                name: "Compact",
+                readout: () => `value: ${compactSignal[0]()} — swatch only, no hex readout`,
+                component: () => (
+                    <ColorInput
+                        valueSignal={compactSignal}
+                        getAriaLabel={() => "Compact colour"}
+                        renderContent={(getFlags) => (
+                            <PageColorInputContent getFlags={getFlags} getIsCompact={() => true} />
+                        )}
                     />
                 ),
             },

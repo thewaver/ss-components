@@ -3,7 +3,8 @@ import { type Page, expect, test } from "@playwright/test";
 import { activeDescendantText, activeMatches, readout, tabIndex, tagName, variant } from "./helpers";
 
 const MENU = '[role="menu"]';
-const ITEM = '[role="menu"] [role="menuitem"]';
+const ITEM_ROLE = '[role="menuitem"]';
+const ITEM = `${MENU} ${ITEM_ROLE}`;
 
 const trigger = (name: string) => `${variant(name)} [aria-haspopup="menu"]`;
 
@@ -18,6 +19,19 @@ const openedWithHighlight = async (page: Page, name: string) => {
     await expect(page.locator(MENU)).toHaveAttribute("aria-activedescendant", /.+/);
     await expect(page.locator(MENU)).toBeFocused();
 };
+
+/** The same race one level down: every level is its own focus target and takes focus once positioned. */
+const openedLevel = async (page: Page, depth: number) => {
+    await expect(page.locator(MENU)).toHaveCount(depth + 1);
+    await expect(page.locator(MENU).nth(depth)).toHaveAttribute("aria-activedescendant", /.+/);
+    await expect(page.locator(MENU).nth(depth)).toBeFocused();
+};
+
+const highlightAt = async (page: Page, depth: number) =>
+    activeDescendantText(page, `#${await page.locator(MENU).nth(depth).getAttribute("id")}`);
+
+const itemAt = (page: Page, depth: number, name: string) =>
+    page.locator(MENU).nth(depth).locator(ITEM_ROLE).filter({ hasText: name }).first();
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/menu");
@@ -135,6 +149,82 @@ test("the walk steps over disabled items and stops on a reachable one", async ({
         "Enter on a reachable disabled item runs nothing",
     ).toContain("nothing run yet");
     await expect(page.locator(MENU), "and leaves the menu open").toHaveCount(1);
+});
+
+test("an item that owns a submenu says so, and the submenu is named by it", async ({ page }) => {
+    await openedWithHighlight(page, "Submenus");
+
+    const parent = itemAt(page, 0, "New");
+
+    await expect(parent, "a parent item claims a popup of its own").toHaveAttribute("aria-haspopup", "menu");
+    await expect(parent, "and starts collapsed").toHaveAttribute("aria-expanded", "false");
+    expect(await itemAt(page, 0, "Open").getAttribute("aria-haspopup"), "while a leaf claims nothing").toBe(null);
+
+    await page.keyboard.press("ArrowRight");
+    await openedLevel(page, 1);
+
+    await expect(parent, "opening it flips the item rather than the trigger").toHaveAttribute("aria-expanded", "true");
+    expect(await parent.getAttribute("aria-controls"), "the item points at the menu it opened").toBe(
+        await page.locator(MENU).nth(1).getAttribute("id"),
+    );
+    expect(
+        await page.locator(MENU).nth(1).getAttribute("aria-labelledby"),
+        "and the submenu takes its name from that item, not from the trigger",
+    ).toBe(await parent.getAttribute("id"));
+});
+
+test("the arrows step into a submenu and back out of it", async ({ page }) => {
+    await openedWithHighlight(page, "Submenus");
+    expect(await highlightAt(page, 0)).toBe("New");
+
+    await page.keyboard.press("ArrowRight");
+    await openedLevel(page, 1);
+    expect(await highlightAt(page, 1), "a submenu opens onto its own first item").toBe("Project");
+
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("ArrowRight");
+    await openedLevel(page, 2);
+    expect(await highlightAt(page, 2), "and nesting goes as deep as the records do").toBe("Blank");
+
+    await page.keyboard.press("ArrowLeft");
+    await expect(page.locator(MENU), "ArrowLeft leaves one level rather than the whole menu").toHaveCount(2);
+    expect(await highlightAt(page, 1), "landing back on the item that opened it").toBe("From template");
+
+    await page.keyboard.press("ArrowLeft");
+    await expect(page.locator(MENU)).toHaveCount(1);
+    expect(await highlightAt(page, 0)).toBe("New");
+
+    await page.keyboard.press("Escape");
+    await expect(page.locator(MENU), "and Escape at the top closes the menu itself").toHaveCount(0);
+    expect(await activeMatches(page, trigger("Submenus")), "handing focus back to the trigger").toBe(true);
+});
+
+test("activating a leaf closes every level at once", async ({ page }) => {
+    await openedWithHighlight(page, "Submenus");
+
+    await page.keyboard.press("ArrowRight");
+    await openedLevel(page, 1);
+    await page.keyboard.press("Enter");
+
+    await expect(page.locator(MENU)).toHaveCount(0);
+    expect(await readout(page, "Submenus"), "the value that arrives is the leaf's own").toContain("Project");
+    expect(await activeMatches(page, trigger("Submenus")), "and focus returns to the trigger").toBe(true);
+});
+
+test("hovering a level opens the submenu under the pointer and drops the others", async ({ page }) => {
+    await openedWithHighlight(page, "Submenus");
+
+    await itemAt(page, 0, "Share").hover();
+    await openedLevel(page, 1);
+
+    await itemAt(page, 1, "Export").hover();
+    await openedLevel(page, 2);
+
+    await itemAt(page, 0, "Open").hover();
+    await expect(page.locator(MENU), "hovering a leaf above drops every level below it").toHaveCount(1);
+
+    await itemAt(page, 0, "Open").click();
+    expect(await readout(page, "Submenus"), "and the menu still activates from the pointer").toContain("Open");
 });
 
 test("a disabled trigger opens nothing by pointer or by key", async ({ page }) => {

@@ -4,4 +4,5 @@ import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
 export type ColorInputContentProps = AccessorProps<{
     flags: InteractionFlags<ColorInputFlags>;
+    isCompact?: boolean;
 }>;

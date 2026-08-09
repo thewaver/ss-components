@@ -5,6 +5,8 @@ import type { MenuItemContentProps } from "./MenuItemContent.types";
 
 import * as styles from "./MenuItemContent.css";
 
+const SUBMENU_MARK = "›";
+
 export const PageMenuItemContent = (props: ParentProps<MenuItemContentProps>) => (
     <div
         class={styles.menuItemContent}
@@ -12,6 +14,7 @@ export const PageMenuItemContent = (props: ParentProps<MenuItemContentProps>) =>
             [styles.isHovered]: props.getFlags().isHovered,
             [styles.isActive]: props.getFlags().isActive,
             [styles.isHighlighted]: props.getFlags().isHighlighted,
+            [styles.isOpen]: props.getFlags().isOpen,
             [styles.isDisabled]: props.getFlags().isDisabled,
         }}
     >
@@ -19,6 +22,12 @@ export const PageMenuItemContent = (props: ParentProps<MenuItemContentProps>) =>
 
         <Show when={props.getShortcut?.()}>
             {(getShortcut) => <div class={styles.menuItemShortcut}>{getShortcut()}</div>}
+        </Show>
+
+        <Show when={props.getFlags().hasSubmenu}>
+            <div class={styles.menuItemSubmenuMark} aria-hidden>
+                {SUBMENU_MARK}
+            </div>
         </Show>
     </div>
 );

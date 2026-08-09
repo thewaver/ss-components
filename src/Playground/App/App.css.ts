@@ -72,7 +72,7 @@ export const tabItem = style({
 });
 
 export const tabFloater = style({
-    backgroundImage: `linear-gradient(to right, ${themeVars.color.primary.main} 5px, ${themeVars.color.surface.light} 5px, transparent)`,
+    backgroundImage: `linear-gradient(to right, ${themeVars.color.primary.main} 5px, hsl(from ${themeVars.color.surface.light} h s calc(l * 1.5)) 5px, transparent)`,
     width: "100%",
     height: "100%",
 });

@@ -11,7 +11,7 @@ export const PageVariants = (props: VariantsProps) => (
                 <div class={styles.variantContainer} data-variant={variant.name}>
                     <div class={styles.variantTitle}>{variant.name}</div>
 
-                    {variant.component()}
+                    <div class={styles.variantDemo}>{variant.component()}</div>
 
                     {variant.readout && (
                         <div class={styles.variantReadout} data-readout>

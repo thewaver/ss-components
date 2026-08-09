@@ -1602,6 +1602,15 @@ may clear the query without visibly re-growing the box mid-fade.
 only so it can host `aria-activedescendant`; the visible focus is the highlighted item, painted by
 the consumer. A ring around the whole surface would point at the wrong thing.
 
+**It is written twice so a consumer cannot reverse it by accident**, added **2026-08-09**. A bare
+`outline` on the class ties with a consumer's blanket `:focus-visible` rule on specificity, so which
+of the two wins comes down to which stylesheet was emitted last — and the Playground's was, which is
+how every popup grew a focus ring nobody asked for. The rule is repeated under
+`&:focus, &:focus-visible`, which outranks a plain pseudo-class rather than racing it. What that gives
+up is the one case with no highlight to point at: a `Select` whose filter has emptied the list has
+nothing painted as focused, and is announced empty instead. A consumer that wants a ring there paints
+it on its own surface, which is the half of the contract that was always theirs.
+
 **The initial focus is `Popover`'s, and a real bug is why.** `Menu` first called
 `FocusUtils.autoFocus` itself, and focus stayed on the trigger. The root carries
 `visibility: hidden` until `Anchor` has measured the content and produced a position — and a
@@ -1644,6 +1653,71 @@ listener — while `Modal`'s is a different mechanism entirely (a document keydo
 a focus trap, an explicit restore). Two identical siblings and one that does not fit is not the
 shape that wants an `Abstract`; the thing genuinely shared with `Modal` was `FocusUtils.autoFocus`,
 which already existed.
+
+### `Menu` submenus: a level per popup, focus moving between them
+
+Settled **2026-08-09**. An item may now carry `items`, and a level of the menu is drawn per popup all
+the way down.
+
+**The choice was between one focus target for the whole tree and one per level, and support decided
+it rather than structure.** Keeping focus on the root menu is the model already in place — one
+`role="menu"` box holds focus and `aria-activedescendant` names the highlighted item — so extending it
+looked like the smaller change. It is not, because `aria-activedescendant` may only name an element
+that is a descendant of the focused one **or** one claimed through `aria-owns`, and every level is
+portalled out to the viewport. That variant therefore rests entirely on `aria-owns` across a portal,
+which is sanctioned and thinly supported. A level that holds its own focus has its own items physically
+inside it, so the question never arises, and it is the variant the APG menu examples themselves
+implement: `ArrowRight` opens a submenu onto its first item, `ArrowLeft` closes it and returns.
+
+**`MenuLevel` is the recursion; `Menu` is the trigger plus the root level.** A level owns its
+highlighted value, which of its items is open, its own popup and its own keyboard. It renders each
+submenu inside the item that owns it, so a level unmounts with its parent for free, and the anchor is
+that item's element rather than the trigger.
+
+**An item with children is the trigger for its level, and says so in the same words the button does** —
+`aria-haspopup="menu"`, `aria-expanded`, and `aria-controls` while open. `MenuItemFlags` gained
+`hasSubmenu` and `isOpen` so a painter can draw the arrow and the open state; the alternative was
+leaving the painter to infer both from the records it was handed, which it does not have.
+
+**`MenuItemFlags` is now a superset of `MenuFlags`, and that is what keeps `renderPopup` at one
+signature.** A popup is handed the flags of whatever opened it — the trigger's for the root, the parent
+item's for a submenu. Had the two flag types stayed disjoint, the signature would have had to take a
+union and every consumer would narrow it to reach anything.
+
+**A key is handled by the level it was pressed in, and the check has to be explicit because Solid
+re-dispatches delegated events through the component tree rather than the DOM tree.** The levels are
+portalled siblings, so nothing bubbles between them in the page — but `keydown` is delegated, and Solid
+walks a portal back to the component that rendered it. A key pressed three levels deep therefore ran
+every ancestor level's handler too: `Escape` collapsed two levels at once and `ArrowLeft` closed the
+menu outright. Each level now ignores a keydown whose target is not its own popup root. Stopping
+propagation would have worked as well and was rejected: it would swallow the key for anything outside
+the menu that listens, which the single-level menu never did.
+
+**A blur dismisses only when focus has left the whole tree**, where the tree is identified by id
+prefix — every level's id derives from the root's. The previous guard was `relatedTarget === trigger`
+and it cannot generalise, because closing a level restores focus to the level above and that restore
+reaches the parent as a blur; with three levels open, hovering back up the chain closed everything.
+The trigger check stays beside it for the reason it was written: focus landing on the trigger is the
+click that will do its own closing.
+
+**Hovering an item opens its submenu, and moves the highlight there.** Splitting them was considered
+and is worse: the highlight is what `aria-activedescendant` names, so a submenu open under an item that
+is not highlighted states two different positions at once, and `ArrowLeft` back out of it would land on
+neither. Hovering an item with no children closes whatever was open at that level, which is how the
+pointer walks back up. Nothing is on a timer.
+
+**`ArrowUp` on a closed trigger still opens onto the last item, but the mechanism moved.** The highlight
+now lives in the level rather than in `Menu`, so the trigger states an intent — `initialHighlightPosition`
+— which the level reads only as the fallback for a highlight nothing has set yet. It is not written into
+the level's state, so the first arrow press walks from it and overwrites it exactly as before.
+
+**The submenu's placement defaults to `right-out` / `top-in`; its offset is left at zero and belongs to
+the consumer.** A submenu anchors to its parent item, and an item sits inside whatever padding and
+border the painter's surface has, so a submenu flush against its anchor overlaps the surface it came
+from. The library cannot know that inset — it paints nothing — so `getSubmenuOffset` is where the
+consumer states it, and the Playground passes its own surface's padding plus border. Anything a
+consumer paints _outside_ its own box — a drop shadow is the other one — overlaps the level beneath by
+the same arithmetic, and compensating for it is theirs by the same argument.
 
 ### The 1D walk is a pure function, not a hook
 
