@@ -1,10 +1,12 @@
 import { style } from "@vanilla-extract/css";
 
-import * as pageStyles from "../../Pages/Pages.css";
+import { themeVars } from "../../Theme.css";
 
 export const isChecked = style({});
 export const isMixed = style({});
 export const isHovered = style({});
+export const isDisabled = style({});
+export const hasError = style({});
 
 export const checkboxContent = style({
     display: "flex",
@@ -12,41 +14,35 @@ export const checkboxContent = style({
     alignItems: "center",
     width: 20,
     height: 20,
-    boxShadow: "var(--shd-tiny)",
-    border: "2px solid rgba(from var(--clr-text) r g b / 25%)",
-    borderRadius: 5,
+    boxShadow: themeVars.shadow.small,
+    border: `2px solid rgb(from currentColor r g b / 25%)`,
+    borderRadius: themeVars.borderRadius.half,
     backgroundColor: "black",
-    transition: "filter var(--anim-duration), opacity var(--anim-duration), border-color var(--anim-duration)",
+    transition: `filter ${themeVars.animation.duration}, opacity ${themeVars.animation.duration}, border-color ${themeVars.animation.duration}`,
 
     selectors: {
-        [`&.${pageStyles.hasError}`]: {
-            borderColor: "var(--clr-error)",
+        [`&.${hasError}`]: {
+            borderColor: themeVars.color.error.main,
         },
         [`&.${isHovered}`]: {
-            filter: "brightness(120%)",
+            filter: themeVars.hover.filter,
         },
-        [`&.${pageStyles.isDisabled}`]: {
-            filter: "grayscale(1)",
-            opacity: 0.5,
+        [`&.${isDisabled}`]: {
+            filter: themeVars.disabled.filter,
+            opacity: themeVars.disabled.opacity,
         },
     },
 });
 
 export const checkboxMark = style({
-    width: 8,
-    height: 8,
-    borderRadius: 2,
-    backgroundImage: "linear-gradient(45deg, var(--clr-primary), var(--clr-secondary))",
+    color: themeVars.color.primary.main,
+    fontSize: themeVars.fontSize.medium,
+    lineHeight: 1,
     transform: "scale(0)",
-    transition: "transform var(--anim-duration), width var(--anim-duration), height var(--anim-duration)",
+    transition: `transform ${themeVars.animation.duration}`,
 
     selectors: {
-        [`${checkboxContent}.${isChecked} &`]: {
-            transform: "scale(1)",
-        },
-        [`${checkboxContent}.${isMixed} &`]: {
-            width: 10,
-            height: 3,
+        [`${checkboxContent}.${isChecked} &, ${checkboxContent}.${isMixed} &`]: {
             transform: "scale(1)",
         },
     },

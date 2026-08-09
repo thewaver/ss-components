@@ -1,5 +1,7 @@
 import { keyframes, style } from "@vanilla-extract/css";
 
+import { themeVars } from "../../Theme.css";
+
 export const typewriterFade = keyframes({
     "0%": {
         opacity: 0,
@@ -74,12 +76,27 @@ export const root = style({
     flexDirection: "column",
     justifyContent: "start",
     alignItems: "start",
-    gap: 40,
+    gap: themeVars.spacing.quad,
 });
 
 export const textArea = style({
     minWidth: 320,
     minHeight: 160,
+    color: "inherit",
+    backgroundColor: "black",
+    boxShadow: themeVars.shadow.small,
+    border: `2px solid rgb(from currentColor r g b / 25%)`,
+    borderRadius: themeVars.borderRadius.half,
+    padding: themeVars.spacing.full,
+    fontSize: themeVars.fontSize.medium,
+    lineHeight: 1.25,
+
+    selectors: {
+        "&::placeholder": {
+            color: "currentColor",
+            opacity: 0.5,
+        },
+    },
 });
 
 export const textHighlight = style({

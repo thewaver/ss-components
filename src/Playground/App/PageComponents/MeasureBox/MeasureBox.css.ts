@@ -25,7 +25,7 @@ export const measureBoxRoot = style({
             position: "absolute",
             inset: 1,
             zIndex: 1,
-            border: "2px dashed var(--clr-text)",
+            border: `2px dashed rgba(255, 255, 255, 0.5)`,
             borderRadius: "inherit",
             pointerEvents: "none",
         },

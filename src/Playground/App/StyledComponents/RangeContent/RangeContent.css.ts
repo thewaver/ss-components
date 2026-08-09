@@ -1,21 +1,23 @@
 import { style, styleVariants } from "@vanilla-extract/css";
 
-import * as pageStyles from "../../Pages/Pages.css";
+import { themeVars } from "../../Theme.css";
 
 export const RANGE_THUMB_SIZE = 18;
 export const RANGE_TRACK_THICKNESS = 6;
 export const RANGE_LENGTH = 220;
 
 export const isFocused = style({});
+export const isDisabled = style({});
+export const hasError = style({});
 
 export const rangeContent = style({
     position: "relative",
-    transition: "filter var(--anim-duration), opacity var(--anim-duration)",
+    transition: `filter ${themeVars.animation.duration}, opacity ${themeVars.animation.duration}`,
 
     selectors: {
-        [`&.${pageStyles.isDisabled}`]: {
-            filter: "grayscale(1)",
-            opacity: 0.5,
+        [`&.${isDisabled}`]: {
+            filter: themeVars.disabled.filter,
+            opacity: themeVars.disabled.opacity,
         },
     },
 });
@@ -32,8 +34,8 @@ export const rangeContentVariants = styleVariants({
 export const rangeTrack = style({
     position: "absolute",
     borderRadius: RANGE_TRACK_THICKNESS,
-    backgroundColor: "rgba(from var(--clr-text) r g b / 20%)",
-    boxShadow: "var(--shd-tiny)",
+    backgroundColor: `rgb(from currentColor r g b / 20%)`,
+    boxShadow: themeVars.shadow.small,
 });
 
 export const rangeTrackVariants = styleVariants({
@@ -56,11 +58,11 @@ export const rangeTrackVariants = styleVariants({
 export const rangeFill = style({
     position: "absolute",
     borderRadius: RANGE_TRACK_THICKNESS,
-    backgroundColor: "var(--clr-primary)",
+    backgroundColor: themeVars.color.primary.main,
 
     selectors: {
-        [`&.${pageStyles.hasError}`]: {
-            backgroundColor: "var(--clr-error)",
+        [`&.${hasError}`]: {
+            backgroundColor: themeVars.color.error.main,
         },
     },
 });
@@ -81,17 +83,17 @@ export const rangeThumb = style({
     width: RANGE_THUMB_SIZE,
     height: RANGE_THUMB_SIZE,
     borderRadius: "50%",
-    border: "2px solid var(--clr-primary)",
+    border: `2px solid ${themeVars.color.primary.main}`,
     backgroundColor: "black",
-    boxShadow: "var(--shd-tiny)",
-    transition: "border-color var(--anim-duration), transform var(--anim-duration)",
+    boxShadow: themeVars.shadow.small,
+    transition: `border-color ${themeVars.animation.duration}, transform ${themeVars.animation.duration}`,
 
     selectors: {
         [`&.${isFocused}`]: {
             transform: "scale(1.2)",
         },
-        [`&.${pageStyles.hasError}`]: {
-            borderColor: "var(--clr-error)",
+        [`&.${hasError}`]: {
+            borderColor: themeVars.color.error.main,
         },
     },
 });

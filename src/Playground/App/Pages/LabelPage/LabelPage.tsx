@@ -5,12 +5,11 @@ import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
 import { Radio } from "../../../../Lib/Fundamentals/Input/Radio/Radio";
 import { RadioGroup } from "../../../../Lib/Fundamentals/Input/RadioGroup/RadioGroup";
 import { Toggle } from "../../../../Lib/Fundamentals/Input/Toggle/Toggle";
+import { PageLabelCaption } from "../../PageComponents/LabelCaption/LabelCaption";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageCheckboxContent } from "../../StyledComponents/CheckboxContent/CheckboxContent";
 import { PageRadioContent } from "../../StyledComponents/RadioContent/RadioContent";
 import { PageToggleContent } from "../../StyledComponents/ToggleContent/ToggleContent";
-
-import * as pageStyles from "../Pages.css";
 
 type PlanValue = "free" | "pro";
 
@@ -39,7 +38,7 @@ export const LabelPage = () => {
                             renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
                         />
 
-                        <div class={pageStyles.labelCaption}>Remember me</div>
+                        <PageLabelCaption>Remember me</PageLabelCaption>
                     </Label>
                 ),
             },
@@ -48,7 +47,7 @@ export const LabelPage = () => {
                 readout: () => `on: ${toggleSignal[0]()}`,
                 component: () => (
                     <Label>
-                        <div class={pageStyles.labelCaption}>Send notifications</div>
+                        <PageLabelCaption>Send notifications</PageLabelCaption>
 
                         <Toggle
                             checkedSignal={toggleSignal}
@@ -62,7 +61,7 @@ export const LabelPage = () => {
                 readout: () => `checked: ${columnSignal[0]()}`,
                 component: () => (
                     <Label getDir={() => "column"} getGap={() => 5}>
-                        <div class={pageStyles.labelCaption}>Stacked</div>
+                        <PageLabelCaption>Stacked</PageLabelCaption>
 
                         <Checkbox
                             checkedSignal={columnSignal}
@@ -84,7 +83,7 @@ export const LabelPage = () => {
                                         renderContent={(getFlags) => <PageRadioContent getFlags={getFlags} />}
                                     />
 
-                                    <div class={pageStyles.labelCaption}>{option.label}</div>
+                                    <PageLabelCaption>{option.label}</PageLabelCaption>
                                 </Label>
                             )}
                         </For>
@@ -102,7 +101,7 @@ export const LabelPage = () => {
                             renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
                         />
 
-                        <div class={pageStyles.labelCaption}>Subscribe to the newsletter</div>
+                        <PageLabelCaption>Subscribe to the newsletter</PageLabelCaption>
                     </Label>
                 ),
             },
@@ -117,7 +116,7 @@ export const LabelPage = () => {
                             renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
                         />
 
-                        <div class={pageStyles.labelCaption}>Caption clicks must do nothing</div>
+                        <PageLabelCaption>Caption clicks must do nothing</PageLabelCaption>
                     </Label>
                 ),
             },

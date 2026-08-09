@@ -1,26 +1,37 @@
 import { style } from "@vanilla-extract/css";
 
+import { themeVars } from "./Theme.css";
+
 export const isVisible = style({});
 export const isSelected = style({});
+
+export const appRoot = style({
+    position: "relative",
+    width: "100%",
+    height: "100vh",
+    overflow: "hidden",
+});
 
 export const appContent = style({
     display: "grid",
     gridTemplateColumns: "auto 1fr",
     width: "100%",
     height: "100%",
-    backgroundImage: "linear-gradient(215deg, var(--clr-bkg-primary), var(--clr-bkg-secondary))",
+    backgroundImage: `linear-gradient(45deg, ${themeVars.color.background.dark}, ${themeVars.color.background.light})`,
 });
 
 export const leftMenu = style({
-    backdropFilter: "brightness(75%) grayscale(25%) blur(10px)",
-    boxShadow: "var(--shd-tiny), var(--shd-soft)",
+    color: themeVars.color.surface.contrast,
+    backgroundImage: `linear-gradient(45deg, ${themeVars.color.surface.dark}, ${themeVars.color.surface.light})`,
+    backdropFilter: "blur(10px)",
+    boxShadow: themeVars.shadow.medium,
     width: 240,
-    padding: 10,
+    padding: themeVars.spacing.full,
 });
 
 export const searchContainer = style({
     width: "100%",
-    padding: 10,
+    padding: themeVars.spacing.full,
 });
 
 export const searchInput = style({
@@ -28,11 +39,12 @@ export const searchInput = style({
 });
 
 export const tabCategory = style({
-    padding: 10,
-    fontSize: "0.75rem",
+    padding: themeVars.spacing.full,
+    fontSize: themeVars.fontSize.tiny,
     fontWeight: "bold",
     textAlign: "start",
     textTransform: "uppercase",
+    opacity: 0.5,
 
     selectors: {
         "[aria-disabled='true'] &": {
@@ -42,24 +54,23 @@ export const tabCategory = style({
 });
 
 export const tabItem = style({
-    paddingBlock: 10,
-    paddingInline: 20,
+    paddingBlock: themeVars.spacing.full,
+    paddingInline: themeVars.spacing.double,
     textAlign: "start",
     transition: "color 200ms",
 
     selectors: {
         "&:hover": {
-            color: "var(--clr-primary)",
+            color: themeVars.color.primary.main,
         },
         [`&.${isSelected}`]: {
-            color: "var(--clr-primary)",
+            color: themeVars.color.primary.main,
         },
     },
 });
 
 export const tabFloater = style({
-    backgroundImage:
-        "linear-gradient(to right, var(--clr-primary) 5px, rgb(from var(--clr-primary) r g b / 25%) 5px, transparent)",
+    backgroundImage: `linear-gradient(to right, ${themeVars.color.primary.main} 5px, rgb(from ${themeVars.color.primary.main} r g b / 25%) 5px, transparent)`,
     width: "100%",
     height: "100%",
 });
@@ -68,11 +79,11 @@ export const tabPage = style({
     display: "flex",
     flexDirection: "column",
     height: "100%",
-    gap: 40,
-    padding: 40,
+    gap: themeVars.spacing.quad,
+    padding: themeVars.spacing.quad,
     overflowY: "auto",
 });
 
 export const tabPageTitle = style({
-    fontSize: "1.5rem",
+    fontSize: themeVars.fontSize.large,
 });

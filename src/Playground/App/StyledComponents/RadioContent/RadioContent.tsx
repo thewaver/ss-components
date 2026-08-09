@@ -2,7 +2,6 @@ import type { ParentProps } from "solid-js";
 
 import type { RadioContentProps } from "./RadioContent.types";
 
-import * as pageStyles from "../../Pages/Pages.css";
 import * as styles from "./RadioContent.css";
 
 export const PageRadioContent = (props: ParentProps<RadioContentProps>) => (
@@ -11,8 +10,8 @@ export const PageRadioContent = (props: ParentProps<RadioContentProps>) => (
         classList={{
             [styles.isChecked]: props.getFlags().checkedState === true,
             [styles.isHovered]: props.getFlags().isHovered,
-            [pageStyles.isDisabled]: props.getFlags().isDisabled,
-            [pageStyles.hasError]: props.getFlags().hasError,
+            [styles.isDisabled]: props.getFlags().isDisabled,
+            [styles.hasError]: props.getFlags().hasError,
         }}
     >
         <div class={styles.radioMarker}>

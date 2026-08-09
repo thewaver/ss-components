@@ -2,11 +2,10 @@ import { createEffect, createMemo, createSignal } from "solid-js";
 
 import { Corners } from "../../../../Lib/Fundamentals/Corners/Corners";
 import { Toggle } from "../../../../Lib/Fundamentals/Input/Toggle/Toggle";
+import { PageControlRow, PageControlRowLabel } from "../../PageComponents/ControlRow/ControlRow";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageToggleContent } from "../../StyledComponents/ToggleContent/ToggleContent";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
-
-import * as pageStyles from "../Pages.css";
 
 export const TogglePage = () => {
     const defaultSignal = createSignal(false);
@@ -62,7 +61,7 @@ export const TogglePage = () => {
                 readout: () =>
                     `mixed: ${getIsAllMixed()} | all: ${allSignal[0]()} | children: ${firstChildSignal[0]()}, ${secondChildSignal[0]()}`,
                 component: () => (
-                    <div class={pageStyles.controlRow}>
+                    <PageControlRow>
                         <Toggle
                             checkedSignal={allSignal}
                             getIsMixed={getIsAllMixed}
@@ -91,7 +90,7 @@ export const TogglePage = () => {
                             }}
                         />
 
-                        <div class={pageStyles.controlRowLabel}>controls</div>
+                        <PageControlRowLabel>controls</PageControlRowLabel>
 
                         <Toggle
                             checkedSignal={firstChildSignal}
@@ -104,7 +103,7 @@ export const TogglePage = () => {
                             getAriaLabel={() => "Second setting"}
                             renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
                         />
-                    </div>
+                    </PageControlRow>
                 ),
             },
             {

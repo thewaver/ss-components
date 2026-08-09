@@ -109,7 +109,7 @@ export const ButtonPage = () => {
                     <Button
                         getHasError={getHasError}
                         renderContent={(getFlags) => (
-                            <PageButtonContent getFlags={getFlags}>Clear Error</PageButtonContent>
+                            <PageButtonContent getFlags={getFlags}>Toggle Error</PageButtonContent>
                         )}
                         onClick={async () => {
                             setHasError((prev) => !prev);

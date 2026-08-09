@@ -2,11 +2,10 @@ import { createEffect, createMemo, createSignal } from "solid-js";
 
 import { Corners } from "../../../../Lib/Fundamentals/Corners/Corners";
 import { Checkbox } from "../../../../Lib/Fundamentals/Input/Checkbox/Checkbox";
+import { PageControlRow, PageControlRowLabel } from "../../PageComponents/ControlRow/ControlRow";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageCheckboxContent } from "../../StyledComponents/CheckboxContent/CheckboxContent";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
-
-import * as pageStyles from "../Pages.css";
 
 export const CheckboxPage = () => {
     const defaultSignal = createSignal(false);
@@ -65,7 +64,7 @@ export const CheckboxPage = () => {
                 readout: () =>
                     `mixed: ${getIsAllMixed()} | all: ${allSignal[0]()} | children: ${firstChildSignal[0]()}, ${secondChildSignal[0]()}`,
                 component: () => (
-                    <div class={pageStyles.controlRow}>
+                    <PageControlRow>
                         <Checkbox
                             checkedSignal={allSignal}
                             getIsMixed={getIsAllMixed}
@@ -94,7 +93,7 @@ export const CheckboxPage = () => {
                             }}
                         />
 
-                        <div class={pageStyles.controlRowLabel}>controls</div>
+                        <PageControlRowLabel>controls</PageControlRowLabel>
 
                         <Checkbox
                             checkedSignal={firstChildSignal}
@@ -107,7 +106,7 @@ export const CheckboxPage = () => {
                             getAriaLabel={() => "Second child"}
                             renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
                         />
-                    </div>
+                    </PageControlRow>
                 ),
             },
             {
@@ -115,7 +114,7 @@ export const CheckboxPage = () => {
                 readout: () =>
                     `email: ${emailSignal[0]()} | sms: ${smsSignal[0]()} — whichever is the last one on refuses to go off`,
                 component: () => (
-                    <div class={pageStyles.controlRow}>
+                    <PageControlRow>
                         <Checkbox
                             checkedSignal={emailSignal}
                             getAriaLabel={() => "Email"}
@@ -127,7 +126,7 @@ export const CheckboxPage = () => {
                             }}
                         />
 
-                        <div class={pageStyles.controlRowLabel}>or</div>
+                        <PageControlRowLabel>or</PageControlRowLabel>
 
                         <Checkbox
                             checkedSignal={smsSignal}
@@ -139,7 +138,7 @@ export const CheckboxPage = () => {
                                 smsSignal[1](true);
                             }}
                         />
-                    </div>
+                    </PageControlRow>
                 ),
             },
             {

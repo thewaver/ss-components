@@ -6,10 +6,11 @@ import { FPSUtils } from "../../../../Lib/Abstracts/FPS/FPS.utils";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
 import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
+import { PageModalOverlay } from "../../StyledComponents/ModalOverlay/ModalOverlay";
+import { PageModalPanel } from "../../StyledComponents/ModalPanel/ModalPanel";
 import { PagePropsPanel } from "../PropsPanel/PropsPanel";
 import type { StressTestProps } from "./StressText.types";
 
-import * as pageStyles from "./../../Pages/Pages.css";
 import * as styles from "./StressTest.css";
 
 export const StressTest = (props: StressTestProps) => {
@@ -58,23 +59,15 @@ export const StressTest = (props: StressTestProps) => {
                 onHide={props.onHideModal}
                 onTransitionStatusChange={setModalTransitionFinished}
                 renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
-                    <div
-                        class={getVisibilityTarget() === 1 ? pageStyles.overlayOn : pageStyles.overlayOff}
-                        style={{
-                            transition: `background-color ${getTransitionDurationMs()}ms, backdrop-filter ${getTransitionDurationMs()}ms`,
-                        }}
+                    <PageModalOverlay
+                        getVisibilityTarget={getVisibilityTarget}
+                        getTransitionDurationMs={getTransitionDurationMs}
                     />
                 )}
                 renderContent={(getVisibilityTarget, getTransitionDurationMs) => (
-                    <div
-                        class={[
-                            getVisibilityTarget() === 1 ? pageStyles.modalOn : pageStyles.modalOff,
-                            pageStyles.panel,
-                        ].join(" ")}
-                        style={{
-                            transition: `transform ${getTransitionDurationMs()}ms`,
-                            position: "relative",
-                        }}
+                    <PageModalPanel
+                        getVisibilityTarget={getVisibilityTarget}
+                        getTransitionDurationMs={getTransitionDurationMs}
                     >
                         <div
                             class={[
@@ -93,7 +86,7 @@ export const StressTest = (props: StressTestProps) => {
                         >
                             <For each={getArr()}>{(_, getIndex) => props.renderItem(getConfigIndex, getIndex)}</For>
                         </div>
-                    </div>
+                    </PageModalPanel>
                 )}
             />
         </>

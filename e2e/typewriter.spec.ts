@@ -59,12 +59,19 @@ test("structure survives the split but presentation is flattened onto the spans"
         "while bold is not re-emitted as a tag — it arrives as weight on the spans instead",
     ).toHaveCount(0);
 
+    const inheritedWeight = await page.evaluate(() => getComputedStyle(document.body).fontWeight);
+
     const weights = await output
         .locator("span")
         .evaluateAll((spans) => [...new Set(spans.map((span) => getComputedStyle(span).fontWeight))].sort());
 
-    expect(weights, "both weights survive, so the bold run is still bold after flattening").toContain("700");
-    expect(weights).toContain("400");
+    expect(weights, "the plain run carries the weight the page hands it, whatever the theme sets that to").toContain(
+        inheritedWeight,
+    );
+    expect(
+        weights.some((weight) => Number(weight) > Number(inheritedWeight)),
+        "and the bold run survives flattening as a heavier weight than its surroundings",
+    ).toBe(true);
 });
 
 test("re-laying out the container leaves the text intact", async ({ page }) => {

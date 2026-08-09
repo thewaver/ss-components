@@ -2,7 +2,6 @@ import { For } from "solid-js";
 
 import type { RangeContentProps } from "./RangeContent.types";
 
-import * as pageStyles from "../../Pages/Pages.css";
 import * as styles from "./RangeContent.css";
 
 const DEFAULT_RANGE_CONTENT_LENGTH = styles.RANGE_LENGTH;
@@ -27,13 +26,13 @@ export const PageRangeContent = (props: RangeContentProps) => {
         <div
             class={[styles.rangeContent, styles.rangeContentVariants[getOrientation()]].join(" ")}
             style={getOrientation() === "vertical" ? { height: `${getLength()}px` } : { width: `${getLength()}px` }}
-            classList={{ [pageStyles.isDisabled]: props.getFlags().isDisabled }}
+            classList={{ [styles.isDisabled]: props.getFlags().isDisabled }}
         >
             <div class={[styles.rangeTrack, styles.rangeTrackVariants[getOrientation()]].join(" ")} />
 
             <div
                 class={[styles.rangeFill, styles.rangeFillVariants[getOrientation()]].join(" ")}
-                classList={{ [pageStyles.hasError]: props.getFlags().hasError }}
+                classList={{ [styles.hasError]: props.getFlags().hasError }}
                 style={
                     getOrientation() === "vertical"
                         ? { bottom: centre(props.getFlags().fill.start), height: getFillSpan() }
@@ -47,7 +46,7 @@ export const PageRangeContent = (props: RangeContentProps) => {
                         class={[styles.rangeThumb, styles.rangeThumbVariants[getOrientation()]].join(" ")}
                         classList={{
                             [styles.isFocused]: props.getFlags().focusedThumb === getIndex(),
-                            [pageStyles.hasError]: props.getFlags().hasError,
+                            [styles.hasError]: props.getFlags().hasError,
                         }}
                         style={getOrientation() === "vertical" ? { bottom: travel(ratio) } : { left: travel(ratio) }}
                     />

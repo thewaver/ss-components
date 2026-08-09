@@ -31,8 +31,8 @@ import type {
 
 import { FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/TextInputContent/TextInputContent.css";
 
-const DEFAULT_NUMBER_FIELD_WIDTH = 96;
-const DEFAULT_SELECT_FIELD_WIDTH = 176;
+const DEFAULT_NUMBER_FIELD_WIDTH = 120;
+const DEFAULT_SELECT_FIELD_WIDTH = 160;
 const EMPTY_TEXT = "";
 
 const clampToRange = (value: number, min?: number, max?: number) => {
@@ -56,11 +56,6 @@ const renderFieldPopup = (
     </PagePopoverSurface>
 );
 
-/**
- * The panel owns its state as plain values in stores, while every control here owns a `*Signal`. Each
- * field therefore keeps a local signal and mirrors the owner's value into it whenever the two disagree
- * — which is also what makes a clamping or snapping owner visible on screen.
- */
 export const PageNumberField = (props: PageNumberFieldProps) => {
     const textSignal = createSignal(String(props.getValue()));
 

@@ -1,7 +1,9 @@
 import type { CheckboxContentProps } from "./CheckboxContent.types";
 
-import * as pageStyles from "../../Pages/Pages.css";
 import * as styles from "./CheckboxContent.css";
+
+const CHECKED_MARK = "✓";
+const MIXED_MARK = "–";
 
 export const PageCheckboxContent = (props: CheckboxContentProps) => (
     <div
@@ -10,10 +12,12 @@ export const PageCheckboxContent = (props: CheckboxContentProps) => (
             [styles.isChecked]: props.getFlags().checkedState === true,
             [styles.isMixed]: props.getFlags().checkedState === "mixed",
             [styles.isHovered]: props.getFlags().isHovered,
-            [pageStyles.isDisabled]: props.getFlags().isDisabled,
-            [pageStyles.hasError]: props.getFlags().hasError,
+            [styles.isDisabled]: props.getFlags().isDisabled,
+            [styles.hasError]: props.getFlags().hasError,
         }}
     >
-        <div class={styles.checkboxMark} />
+        <div class={styles.checkboxMark} aria-hidden>
+            {props.getFlags().checkedState === "mixed" ? MIXED_MARK : CHECKED_MARK}
+        </div>
     </div>
 );

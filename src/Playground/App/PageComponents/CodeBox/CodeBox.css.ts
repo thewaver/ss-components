@@ -1,11 +1,13 @@
 import { style } from "@vanilla-extract/css";
 
+import { themeVars } from "../../Theme.css";
+
 export const codeBoxRoot = style({
     position: "relative",
-    backgroundColor: "var(--clr-bkg-secondary)",
-    boxShadow: "var(--shd-tiny)",
-    borderRadius: 5,
-    padding: 5,
+    backgroundColor: themeVars.color.surface.dark,
+    boxShadow: themeVars.shadow.small,
+    borderRadius: themeVars.borderRadius.half,
+    padding: themeVars.spacing.half,
     maxWidth: "100%",
 
     selectors: {
@@ -14,7 +16,7 @@ export const codeBoxRoot = style({
             position: "absolute",
             inset: 1,
             zIndex: 1,
-            border: "2px solid rgb(from var(--clr-text) r g b / 25%)",
+            border: `2px solid rgba(255, 255, 255, 0.5)`,
             borderRadius: "inherit",
             pointerEvents: "none",
         },
@@ -22,7 +24,7 @@ export const codeBoxRoot = style({
 });
 
 export const codeBoxContent = style({
-    padding: 15,
+    padding: `calc(${themeVars.spacing.double} - ${themeVars.spacing.half})`,
     maxHeight: 800,
     fontFamily: "monospace",
     whiteSpace: "pre",

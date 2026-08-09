@@ -7,6 +7,7 @@ import { MultiSelect } from "../../../../Lib/Fundamentals/Input/MultiSelect/Mult
 import { Select } from "../../../../Lib/Fundamentals/Input/Select/Select";
 import type { SelectItem, SelectOption } from "../../../../Lib/Fundamentals/Input/Select/Select.types";
 import { SelectUtils } from "../../../../Lib/Fundamentals/Input/Select/Select.utils";
+import { PageLabelCaption } from "../../PageComponents/LabelCaption/LabelCaption";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PagePopoverSurface } from "../../StyledComponents/PopoverSurface/PopoverSurface";
 import { PageSelectContent, computePageSelectTextStyle } from "../../StyledComponents/SelectContent/SelectContent";
@@ -16,7 +17,6 @@ import { PageTooltipContent } from "../../StyledComponents/TooltipContent/Toolti
 
 import * as popupStyles from "../../StyledComponents/PopoverSurface/PopoverSurface.css";
 import { FIELD_CHEVRON_WIDTH, FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/SelectContent/SelectContent.css";
-import * as pageStyles from "../Pages.css";
 
 type Airport = {
     code: string;
@@ -507,7 +507,7 @@ export const SelectPage = () => {
                 readout: () => `value: ${labelledSignal[0]() ?? "undefined"} — the caption opens the list`,
                 component: () => (
                     <Label getDir={() => "column"} getGap={() => 5}>
-                        <div class={pageStyles.labelCaption}>Country</div>
+                        <PageLabelCaption>Country</PageLabelCaption>
 
                         <Select
                             valueSignal={labelledSignal}

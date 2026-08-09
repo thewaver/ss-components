@@ -1,26 +1,28 @@
 import { style } from "@vanilla-extract/css";
 
-import * as pageStyles from "../../Pages/Pages.css";
+import { themeVars } from "../../Theme.css";
 
 export const isChecked = style({});
 export const isHovered = style({});
+export const isDisabled = style({});
+export const hasError = style({});
 
 export const radioContent = style({
     display: "flex",
     alignItems: "center",
-    gap: 10,
+    gap: themeVars.spacing.full,
     height: 40,
-    paddingInline: 10,
-    borderRadius: 5,
-    transition: "filter var(--anim-duration), opacity var(--anim-duration)",
+    paddingInline: themeVars.spacing.full,
+    borderRadius: themeVars.borderRadius.half,
+    transition: `filter ${themeVars.animation.duration}, opacity ${themeVars.animation.duration}`,
 
     selectors: {
         [`&.${isHovered}`]: {
-            filter: "brightness(120%)",
+            filter: themeVars.hover.filter,
         },
-        [`&.${pageStyles.isDisabled}`]: {
-            filter: "grayscale(1)",
-            opacity: 0.5,
+        [`&.${isDisabled}`]: {
+            filter: themeVars.disabled.filter,
+            opacity: themeVars.disabled.opacity,
         },
     },
 });
@@ -32,15 +34,15 @@ export const radioMarker = style({
     flexShrink: 0,
     width: 20,
     height: 20,
-    boxShadow: "var(--shd-tiny)",
-    border: "2px solid rgba(from var(--clr-text) r g b / 25%)",
+    boxShadow: themeVars.shadow.small,
+    border: `2px solid rgb(from currentColor r g b / 25%)`,
     borderRadius: "50%",
     backgroundColor: "black",
-    transition: "border-color var(--anim-duration)",
+    transition: `border-color ${themeVars.animation.duration}`,
 
     selectors: {
-        [`${radioContent}.${pageStyles.hasError} &`]: {
-            borderColor: "var(--clr-error)",
+        [`${radioContent}.${hasError} &`]: {
+            borderColor: themeVars.color.error.main,
         },
     },
 });
@@ -49,9 +51,9 @@ export const radioDot = style({
     width: 8,
     height: 8,
     borderRadius: "50%",
-    backgroundImage: "linear-gradient(45deg, var(--clr-primary), var(--clr-secondary))",
+    backgroundImage: `linear-gradient(45deg, ${themeVars.color.primary.dark}, ${themeVars.color.primary.light})`,
     transform: "scale(0)",
-    transition: "transform var(--anim-duration)",
+    transition: `transform ${themeVars.animation.duration}`,
 
     selectors: {
         [`${radioContent}.${isChecked} &`]: {

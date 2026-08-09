@@ -6,8 +6,7 @@ import type { DrawerEdge } from "../../../../Lib/Fundamentals/Drawer/Drawer.type
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import { PageDrawerPanel } from "../../StyledComponents/DrawerPanel/DrawerPanel";
-
-import * as pageStyles from "../Pages.css";
+import { PageModalOverlay } from "../../StyledComponents/ModalOverlay/ModalOverlay";
 
 const EDGES: DrawerEdge[] = ["left", "right", "top", "bottom"];
 
@@ -34,13 +33,9 @@ export const DrawerPage = () => {
                         getEdge={() => edge}
                         getAriaLabel={() => `${edge} drawer`}
                         renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
-                            <div
-                                class={
-                                    getVisibilityTarget() === 1 ? pageStyles.overlayScrimOn : pageStyles.overlayScrimOff
-                                }
-                                style={{
-                                    transition: `opacity ${getTransitionDurationMs()}ms`,
-                                }}
+                            <PageModalOverlay
+                                getVisibilityTarget={getVisibilityTarget}
+                                getTransitionDurationMs={getTransitionDurationMs}
                             />
                         )}
                         renderContent={(getVisibilityTarget, getTransitionDurationMs) => (

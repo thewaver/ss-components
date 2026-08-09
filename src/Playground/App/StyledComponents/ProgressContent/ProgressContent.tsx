@@ -1,6 +1,5 @@
 import type { ProgressContentProps } from "./ProgressContent.types";
 
-import * as pageStyles from "../../Pages/Pages.css";
 import * as styles from "./ProgressContent.css";
 
 const PERCENT = 100;
@@ -11,7 +10,7 @@ export const PageProgressContent = (props: ProgressContentProps) => (
             class={styles.progressTrack}
             classList={{
                 [styles.isIndeterminate]: props.getState().ratio === undefined,
-                [pageStyles.hasError]: props.getState().hasError,
+                [styles.hasError]: props.getState().hasError,
             }}
         >
             <div class={styles.progressFill} style={{ width: `${(props.getState().ratio ?? 0) * PERCENT}%` }} />

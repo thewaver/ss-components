@@ -3,7 +3,6 @@ import { Show } from "solid-js";
 
 import type { MenuItemContentProps } from "./MenuItemContent.types";
 
-import * as pageStyles from "../../Pages/Pages.css";
 import * as styles from "./MenuItemContent.css";
 
 export const PageMenuItemContent = (props: ParentProps<MenuItemContentProps>) => (
@@ -11,8 +10,9 @@ export const PageMenuItemContent = (props: ParentProps<MenuItemContentProps>) =>
         class={styles.menuItemContent}
         classList={{
             [styles.isHovered]: props.getFlags().isHovered,
+            [styles.isActive]: props.getFlags().isActive,
             [styles.isHighlighted]: props.getFlags().isHighlighted,
-            [pageStyles.isDisabled]: props.getFlags().isDisabled,
+            [styles.isDisabled]: props.getFlags().isDisabled,
         }}
     >
         <div>{props.children}</div>

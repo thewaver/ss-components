@@ -1,6 +1,5 @@
 import type { ColorInputContentProps } from "./ColorInputContent.types";
 
-import * as pageStyles from "../../Pages/Pages.css";
 import * as styles from "./ColorInputContent.css";
 
 export const PageColorInputContent = (props: ColorInputContentProps) => (
@@ -8,8 +7,8 @@ export const PageColorInputContent = (props: ColorInputContentProps) => (
         class={styles.colorInputContent}
         classList={{
             [styles.isHovered]: props.getFlags().isHovered,
-            [pageStyles.isDisabled]: props.getFlags().isDisabled,
-            [pageStyles.hasError]: props.getFlags().hasError,
+            [styles.isDisabled]: props.getFlags().isDisabled,
+            [styles.hasError]: props.getFlags().hasError,
         }}
         aria-hidden
     >

@@ -1,33 +1,35 @@
 import { style } from "@vanilla-extract/css";
 
-import * as pageStyles from "../../Pages/Pages.css";
+import { themeVars } from "../../Theme.css";
 
 const FIELD_BORDER = 2;
 const SWATCH_SIZE = 24;
 
 export const isHovered = style({});
+export const isDisabled = style({});
+export const hasError = style({});
 
 export const colorInputContent = style({
     display: "flex",
     alignItems: "center",
-    gap: 10,
-    padding: 8,
-    boxShadow: "var(--shd-tiny)",
-    border: `${FIELD_BORDER}px solid rgba(from var(--clr-text) r g b / 25%)`,
-    borderRadius: 5,
+    gap: themeVars.spacing.full,
+    padding: themeVars.spacing.full,
+    boxShadow: themeVars.shadow.small,
+    border: `${FIELD_BORDER}px solid rgb(from currentColor r g b / 25%)`,
+    borderRadius: themeVars.borderRadius.half,
     backgroundColor: "black",
-    transition: "filter var(--anim-duration), opacity var(--anim-duration), border-color var(--anim-duration)",
+    transition: `filter ${themeVars.animation.duration}, opacity ${themeVars.animation.duration}, border-color ${themeVars.animation.duration}`,
 
     selectors: {
-        [`&.${pageStyles.hasError}`]: {
-            borderColor: "var(--clr-error)",
+        [`&.${hasError}`]: {
+            borderColor: themeVars.color.error.main,
         },
         [`&.${isHovered}`]: {
-            filter: "brightness(120%)",
+            filter: themeVars.hover.filter,
         },
-        [`&.${pageStyles.isDisabled}`]: {
-            filter: "grayscale(1)",
-            opacity: 0.5,
+        [`&.${isDisabled}`]: {
+            filter: themeVars.disabled.filter,
+            opacity: themeVars.disabled.opacity,
         },
     },
 });
@@ -35,12 +37,12 @@ export const colorInputContent = style({
 export const colorInputSwatch = style({
     width: SWATCH_SIZE,
     height: SWATCH_SIZE,
-    borderRadius: 4,
-    boxShadow: "inset 0 0 0 1px rgba(from var(--clr-text) r g b / 30%)",
+    borderRadius: themeVars.borderRadius.half,
+    boxShadow: `inset 0 0 0 1px rgb(from currentColor r g b / 30%)`,
 });
 
 export const colorInputValue = style({
-    fontSize: "0.875rem",
+    fontSize: themeVars.fontSize.small,
     fontVariantNumeric: "tabular-nums",
     textTransform: "uppercase",
 });

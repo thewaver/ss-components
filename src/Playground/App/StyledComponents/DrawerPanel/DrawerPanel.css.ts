@@ -1,22 +1,27 @@
 import { style, styleVariants } from "@vanilla-extract/css";
 
+import { themeVars } from "../../Theme.css";
+
 const DRAWER_THICKNESS = 320;
 const DRAWER_DEPTH = 200;
 
 export const drawerPanel = style({
     display: "flex",
     flexDirection: "column",
-    gap: 20,
-    padding: 20,
-    backgroundImage: "linear-gradient(215deg, var(--clr-bkg-primary), var(--clr-bkg-secondary))",
-    boxShadow: "var(--shd-soft)",
+    gap: themeVars.spacing.double,
+    padding: themeVars.spacing.double,
+    overflow: "auto",
+    color: themeVars.color.surface.contrast,
+    backgroundImage: `linear-gradient(215deg, ${themeVars.color.surface.light}, ${themeVars.color.surface.dark})`,
+    backdropFilter: "brightness(75%) grayscale(25%) blur(10px)",
+    boxShadow: themeVars.shadow.medium,
 });
 
 export const drawerSizeVariants = styleVariants({
     left: { width: DRAWER_THICKNESS },
     right: { width: DRAWER_THICKNESS },
-    top: { height: DRAWER_DEPTH },
-    bottom: { height: DRAWER_DEPTH },
+    top: { minHeight: DRAWER_DEPTH },
+    bottom: { minHeight: DRAWER_DEPTH },
 });
 
 export const drawerSlideOffVariants = styleVariants({

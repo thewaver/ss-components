@@ -4,9 +4,10 @@ import { AlertDialog } from "../../../../Lib/Fundamentals/AlertDialog/AlertDialo
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
+import { PageModalScrim } from "../../StyledComponents/ModalOverlay/ModalOverlay";
+import { PageModalHint, PageModalPanel } from "../../StyledComponents/ModalPanel/ModalPanel";
 
-import * as styles from "../ModalPage/ModalPage.css";
-import * as pageStyles from "../Pages.css";
+import * as styles from "./AlertDialogPage.css";
 
 const ALERT_TITLE_ID = "alert-dialog-title";
 const ALERT_BODY_ID = "alert-dialog-body";
@@ -41,30 +42,21 @@ export const AlertDialogPage = () => {
                             getAriaLabelledBy={() => ALERT_TITLE_ID}
                             getAriaDescribedBy={() => ALERT_BODY_ID}
                             renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
-                                <div
-                                    class={
-                                        getVisibilityTarget() === 1
-                                            ? pageStyles.overlayScrimOn
-                                            : pageStyles.overlayScrimOff
-                                    }
-                                    style={{
-                                        transition: `opacity ${getTransitionDurationMs()}ms`,
-                                    }}
+                                <PageModalScrim
+                                    getVisibilityTarget={getVisibilityTarget}
+                                    getTransitionDurationMs={getTransitionDurationMs}
                                 />
                             )}
                             renderContent={(getVisibilityTarget, getTransitionDurationMs) => (
-                                <div
-                                    class={[
-                                        getVisibilityTarget() === 1 ? pageStyles.modalOn : pageStyles.modalOff,
-                                        pageStyles.panel,
-                                    ].join(" ")}
-                                    style={{ transition: `transform ${getTransitionDurationMs()}ms` }}
+                                <PageModalPanel
+                                    getVisibilityTarget={getVisibilityTarget}
+                                    getTransitionDurationMs={getTransitionDurationMs}
                                 >
                                     <div id={ALERT_TITLE_ID}>Delete this project?</div>
 
-                                    <div id={ALERT_BODY_ID} class={pageStyles.modalHint}>
+                                    <PageModalHint getId={() => ALERT_BODY_ID}>
                                         Clicking the overlay does nothing here — an alert has to be answered.
-                                    </div>
+                                    </PageModalHint>
 
                                     <div class={styles.buttons}>
                                         <Button
@@ -88,7 +80,7 @@ export const AlertDialogPage = () => {
                                             }}
                                         />
                                     </div>
-                                </div>
+                                </PageModalPanel>
                             )}
                         />
                     </>

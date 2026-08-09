@@ -1,12 +1,14 @@
 import { style } from "@vanilla-extract/css";
 
+import { themeVars } from "../../Theme.css";
+
 export const isVisible = style({});
 export const isFlipped = style({});
 
 export const popoverSurfaceEmpty = style({
-    padding: "8px 10px",
-    color: "rgba(from var(--clr-text) r g b / 40%)",
-    fontSize: "1rem",
+    padding: themeVars.spacing.full,
+    color: `rgb(from currentColor r g b / 50%)`,
+    fontSize: themeVars.fontSize.medium,
     lineHeight: 1.25,
     whiteSpace: "nowrap",
 });
@@ -16,10 +18,11 @@ export const popoverSurface = style({
     width: "100%",
     maxHeight: 220,
     overflowY: "auto",
-    padding: 4,
-    boxShadow: "var(--shd-tiny), var(--shd-soft)",
-    border: "2px solid rgba(from var(--clr-text) r g b / 25%)",
-    borderRadius: 5,
+    padding: themeVars.spacing.half,
+    color: themeVars.color.surface.contrast,
+    boxShadow: themeVars.shadow.medium,
+    border: `2px solid rgb(from currentColor r g b / 25%)`,
+    borderRadius: themeVars.borderRadius.half,
     backgroundColor: "black",
     opacity: 0,
     transform: "translateY(-4px)",

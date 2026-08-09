@@ -93,7 +93,7 @@ export namespace FocusUtils {
             const previouslyFocused = (document.activeElement as HTMLElement | null) ?? undefined;
             const initialRef = untrack(() => opts?.getInitialRef?.());
 
-            (initialRef ?? getFirstFocusableChild(ref))?.focus();
+            (initialRef ?? getFirstFocusableChild(ref))?.focus({ preventScroll: true });
 
             onCleanup(() => {
                 if (!previouslyFocused?.isConnected) return;

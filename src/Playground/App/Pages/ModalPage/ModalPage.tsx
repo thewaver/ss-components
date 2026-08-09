@@ -3,9 +3,10 @@ import { createSignal } from "solid-js";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
 import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
+import { PageModalOverlay } from "../../StyledComponents/ModalOverlay/ModalOverlay";
+import { PageModalPanel } from "../../StyledComponents/ModalPanel/ModalPanel";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 
-import * as pageStyles from "../Pages.css";
 import * as styles from "./ModalPage.css";
 
 const MODAL_TITLE_ID = "modal-page-title";
@@ -39,22 +40,15 @@ export const ModalPage = () => {
                 visibilitySignal={modalVisibility}
                 getAriaLabelledBy={() => MODAL_TITLE_ID}
                 renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
-                    <div
-                        class={getVisibilityTarget() === 1 ? pageStyles.overlayOn : pageStyles.overlayOff}
-                        style={{
-                            transition: `background-color ${getTransitionDurationMs()}ms, backdrop-filter ${getTransitionDurationMs()}ms`,
-                        }}
+                    <PageModalOverlay
+                        getVisibilityTarget={getVisibilityTarget}
+                        getTransitionDurationMs={getTransitionDurationMs}
                     />
                 )}
                 renderContent={(getVisibilityTarget, getTransitionDurationMs) => (
-                    <div
-                        class={[
-                            getVisibilityTarget() === 1 ? pageStyles.modalOn : pageStyles.modalOff,
-                            pageStyles.panel,
-                        ].join(" ")}
-                        style={{
-                            transition: `transform ${getTransitionDurationMs()}ms`,
-                        }}
+                    <PageModalPanel
+                        getVisibilityTarget={getVisibilityTarget}
+                        getTransitionDurationMs={getTransitionDurationMs}
                     >
                         <div id={MODAL_TITLE_ID}>I am a Modal.</div>
                         <div>And I focus trap!</div>
@@ -75,7 +69,7 @@ export const ModalPage = () => {
                                 )}
                             />
                         </div>
-                    </div>
+                    </PageModalPanel>
                 )}
             />
         </div>

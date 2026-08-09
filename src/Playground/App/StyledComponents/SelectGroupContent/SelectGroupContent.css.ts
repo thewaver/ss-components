@@ -1,9 +1,11 @@
 import { style } from "@vanilla-extract/css";
 
+import { themeVars } from "../../Theme.css";
+
 export const selectGroupContent = style({
-    padding: "8px 10px 4px",
-    color: "rgba(from var(--clr-text) r g b / 40%)",
-    fontSize: "0.75rem",
+    padding: `${themeVars.spacing.full} ${themeVars.spacing.full} ${themeVars.spacing.half}`,
+    color: `rgb(from currentColor r g b / 50%)`,
+    fontSize: themeVars.fontSize.tiny,
     lineHeight: 1.25,
     letterSpacing: "0.05em",
     textTransform: "uppercase",

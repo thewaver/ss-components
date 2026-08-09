@@ -1,11 +1,13 @@
 import { style } from "@vanilla-extract/css";
 
+import { themeVars } from "../../../../Theme.css";
+
 export const borderRadius = 20;
 
 export const root = style({
     width: 400,
     borderRadius,
-    boxShadow: "var(--shd-tiny)",
+    boxShadow: themeVars.shadow.small,
 });
 
 export const surfaceRoot = style({
@@ -18,9 +20,9 @@ export const content = style({
     display: "flex",
     flexDirection: "column",
     alignItems: "stretch",
-    gap: 10,
+    gap: themeVars.spacing.full,
     whiteSpace: "pre-wrap",
-    padding: 20,
+    padding: themeVars.spacing.double,
 });
 
 export const pic = style({
@@ -37,15 +39,15 @@ export const picContent = style([
         bottom: 0,
         zIndex: 1,
 
-        backgroundImage: "linear-gradient(to bottom, transparent, var(--clr-primary-contrast) 80%)",
-        paddingBottom: 10,
+        backgroundImage: `linear-gradient(to bottom, transparent, ${themeVars.color.primary.contrast} 80%)`,
+        paddingBottom: themeVars.spacing.full,
     },
 ]);
 
 export const surfaceCntent = style([
     content,
     {
-        paddingTop: 10,
+        paddingTop: themeVars.spacing.full,
     },
 ]);
 
@@ -60,7 +62,7 @@ export const role = style({
 });
 
 export const bio = style({
-    fontSize: "1rem",
+    fontSize: themeVars.fontSize.medium,
     fontWeight: 400,
-    color: "var(--clr-text-secondary)",
+    color: `rgb(from currentColor r g b / 75%)`,
 });

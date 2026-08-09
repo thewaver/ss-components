@@ -4,6 +4,7 @@ import { Surface } from "../../../../../../Lib/Composites/Surface/Surface";
 import type { SurfaceProps } from "../../../../../../Lib/Composites/Surface/Surface.types";
 import knight_profile from "../../../../knight_profile.webp";
 
+import { themeVars } from "../../../../Theme.css";
 import * as styles from "./Card.css";
 
 const config: SurfaceProps = {
@@ -11,13 +12,13 @@ const config: SurfaceProps = {
     getBorderWidths: () => CSSUtils.spreadWidth(2),
     computeStrokeDefs: () => [
         {
-            color: "var(--clr-primary)",
+            color: themeVars.color.primary.main,
             opacity: 0.5,
         },
     ],
     computeFillDefs: () => [
         {
-            color: "var(--clr-primary-contrast)",
+            color: themeVars.color.primary.contrast,
         },
     ],
 };

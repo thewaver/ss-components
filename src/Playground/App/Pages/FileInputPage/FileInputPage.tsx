@@ -2,11 +2,10 @@ import { createMemo, createSignal } from "solid-js";
 
 import { FileInput } from "../../../../Lib/Fundamentals/Input/FileInput/FileInput";
 import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
+import { PageLabelCaption } from "../../PageComponents/LabelCaption/LabelCaption";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageFileInputContent } from "../../StyledComponents/FileInputContent/FileInputContent";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
-
-import * as pageStyles from "../Pages.css";
 
 const MAX_ATTACHMENT_BYTES = 1024;
 
@@ -149,7 +148,7 @@ export const FileInputPage = () => {
                 readout: () => `files: ${describe(labelledSignal[0]())} — the caption opens the dialog`,
                 component: () => (
                     <Label getDir={() => "column"} getGap={() => 5}>
-                        <div class={pageStyles.labelCaption}>Contract</div>
+                        <PageLabelCaption>Contract</PageLabelCaption>
 
                         <FileInput
                             filesSignal={labelledSignal}

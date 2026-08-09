@@ -1,10 +1,12 @@
 import { style } from "@vanilla-extract/css";
 
-import * as pageStyles from "../../Pages/Pages.css";
+import { themeVars } from "../../Theme.css";
 
 export const isChecked = style({});
 export const isMixed = style({});
 export const isHovered = style({});
+export const isDisabled = style({});
+export const hasError = style({});
 
 export const toggleContent = style({
     position: "relative",
@@ -12,22 +14,22 @@ export const toggleContent = style({
     alignItems: "center",
     width: 44,
     height: 24,
-    boxShadow: "var(--shd-tiny)",
-    border: "2px solid rgba(from var(--clr-text) r g b / 25%)",
+    boxShadow: themeVars.shadow.small,
+    border: `2px solid rgb(from currentColor r g b / 25%)`,
     borderRadius: 12,
     backgroundColor: "black",
-    transition: "filter var(--anim-duration), opacity var(--anim-duration), border-color var(--anim-duration)",
+    transition: `filter ${themeVars.animation.duration}, opacity ${themeVars.animation.duration}, border-color ${themeVars.animation.duration}`,
 
     selectors: {
-        [`&.${pageStyles.hasError}`]: {
-            borderColor: "var(--clr-error)",
+        [`&.${hasError}`]: {
+            borderColor: themeVars.color.error.main,
         },
         [`&.${isHovered}`]: {
-            filter: "brightness(120%)",
+            filter: themeVars.hover.filter,
         },
-        [`&.${pageStyles.isDisabled}`]: {
-            filter: "grayscale(1)",
-            opacity: 0.5,
+        [`&.${isDisabled}`]: {
+            filter: themeVars.disabled.filter,
+            opacity: themeVars.disabled.opacity,
         },
     },
 });
@@ -38,9 +40,9 @@ export const toggleHandle = style({
     width: 16,
     height: 16,
     borderRadius: "50%",
-    backgroundImage: "linear-gradient(45deg, var(--clr-primary), var(--clr-secondary))",
+    backgroundImage: `linear-gradient(45deg, ${themeVars.color.primary.dark}, ${themeVars.color.primary.light})`,
     transform: "translateX(0)",
-    transition: "transform var(--anim-duration)",
+    transition: `transform ${themeVars.animation.duration}`,
 
     selectors: {
         [`${toggleContent}.${isMixed} &`]: {

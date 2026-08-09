@@ -3,6 +3,7 @@ import { createMemo, createSignal } from "solid-js";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
 import { TextInput } from "../../../../Lib/Fundamentals/Input/TextInput/TextInput";
+import { PageLabelCaption } from "../../PageComponents/LabelCaption/LabelCaption";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageTextInputAdornment } from "../../StyledComponents/TextInputAdornment/TextInputAdornment";
 import {
@@ -13,7 +14,6 @@ import { PageTextInputPlaceholder } from "../../StyledComponents/TextInputPlaceh
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 
 import { FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/TextInputContent/TextInputContent.css";
-import * as pageStyles from "../Pages.css";
 
 const PIN_LENGTH = 6;
 
@@ -255,7 +255,7 @@ export const TextInputPage = () => {
                 readout: () => `value: "${labelledSignal[0]()}"`,
                 component: () => (
                     <Label getDir={() => "column"} getGap={() => 5}>
-                        <div class={pageStyles.labelCaption}>Display name</div>
+                        <PageLabelCaption>Display name</PageLabelCaption>
 
                         <TextInput
                             valueSignal={labelledSignal}

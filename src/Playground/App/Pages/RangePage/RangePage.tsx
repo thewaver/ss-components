@@ -2,12 +2,12 @@ import { createMemo, createSignal } from "solid-js";
 
 import { Range } from "../../../../Lib/Fundamentals/Input/Range/Range";
 import type { RangeValues } from "../../../../Lib/Fundamentals/Input/Range/Range.types";
+import { PageControlRow, PageControlRowLabel } from "../../PageComponents/ControlRow/ControlRow";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageRangeContent } from "../../StyledComponents/RangeContent/RangeContent";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 
 import { RANGE_THUMB_SIZE } from "../../StyledComponents/RangeContent/RangeContent.css";
-import * as pageStyles from "../Pages.css";
 
 const VERTICAL_LENGTH = 160;
 
@@ -69,7 +69,7 @@ export const RangePage = () => {
                 readout: () =>
                     `single: ${getVertical()} | pair: ${verticalPairSignal[0]().start}–${verticalPairSignal[0]().end}`,
                 component: () => (
-                    <div class={pageStyles.controlRow}>
+                    <PageControlRow>
                         <Range
                             valueSignal={[getVertical, setVertical]}
                             getAriaLabel={() => "Vertical volume"}
@@ -80,7 +80,7 @@ export const RangePage = () => {
                             )}
                         />
 
-                        <div class={pageStyles.controlRowLabel}>and a pair</div>
+                        <PageControlRowLabel>and a pair</PageControlRowLabel>
 
                         <Range
                             rangeSignal={verticalPairSignal}
@@ -92,7 +92,7 @@ export const RangePage = () => {
                                 <PageRangeContent getFlags={getFlags} getLength={() => VERTICAL_LENGTH} />
                             )}
                         />
-                    </div>
+                    </PageControlRow>
                 ),
             },
             {

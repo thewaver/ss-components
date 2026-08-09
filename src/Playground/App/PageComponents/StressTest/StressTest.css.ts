@@ -1,8 +1,10 @@
 import { style, styleVariants } from "@vanilla-extract/css";
 
+import { themeVars } from "../../Theme.css";
+
 export const itemGrid = style({
     display: "grid",
-    fontSize: "0.75rem",
+    fontSize: themeVars.fontSize.tiny,
 });
 
 export const fpsCounter = style({
@@ -12,7 +14,7 @@ export const fpsCounter = style({
     zIndex: 10,
 
     backgroundColor: "black",
-    padding: 20,
+    padding: themeVars.spacing.full,
     whiteSpace: "pre",
 });
 

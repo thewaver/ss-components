@@ -2,11 +2,10 @@ import { createMemo, createSignal } from "solid-js";
 
 import { ColorInput } from "../../../../Lib/Fundamentals/Input/ColorInput/ColorInput";
 import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
+import { PageLabelCaption } from "../../PageComponents/LabelCaption/LabelCaption";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageColorInputContent } from "../../StyledComponents/ColorInputContent/ColorInputContent";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
-
-import * as pageStyles from "../Pages.css";
 
 const PALETTE = ["#ff0055", "#00d1b2", "#ffb400", "#7a5cff"];
 
@@ -111,7 +110,7 @@ export const ColorInputPage = () => {
                 readout: () => `value: ${labelledSignal[0]()} — the caption opens the picker`,
                 component: () => (
                     <Label getDir={() => "column"} getGap={() => 5}>
-                        <div class={pageStyles.labelCaption}>Accent</div>
+                        <PageLabelCaption>Accent</PageLabelCaption>
 
                         <ColorInput
                             valueSignal={labelledSignal}

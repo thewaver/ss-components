@@ -1,15 +1,19 @@
 import { style } from "@vanilla-extract/css";
 
+import { themeVars } from "../../Theme.css";
+
 export const propRoot = style({
     display: "grid",
     gridTemplateColumns: "1fr auto",
     alignItems: "center",
-    gap: 20,
-    borderRadius: 5,
-    padding: 10,
+    gap: themeVars.spacing.full,
+    borderRadius: themeVars.borderRadius.half,
+    padding: themeVars.spacing.full,
     width: "100%",
-    backgroundColor: "rgb(from var(--clr-bkg-secondary) r g b / 50%)",
-    boxShadow: "var(--shd-tiny)",
+
+    color: themeVars.color.surface.contrast,
+    backgroundColor: themeVars.color.surface.dark,
+    boxShadow: themeVars.shadow.small,
 });
 
 export const propLabel = style({
