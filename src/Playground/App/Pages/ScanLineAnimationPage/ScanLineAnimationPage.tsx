@@ -529,12 +529,7 @@ export const ScanlineAnimationPage = () => {
         <div class={styles.root}>
             <PagePropsPanel getScope={() => "global"}>
                 <PageProp getLabel={() => "Image"}>
-                    <PageFileField
-                        getAccept={() => "image/*"}
-                        getPrompt={() => "Pick an image"}
-                        getAriaLabel={() => "Image"}
-                        onPick={handleFile}
-                    />
+                    <PageFileField getAccept={() => "image/*"} getAriaLabel={() => "Image"} onPick={handleFile} />
                 </PageProp>
 
                 <PageProp getLabel={() => "Weight"}>

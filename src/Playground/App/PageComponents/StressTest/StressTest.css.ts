@@ -4,7 +4,7 @@ import { themeVars } from "../../Theme.css";
 
 export const itemGrid = style({
     display: "grid",
-    fontSize: themeVars.fontSize.tiny,
+    fontSize: themeVars.fontSize.xSmall,
 });
 
 export const fpsCounter = style({

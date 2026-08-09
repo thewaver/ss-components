@@ -36,7 +36,6 @@ export type PageColorFieldProps = AccessorProps<{
 
 export type PageFileFieldProps = AccessorProps<{
     accept?: string;
-    prompt: string;
     isDisabled?: boolean;
     ariaLabel?: string;
     onPick: (file: File) => void;

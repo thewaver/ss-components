@@ -25,13 +25,13 @@ export const variantContainer = style({
 });
 
 export const variantTitle = style({
-    fontSize: themeVars.fontSize.tiny,
+    fontSize: themeVars.fontSize.xSmall,
     fontWeight: "bold",
     textTransform: "uppercase",
 });
 
 export const variantReadout = style({
     fontFamily: "monospace",
-    fontSize: themeVars.fontSize.tiny,
+    fontSize: themeVars.fontSize.xSmall,
     opacity: 0.75,
 });

@@ -1,22 +1,22 @@
 import { createTheme, createThemeContract, globalStyle } from "@vanilla-extract/css";
 
-const SHADOW_SMALL = "0 2px 4px 1px rgba(0, 0, 0, 0.66)";
-const SHADOW_MEDIUM = "0 4px 16px 2px rgba(0, 0, 0, 0.5)";
-const SHADOW_LARGE = "0 8px 64px 4px rgba(0, 0, 0, 0.33)";
+const SHADOW_SMALL = "0 1px 2px 1px rgba(0, 0, 0, 1)";
+const SHADOW_MEDIUM = "0 4px 12px 2px rgba(0, 0, 0, 0.75)";
+const SHADOW_LARGE = "0 16px 128px 4px rgba(0, 0, 0, 0.5)";
 
 const DEFAULT_THEME_VALUES = {
     scheme: "dark",
     color: {
         primary: {
-            dark: "hsl(180, 100%, 37.5%)",
-            main: "hsl(180, 100%, 50%)",
-            light: "hsl(180, 100%, 62.5%)",
+            dark: "hsl(180, 75%, 37.5%)",
+            main: "hsl(180, 75%, 50%)",
+            light: "hsl(180, 75%, 62.5%)",
             contrast: "hsl(180, 25%, 12.5%)",
         },
         secondary: {
-            dark: "hsl(315, 100%, 37.5%)",
-            main: "hsl(315, 100%, 50%)",
-            light: "hsl(315, 100%, 62.5%)",
+            dark: "hsl(315, 75%, 37.5%)",
+            main: "hsl(315, 75%, 50%)",
+            light: "hsl(315, 75%, 62.5%)",
             contrast: "hsl(315, 25%, 12.5%)",
         },
         info: {
@@ -49,13 +49,13 @@ const DEFAULT_THEME_VALUES = {
             contrast: "rgba(216, 228, 240, 1)",
         },
         surface: {
-            dark: "rgba(32, 28, 24, 0.5)",
-            light: "rgba(64, 56, 48, 0.5)",
+            dark: "rgba(32, 28, 24, 0.75)",
+            light: "rgba(64, 56, 48, 0.75)",
             contrast: "rgba(240, 228, 216, 1)",
         },
         tooltip: {
-            dark: "rgba(32, 32, 32, 0.5)",
-            light: "rgba(64, 64, 64, 0.5)",
+            dark: "rgba(16, 16, 16, 0.75)",
+            light: "rgba(32, 32, 32, 0.75)",
             contrast: "rgba(240, 240, 240, 1)",
         },
         outline: {
@@ -69,10 +69,11 @@ const DEFAULT_THEME_VALUES = {
         quad: "40px",
     },
     fontSize: {
-        tiny: "0.75rem",
+        xSmall: "0.75rem",
         small: "0.875rem",
         medium: "1rem",
         large: "1.5rem",
+        xLarge: "2rem",
     },
     borderRadius: {
         half: "5px",
@@ -84,10 +85,10 @@ const DEFAULT_THEME_VALUES = {
         large: `${SHADOW_SMALL}, ${SHADOW_MEDIUM}, ${SHADOW_LARGE}`,
     },
     hover: {
-        filter: "brightness(120%)",
+        filter: "brightness(125%)",
     },
     active: {
-        filter: "brightness(80%)",
+        filter: "brightness(75%)",
     },
     disabled: {
         opacity: "0.5",

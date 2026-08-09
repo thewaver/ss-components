@@ -4,5 +4,4 @@ import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
 export type FileInputContentProps = AccessorProps<{
     flags: InteractionFlags<FileInputFlags>;
-    prompt: string;
 }>;

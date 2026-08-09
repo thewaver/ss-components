@@ -47,7 +47,7 @@ export const progressFill = style({
 });
 
 export const progressReadout = style({
-    fontSize: themeVars.fontSize.tiny,
+    fontSize: themeVars.fontSize.xSmall,
     fontVariantNumeric: "tabular-nums",
     opacity: 0.75,
 });

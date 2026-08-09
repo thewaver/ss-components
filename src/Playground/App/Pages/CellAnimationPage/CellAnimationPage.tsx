@@ -30,7 +30,7 @@ import DefaultExampleRaw from "./Examples/Default.tsx?raw";
 import { MEASURE_BOX_PADDING } from "../../PageComponents/MeasureBox/MeasureBox.css";
 import * as styles from "./CellAnimationPage.css";
 
-const IMAGE_CONTAINER_SIZE = 240 + MEASURE_BOX_PADDING * 2;
+const IMAGE_CONTAINER_SIZE = 480 + MEASURE_BOX_PADDING * 2;
 const STRESS_CELL_COUNT: Point2d = { x: 11, y: 11 };
 const STRESS_ITEM_SIZE = 120 + MEASURE_BOX_PADDING * 2;
 const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
@@ -170,12 +170,7 @@ export const CellAnimationPage = () => {
         <div class={styles.root}>
             <PagePropsPanel getScope={() => "global"}>
                 <PageProp getLabel={() => "Image"}>
-                    <PageFileField
-                        getAccept={() => "image/*"}
-                        getPrompt={() => "Pick an image"}
-                        getAriaLabel={() => "Image"}
-                        onPick={handleFile}
-                    />
+                    <PageFileField getAccept={() => "image/*"} getAriaLabel={() => "Image"} onPick={handleFile} />
                 </PageProp>
 
                 <PageProp getLabel={() => "Cell count (cols x rows)"}>

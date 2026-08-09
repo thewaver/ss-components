@@ -4,7 +4,7 @@ import { themeVars } from "../../Theme.css";
 
 export const codeBoxRoot = style({
     position: "relative",
-    backgroundColor: themeVars.color.surface.dark,
+    backgroundColor: "black",
     boxShadow: themeVars.shadow.small,
     borderRadius: themeVars.borderRadius.half,
     padding: themeVars.spacing.half,

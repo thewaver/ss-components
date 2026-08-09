@@ -38,5 +38,5 @@ export const menuItemContent = style({
 
 export const menuItemShortcut = style({
     opacity: 0.4,
-    fontSize: themeVars.fontSize.tiny,
+    fontSize: themeVars.fontSize.xSmall,
 });

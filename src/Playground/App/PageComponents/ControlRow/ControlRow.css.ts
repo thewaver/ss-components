@@ -10,6 +10,6 @@ export const controlRow = style({
 
 export const controlRowLabel = style({
     opacity: 0.5,
-    fontSize: themeVars.fontSize.tiny,
+    fontSize: themeVars.fontSize.xSmall,
     textTransform: "uppercase",
 });

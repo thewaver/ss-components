@@ -12,15 +12,16 @@ having done the work does not go anywhere.
 2. One-shot positioned effects have nowhere to go — _open_
 3. Neither animation component can paint its own background — _open_
 4. Cell animation timing is linear-only — _open_
-5. Parity-based weights break when the origin lands on a half-pixel — _open_
+5. `spiralSingle` overshoots 1 when the origin lands on a half-pixel — _open_
 6. `Select` — six things deliberately not built — _open_
 7. `Menu` — six things deliberately not built — _open_
-8. `Range` is not built — _open_
-9. Date, time and calendar are not built — _open_
-10. Other core controls the library does not have — _open_
-11. Machinery those controls need, none of which exists — _open_
-12. What the verification suite still cannot see — _open_
-13. The SVG defs' geometry cannot be reached without rendering — _open_
+8. Date, time and calendar are not built — _open_
+9. Other core controls the library does not have — _open_
+10. Machinery those controls need, none of which exists — _open_
+11. What the verification suite still cannot see — _open_
+12. The SVG defs' geometry cannot be reached without rendering — _open_
+13. Planned: strip `style.css`, add a theme, and add opinionated control presets — _planned_
+14. `ImageSwitcher` draws a broken-image icon when its `src` is cleared — _open_
 
 ### Build order
 
@@ -381,8 +382,15 @@ baselines.
 they produce is motion over time, so a DOM-reading spec over them would assert structure and call it
 coverage. What would actually cover them is the screenshot decision above, and nothing else will.
 
+**`ImageSwitcher` also has a page and no spec, but it is not that hard case.** Only the fade itself
+needs pixels; everything the component decides is in the DOM, because the two `<img>` elements carry
+the swap. A spec driving `/image-switcher` could assert that a new `src` is preloaded before either
+element changes, that the outgoing image stays mounted at `opacity: 0` rather than being torn out, that
+a `src` which fails to load still swaps, and that `onLoad` fires for a real image and not for a missing
+one. That is most of the contract, and it needs no baseline images.
+
 **Components with no Playground page at all**, so nothing can drive them until one exists:
-`AudioSwitcher`, `ImageSwitcher` and `RichText`, all three commented out of `TAB_CONFIGS` in
+`AudioSwitcher` and `RichText`, both commented out of `TAB_CONFIGS` in
 `src/Playground/App/App.tsx`.
 
 **Covered only through a consumer**, which is worth distinguishing from uncovered because it decides
@@ -459,3 +467,27 @@ the same repo.
 The open question, when it starts: whether this layer lives in `src/Playground` as the demo it
 currently is, or becomes a second published entry point. That decides whether it needs a support
 contract, which decides everything else about it.
+
+---
+
+## 14. `ImageSwitcher` draws a broken-image icon when its `src` is cleared
+
+Visible on `/image-switcher` by choosing the `none` source: the box shows the browser's broken-image
+placeholder in its top-left corner instead of going empty. Both `<img>` elements stay mounted for the
+life of the component — that is deliberate, since the cross-fade needs the outgoing frame to still be
+there — and when `getSrc()` returns `undefined` the visible one is left with no `src` attribute at all.
+Chrome paints its placeholder glyph for an `<img>` that has dimensions and nothing to show; the
+element is otherwise doing exactly what it should, and the DOM confirms it (visible element `src`
+absent, hidden one still holding the previous URL at `opacity: 0`).
+
+An empty `src` is a state the component already handles on purpose — the effect has an explicit
+`if (!src) { swap(); return; }` branch that skips preloading — so this is the paint half of that branch
+being unfinished rather than an unconsidered case.
+
+The fix is to stop painting a frame that has nothing in it — hiding the element whose own source is
+undefined, rather than leaving it visible and empty. It costs nothing: during a real cross-fade both
+elements have a source, so nothing is ever hidden while it is being faded, and the outgoing image
+still fades out normally when the `src` is cleared, because that image is the other element.
+
+Left alone rather than done, because it is a change to a shipped component's paint and it arrived as a
+by-product of building the page rather than as work that was asked for.

@@ -32,9 +32,7 @@ export const FileInputPage = () => {
                     <FileInput
                         filesSignal={defaultSignal}
                         getAriaLabel={() => "Attachment"}
-                        renderContent={(getFlags) => (
-                            <PageFileInputContent getFlags={getFlags} getPrompt={() => "Pick a file"} />
-                        )}
+                        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
                     />
                 ),
             },
@@ -46,9 +44,7 @@ export const FileInputPage = () => {
                         filesSignal={multipleSignal}
                         getIsMultiple={() => true}
                         getAriaLabel={() => "Attachments"}
-                        renderContent={(getFlags) => (
-                            <PageFileInputContent getFlags={getFlags} getPrompt={() => "Pick several files"} />
-                        )}
+                        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
                     />
                 ),
             },
@@ -60,9 +56,7 @@ export const FileInputPage = () => {
                         filesSignal={imagesSignal}
                         getAccept={() => "image/*"}
                         getAriaLabel={() => "Avatar"}
-                        renderContent={(getFlags) => (
-                            <PageFileInputContent getFlags={getFlags} getPrompt={() => "Pick an image"} />
-                        )}
+                        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
                     />
                 ),
             },
@@ -75,9 +69,7 @@ export const FileInputPage = () => {
                         filesSignal={rejectingSignal}
                         getHasError={() => getRejection() !== ""}
                         getAriaLabel={() => "Small attachment"}
-                        renderContent={(getFlags) => (
-                            <PageFileInputContent getFlags={getFlags} getPrompt={() => "Pick a tiny file"} />
-                        )}
+                        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
                         onChange={(files) => {
                             const tooBig = files.filter((file) => file.size > MAX_ATTACHMENT_BYTES);
 
@@ -96,9 +88,7 @@ export const FileInputPage = () => {
                         filesSignal={disabledSignal}
                         getIsDisabled={() => true}
                         getAriaLabel={() => "Disabled attachment"}
-                        renderContent={(getFlags) => (
-                            <PageFileInputContent getFlags={getFlags} getPrompt={() => "Cannot be picked"} />
-                        )}
+                        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
                     />
                 ),
             },
@@ -111,9 +101,7 @@ export const FileInputPage = () => {
                         getIsDisabled={() => true}
                         getIsReachableWhenDisabled={() => true}
                         getAriaLabel={() => "Disabled but reachable attachment"}
-                        renderContent={(getFlags) => (
-                            <PageFileInputContent getFlags={getFlags} getPrompt={() => "Ask why instead"} />
-                        )}
+                        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
                         getTooltipDefs={() => ({
                             getPlacement: () => ({ x: "center", y: "top-out" }),
                             getOffset: () => ({ x: 0, y: 5 }),
@@ -137,9 +125,7 @@ export const FileInputPage = () => {
                         filesSignal={erroredSignal}
                         getHasError={() => erroredSignal[0]().length < 1}
                         getAriaLabel={() => "Required attachment"}
-                        renderContent={(getFlags) => (
-                            <PageFileInputContent getFlags={getFlags} getPrompt={() => "This one is required"} />
-                        )}
+                        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
                     />
                 ),
             },
@@ -152,9 +138,7 @@ export const FileInputPage = () => {
 
                         <FileInput
                             filesSignal={labelledSignal}
-                            renderContent={(getFlags) => (
-                                <PageFileInputContent getFlags={getFlags} getPrompt={() => "Pick a PDF"} />
-                            )}
+                            renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
                         />
                     </Label>
                 ),

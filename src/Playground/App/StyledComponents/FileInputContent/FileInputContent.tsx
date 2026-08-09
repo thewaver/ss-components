@@ -2,7 +2,8 @@ import type { FileInputContentProps } from "./FileInputContent.types";
 
 import * as styles from "./FileInputContent.css";
 
-const NO_FILES = "nothing picked yet";
+const NO_FILES = "none picked";
+const PICK_FILE_MARK = "⬆️";
 
 export const PageFileInputContent = (props: FileInputContentProps) => (
     <div
@@ -14,7 +15,7 @@ export const PageFileInputContent = (props: FileInputContentProps) => (
         }}
         aria-hidden
     >
-        <div class={styles.fileInputPrompt}>{props.getPrompt()}</div>
+        <div class={styles.fileInputPrompt}>{PICK_FILE_MARK}</div>
 
         <div class={styles.fileInputNames} classList={{ [styles.isEmpty]: !props.getFlags().files.length }}>
             {props.getFlags().files.length

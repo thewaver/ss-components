@@ -1,11 +1,16 @@
+import { usePropsPanelContext } from "../PropsPanel/PropsPanel.context";
 import type { PagePropProps } from "./Prop.types";
 
 import * as styles from "./Prop.css";
 
-export const PageProp = (props: PagePropProps) => (
-    <div class={styles.propRoot}>
-        <div class={styles.propLabel}>{props.getLabel()}</div>
+export const PageProp = (props: PagePropProps) => {
+    const propsPanelScope = usePropsPanelContext();
 
-        {props.children}
-    </div>
-);
+    return (
+        <div class={styles.propsScopeVariants[propsPanelScope?.getScope?.() ?? "unknown"]}>
+            <div class={styles.propLabel}>{props.getLabel()}</div>
+
+            {props.children}
+        </div>
+    );
+};

@@ -13,7 +13,7 @@ export const textInputAdornment = style({
     paddingInline: themeVars.spacing.full,
     borderRadius: themeVars.borderRadius.half,
     color: `rgb(from currentColor r g b / 60%)`,
-    fontSize: themeVars.fontSize.tiny,
+    fontSize: themeVars.fontSize.xSmall,
     textTransform: "uppercase",
     transition: `background-color ${themeVars.animation.duration}, color ${themeVars.animation.duration}, opacity ${themeVars.animation.duration}`,
 

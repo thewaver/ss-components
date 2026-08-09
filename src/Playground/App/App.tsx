@@ -16,6 +16,7 @@ import { ColorInputPage } from "./Pages/ColorInputPage/ColorInputPage";
 import { DrawerPage } from "./Pages/DrawerPage/DrawerPage";
 import { ElementHighlightPage } from "./Pages/ElementHighlightPage/ElementHighlightPage";
 import { FileInputPage } from "./Pages/FileInputPage/FileInputPage";
+import { ImageSwitcherPage } from "./Pages/ImageSwitcherPage/ImageSwitcherPage";
 import { LabelPage } from "./Pages/LabelPage/LabelPage";
 import { MenuPage } from "./Pages/MenuPage/MenuPage";
 import { ModalPage } from "./Pages/ModalPage/ModalPage";
@@ -92,12 +93,10 @@ const TAB_CONFIGS: TabConfig[] = [
         name: "FileInput",
         component: () => <FileInputPage />,
     },
-    /*
     {
         name: "ImageSwitcher",
-        component: () => null,
+        component: () => <ImageSwitcherPage />,
     },
-    */
     {
         name: "Label",
         component: () => <LabelPage />,
@@ -239,7 +238,7 @@ export function AppContent(props: RouteSectionProps) {
     );
 }
 
-const SIZE_ANCHOR = 1200;
+const SIZE_ANCHOR = 1080;
 
 const getWindowInnerSize = () => ({ width: window.innerWidth, height: window.innerHeight });
 

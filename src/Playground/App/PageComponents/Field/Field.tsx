@@ -31,8 +31,8 @@ import type {
 
 import { FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/TextInputContent/TextInputContent.css";
 
-const DEFAULT_NUMBER_FIELD_WIDTH = 120;
-const DEFAULT_SELECT_FIELD_WIDTH = 160;
+const DEFAULT_NUMBER_FIELD_WIDTH = 100;
+const DEFAULT_SELECT_FIELD_WIDTH = 150;
 const EMPTY_TEXT = "";
 
 const clampToRange = (value: number, min?: number, max?: number) => {
@@ -269,7 +269,7 @@ export const PageFileField = (props: PageFileFieldProps) => {
             getAccept={props.getAccept}
             getIsDisabled={props.getIsDisabled}
             getAriaLabel={props.getAriaLabel}
-            renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} getPrompt={props.getPrompt} />}
+            renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
             onChange={(files) => {
                 if (!files.length) return;
 

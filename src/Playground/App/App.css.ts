@@ -40,7 +40,7 @@ export const searchInput = style({
 
 export const tabCategory = style({
     padding: themeVars.spacing.full,
-    fontSize: themeVars.fontSize.tiny,
+    fontSize: themeVars.fontSize.xSmall,
     fontWeight: "bold",
     textAlign: "start",
     textTransform: "uppercase",
