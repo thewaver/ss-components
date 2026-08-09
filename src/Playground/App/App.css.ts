@@ -15,6 +15,7 @@ export const appRoot = style({
 export const appContent = style({
     display: "grid",
     gridTemplateColumns: "auto 1fr",
+    gridTemplateRows: "minmax(0, 1fr)",
     width: "100%",
     height: "100%",
     backgroundImage: `linear-gradient(45deg, ${themeVars.color.background.dark}, ${themeVars.color.background.light})`,
@@ -24,9 +25,10 @@ export const leftMenu = style({
     color: themeVars.color.surface.contrast,
     backgroundImage: `linear-gradient(45deg, ${themeVars.color.surface.dark}, ${themeVars.color.surface.light})`,
     backdropFilter: "blur(10px)",
-    boxShadow: themeVars.shadow.medium,
+    boxShadow: themeVars.shadow.large,
     width: 240,
     padding: themeVars.spacing.full,
+    overflowY: "auto",
 });
 
 export const searchContainer = style({
@@ -57,7 +59,7 @@ export const tabItem = style({
     paddingBlock: themeVars.spacing.full,
     paddingInline: themeVars.spacing.double,
     textAlign: "start",
-    transition: "color 200ms",
+    transition: `color ${themeVars.animation.duration}`,
 
     selectors: {
         "&:hover": {
@@ -70,7 +72,7 @@ export const tabItem = style({
 });
 
 export const tabFloater = style({
-    backgroundImage: `linear-gradient(to right, ${themeVars.color.primary.main} 5px, rgb(from ${themeVars.color.primary.main} r g b / 25%) 5px, transparent)`,
+    backgroundImage: `linear-gradient(to right, ${themeVars.color.primary.main} 5px, ${themeVars.color.surface.light} 5px, transparent)`,
     width: "100%",
     height: "100%",
 });

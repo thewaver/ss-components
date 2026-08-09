@@ -11,7 +11,7 @@ const modalPanel = style({
     color: themeVars.color.surface.contrast,
     backgroundImage: `linear-gradient(215deg, ${themeVars.color.surface.light}, ${themeVars.color.surface.dark})`,
     backdropFilter: "brightness(75%) grayscale(25%) blur(10px)",
-    boxShadow: themeVars.shadow.medium,
+    boxShadow: themeVars.shadow.large,
     borderRadius: themeVars.borderRadius.half,
     padding: themeVars.spacing.double,
 });
