@@ -7,17 +7,25 @@ const FIELD_HEIGHT = 40;
 const FIELD_BORDER = 2;
 
 export const FIELD_PADDING = 10 + FIELD_BORDER;
-export const FIELD_GAP = 6;
+export const FIELD_STEPPER_PADDING = {
+    paddingTop: FIELD_PADDING,
+    paddingRight: 5,
+    paddingBottom: FIELD_PADDING,
+    paddingLeft: FIELD_PADDING,
+};
+export const FIELD_GAP = 5;
 export const FIELD_FONT_SIZE = themeVars.fontSize.medium;
 export const FIELD_LINE_HEIGHT = 1.25;
 
 export const isEmpty = style({});
+export const isStretched = style({});
+export const isTopAligned = style({});
 export const isHovered = style({});
 export const isReadOnly = style({});
 export const isDisabled = style({});
 export const hasError = style({});
 
-export const textInputContent = style({
+export const textFieldContent = style({
     width: FIELD_WIDTH,
     height: FIELD_HEIGHT,
     boxShadow: themeVars.shadow.small,
@@ -27,6 +35,9 @@ export const textInputContent = style({
     transition: `filter ${themeVars.animation.duration}, opacity ${themeVars.animation.duration}, border-color ${themeVars.animation.duration}`,
 
     selectors: {
+        [`&.${isStretched}`]: {
+            height: "auto",
+        },
         [`&.${isReadOnly}`]: {
             backgroundColor: `rgb(from currentColor r g b / 12.5%)`,
         },
@@ -43,7 +54,7 @@ export const textInputContent = style({
     },
 });
 
-export const textInputPlaceholder = style({
+export const textFieldPlaceholder = style({
     display: "flex",
     alignItems: "center",
     height: "100%",
@@ -54,6 +65,9 @@ export const textInputPlaceholder = style({
     transition: `opacity ${themeVars.animation.duration}`,
 
     selectors: {
+        [`&.${isTopAligned}`]: {
+            alignItems: "flex-start",
+        },
         [`&.${isEmpty}`]: {
             opacity: 1,
         },

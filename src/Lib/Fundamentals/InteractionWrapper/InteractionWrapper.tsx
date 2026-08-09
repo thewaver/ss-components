@@ -48,7 +48,10 @@ export const InteractionWrapper = <TExtra extends object = {}>(props: Interactio
     return (
         <div
             class={[styles.interactionRoot, styles.interactionSizingVariants[getSizing()]].join(" ")}
-            style={{ "min-width": props.getMinWidth ? `${props.getMinWidth()}px` : undefined }}
+            style={{
+                "min-width": props.getMinWidth ? `${props.getMinWidth()}px` : undefined,
+                "min-height": props.getMinHeight?.() ? `${props.getMinHeight()}px` : undefined,
+            }}
             classList={{
                 [styles.interactionDisabled]: getIsDisabled(),
                 [styles.interactionError]: props.getHasError?.(),

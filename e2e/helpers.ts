@@ -14,6 +14,11 @@ export const tabIndex = (locator: Locator) => locator.evaluate((element) => (ele
 
 export const inputValue = (locator: Locator) => locator.evaluate((element) => (element as HTMLInputElement).value);
 
+export const offsetHeight = (locator: Locator) => locator.evaluate((element) => (element as HTMLElement).offsetHeight);
+
+export const isScrolling = (locator: Locator) =>
+    locator.evaluate((element) => element.scrollHeight > element.clientHeight);
+
 export const isIndeterminate = (locator: Locator) =>
     locator.evaluate((element) => (element as HTMLInputElement).indeterminate);
 

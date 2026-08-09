@@ -79,26 +79,6 @@ export const root = style({
     gap: themeVars.spacing.quad,
 });
 
-export const textArea = style({
-    minWidth: 320,
-    minHeight: 160,
-    color: "inherit",
-    backgroundColor: "black",
-    boxShadow: themeVars.shadow.small,
-    border: `2px solid rgb(from currentColor r g b / 25%)`,
-    borderRadius: themeVars.borderRadius.half,
-    padding: themeVars.spacing.full,
-    fontSize: themeVars.fontSize.medium,
-    lineHeight: 1.25,
-
-    selectors: {
-        "&::placeholder": {
-            color: "currentColor",
-            opacity: 0.5,
-        },
-    },
-});
-
 export const textHighlight = style({
     textTransform: "uppercase",
     lineHeight: 2,

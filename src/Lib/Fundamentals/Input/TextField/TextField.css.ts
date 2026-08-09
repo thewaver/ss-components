@@ -1,12 +1,12 @@
 import { style } from "@vanilla-extract/css";
 
-export const textInputPlaceholder = style({
+export const textFieldPlaceholder = style({
     position: "absolute",
     inset: 0,
     pointerEvents: "none",
 });
 
-export const textInputAdornment = style({
+export const textFieldAdornment = style({
     position: "absolute",
     top: 0,
     bottom: 0,
@@ -14,7 +14,7 @@ export const textInputAdornment = style({
     alignItems: "center",
 });
 
-export const textInputElement = style({
+export const textFieldElement = style({
     appearance: "none",
     MozAppearance: "textfield",
     position: "absolute",
@@ -43,4 +43,9 @@ export const textInputElement = style({
             cursor: "not-allowed !important",
         },
     },
+});
+
+export const textFieldTextArea = style({
+    resize: "none",
+    overflowX: "hidden",
 });

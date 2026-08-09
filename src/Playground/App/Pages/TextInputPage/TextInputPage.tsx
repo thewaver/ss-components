@@ -5,15 +5,15 @@ import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
 import { TextInput } from "../../../../Lib/Fundamentals/Input/TextInput/TextInput";
 import { PageLabelCaption } from "../../PageComponents/LabelCaption/LabelCaption";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
-import { PageTextInputAdornment } from "../../StyledComponents/TextInputAdornment/TextInputAdornment";
+import { PageTextFieldAdornment } from "../../StyledComponents/TextFieldAdornment/TextFieldAdornment";
 import {
-    PageTextInputContent,
-    computePageTextInputTextStyle,
-} from "../../StyledComponents/TextInputContent/TextInputContent";
-import { PageTextInputPlaceholder } from "../../StyledComponents/TextInputPlaceholder/TextInputPlaceholder";
+    PageTextFieldContent,
+    computePageTextFieldTextStyle,
+} from "../../StyledComponents/TextFieldContent/TextFieldContent";
+import { PageTextFieldPlaceholder } from "../../StyledComponents/TextFieldPlaceholder/TextFieldPlaceholder";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 
-import { FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/TextInputContent/TextInputContent.css";
+import { FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/TextFieldContent/TextFieldContent.css";
 
 const PIN_LENGTH = 6;
 
@@ -42,10 +42,10 @@ export const TextInputPage = () => {
                         getPadding={() => FIELD_PADDING}
                         getGap={() => FIELD_GAP}
                         getAriaLabel={() => "Your name"}
-                        computeTextStyle={computePageTextInputTextStyle}
-                        renderContent={(getFlags) => <PageTextInputContent getFlags={getFlags} />}
+                        computeTextStyle={computePageTextFieldTextStyle}
+                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
                         renderPlaceholder={(getFlags) => (
-                            <PageTextInputPlaceholder getFlags={getFlags}>Your name</PageTextInputPlaceholder>
+                            <PageTextFieldPlaceholder getFlags={getFlags}>Your name</PageTextFieldPlaceholder>
                         )}
                     />
                 ),
@@ -62,12 +62,12 @@ export const TextInputPage = () => {
                         onInput={(value) => {
                             codeSignal[1](value.toLocaleUpperCase());
                         }}
-                        computeTextStyle={computePageTextInputTextStyle}
-                        renderContent={(getFlags) => <PageTextInputContent getFlags={getFlags} />}
+                        computeTextStyle={computePageTextFieldTextStyle}
+                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
                         renderPlaceholder={(getFlags) => (
-                            <PageTextInputPlaceholder getFlags={getFlags}>
+                            <PageTextFieldPlaceholder getFlags={getFlags}>
                                 Coupon code (upper-cased)
-                            </PageTextInputPlaceholder>
+                            </PageTextFieldPlaceholder>
                         )}
                     />
                 ),
@@ -86,10 +86,10 @@ export const TextInputPage = () => {
                         onInput={(value) => {
                             pinSignal[1](value.replace(/\D/g, "").slice(0, PIN_LENGTH));
                         }}
-                        computeTextStyle={computePageTextInputTextStyle}
-                        renderContent={(getFlags) => <PageTextInputContent getFlags={getFlags} />}
+                        computeTextStyle={computePageTextFieldTextStyle}
+                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
                         renderPlaceholder={(getFlags) => (
-                            <PageTextInputPlaceholder getFlags={getFlags}>Digits only</PageTextInputPlaceholder>
+                            <PageTextFieldPlaceholder getFlags={getFlags}>Digits only</PageTextFieldPlaceholder>
                         )}
                     />
                 ),
@@ -105,10 +105,10 @@ export const TextInputPage = () => {
                         getType={() => (revealSignal[0]() ? "text" : "password")}
                         getAriaLabel={() => "Password"}
                         getAutoComplete={() => "current-password"}
-                        computeTextStyle={computePageTextInputTextStyle}
-                        renderContent={(getFlags) => <PageTextInputContent getFlags={getFlags} />}
+                        computeTextStyle={computePageTextFieldTextStyle}
+                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
                         renderPlaceholder={(getFlags) => (
-                            <PageTextInputPlaceholder getFlags={getFlags}>Password</PageTextInputPlaceholder>
+                            <PageTextFieldPlaceholder getFlags={getFlags}>Password</PageTextFieldPlaceholder>
                         )}
                         renderTrailing={() => (
                             <Button
@@ -116,9 +116,9 @@ export const TextInputPage = () => {
                                     revealSignal[1]((prev) => !prev);
                                 }}
                                 renderContent={(getFlags) => (
-                                    <PageTextInputAdornment getFlags={getFlags}>
+                                    <PageTextFieldAdornment getFlags={getFlags}>
                                         {revealSignal[0]() ? "Hide" : "Show"}
-                                    </PageTextInputAdornment>
+                                    </PageTextFieldAdornment>
                                 )}
                             />
                         )}
@@ -135,13 +135,13 @@ export const TextInputPage = () => {
                         getGap={() => FIELD_GAP}
                         getAriaLabel={() => "Amount"}
                         getInputMode={() => "decimal"}
-                        computeTextStyle={computePageTextInputTextStyle}
-                        renderContent={(getFlags) => <PageTextInputContent getFlags={getFlags} />}
+                        computeTextStyle={computePageTextFieldTextStyle}
+                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
                         renderPlaceholder={(getFlags) => (
-                            <PageTextInputPlaceholder getFlags={getFlags}>0.00</PageTextInputPlaceholder>
+                            <PageTextFieldPlaceholder getFlags={getFlags}>0.00</PageTextFieldPlaceholder>
                         )}
                         renderLeading={(getFlags) => (
-                            <PageTextInputAdornment getFlags={getFlags}>USD</PageTextInputAdornment>
+                            <PageTextFieldAdornment getFlags={getFlags}>USD</PageTextFieldAdornment>
                         )}
                         renderTrailing={() => (
                             <Button
@@ -150,7 +150,7 @@ export const TextInputPage = () => {
                                     amountSignal[1]("");
                                 }}
                                 renderContent={(getFlags) => (
-                                    <PageTextInputAdornment getFlags={getFlags}>Clear</PageTextInputAdornment>
+                                    <PageTextFieldAdornment getFlags={getFlags}>Clear</PageTextFieldAdornment>
                                 )}
                             />
                         )}
@@ -170,8 +170,8 @@ export const TextInputPage = () => {
                         getMin={() => 0}
                         getMax={() => 100}
                         getStep={() => 5}
-                        computeTextStyle={computePageTextInputTextStyle}
-                        renderContent={(getFlags) => <PageTextInputContent getFlags={getFlags} />}
+                        computeTextStyle={computePageTextFieldTextStyle}
+                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
                     />
                 ),
             },
@@ -185,8 +185,8 @@ export const TextInputPage = () => {
                         getGap={() => FIELD_GAP}
                         getIsReadOnly={() => true}
                         getAriaLabel={() => "Read-only field"}
-                        computeTextStyle={computePageTextInputTextStyle}
-                        renderContent={(getFlags) => <PageTextInputContent getFlags={getFlags} />}
+                        computeTextStyle={computePageTextFieldTextStyle}
+                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
                     />
                 ),
             },
@@ -200,8 +200,8 @@ export const TextInputPage = () => {
                         getGap={() => FIELD_GAP}
                         getIsDisabled={() => true}
                         getAriaLabel={() => "Disabled field"}
-                        computeTextStyle={computePageTextInputTextStyle}
-                        renderContent={(getFlags) => <PageTextInputContent getFlags={getFlags} />}
+                        computeTextStyle={computePageTextFieldTextStyle}
+                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
                     />
                 ),
             },
@@ -216,8 +216,8 @@ export const TextInputPage = () => {
                         getIsDisabled={() => true}
                         getIsReachableWhenDisabled={() => true}
                         getAriaLabel={() => "Disabled but reachable field"}
-                        computeTextStyle={computePageTextInputTextStyle}
-                        renderContent={(getFlags) => <PageTextInputContent getFlags={getFlags} />}
+                        computeTextStyle={computePageTextFieldTextStyle}
+                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
                         getTooltipDefs={() => ({
                             getPlacement: () => ({ x: "center", y: "top-out" }),
                             getOffset: () => ({ x: 0, y: 5 }),
@@ -245,8 +245,8 @@ export const TextInputPage = () => {
                         getHasError={() => !erroredSignal[0]().includes("@")}
                         getAriaLabel={() => "Email"}
                         getAutoComplete={() => "email"}
-                        computeTextStyle={computePageTextInputTextStyle}
-                        renderContent={(getFlags) => <PageTextInputContent getFlags={getFlags} />}
+                        computeTextStyle={computePageTextFieldTextStyle}
+                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
                     />
                 ),
             },
@@ -261,8 +261,8 @@ export const TextInputPage = () => {
                             valueSignal={labelledSignal}
                             getPadding={() => FIELD_PADDING}
                             getGap={() => FIELD_GAP}
-                            computeTextStyle={computePageTextInputTextStyle}
-                            renderContent={(getFlags) => <PageTextInputContent getFlags={getFlags} />}
+                            computeTextStyle={computePageTextFieldTextStyle}
+                            renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
                         />
                     </Label>
                 ),

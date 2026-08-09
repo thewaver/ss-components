@@ -749,7 +749,7 @@ proven; keep it.
 
 **The cost, accepted: the painter's inner padding and the input's `padding` have to agree, and
 nothing enforces it.** Both live in the consumer's stylesheet, so a shared constant fixes it — the
-Playground's `TextInputContent.css.ts` derives both from `FIELD_PADDING`. This is the first place
+Playground's `TextFieldContent.css.ts` derives both from `FIELD_PADDING`. This is the first place
 where the painter does not own literally every pixel, and it is the direct price of keeping the ring
 correct.
 
@@ -826,7 +826,7 @@ wrapper sits above the input and is shared by every control, whereas a placehold
 the caret and only a text field has one.
 
 **Focus is drawn once, by the ring, and a painter must not draw a second one.** The first version of
-`PageTextInputContent` coloured its border on `isFocused`, which produced two concentric indications
+`PageTextFieldContent` coloured its border on `isFocused`, which produced two concentric indications
 at different radii — the consumer's `:focus-visible` outline sitting on the input's border box, and
 the painter's border two pixels inside it. The outline already hugs the painted box exactly, because
 the input is `inset: 0` against a root the painter sized, so there is nothing left for the painter to
@@ -1073,26 +1073,9 @@ does nothing. The visible symptom is `isEmpty` reporting true with text on scree
 `renderPlaceholder` overlay will draw over it. `type="text"` with `getInputMode={() => "decimal"}`
 avoids the whole thing and is the better choice wherever the placeholder or an exact value matters.
 
-**No shared composite yet, and `TextArea` is the thing that would justify one.** `BinarySwitch`
-earned its existence from three presets sharing nine tenths of a leaf. `TextInput` is currently
-alone — `InteractionWrapper` plus a private `TextInputElement`, the `Button` shape — because a base
-extracted from one component is just an extra file.
-
-A textarea is a different case from `number`, and the difference is exactly the test above: it is a
-different **element**, not a different type, so the leaf's tag changes and with it two real things.
-`rows` and `cols` replace `type` and `autocomplete`-ish concerns, and — the one that matters —
-auto-growing height would invert who owns geometry, since the settled arrangement has the painter
-size the box and the element cover it at `inset: 0`. A fixed-height textarea keeps that arrangement
-untouched; an auto-growing one cannot, and that is a decision to take deliberately rather than
-inherit.
-
-Everything expensive is shared regardless: `syncElement` with its caret restore, composition
-gating, the `readonly` disabled mechanism, the flags, the placeholder and adornment slots. That is
-more overlap than `Checkbox` and `Radio` had, and copying it would put a second copy of
-`syncElement` in the tree — the specific mistake `BinarySwitch` exists to prevent. So when `TextArea`
-is built it should be a private shared leaf parameterised by its element with `TextInput` and
-`TextArea` as presets that `Omit` what does not apply, in the `BinarySwitch` shape, and **not** a
-`"textarea"` member of `TextInputType`, which would be a type that silently changes the element.
+**The shared composite this section predicted is `TextField`** — see _"Controls: `TextField`
+extracted"_ below. Everything this section settled still holds; it is now settled one file down, and
+`TextInput` is a dozen lines on top of it.
 
 **Password is not a component.** Its only distinguishing behaviour is revealing, which is
 `getType` flipping between `"password"` and `"text"` over a signal the consumer already owns. This
@@ -1104,6 +1087,140 @@ suppression and the warning lived inline in `BinarySwitchElement` and are needed
 This is the `computeIsReachable` situation — a settled rule, and two copies would drift — so it
 moved to `Label.utils.ts` under the same namespace idiom as `InteractionUtils`, and the warning lost
 its `BinarySwitch:` prefix.
+
+### Controls: `TextField` extracted, with `TextInput` and `TextArea` as presets
+
+Settled **2026-08-09**, on the terms the `TextInput` section had already written down: a private
+shared leaf parameterised by its element, presets that `Omit` what does not apply, in the
+`BinarySwitch` shape — and **not** a `"textarea"` member of the type union, which would be a type
+that silently changes the element.
+
+**Nothing about `TextInput` changed except where it lives.** `Fundamentals/Input/TextField/` holds
+the base; `TextInput` is `<TextField {...props} getElement={() => "input"} />` and `TextArea` the
+same with `"textarea"`. The base is absent from `index.ts` in the `BinarySwitch` way — only
+`TextField.types` ships, because the presets' props are derived from `TextFieldPresetProps` and the
+emitted `.d.ts` has to resolve it. The types moved with it and the old names are gone rather than
+aliased: `TextFieldFlags`, `TextFieldTextStyle`, `TextFieldType`, `TextFieldMode`. `Select` already
+imported the text style and now imports it from the base, and the Playground's painters were renamed
+to match — `PageTextFieldContent` / `PageTextFieldPlaceholder` / `PageTextFieldAdornment` — since one
+painter now serves three shells and a name pointing at one of them would be wrong.
+
+`TextSync` widened to `HTMLInputElement | HTMLTextAreaElement`, exported as `TextSyncElement`. Both
+carry `value`, `selectionStart`, `selectionEnd` and `setSelectionRange`, so the caret restore is
+unchanged rather than branched.
+
+**The element is a `Dynamic`, and that is the whole of the parameterisation.** One attribute list,
+with the two element-specific attributes computed rather than duplicated: `type` is `undefined` on a
+textarea, `rows` is `undefined` on an input. This also tightened `min` / `max` / `step`, which are now
+emitted only for `type="number"` — the browser ignores them elsewhere, but a `type="text"` field
+carrying them is a lie in the DOM, and `NumberInput` below is a `type="text"` field that owns a range.
+
+**Auto-growing height is opt-in, and it is the only thing that could not be inherited.** A fixed
+textarea leaves the settled arrangement untouched: the painter sizes the box, the element covers it at
+`inset: 0`, `rows` is beside the point because the painter's height wins. An auto-growing one inverts
+that — the content decides the box — and the resolution is to keep the inversion out of the overlay
+and put it on the wrapper instead. `getIsAutoSizing` turns it on, `getMinRows` (default 2, the native
+default) is the floor and `getMaxRows` the optional ceiling.
+
+The measurement is the mirror image of `getMinWidth`, one axis over. `InteractionWrapper` gained
+`getMinHeight` beside it; `TextField` sets the element's `bottom` to `auto` for one frame, reads
+`scrollHeight`, restores it, and clamps that against the row floor and ceiling. `scrollHeight`
+includes the element's own padding and the element has no border, so the number _is_ the root height
+needed — no second sum to keep in step. `bottom` is the only property touched, because the class
+already carries `height: auto !important` and an absolutely positioned box with `top`, `bottom` and
+`height: auto` takes its height from the insets; freeing `bottom` is what lets `height: auto` mean the
+content again. Nothing that Solid writes as an inline style is disturbed.
+
+**A growing root only moves the painter if the painter lets it.** The root is `display: flex` with
+`align-items` left at `stretch`, so a painter that declares no height already follows the root's
+height. That is the same limitation `getMinWidth` records — "a painter with a fixed `width` stays
+put" — and here it is load-bearing in the other direction: an auto-sizing `TextArea` wants a painter
+with no height, a fixed one wants a painter that sets one. The Playground says which through
+`getIsStretched` / `getHeight` on its own painter, which is where that choice belongs.
+
+Two smaller consequences. **The re-measure listens for width, not height**, because publishing a
+height that the observer then reads back is a loop; the observer compares `inlineSize` against the
+last one and returns early otherwise. And **`overflow-y` is `hidden` while growing uncapped**, so no
+scrollbar flickers in during the frame between a keystroke and the new floor, and `auto` in every
+other case.
+
+**`resize` is `none`, and deliberately without `!important`.** A user-dragged element would decouple
+the element's box from the painted box, which is the invariant _"nothing may decouple the painted box
+from the wrapper's box"_ names. The other blank-slate resets carry `!important` because a real
+conflict was observed — `input:not([type="range"])` and `input[type="checkbox"]` both outrank a class
+— and no such selector exists for this property: a bare `textarea { resize }` is weaker than a class
+and loses already. Escalating on suspicion is the defensive habit that rule warns against; escalate
+when something actually beats it.
+
+### Controls: `NumberInput`, and the first preset that earns a codec
+
+Settled **2026-08-09**. This does not reopen _"`number` is a type, not a component"_ — it passes that
+section's own test. What earns a component is behaviour the shell has to own, and there are four
+things here that a consumer would otherwise write again per field: the ladder that stepping walks,
+clamping at the moment the field is left rather than per keystroke, refusing characters that cannot
+appear in a number, and the string-to-number codec. None of those is an attribute.
+
+**It is a `type="text"` field, not a `type="number"` one**, which is the choice the caveat at the end
+of that section already recommends. Under `type="number"` the HTML value-sanitisation algorithm makes
+`element.value` return `""` during half-typed input while the field still shows the characters, so
+`isEmpty` lies and a `renderPlaceholder` overlay draws over what the user typed. A field whose whole
+job is to own a number cannot afford that. What the browser stops providing in exchange — the spin
+buttons, arrow stepping, and the spin-button role — the shell provides, which is the same trade the
+library already makes everywhere else.
+
+`getIsSpinButton` on `TextFieldState` is the `getIsSwitch` shape exactly: the base computes
+`role="spinbutton"` from it and publishes `aria-valuenow` / `aria-valuemin` / `aria-valuemax` from the
+value and the range it already holds. `aria-valuenow` is omitted while the text does not parse, since
+a half-typed value has no number to announce.
+
+**`valueSignal` is `Signal<number | undefined>`, and `undefined` means an empty field.** This is the
+one place the `Signal<string>` rule the `TextInput` section argues for is deliberately broken, and the
+reason is that the codec is the feature. A private `Signal<string>` still runs the element — the
+round-trip `"1."` hazard is untouched, because the string signal is what `TextSync` compares and the
+number never gets written back over it. What the consumer sees is a number, which is what they wanted
+when they reached for a number field. `undefined` rather than `0` because an empty field has no value:
+a `0` would be a value the user did not type.
+
+**Typing is refused character by character rather than parsed and rewritten**, which is the
+"transforming setter" idiom the Playground already demonstrates, moved inside the control.
+`NumberInputUtils.sanitizeText` walks the text and keeps a character only where it can legally
+appear — one sign at the front, one more after an exponent, one decimal point, one exponent and only
+after a digit. It is written to keep half-typed values typeable rather than to accept only complete
+numbers: `-`, `1.`, `1e` and `1e-` all survive, and each reports `undefined` upward until it parses.
+
+**Clamping happens on blur, not on input.** Clamping per keystroke makes the second digit of a value
+untypeable — in a field with a maximum of 100, typing `9` then `9` gives `99`, but in a field with a
+minimum of 40, typing `5` becomes `40` before the `0` arrives. Stepping still clamps immediately,
+because a step is a complete gesture and typing is not.
+
+**The step ladder counts from `min`, not from zero**, matching what a native number field does: a
+value already on a rung moves a whole step, one between rungs snaps to the next rung in the direction
+of travel. `computeStep` runs the arithmetic in whole units of the smallest decimal in play rather
+than in floats, so a step of `0.1` from `0.3` gives `0.4` and not `0.4000000000000001`, and no epsilon
+has to be chosen. It is a pure function in `NumberInput.utils.ts` with tests, which is where the
+`vitest` half of the suite can actually reach it.
+
+**The stepper reaches the painter through `renderTrailing`, widened rather than duplicated.**
+`NumberInput` re-declares that one slot as `(getFlags, stepper)`, the same widening
+`InteractionTooltipDefs` does to its `renderContent`. A second `renderStepper` slot was the obvious
+alternative and loses: both would want the same physical position, and one slot lets a painter draw a
+unit and a stepper together, which the Playground does. The `stepper` carries `stepUp` / `stepDown`
+plus `getIsAtMin` / `getIsAtMax`, so a painter can disable the end of the range it has reached — the
+flags stay pure state and the actions stay out of them.
+
+**`onKeyDown` and `onBlur` exist on `TextFieldCbs` and are `Omit`ted from both public presets.** The
+arrows, `Home` and `End`, and the blur-clamp all need them, and the base is where they belong; whether
+`TextInput` should expose them is a separate question with its own consumers, and answering it as a
+side effect of this would be smuggling.
+
+**`untrack` on the mirror is not a micro-optimisation, it is the fix for a real flip-flop.** The
+effect that restates the text when the owner writes a new number must read the text _untracked_.
+Tracked, it also re-runs when the text changes — and `TextField` writes the raw text into the signal
+before the preset's `onInput` gets to sanitise it and report a number, so for one moment the text says
+`"1"` and the number still says `undefined`. A tracked effect fires in that gap, formats `undefined`
+back to `""`, and the two then fight: the observed symptom was a caret jumping to the start after the
+first keystroke and digits arriving in reverse order. This is the `ImageSwitcher` shape — an effect
+whose job is one-directional must only depend on the direction it syncs from.
 
 ### Controls: `Range`
 
@@ -1339,7 +1456,7 @@ no longer has to handle an `undefined` its control cannot emit. The universal fl
 since a wrapper genuinely may not know.
 
 **The type immediately found an over-typed painter**, which is the return on the refactor:
-`PageTextInputAdornment` had been typed as a text-input painter but reads only `isHovered` and
+`PageTextFieldAdornment` had been typed as a text-input painter but reads only `isHovered` and
 `isDisabled`, and the Playground puts it inside a `Button`. Under one flat flag type that was
 invisible; under the generic it is an error at the call site.
 
@@ -2034,7 +2151,8 @@ a drop, not to the field, and adding it would make `FileInput` own a second acti
 ### The Playground's element selectors are scoped, and the library keeps its `!important`
 
 Settled **2026-08-06**, with the props-panel migration. All 43 raw controls in the panels are library
-controls now, and the single remaining native is a `<textarea>` waiting on `TextArea`.
+controls now, and since `TextArea` shipped there is no raw form control left in the Playground at all —
+the Typewriter page's `<textarea>` was the last one, and its stylesheet went with it.
 
 **`style.css` no longer styles `input` or `select` at all.** Those rules sat at specificity 0,1,1 and
 outranked any class a control could carry, which is what forced the escalation this log records under

@@ -20,6 +20,7 @@ import { ImageSwitcherPage } from "./Pages/ImageSwitcherPage/ImageSwitcherPage";
 import { LabelPage } from "./Pages/LabelPage/LabelPage";
 import { MenuPage } from "./Pages/MenuPage/MenuPage";
 import { ModalPage } from "./Pages/ModalPage/ModalPage";
+import { NumberInputPage } from "./Pages/NumberInputPage/NumberInputPage";
 import { ProgressPage } from "./Pages/ProgressPage/ProgressPage";
 import { RadioPage } from "./Pages/RadioPage/RadioPage";
 import { RangePage } from "./Pages/RangePage/RangePage";
@@ -28,6 +29,7 @@ import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
 import { SelectPage } from "./Pages/SelectPage/SelectPage";
 import { ShapePage } from "./Pages/ShapePage/ShapePage";
 import { SurfacePage } from "./Pages/SurfacePage/SurfacePage";
+import { TextAreaPage } from "./Pages/TextAreaPage/TextAreaPage";
 import { TextInputPage } from "./Pages/TextInputPage/TextInputPage";
 import { TogglePage } from "./Pages/TogglePage/TogglePage";
 import { TypewriterPage } from "./Pages/TypewriterPage/TypewriterPage";
@@ -110,6 +112,10 @@ const TAB_CONFIGS: TabConfig[] = [
         component: () => <ModalPage />,
     },
     {
+        name: "NumberInput",
+        component: () => <NumberInputPage />,
+    },
+    {
         name: "Progress",
         component: () => <ProgressPage />,
     },
@@ -142,6 +148,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "Shape",
         component: () => <ShapePage />,
+    },
+    {
+        name: "TextArea",
+        component: () => <TextAreaPage />,
     },
     {
         name: "TextInput",

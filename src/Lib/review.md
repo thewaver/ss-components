@@ -22,6 +22,7 @@ having done the work does not go anywhere.
 12. The SVG defs' geometry cannot be reached without rendering — _open_
 13. Planned: strip `style.css`, add a theme, and add opinionated control presets — _planned_
 14. `ImageSwitcher` draws a broken-image icon when its `src` is cleared — _open_
+15. A stepper cannot repeat while held, because `Button` has no press event — _open_
 
 ### Build order
 
@@ -34,23 +35,22 @@ Two things break that ordering on purpose, and both are noted where they fall.
 
 **Tier 2 — new components whose every mechanism already exists somewhere.**
 
-1. **`TextArea`** — extract the text composite `conventions.md` already promises, then two presets. New
-   work is auto-height measurement, which is the same primitive as the next item, so pair them. It is
-   also the last raw native left in the Playground, so it closes that migration rather than adding to it.
-2. **`Accordion`** — trivial ARIA over the auto-height animation from 1.
+1. **`Accordion`** — trivial ARIA over an auto-height _animation_. `TextField`'s auto-sizing measures a
+   target height already; what is missing is animating to it, which is the same measurement plus a
+   transition and belongs in `Abstracts/ElementObserver`.
 
 **Tier 3 — blocked on a primitive that has to be designed first.** Do not start these by inventing the
 primitive privately inside them.
 
-3. **The custom `ColorInput` picker surface** — a pointer drag in two dimensions. `Range` shipped
+2. **The custom `ColorInput` picker surface** — a pointer drag in two dimensions. `Range` shipped
    without needing item 2's primitive, because a native `<input type="range">` per thumb carries the
    drag; a colour surface has no native equivalent, so this is where item 2 stops being theoretical.
    The field itself ships; this is the surface that would replace the OS dialog.
-4. **`NavigationUtils.computeNextCell` beside the 1D walk that now ships, then `Calendar`.**
-5. **A mask layer over `TextSync`, plus the date-dependency decision, then `DateInput`** — and only
+3. **`NavigationUtils.computeNextCell` beside the 1D walk that now ships, then `Calendar`.**
+4. **A mask layer over `TextSync`, plus the date-dependency decision, then `DateInput`** — and only
    then `DatePicker`, which is `Calendar` inside the `Popover` that now ships. Date-time and ranges
    compose from those rather than being new components.
-6. **`Tree`** — the 2D walk from 4 plus `Select`'s tree-flattening model. Wants virtualization,
+5. **`Tree`** — the 2D walk from 3 plus `Select`'s tree-flattening model. Wants virtualization,
    which is also `Select`'s loose end in item 6, so that `Abstract` belongs here.
 
 **Out of the cost ordering, deliberately:**
@@ -261,33 +261,15 @@ shift across a boundary.
 
 ## 9. Other core controls the library does not have
 
-`Fundamentals/Input` covers `TextInput`, `Checkbox`, `Toggle`, `Radio`, `RadioGroup`, `Select`,
-`MultiSelect`, `FileInput`, `ColorInput` and `Label`; `Fundamentals` adds `Button`, `Tabs`, `Tooltip`,
-`Popover`, `Menu`, `Modal`, `Drawer`, `AlertDialog`, `Progress` and `Range`. Beyond item 8, this is what
-is missing, ordered by how much of it is a new architectural problem rather than by how much markup it
-is.
+`Fundamentals/Input` covers `TextInput`, `TextArea`, `NumberInput`, `Checkbox`, `Toggle`, `Radio`,
+`RadioGroup`, `Select`, `MultiSelect`, `FileInput`, `ColorInput` and `Label`; `Fundamentals` adds
+`Button`, `Tabs`, `Tooltip`, `Popover`, `Menu`, `Modal`, `Drawer`, `AlertDialog`, `Progress` and `Range`.
+Beyond item 8, this is what is missing, ordered by how much of it is a new architectural problem rather
+than by how much markup it is.
 
-**This list cannot be inferred from the Playground**, and reading its raw natives as the evidence for it
-is the trap: every one of its 43 props-panel controls is a library control, and the single remaining
-native is a `<textarea>` waiting on the entry below.
-
-### Value-carrying controls with no equivalent here
-
-**`TextArea`.** Already promised in `conventions.md`, which names it as the thing that would justify
-extracting a shared text composite rather than letting `TextInput` grow a mode. The new problem it brings
-is that the overlay-geometry rule assumes the painter sizes a fixed box: a textarea auto-grows and
-scrolls its own content, so the painted box has to follow content height, and the input's scroll must not
-desynchronise from a painter that does not scroll.
-
-**A number stepper, which is a preset and possibly not wanted at all.** `TextInput` already carries
-`type="number"`, `min`, `max` and `step`, so a numeric field is not missing. What a `NumberInput` preset
-would add is the affordance the library's own CSS removes — `textInputElement` suppresses the webkit
-spinner — plus press-and-hold repeat and clamping on blur rather than per keystroke. **The Playground now
-argues for it.** `PageNumberField` exists precisely because a panel holding a number has to keep a local
-`Signal<string>`, mirror the owner's number into it, parse, clamp and report — thirty lines that every
-consumer with a numeric field will write the same way, and it clamps per keystroke because that is what
-falls out of the mirror. A preset owning the string/number codec is the thing that would delete it. A
-painter can already put two `Button`s in `renderTrailing`, so the affordance was never the hard part.
+**This list cannot be inferred from the Playground**, and reading it as the evidence for what is missing
+is the trap: every control on every page and in every props panel is now a library control, so the
+Playground has nothing left to say about what the library lacks.
 
 ### Overlays and feedback
 
@@ -336,8 +318,10 @@ any of those without first deciding these would bake the decision in by accident
 - **Pointer drag capture, and pointer geometry in the flags contract.** Item 2 records that
   `renderContent`/`renderDecoration` receive state and never events or pointer position. `Range` cannot
   be built without it, so the opt-in design that item asks for has to be settled first.
-- **Auto-height animation.** Needed by `Accordion`, and the general problem is measuring a target box
-  and animating to it; `Abstracts/ElementObserver` is where it belongs.
+- **Auto-height _animation_.** Half of this now exists: `TextField`'s auto-sizing measures a target
+  height and publishes it as the wrapper's `getMinHeight`, so the measuring is settled. `Accordion` needs
+  the other half, animating to that height rather than jumping to it, and the shared piece belongs in
+  `Abstracts/ElementObserver` rather than being written a second time inside `TextField`.
 - **Masking and formatting.** `TextSync` handles a setter that transforms or refuses while preserving
   the caret. A mask is more: the caret must skip literal characters, and a formatted number or date has
   a display form and a value form that are not the same string.
@@ -349,15 +333,16 @@ any of those without first deciding these would bake the decision in by accident
   ask a group of controls whether they are valid. `Label` solves the accessible **name** and stops
   there. Every control built above will otherwise grow its own half of this by accident — `FileInput` and
   `ColorInput` both shipped carrying `hasError` and nothing on the other end of it, so the count of
-  controls to retrofit is now eleven.
+  controls to retrofit is now thirteen.
 - **A `Signal<string>` codec, which is the smallest of these and the one with a consumer already.** Every
   control here owns its value as a `*Signal`, and every value that is not a string needs a mirror: a local
   signal, an effect that writes the owner's value in when the two disagree, and a parse on the way out.
-  `PageNumberField`, `PageSelectField`, `PageCheckField` and `PageColorField` are four copies of that
-  shape, and a consumer with a store rather than signals will write a fifth. What is undecided is whether
-  the answer is an `Abstract` that builds the mirror, or a controls-take-getter-plus-setter escape hatch
-  next to `*Signal` — and _"Signal tuples for two-way state"_ already records the cost this is the tail of:
-  "the owner has to _have_ a signal".
+  `NumberInput` now owns the number half of that internally, which is the proof the shape works, but it
+  solved one type rather than the general problem: `PageSelectField`, `PageCheckField` and `PageColorField`
+  are still three copies of the mirror, and a consumer with a store rather than signals will write a
+  fourth. What is undecided is whether the answer is an `Abstract` that builds the mirror, or a
+  controls-take-getter-plus-setter escape hatch next to `*Signal` — and _"Signal tuples for two-way state"_
+  already records the cost this is the tail of: "the owner has to _have_ a signal".
 
 ---
 
@@ -488,3 +473,29 @@ still fades out normally when the `src` is cleared, because that image is the ot
 
 Left alone rather than done, because it is a change to a shipped component's paint and it arrived as a
 by-product of building the page rather than as work that was asked for.
+
+---
+
+## 15. A stepper cannot repeat while held, because `Button` has no press event
+
+Holding a native number field's spinner repeats the step; holding `NumberInput`'s does not, and it stops
+at exactly one place. The stepper is painted by the consumer — the library paints nothing — so the two
+buttons are whatever the painter puts in `renderTrailing`, and the natural thing to put there is a
+`Button`. `ButtonCbs` carries `onClick`, `onMouseEnter` and `onMouseLeave` and nothing else, so a painter
+using the library's own button has no way to learn that the pointer went **down** and stayed down. The
+`stepper` handle could grow `startStepping` / `stopStepping` in an afternoon; there would be nothing on
+the painter's side to call them from.
+
+The keyboard does not have this problem: holding `ArrowUp` repeats, because the browser auto-repeats
+`keydown` and the shell handles that key itself. So the gap is mouse-and-touch only.
+
+Two ways out, and the choice is about `Button` rather than about `NumberInput`. Widening `ButtonCbs` with
+`onPointerDown` / `onPointerUp` is small and would serve press-and-hold anywhere — but it is a change to a
+shipped control's public surface, made on one consumer's account, and _"presence as a trigger fails
+invisibly"_ is the kind of caution that applies to growing an event surface too. The alternative is that a
+painter wanting repeat writes its own element instead of using `Button`, which works today and loses the
+focus ring, the flags and the tooltip anchoring that made `Button` worth having.
+
+Parked **2026-08-10**: the pointer handlers on `Button` are the direction, not the painter writing its
+own element — but it is a change to a shipped control's surface, so it waits for its own turn rather than
+riding along with `NumberInput`.

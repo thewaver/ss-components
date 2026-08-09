@@ -5,20 +5,22 @@ import type { AnchorPlacement } from "../../../../Lib/Abstracts/Anchor/Anchor.ty
 import { Checkbox } from "../../../../Lib/Fundamentals/Input/Checkbox/Checkbox";
 import { ColorInput } from "../../../../Lib/Fundamentals/Input/ColorInput/ColorInput";
 import { FileInput } from "../../../../Lib/Fundamentals/Input/FileInput/FileInput";
+import { NumberInput } from "../../../../Lib/Fundamentals/Input/NumberInput/NumberInput";
 import { Select } from "../../../../Lib/Fundamentals/Input/Select/Select";
 import { TextInput } from "../../../../Lib/Fundamentals/Input/TextInput/TextInput";
 import { PageCheckboxContent } from "../../StyledComponents/CheckboxContent/CheckboxContent";
 import { PageColorInputContent } from "../../StyledComponents/ColorInputContent/ColorInputContent";
 import { PageFileInputContent } from "../../StyledComponents/FileInputContent/FileInputContent";
+import { PageNumberInputStepper } from "../../StyledComponents/NumberInputStepper/NumberInputStepper";
 import { PagePopoverSurface } from "../../StyledComponents/PopoverSurface/PopoverSurface";
 import { PageSelectContent } from "../../StyledComponents/SelectContent/SelectContent";
 import { PageSelectGroupContent } from "../../StyledComponents/SelectGroupContent/SelectGroupContent";
 import { PageSelectOptionContent } from "../../StyledComponents/SelectOptionContent/SelectOptionContent";
 import {
-    PageTextInputContent,
-    computePageTextInputTextStyle,
-} from "../../StyledComponents/TextInputContent/TextInputContent";
-import { PageTextInputPlaceholder } from "../../StyledComponents/TextInputPlaceholder/TextInputPlaceholder";
+    PageTextFieldContent,
+    computePageTextFieldTextStyle,
+} from "../../StyledComponents/TextFieldContent/TextFieldContent";
+import { PageTextFieldPlaceholder } from "../../StyledComponents/TextFieldPlaceholder/TextFieldPlaceholder";
 import type {
     PageCheckFieldProps,
     PageColorFieldProps,
@@ -29,9 +31,13 @@ import type {
     PageTextFieldProps,
 } from "./Field.types";
 
-import { FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/TextInputContent/TextInputContent.css";
+import {
+    FIELD_GAP,
+    FIELD_PADDING,
+    FIELD_STEPPER_PADDING,
+} from "../../StyledComponents/TextFieldContent/TextFieldContent.css";
 
-const DEFAULT_NUMBER_FIELD_WIDTH = 100;
+const DEFAULT_NUMBER_FIELD_WIDTH = 130;
 const DEFAULT_SELECT_FIELD_WIDTH = 150;
 const EMPTY_TEXT = "";
 
@@ -57,42 +63,38 @@ const renderFieldPopup = (
 );
 
 export const PageNumberField = (props: PageNumberFieldProps) => {
-    const textSignal = createSignal(String(props.getValue()));
+    const valueSignal = createSignal<number | undefined>(props.getValue());
 
     createEffect(() => {
         const value = props.getValue();
 
-        if (Number(textSignal[0]()) === value) return;
+        if (valueSignal[0]() === value) return;
 
-        textSignal[1](String(value));
+        valueSignal[1](value);
     });
 
     return (
-        <TextInput
-            valueSignal={textSignal}
-            getType={() => "number"}
+        <NumberInput
+            valueSignal={valueSignal}
             getMin={props.getMin}
             getMax={props.getMax}
             getStep={props.getStep}
             getIsDisabled={props.getIsDisabled}
             getAriaLabel={props.getAriaLabel}
-            getPadding={() => FIELD_PADDING}
+            getPadding={() => FIELD_STEPPER_PADDING}
             getGap={() => FIELD_GAP}
-            computeTextStyle={computePageTextInputTextStyle}
+            computeTextStyle={computePageTextFieldTextStyle}
             renderContent={(getFlags) => (
-                <PageTextInputContent
+                <PageTextFieldContent
                     getFlags={getFlags}
                     getWidth={() => props.getWidth?.() ?? DEFAULT_NUMBER_FIELD_WIDTH}
                 />
             )}
-            onInput={(text) => {
-                if (text === EMPTY_TEXT) return;
+            renderTrailing={(getFlags, stepper) => <PageNumberInputStepper getFlags={getFlags} stepper={stepper} />}
+            onInput={(value) => {
+                if (value === undefined) return;
 
-                const parsed = Number(text);
-
-                if (!Number.isFinite(parsed)) return;
-
-                props.onInput(clampToRange(parsed, props.getMin?.(), props.getMax?.()));
+                props.onInput(clampToRange(value, props.getMin?.(), props.getMax?.()));
             }}
         />
     );
@@ -116,12 +118,12 @@ export const PageTextField = (props: PageTextFieldProps) => {
             getAriaLabel={props.getAriaLabel}
             getPadding={() => FIELD_PADDING}
             getGap={() => FIELD_GAP}
-            computeTextStyle={computePageTextInputTextStyle}
-            renderContent={(getFlags) => <PageTextInputContent getFlags={getFlags} getWidth={props.getWidth} />}
+            computeTextStyle={computePageTextFieldTextStyle}
+            renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} getWidth={props.getWidth} />}
             renderPlaceholder={
                 props.getPlaceholder &&
                 ((getFlags) => (
-                    <PageTextInputPlaceholder getFlags={getFlags}>{props.getPlaceholder!()}</PageTextInputPlaceholder>
+                    <PageTextFieldPlaceholder getFlags={getFlags}>{props.getPlaceholder!()}</PageTextFieldPlaceholder>
                 ))
             }
             onInput={props.onInput}

@@ -30,6 +30,7 @@ export type InteractionWrapperProps<TExtra extends object = {}> = AccessorProps<
     ExternalInteractionFlags & {
         sizing?: InteractionSizing;
         minWidth?: number;
+        minHeight?: number;
         isReachableWhenDisabled?: boolean;
         isTabbable?: boolean;
         ref?: (element: HTMLElement) => void;

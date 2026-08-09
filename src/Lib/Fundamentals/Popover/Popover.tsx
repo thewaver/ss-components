@@ -41,6 +41,12 @@ export const Popover = (props: PopoverProps) => {
         props.getHasAnchorMinWidth?.() ? `${getAnchorRect()?.width ?? 0}px` : undefined,
     );
 
+    const getAnchorColor = createMemo(() => {
+        const anchor = props.getAnchorRef();
+
+        return anchor && getIsVisible() ? getComputedStyle(anchor).color : undefined;
+    });
+
     const getHasFocus = createMemo(
         () => (props.getHasAutoFocus?.() ?? false) && props.getIsOpen() && getPosition() !== undefined,
     );
@@ -66,6 +72,7 @@ export const Popover = (props: PopoverProps) => {
                         "top": `${getPosition()?.y ?? 0}px`,
                         "left": `${getPosition()?.x ?? 0}px`,
                         "min-width": getMinWidth(),
+                        "color": getAnchorColor(),
                         "z-index": POPOVER_Z_INDEX,
                     }}
                     tabIndex={-1}

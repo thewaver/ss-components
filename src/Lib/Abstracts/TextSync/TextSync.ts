@@ -1,8 +1,10 @@
 import { createRenderEffect, createSignal } from "solid-js";
 
+export type TextSyncElement = HTMLInputElement | HTMLTextAreaElement;
+
 export namespace TextSync {
     export const createValueSync = (
-        getRef: () => HTMLInputElement | undefined,
+        getRef: () => TextSyncElement | undefined,
         getValue: () => string,
         opts: {
             onInput: (value: string) => void;
@@ -10,7 +12,7 @@ export namespace TextSync {
     ) => {
         const [getIsComposing, setIsComposing] = createSignal(false);
 
-        const syncElement = (element: HTMLInputElement) => {
+        const syncElement = (element: TextSyncElement) => {
             const value = getValue();
 
             if (getIsComposing() || element.value === value) return;
@@ -24,7 +26,7 @@ export namespace TextSync {
             element.setSelectionRange(selectionStart, selectionEnd);
         };
 
-        const reportValue = (element: HTMLInputElement) => {
+        const reportValue = (element: TextSyncElement) => {
             opts.onInput(element.value);
 
             syncElement(element);
@@ -39,7 +41,7 @@ export namespace TextSync {
         });
 
         return {
-            handleInput: (element: HTMLInputElement) => {
+            handleInput: (element: TextSyncElement) => {
                 if (getIsComposing()) return;
 
                 reportValue(element);
@@ -47,7 +49,7 @@ export namespace TextSync {
             handleCompositionStart: () => {
                 setIsComposing(true);
             },
-            handleCompositionEnd: (element: HTMLInputElement) => {
+            handleCompositionEnd: (element: TextSyncElement) => {
                 opts.onInput(element.value);
 
                 setIsComposing(false);

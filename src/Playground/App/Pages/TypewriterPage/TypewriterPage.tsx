@@ -1,5 +1,6 @@
 import { createMemo, createSignal } from "solid-js";
 
+import { TextArea } from "../../../../Lib/Fundamentals/Input/TextArea/TextArea";
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
@@ -7,12 +8,18 @@ import { PageNumberField, PageSelectField } from "../../PageComponents/Field/Fie
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
+import {
+    PageTextFieldContent,
+    computePageTextFieldTextStyle,
+} from "../../StyledComponents/TextFieldContent/TextFieldContent";
+import { PageTextFieldPlaceholder } from "../../StyledComponents/TextFieldPlaceholder/TextFieldPlaceholder";
 import { ComplexExample } from "./Examples/Complex";
 import ComplexExampleRaw from "./Examples/Complex.tsx?raw";
 import { CustomExample } from "./Examples/Custom";
 import CustomExampleRaw from "./Examples/Custom.tsx?raw";
 import type { TypewriterExampleProps } from "./TypewriterPage.types";
 
+import { FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/TextFieldContent/TextFieldContent.css";
 import * as styles from "./TypewriterPage.css";
 
 const TEXT_EFFECTS = ["fade", "scale", "glow", "drop", "slide"] as const;
@@ -24,6 +31,9 @@ const TEXT_EFFECT_MAP: Record<(typeof TEXT_EFFECTS)[number], string> = {
     slide: styles.typewriterSlide,
 };
 
+const CUSTOM_TEXT_WIDTH = 320;
+const CUSTOM_TEXT_MIN_ROWS = 6;
+const CUSTOM_TEXT_MAX_ROWS = 12;
 const STARTING_WIDTH = 240;
 const MIN_CONTAINER_WIDTH = 40;
 const MAX_CONTAINER_WIDTH = 560;
@@ -45,19 +55,35 @@ const ComplexExampleWrapper = ({ getWidth, ...props }: ExampleWrapperProps) => {
 };
 
 const CustomExampleWrapper = ({ getWidth, ...props }: ExampleWrapperProps) => {
-    const [getText, setText] = createSignal("Line one\n\nline two");
+    const textSignal = createSignal("Line one\n\nline two");
 
     return (
         <>
-            <textarea
-                class={styles.textArea}
-                placeholder="Put custom text inside me"
-                value={getText()}
-                onInput={(e) => setText(e.target.value)}
+            <TextArea
+                valueSignal={textSignal}
+                getIsAutoSizing={() => true}
+                getMinRows={() => CUSTOM_TEXT_MIN_ROWS}
+                getMaxRows={() => CUSTOM_TEXT_MAX_ROWS}
+                getPadding={() => FIELD_PADDING}
+                getGap={() => FIELD_GAP}
+                getAriaLabel={() => "Custom text"}
+                computeTextStyle={computePageTextFieldTextStyle}
+                renderContent={(getFlags) => (
+                    <PageTextFieldContent
+                        getFlags={getFlags}
+                        getWidth={() => CUSTOM_TEXT_WIDTH}
+                        getIsStretched={() => true}
+                    />
+                )}
+                renderPlaceholder={(getFlags) => (
+                    <PageTextFieldPlaceholder getFlags={getFlags} getIsTopAligned={() => true}>
+                        Put custom text inside me
+                    </PageTextFieldPlaceholder>
+                )}
             />
 
             <PageMeasureBox getWidth={getWidth}>
-                <CustomExample {...props} getText={getText} />
+                <CustomExample {...props} getText={textSignal[0]} />
             </PageMeasureBox>
         </>
     );

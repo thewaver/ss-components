@@ -10,7 +10,7 @@ import type {
     InteractionTooltipDefs,
     InteractionWrapperProps,
 } from "../../InteractionWrapper/InteractionWrapper.types";
-import type { TextInputTextStyle } from "../TextInput/TextInput.types";
+import type { TextFieldTextStyle } from "../TextField/TextField.types";
 
 export type SelectFlags = {
     isOpen: boolean;
@@ -45,7 +45,7 @@ export type SelectFieldProps = AccessorProps<
         isFilterable: boolean;
         query: string;
         textInset: JSX.CSSProperties;
-        computeTextStyle?: (getFlags: () => InteractionFlags<SelectFlags>) => TextInputTextStyle;
+        computeTextStyle?: (getFlags: () => InteractionFlags<SelectFlags>) => TextFieldTextStyle;
     }
 > & {
     onToggle: () => void;
@@ -68,7 +68,7 @@ export type SelectCompositeProps<T> = Omit<InteractionWrapperProps<SelectFlags>,
         transitionDurationMs?: number;
         padding?: CSSPadding | number;
         isMultiple?: boolean;
-        computeTextStyle?: (getFlags: () => InteractionFlags<SelectFlags>) => TextInputTextStyle;
+        computeTextStyle?: (getFlags: () => InteractionFlags<SelectFlags>) => TextFieldTextStyle;
     }> & {
         getOptions: Accessor<SelectItem<T>[]>;
         getSelectedOptions: Accessor<SelectOption<T>[]>;
