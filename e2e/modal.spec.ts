@@ -101,6 +101,68 @@ test.describe("Drawer", () => {
         expect(await activeText(page), "focus lands on the first focusable child by default").toContain("First");
     });
 
+    /**
+     * In layout space rather than through `boundingBox`, per the note in `playwright.config.ts`: the dialog
+     * lives inside `Viewport`'s scaled subtree, so a client rect is the layout value times a factor that
+     * depends on the size of this window. Offsets against the drawer's own parent are exact integers and
+     * the window stops mattering.
+     */
+    const layoutBox = (page: Page) =>
+        page.locator(DIALOG).evaluate((element) => {
+            const dialog = element as HTMLElement;
+            const root = dialog.offsetParent as HTMLElement;
+
+            return {
+                top: dialog.offsetTop,
+                left: dialog.offsetLeft,
+                width: dialog.offsetWidth,
+                height: dialog.offsetHeight,
+                rootWidth: root.clientWidth,
+                rootHeight: root.clientHeight,
+            };
+        });
+
+    /**
+     * `modalRoot` is a grid rather than a flex row precisely so both axes can state "stretch"
+     * independently, and a left drawer cannot show that — sticking to the left and filling the height is
+     * one axis each way. A top drawer is the case that would have failed as a flex row, because it has to
+     * stick to the top *and* fill the width, so it is the one worth driving.
+     */
+    test("a top drawer sticks to its edge and fills the other axis", async ({ page }) => {
+        await page.locator(`${variant("Edge: top")} button`).click();
+
+        await expect(page.locator(DIALOG)).toHaveAttribute("aria-label", "top drawer");
+
+        const box = await layoutBox(page);
+
+        expect(box.top, "it sits against the top edge").toBe(0);
+        expect(
+            box.width,
+            "and fills the width, which is the axis a flex row could not have stretched at the same time",
+        ).toBe(box.rootWidth);
+    });
+
+    test("the far edges are honoured too, so all four are the same grid stating different corners", async ({
+        page,
+    }) => {
+        await page.locator(`${variant("Edge: right")} button`).click();
+
+        const right = await layoutBox(page);
+
+        expect(right.left + right.width, "a right drawer ends at the right edge").toBe(right.rootWidth);
+        expect(right.height, "and still stretches the cross axis").toBe(right.rootHeight);
+
+        await page.keyboard.press("Escape");
+        await expect(page.locator(DIALOG)).toHaveCount(0);
+
+        await page.locator(`${variant("Edge: bottom")} button`).click();
+
+        const bottom = await layoutBox(page);
+
+        expect(bottom.top + bottom.height, "a bottom drawer ends at the bottom edge").toBe(bottom.rootHeight);
+        expect(bottom.width, "filling the other axis, as the top one does").toBe(bottom.rootWidth);
+    });
+
     test("Escape and an overlay click both close it", async ({ page }) => {
         await page.locator(TRIGGER).click();
         await expect(page.locator(DIALOG)).toBeVisible();

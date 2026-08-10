@@ -6,6 +6,13 @@ than marked resolved, and the remaining items are renumbered to stay contiguous 
 settled a decision that drives future work, that decision moves to `conventions.md`; the record of
 having done the work does not go anywhere.
 
+Most items now carry an **_Elsewhere_** block: what other component libraries do about the same
+question, read off their own documentation and source on **2026-08-10**. It is evidence for decisions
+that have not been taken — not a recommendation, and not a decision. Where a published answer
+contradicts something already settled in `conventions.md`, the settled entry stands until someone
+argues it down; where it names a mechanism this repo had not considered, that is the part worth
+reading.
+
 ### Index
 
 1. `Show when={... ?? EMPTY_ARRAY} keyed` can't fire as written — _parked_
@@ -24,6 +31,7 @@ having done the work does not go anywhere.
 14. `Calendar` — six things deliberately not built — _open_
 15. `ColorInput` — four things deliberately not built — _open_
 16. `Accordion` — four things deliberately not built — _open_
+17. `Range`'s second thumb is outside the wrapper's disabled handling — _open, unobserved_
 
 ### Build order
 
@@ -38,7 +46,9 @@ privately inside them.
 1. **The mask over `TextSync`, then the locale-ordered date and time fields.** Both fields ship in ISO
    order; the mask is what a `dd/mm/yyyy` field and a formatted number need, and it is the one primitive
    two shipped controls are already waiting on. Extracting the field shape `DateInput` and `TimeInput`
-   duplicate belongs in the same pass — see item 7.
+   duplicate belongs in the same pass — see item 7. Read item 7's _Elsewhere_ note before starting
+   this: no library checked masks a date field, and the published answer to a locale-ordered one is an
+   element per segment rather than a caret that skips separators inside a single input.
 2. **`Tree`** — `computeNextCell` ships, and `Select`'s tree-flattening model is the other half. Wants
    virtualization, which is also `Select`'s loose end in item 5, so that `Abstract` belongs here.
 
@@ -108,6 +118,19 @@ mechanism and stays opt-in — a control that never calls `trackDrag` emits noth
 
 Not worth building until something asks for it, which is where this item started.
 
+**_Elsewhere._** A positioned one-shot effect arrives as an event everywhere, never as state. MUI's
+button ripple is handed the pointer event itself — the ripple component exposes `start(event)` and
+`stop()`, reads the coordinates off the event, and takes a `center` prop for the case where the origin
+should be ignored — so what the paint layer receives is the event, not a flag. Radix and React Aria
+ship no ripple at all: pressed-ness arrives as data (`data-pressed`, `isPressed`) and anything
+positional is the consumer's, which is where this library already stands.
+
+Worth knowing before the flag is designed: MUI's ripple has a long-standing bug (mui#22068) where the
+origin lands in the wrong place under an ancestor `transform: scale()`, because pointer coordinates and
+`getBoundingClientRect` are being mixed. `trackDrag` reports a ratio of two same-space measurements and
+cannot express that failure, so a flag carrying the last activation ratio inherits the immunity rather
+than having to earn it again.
+
 ---
 
 ## 3. Neither animation component can paint its own background
@@ -117,6 +140,13 @@ with `currentColor` over its own children, which is what made a reveal-over-cont
 an animated button, a wipe over a card. Adding it means a children slot and a size anchor that is not
 an `<img>`, so the sizing path would diverge from `ScanlineAnimation`'s unless both change together.
 Worth deciding once, for both.
+
+**_Elsewhere._** There is nothing to compare against, and that is the finding: no headless library
+ships anything in this family. Ark UI's set is the widest of them at forty-seven components and has no
+cell, scanline or wipe animation; Radix and React Aria own no animation component at all. What the
+motion libraries do instead is animate a property over whatever children they were handed, with no
+source image anywhere in the contract — which is the arrangement this item is asking for rather than
+the one both components have.
 
 ---
 
@@ -128,6 +158,17 @@ stops, so nothing can ease. The React-era component took a timing function per k
 
 Restoring it is an easing function applied to the local timeline before the stops are sampled, and
 needs nothing outside the samples file.
+
+**_Elsewhere._** Per-keyframe easing is what CSS itself does: a timing function stated on a keyframe
+applies from that keyframe until the next one mentioning the same property, which is the model the
+React-era component copied. Motion and GSAP both take one easing per segment of a keyframe list, and
+the Web Animations API takes one per keyframe object.
+
+The part worth knowing is `linear()`, which has been Baseline since December 2023: it defines a curve
+as a plain list of output values that the engine interpolates linearly between, and values outside
+0..1 overshoot, which is how bounces are written. That is the shape `sampleTrack` already has, so an
+eased track is expressible as denser stops in the data rather than as an easing function in the
+sampler — the same result reached from the other end.
 
 ---
 
@@ -160,6 +201,37 @@ the gaps, each with the reason it is still a gap.
   the existing rule. Escape and blur clear the query rather than restoring the selected option's text,
   because restoring it would need the per-option string this design does not have.
 
+**_Elsewhere._** Checked against Radix, React Aria and Kobalte, which is the SolidJS one.
+
+- **Typeahead is a string per option in all three, and two of them derive it rather than asking.**
+  Radix's `Select.Item` takes an optional `textValue`, and when it is absent typeahead uses the item's
+  own rendered text content. React Aria's list items take `textValue` and require it only when the
+  children are not plain text. Kobalte takes `optionTextValue`, a field name or getter on the option
+  record, documented as being for typeahead. So the "second source for text the painter already
+  renders" is what two of them avoid by reading the rendered text back out of the element — and the
+  option element is the library's here, so its `textContent` is reachable without a prop.
+- **A filterable list is a separate component everywhere.** Radix has no autocomplete primitive at all,
+  so the injected-non-matching-option case cannot arise there; and where a library does own the filter
+  it necessarily knows which options matched, which is the knowledge this design trades away by
+  choice.
+- **Tri-state is a string, and it is the same string.** MUI's tree view reports `"selected"`,
+  `"indeterminate"` or `"unselected"` per item; Ant Design's tree carries a `halfChecked` list beside
+  its checked one. `CheckedState` is already that shape, which supports the note that this is the one
+  place two controls might share a type.
+- **The group box is styleable everywhere else because everything is styleable everywhere else.**
+  Radix's `Select.Group` and React Aria's `Section` are library elements that carry the role and accept
+  the consumer's class name; neither hands over a thunk. That route is closed here by the rule that the
+  library accepts no class names, so the thunk really is the only shape left — worth stating, because
+  from outside the omission reads as an oversight rather than a consequence.
+- **Virtualization is nobody's library code.** Kobalte's select has a `virtualized` boolean and a docs
+  example handing the list to `@tanstack/solid-virtual` with a hundred thousand options; React Aria has
+  a `Virtualizer` wrapper; Radix has neither, and its docs cover long lists only with scroll buttons.
+  So the seam is a flag plus a documented integration rather than an `Abstract`, and the flag exists
+  precisely so the library stops managing its own scrolling — which is the loose end this bullet names.
+- **Open state is controlled-or-uncontrolled in all three**, under the same three names: `open`,
+  `defaultOpen`, `onOpenChange`. The consumer can always close it programmatically and the library
+  still owns the default.
+
 ---
 
 ## 6. `Menu` — five things deliberately not built
@@ -189,6 +261,19 @@ gaps, each with the reason it is still a gap.
   control is on the other side of — `MenuFlags` has no selection and items have no `aria-checked`.
   Adding them means deciding whether a stateful menu is this component or a `Select` with menu paint.
 
+**_Elsewhere._**
+
+- **Groups, separators and stateful items all live inside the menu component.** Radix ships `Group`,
+  `Label` and `Separator`, plus `CheckboxItem` and `RadioGroup` / `RadioItem`. So the last bullet's
+  question is answered there by keeping a stateful menu in the menu rather than pointing at the select.
+- **Nothing does the `Tab` behaviour APG asks for.** Radix's menu does nothing at all on `Tab`, and
+  that is filed against it as a spec-compliance bug (radix#1934) which is still open. Closing and
+  returning focus to the trigger is therefore ahead of the field rather than behind it.
+- **Right-click is a separate opener, never a separate menu.** Radix ships a whole `ContextMenu`
+  component with the same menu inside it; Ark UI and Zag instead add a `ContextTrigger` part to the
+  same menu, and open it on a roughly 700ms long press when the pointer is pen or touch. Both keep one
+  menu and vary the opener, which is what an anchor plus an open state would buy here.
+
 ---
 
 ## 7. What the date and time family still lacks
@@ -216,6 +301,36 @@ doing:
   signal with parse-on-complete and refresh-on-blur. That is now written twice, and a third typed value
   (a formatted number) would write it a third time. Extracting it is the smaller half of the mask work and
   probably wants doing at the same time.
+
+**_Elsewhere._**
+
+- **Nobody masks a date field.** React Aria renders one focusable, editable segment per unit — each a
+  spin button in its own right — and says so as the point of the design: any locale order, in any
+  calendar system, _without_ a browser input mask. MUI moved to the same shape in v7, replacing the
+  single `<input>` with a list of sections (`PickersSectionList`, behind an
+  `enableAccessibleFieldDOMStructure` prop) so that ARIA attributes can sit on each section
+  individually. An element per segment does not solve the display-form-versus-value-form problem; it
+  makes it not arise, because there is no single string to be in two forms. That is a different
+  primitive from the one this item plans, and `TimeInput`'s caret arithmetic is the single-input
+  version of the same idea.
+- **The mask primitive is real, just not for dates.** MUI's text-field docs cover formatting only by
+  swapping the inner input for a third-party one — `react-imask`, `react-number-format` — which is
+  where the formatted-number half of this would land, and it is a dependency rather than a component
+  everywhere it appears.
+- **A time popup is a separate component beside the field, and it is a list.** MUI's `TimePicker`
+  composes a `TimeField` for typing with a `DigitalClock` for pointing, which its docs describe as
+  behaving like a select over generated times; it swaps in a `MultiSectionDigitalClock` — a column per
+  unit — when the granularity is finer, and an analogue `TimeClock` on mobile. The guess in this bullet
+  is what `DigitalClock` is.
+- **Date-and-time is one value whose _type_ carries the answer.** React Aria has `CalendarDate`,
+  `CalendarDateTime` and `ZonedDateTime`, and a `granularity` prop choosing the smallest unit shown —
+  defaulting to day for a date and minute for a date-time. One field component reads all three, so the
+  pair is never two signals and never a `{ date, time }` record either.
+- **Ranges go both ways, and both ship.** React Aria makes it a second component (`RangeCalendar`,
+  `DateRangePicker`) over a `{ start, end }` value — the field names `conventions.md` already chose for
+  `Range`. react-day-picker makes it a mode on the same component (`mode="range"`, a `{ from, to }`
+  value) and carries the awkward case as a prop: `excludeDisabled` decides whether a disabled day
+  inside the span breaks it.
 
 ---
 
@@ -254,6 +369,27 @@ with different paint.
 of the contract by definition — the Playground already builds three of them as `Surface` examples.
 `Icon` likewise: a library that paints nothing cannot own an icon set.
 
+**_Elsewhere._** Ark UI's set is the widest of the headless libraries and is the most useful scope check
+available: it has a tree view, a pagination component, a **segment group** — a segmented control as its
+own component, distinct from both tabs and toggle group — and a `Field` plus a `Fieldset`. It has no
+table and no data grid. TanStack Table is what that gap gets filled with, and it is a separate project
+with its own release cycle, which is this item's call arrived at independently.
+
+- **The segmented control is a toggle group in the unstyled layer and a named component in the styled
+  one.** Radix has `ToggleGroup` (roving tab order, single or multiple pressed) and React Aria has
+  `ToggleButtonGroup`; Radix _Themes_ then ships a `SegmentedControl` on top of the first. React Aria's
+  own guidance in discussion is that a radio group is the right answer when only single selection is
+  needed — which is what this item says, from the library that would benefit from saying otherwise.
+- **Breadcrumbs is owned by at least one of them:** React Aria ships `Breadcrumbs`.
+- **Pagination is owned because it is arithmetic, not paint.** Ark UI's takes `page`, `pageSize`,
+  `count`, `siblingCount` and `boundaryCount`, computes the visible page range and where the gaps fall,
+  and switches between buttons and links with a `type` prop. That is more than a composition of
+  `Button`, and it is the one entry in this item's "compositions" list where the claim is weakest.
+- **One of the four "pure paint" components turns out to have behaviour.** Radix ships `Avatar`, and the
+  image is the reason: `Avatar.Image` plus `Avatar.Fallback` with a `delayMs`, so the fallback does not
+  flash while a cached image loads. That is a load state machine, and it is the argument
+  `ImageSwitcher` already makes here.
+
 ---
 
 ## 9. Machinery those controls need, none of which exists
@@ -278,6 +414,29 @@ any of those without first deciding these would bake the decision in by accident
   the getter-plus-setter pair directly — a consumer still wraps it in a mirror to hand a control its
   `*Signal`, which is one indirection rather than none.
 
+**_Elsewhere._**
+
+- **Pointer geometry** — see item 2.
+- **Masking and formatting** — see item 7. No component library owns a mask: the mask implementations
+  are their own packages and get integrated per field.
+- **Virtualization** — see item 5. `@tanstack/virtual` is the shared dependency across libraries and
+  frameworks; React Aria's `Virtualizer` is the only in-library one found.
+- **A field group is a real `<fieldset>` that broadcasts downward, not one that collects upward.** Ark
+  UI's `Fieldset` renders `<fieldset>` plus `<legend>` with helper-text and error-text parts, and its
+  `invalid` and `disabled` are props the consumer sets which then reach every field inside through
+  context. Nothing aggregates the contained fields' own validity. That is the opposite direction from
+  `Form`'s registration, and the two do not conflict — one distributes state, the other collects it, and
+  a section with its own validity wants both halves.
+- **"Errors only after the first attempt" is two flags, not one.** React Hook Form validates on submit
+  by default, and the per-field gate people actually write is `touchedFields[name] || isSubmitted` —
+  the field's own touched flag or the form's submitted flag. So `hasSubmitted` is half of the published
+  shape and the missing half is per-field, which no control here tracks.
+- **Every library takes a getter plus a callback, including the SolidJS one.** Radix, Ark UI and Kobalte
+  all expose a controlled value, a change callback and an uncontrolled default; Kobalte could have taken
+  signal pairs in Solid and did not. Recorded as what the field does, not as an argument against
+  `*Signal` — the trade `conventions.md` states (one variable, both sides write, no handler to forget)
+  is untouched by this, and `SignalMirror` is what serves the other kind of consumer.
+
 ---
 
 ## 10. What the verification suite still cannot see
@@ -298,12 +457,12 @@ baselines.
 they produce is motion over time, so a DOM-reading spec over them would assert structure and call it
 coverage. What would actually cover them is the screenshot decision above, and nothing else will.
 
-**`ImageSwitcher` also has a page and no spec, but it is not that hard case.** Only the fade itself
-needs pixels; everything the component decides is in the DOM, because the two `<img>` elements carry
-the swap. A spec driving `/image-switcher` could assert that a new `src` is preloaded before either
-element changes, that the outgoing image stays mounted at `opacity: 0` rather than being torn out, that
-a `src` which fails to load still swaps, and that `onLoad` fires for a real image and not for a missing
-one. That is most of the contract, and it needs no baseline images.
+**`ImageSwitcher`'s one remaining hole is `onLoad`, and the page is why.** The rest of the contract is
+now driven — the pair staying mounted, the preload finishing before either element changes, a failed
+source swapping anyway, the empty case, and the duration reaching both elements. `onLoad` cannot be
+reached because `ImageSwitcherPage` passes no handler, so covering it means the page growing a readout
+first. Worth stating as a shape rather than as one gap: a callback nothing on the page consumes is
+invisible to a suite that drives the page, and `onMount` handoffs are in the same position.
 
 **Components with no Playground page at all**, so nothing can drive them until one exists:
 `AudioSwitcher` and `RichText`, both commented out of `TAB_CONFIGS` in
@@ -326,6 +485,28 @@ observable through the old suite, whose headless mode stopped producing frames; 
 stall that way, so the question is now purely about the components and nothing in the suite will surface
 it.
 
+**_Elsewhere_, on the baseline question.** There are two published arrangements and they differ on where
+the image lives. Playwright's own screenshot assertion commits the baseline beside the spec, one file per
+browser and platform, re-blessed with `--update-snapshots` — and its docs are explicit that rendering
+varies with the host operating system, the browser build, headless mode, hardware and even whether the
+machine is on battery, so a committed image is only stable in the environment that produced it. The
+hosted services (Chromatic, Argos) keep baselines off the repo entirely and put the diff in the pull
+request for approval, which is what libraries with a design system to protect generally use. Either way,
+the re-blessing this item worries about is the routine operation rather than the exception — the
+difference is whether it is a commit or an approval click.
+
+**Time is no longer a blind spot, and the mechanism is worth knowing before the next timing bug.**
+Playwright's clock API fakes `Date`, `setTimeout`, `setInterval`, `requestAnimationFrame`,
+`requestIdleCallback`, `performance` and `Event.timeStamp`, with `install`, `pauseAt`, `fastForward` and
+`runFor`. `install` freezes time until it is advanced, so a duration becomes a stepped quantity rather
+than a wait — which is what let the toast pause arithmetic be asserted at all, since the question is not
+_whether_ four seconds elapse but _which_ four. `toasts.spec.ts` uses it in one describe block, and that
+is the pattern for anything else of this shape: `ElementFader`'s 100ms fallback is still undriven, and so
+is the paragraph above — stopping the frame supply is exactly what a frozen clock does to
+`requestAnimationFrame`, so "is a positioner that stops updating when nothing is painting a bug" is now a
+question a spec can put rather than an open one. What the clock does not reach is the three motion
+components, whose time is CSS's rather than the page's.
+
 ---
 
 ## 11. The SVG defs' geometry cannot be reached without rendering
@@ -347,6 +528,14 @@ an array of points, with the JSX builder consuming it. That is a real refactor o
 should be taken once, for all three, rather than for whichever one next grows a bug. It is worth noting
 that the packing offsets are exactly the kind of thing that is wrong by half a cell for months without
 anyone noticing, because a wrong tiling still tiles.
+
+**_Elsewhere._** The split this item describes is the standard arrangement in the one ecosystem that does
+geometry at this scale: d3's arithmetic lives in modules that return numbers or strings — `d3-shape`
+returns the `d` attribute, `d3-hierarchy` returns positions — and drawing is the caller's, which is the
+only reason any of it is testable without a browser. The React chart libraries (visx, Recharts) wrap
+those generators rather than re-deriving the geometry inside their JSX. So a `computeCellPositions`
+returning an array of points is the conventional shape rather than a refactor invented here, and the
+conventional shape is also the one that made the arithmetic outlive the renderer.
 
 ---
 
@@ -384,6 +573,19 @@ The open question, when it starts: whether this layer lives in `src/Playground` 
 currently is, or becomes a second published entry point. That decides whether it needs a support
 contract, which decides everything else about it.
 
+**_Elsewhere._** The two-layer arrangement is the norm, and in every case checked the layers are two
+**published packages** rather than one package with two entry points: Radix Primitives under Radix
+Themes, Base UI (by MUI's own team) under MUI's styled components, Ark UI under Park UI — which is now
+inside the same organisation. shadcn/ui is the third answer and the interesting one, because nothing is
+published at all: the styled source is copied into the consumer's repo, so the support-contract question
+is settled by there not being one.
+
+**The narrowing this item predicts is exactly where those layers draw the line.** Radix Themes' `Tooltip`
+takes `content` as a required prop and wraps its child as the trigger; the primitive underneath makes you
+compose a `Trigger` and a `Content`. So "no `renderContent` tooltip renderer, just tooltip content as a
+string" is not a departure from how the industry splits these two layers — it is the split, stated in the
+same example.
+
 ---
 
 ## 13. `Toasts` — six things deliberately not built
@@ -416,9 +618,38 @@ gaps, each with the reason it is still a gap.
   id never left the rendered list. It is the reasonable behaviour and it is not obvious, so it is written
   down rather than left to be rediscovered.
 
-The pause arithmetic is also the one behaviour with no automated cover: `e2e/toasts.spec.ts` asserts that
-the `isPaused` flag reaches the painter, which is what the DOM can show, but nothing checks that a toast
-paused half way through actually gets its remaining half rather than a fresh full duration.
+The pause arithmetic is covered now, on a fake clock — see item 10 — so what is left in this item is the
+six gaps above and nothing about verification.
+
+**_Elsewhere._** Every bullet above has a published answer, and two of them are answers this item did not
+have.
+
+- **Per-toast urgency does not go through the region at all.** Radix announces through a throwaway
+  element per toast: each one renders a visually-hidden node in its own portal, _outside_ the viewport
+  region, with `role="status"` and `aria-live` set from that toast's own `type` — `foreground` becomes
+  assertive, `background` becomes polite. The text is inserted after two animation frames so that NVDA
+  picks it up, and the node is removed a second later. `role="status"` in both cases rather than
+  `role="alert"`, to stop screen readers stuttering. That is a third option beside the two this bullet
+  weighs: not two regions, and not a live region per mounted entry, but a live element that exists only
+  for the length of one announcement — which also means the visible region carries no politeness at all.
+- **The keyboard route is a hotkey, and it is `F8` rather than `F6`.** Radix's viewport takes a `hotkey`
+  prop defaulting to `["F8"]`; from there it is `Tab` within the region and `Escape` on a focused toast.
+- **Measured-height stacking is the container's job, and one library does exactly it.** sonner measures
+  each toast with `getBoundingClientRect` and keeps the heights in the toaster, so an entry's offset is
+  the gap times its index plus the sum of the heights in front of it; the collapsed pile also scales each
+  card by `0.05 × index` and pads the shorter cards to the height of the front one so they stick out
+  evenly. The neighbours' heights a painter cannot reach are held one level up — the same level `index`
+  and `count` already come from.
+- **Both mainstream toasts stop the clock when you look away.** sonner pauses while the document is
+  hidden; Radix pauses on window `blur` alongside pointer and focus, which covers switching windows but
+  not a hidden tab inside a focused window. So neither treats this as a product decision to be deferred —
+  they both took it, by different events.
+- **Why an entry left is reported as two callbacks rather than one field.** sonner gives each toast
+  `onDismiss` and `onAutoClose`. That also answers the `conventions.md` note that nothing says why a
+  toast is leaving: split the callback rather than widening the state a painter reads.
+- **The pause arithmetic is the same arithmetic.** Radix subtracts elapsed from remaining on each pause,
+  exactly as here — and per item 10, Playwright's clock API is what would let the remainder be asserted
+  rather than eyeballed.
 
 ---
 
@@ -451,6 +682,29 @@ value the library owns"_.
   a live region, and the title is the consumer's markup here, so the fix is either a documented
   instruction to them or a library-owned announcer.
 
+**_Elsewhere._**
+
+- **A range is a second component or a mode, and both ship** — see item 7. React Aria has a separate
+  `RangeCalendar`; react-day-picker has `mode="range"` on the same component.
+- **Month and year jumping is a caption layout, not a keyboard shortcut.** react-day-picker's
+  `captionLayout` takes `"dropdown"`, `"dropdown-months"` or `"dropdown-years"`, with `startMonth` and
+  `endMonth` bounding the lists and defaulting to a hundred years back. Selects inside the header are
+  what everyone ships; `Shift+PageUp` is nobody's headline feature, which supports leaving it out.
+- **Week numbers and multiple months are props on the same component**, not a second one:
+  `showWeekNumber` and `numberOfMonths`, plus a callback for a click on the week number itself.
+- **The per-cell predicate is answered by widening the input rather than memoising the call.**
+  react-day-picker's `disabled` accepts a matcher or an array of them — a single date, an interval, a
+  day-of-week set, a before/after bound — and a function is only one of the accepted forms. So the
+  common cases never call anything forty-two times, and the expensive form is visibly the expensive one.
+- **The month announcement belongs to a shared announcer that is nobody's component.** React Aria
+  announces a visible-range change through `@react-aria/live-announcer`: a live region created on first
+  use, appended outside the component tree, with the message cleared after a timeout. It is the same
+  mechanism as Radix's per-toast announce in item 13, and it is a third option beside the two this bullet
+  lists — the announcer belongs to neither the consumer's title nor the calendar.
+- **One real focusable element per day is normal**, so forty-two of something is not itself the anomaly:
+  react-day-picker renders a `<button>` per day and MUI a day component per day. What is unmeasured here
+  is this wrapper's own cost, not the count.
+
 ---
 
 ## 15. `ColorInput` — four things deliberately not built
@@ -469,6 +723,33 @@ These are the gaps.
 - **The popup's dismissal is per-consumer.** `ColorInput` now runs its own outside-click listener, which
   means `Select`, `Menu` and it have three different dismissal stories. That is the `openSignal` question
   items 5 and 6 record, and it should be settled once across all three rather than a fourth time.
+
+**_Elsewhere._**
+
+- **Owning the surface is the mainstream trade.** React Aria's colour suite — `ColorArea`,
+  `ColorSlider`, `ColorWheel`, `ColorField`, `ColorSwatch` and `ColorSwatchPicker`, synchronised by a
+  `ColorPicker` around one colour value object — has no native `<input type="color">` path either, and
+  Ark UI's is custom too. Nobody keeps the OS dialog as a fallback, so the cost recorded in the first
+  bullet is the cost everyone pays.
+- **Alpha is a second slider over the same value.** React Aria's `ColorSlider` takes `channel="alpha"`,
+  which is the shape this bullet predicts, and its colour value carries alpha throughout rather than
+  only in a hex string.
+- **The eyedropper is absent because the platform is.** `EyeDropper` is Chromium-only — MDN lists it as
+  limited availability and not Baseline, needing a secure context and a user gesture, shipped in Chrome
+  95 and unsupported in Firefox and Safari — and React Aria's colour documentation shows no eyedropper
+  at all. There is nothing to copy here, and a library-owned one would be a Chrome-only prop.
+- **Presets are a component, which settles the keyboard question this bullet raises.** React Aria's
+  `ColorSwatchPicker` is a focusable, arrow-navigable set of swatches. So the published answer is yes:
+  presets are part of the keyboard order and the library owns that order.
+- **Dismissal is one mechanism for every layer, and it is a document listener plus a stack.** Radix's
+  `DismissableLayer` keeps every open layer in an ordered set; on a pointer press each layer marks
+  itself during the capture phase if the press began inside it, and on the bubble phase only the topmost
+  layer that was pressed outside dismisses. `onPointerDownOutside` and `onFocusOutside` are both
+  cancellable by the consumer. One implementation serves select, menu, popover, dialog and colour picker
+  together, which is the "settle it once" this bullet asks for — and it is worth noting that it answers
+  the question as a **mechanism** before it answers it as an `openSignal`: the ordered stack is what
+  stops an inner popup's press from closing the dialog around it, and that is the part four separate
+  listeners cannot get right.
 
 ---
 
@@ -492,4 +773,58 @@ auto-height measurement lives"_.
   since clicking the open header closes it. An "always exactly one" mode is a third state for that prop
   rather than a boolean, and no consumer has asked.
 
+**_Elsewhere._**
+
+- **The published trade is the opposite one: unmount, and measure in a pass.** Radix's accordion unmounts
+  collapsed content unless `forceMount` is set, and publishes `--radix-accordion-content-height` from its
+  own measurement so that CSS can animate to a pixel value. React Aria's `DisclosureGroup` keeps the panel
+  in the DOM but uses `hidden="until-found"` where supported, so find-in-page can reveal a collapsed
+  section. Both keep the measurement library-side and differ only on whether the content stays built, so
+  a `getIsLazy` here would land in Radix's position — animation cost on first expansion included — rather
+  than somewhere new.
+- **Nobody scrolls a newly opened section into view.** It is an open feature request against Base UI
+  (#4173) and against MUI's own accordion (#40625), and the recipe everywhere is `scrollIntoView` once
+  the transition has ended — which is exactly the completion signal this bullet identifies as the missing
+  piece. So the gap is shared rather than peculiar, and the shape of the fix is agreed on.
+- **A horizontal accordion is an `orientation` prop plus a second CSS variable.** Radix's
+  `orientation="horizontal"` swaps the arrow-key axis and exposes the content _width_ beside the height,
+  which is the direction prop this bullet describes, with the measurement doubled rather than generalised.
+- **"Always exactly one open" is the default elsewhere, and the second state is a second boolean.**
+  Radix's `type="single"` _requires_ one item to stay expanded; `collapsible`, default `false`, is what
+  permits zero. So the mode this bullet says no consumer has asked for is what a Radix consumer gets
+  unless they opt out — and it is spelled as a separate boolean rather than as a third state on the first
+  prop.
+
 ---
+
+## 17. `Range`'s second thumb is outside the wrapper's disabled handling
+
+Found while writing `e2e/range.spec.ts`, from reading rather than from driving, and **not yet observed** —
+which is the first thing to fix about it.
+
+`InteractionWrapper` is handed one control element, and everything it does about disabled is done to that
+element: `wrapElement` sets `tabIndex = (!isDisabled || isReachable) && isTabbable ? 0 : -1`, and in the
+disabled-and-not-reachable branch it attaches the `mousedown` `preventDefault` that refuses focus.
+`RangeElement` renders one input per thumb and forwards only the first — `if (index === 0)
+props.ref?.(element)` — so a pair's second input receives neither. A native range input's default
+`tabIndex` is 0, so on a **disabled pair** the high thumb should still be tab-reachable and still take
+focus from a click, while the low thumb is correctly skipped and refuses both.
+
+What is _not_ broken is the value: `onInput` gates on `getIsDisabled()` for every thumb and `syncElement`
+writes state back over the element, which is the same guard the spec now pins for the single case. So the
+symptom is tab order and focus, not a value the owner never asked for — which is also why nothing has
+noticed.
+
+Three things follow, in order:
+
+1. **The Playground cannot show it**, because no variant is both disabled and a pair — `RangePage`'s
+   disabled and reachable variants are both single. A variant is the first step, and it makes the claim
+   testable rather than reasoned.
+2. **The fix is a decision about where multi-element leaves live**, not a line. Either the leaf manages the
+   extra elements itself (duplicating the wrapper's two rules, which is what `computeIsReachable` was
+   extracted to stop), or `InteractionWrapper` learns to take more than one control element, which is a
+   change to the contract every leaf shares. `ColorArea` has the same shape — a `role="group"` over two
+   collapsed range inputs — so whatever is decided has a second consumer immediately.
+3. **`getIsTabbable` already exists** for an ancestor narrowing the tab order, so a pair is arguably that
+   case: one control, one tab stop, arrows moving between thumbs. That would be a behaviour change rather
+   than a repair, and it is the kind of thing to decide deliberately rather than as a side effect.
