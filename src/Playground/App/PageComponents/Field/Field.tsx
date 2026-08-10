@@ -39,7 +39,7 @@ import {
     FIELD_STEPPER_PADDING,
 } from "../../StyledComponents/TextFieldContent/TextFieldContent.css";
 
-const DEFAULT_NUMBER_FIELD_WIDTH = 130;
+const DEFAULT_NUMBER_FIELD_WIDTH = 100;
 const DEFAULT_SELECT_FIELD_WIDTH = 150;
 const EMPTY_TEXT = "";
 
