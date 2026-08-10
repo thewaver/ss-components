@@ -2484,6 +2484,44 @@ leaves the rest queued, entering as slots free. They are genuinely different pro
 versus lose-nothing — and the request for a prop rather than a default is why both exist. Held entries are
 not rendered at all, so they run no clock, which falls out of the design rather than needing a rule.
 
+### Controls: `Collapsible`, and what an accordion adds to one
+
+Settled **2026-08-10**, on the user's call, when a single show-more panel arrived as the second consumer of
+the machinery `Accordion` had been keeping to itself. The standing "private until something else needs it"
+rule fired, and the split is **what each layer claims about the page** rather than how either one opens.
+
+**`Collapsible` owns the disclosure**: the trigger's `aria-expanded` and `aria-controls`, the panel, the
+measured height, the fader, and `inert` while closed. `expandedSignal: Signal<boolean>` is its state, per
+_"Signal tuples for two-way state"_ — a lone panel genuinely owns its own boolean, which is `Modal`'s
+`visibilitySignal` argument again.
+
+**`Accordion` adds the three things that make a panel part of a set**, and each is a statement rather than a
+behaviour: the heading element around the trigger, the panel's `role="region"` named by that trigger, and
+the arrow-key walk across the headers. The expanded-set policy — including single-expand — stays with it too,
+since a set is the only thing that can have a policy.
+
+**The heading is the load-bearing half of that split.** A show-more at the end of a paragraph is a control
+inside prose; wrapping it in an `h3` would put a heading in the document outline that no reader would agree
+is one, and a `region` landmark for a two-sentence expansion is landmark noise. So `getHeadingLevel` is
+**optional** on `Collapsible` and absent means no heading element at all — the only component here where the
+absence of a prop removes an element rather than defaulting one.
+
+**The panel's role arrives as `getPanelRole` plus `getPanelAriaAttributes`, which is `Popover`'s shape.**
+That entry already argued this exact case: the role is the consumer's, so the ARIA that role requires is the
+consumer's too, and one bag beats a prop per attribute. `Accordion` passes `region` and an
+`aria-labelledby` pointing at the header id it generated, which is also why `Collapsible` takes `getId` —
+whoever names the panel has to own the id.
+
+**A section has no boolean, so `SignalMirror` is the bridge.** `Accordion` owns `Signal<T[]>` and each
+section reads its own membership out of it, while `Collapsible` wants the whole signal.
+`SignalMirror.createValueMirror` is exactly the escape hatch that was extracted for this, and it writes
+outward only when the value actually differs — so "the difference is the toggle" holds and the set stays the
+single source of truth. This is its fifth consumer and the first inside the library rather than the
+Playground.
+
+**`AccordionFlags` is gone rather than aliased to `CollapsibleFlags`**, following the `TextField` extraction:
+the old names went with it and the Playground's painter was renamed to match. One shape, one name.
+
 ### Controls: `Accordion`, and where auto-height measurement lives
 
 Settled **2026-08-10**. The first component whose geometry cannot be expressed in CSS at all, which is
@@ -2542,6 +2580,33 @@ version of `Accordion.css.ts` did not, and the result was a header that looked p
 clicked, because the hit test landed on the heading above it. `Button.css.ts` and `BinarySwitch.css.ts`
 are the precedent. Worth stating because nothing in the type system or in a DOM assertion catches it —
 only a real click does.
+
+### `LiveAnnouncer`: the region that belongs to no component
+
+Settled **2026-08-10**, on the user's call, for `Calendar`'s month change.
+
+**A live region only announces content inserted after it is already in the document**, which is the rule
+`Toasts` records for its own region — and it is why a component cannot mount one when it needs to speak. Two
+module-level regions, polite and assertive, created on first use and kept, sidestep that. They live on
+`document.body` rather than in the `Viewport` portal: nothing about them is painted, so the scale factor is
+irrelevant, and they must outlive any subtree that might announce through them.
+
+**Each message is its own node, removed a second later.** Setting the text of one persistent node does not
+re-announce an identical string, so paging back to a month you were just on would be silent. Appending a
+fresh child is an addition every time, which is what `aria-relevant="additions"` tells a reader to watch.
+This is Radix's per-toast announce arrangement and React Aria's shared announcer, arrived at from the same
+constraint.
+
+**It is visually hidden by the clip-rect idiom, and not by `display: none` or `visibility: hidden`**, either
+of which would take the text out of the accessibility tree along with the paint and announce nothing at all.
+The styles are applied imperatively because the element is the library's own and never reaches a stylesheet.
+
+**`Calendar` is the first consumer, and it formats the month itself.** Paging swaps all 42 cells and changes
+nothing else, so a screen reader user hears nothing until they move the focus. The month title on the page is
+the consumer's markup — `Calendar` renders no header — so the announcement cannot be read off it; it goes
+through the same `Intl` path the day labels already use. Politely, because paging is something the reader
+just did rather than news. The previous month arrives as the effect's own argument, so the first run has
+nothing to compare against and a calendar never talks about itself as it mounts.
 
 ### `NavigationUtils.computeNextCell`: the two-axis walk never wraps and never clamps
 

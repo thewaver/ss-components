@@ -3,6 +3,7 @@ import { createMemo, createSignal } from "solid-js";
 import { Accordion } from "../../../../Lib/Fundamentals/Accordion/Accordion";
 import type { AccordionItem } from "../../../../Lib/Fundamentals/Accordion/Accordion.types";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
+import { Collapsible } from "../../../../Lib/Fundamentals/Collapsible/Collapsible";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageAccordionHeader, PageAccordionPanel } from "../../StyledComponents/AccordionContent/AccordionContent";
 import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
@@ -27,6 +28,8 @@ export const AccordionPage = () => {
     const multiSignal = createSignal<string[]>(["Shipping"]);
     const singleSignal = createSignal<string[]>([]);
     const growingSignal = createSignal<string[]>(["Shipping"]);
+
+    const showMoreSignal = createSignal(false);
 
     const [getExtraLines, setExtraLines] = createSignal(0);
 
@@ -112,6 +115,40 @@ export const AccordionPage = () => {
                             </PageAccordionPanel>
                         )}
                     />
+                ),
+            },
+            {
+                name: "A single panel, no heading",
+                readout: () =>
+                    `expanded: ${showMoreSignal[0]()} — a Collapsible on its own: no heading element, no region, no arrow keys`,
+                component: () => (
+                    <div>
+                        <div>
+                            Orders leave the warehouse within two working days, and tracking arrives by email as soon as
+                            the parcel is scanned.
+                        </div>
+
+                        <Collapsible
+                            expandedSignal={showMoreSignal}
+                            getSizing={() => "fit-content"}
+                            renderTrigger={(getFlags) => (
+                                <PageAccordionHeader getFlags={getFlags}>
+                                    {getFlags().isExpanded ? "Show less" : "Show more"}
+                                </PageAccordionHeader>
+                            )}
+                            renderPanel={(getVisibilityTarget, getTransitionDurationMs) => (
+                                <PageAccordionPanel
+                                    getVisibilityTarget={getVisibilityTarget}
+                                    getTransitionDurationMs={getTransitionDurationMs}
+                                >
+                                    <div>
+                                        Deliveries to the islands take a further two days, and a signature is required
+                                        for anything above fifty pounds.
+                                    </div>
+                                </PageAccordionPanel>
+                            )}
+                        />
+                    </div>
                 ),
             },
         ];

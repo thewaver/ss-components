@@ -150,3 +150,37 @@ test("the wrapper between a row and its cells is transparent", async ({ page }) 
     expect(structure.wrapper, "the wrapper declares itself presentational").toBe("presentation");
     expect(structure.row, "so the row above it still owns the cells").toBe("row");
 });
+
+/**
+ * Paging swaps all 42 cells and changes nothing else, so a screen reader user hears nothing until they move
+ * the focus. The fix is a live region that belongs to no component — the month title on the page is the
+ * consumer's own markup, so the announcement cannot be read off it — which means the assertion has to look
+ * outside the calendar entirely, at the announcer's region on the body.
+ */
+const ANNOUNCER = 'body > [role="log"][aria-live="polite"]';
+
+test("paging announces the month it landed on, through a region no component owns", async ({ page }) => {
+    await expect(page.locator(ANNOUNCER), "nothing has been announced yet, so no region exists").toHaveCount(0);
+
+    await page.locator(`${DEFAULT} button[aria-label="Next month"]`).click();
+
+    await expect(page.locator(ANNOUNCER), "paging says where it landed").toContainText("September 2026");
+
+    await page.locator(`${DEFAULT} button[aria-label="Previous month"]`).click();
+    await page.locator(`${DEFAULT} button[aria-label="Previous month"]`).click();
+
+    await expect(
+        page.locator(ANNOUNCER),
+        "and each page is its own message rather than one that is edited",
+    ).toContainText("July 2026");
+});
+
+test("moving within a month announces nothing, so only paging talks", async ({ page }) => {
+    await page.locator(day(DEFAULT, "10 August 2026")).click();
+    await page.keyboard.press("ArrowRight");
+
+    await expect(
+        page.locator(`${ANNOUNCER} > *`),
+        "a walk inside the visible month is not a page, and says nothing",
+    ).toHaveCount(0);
+});

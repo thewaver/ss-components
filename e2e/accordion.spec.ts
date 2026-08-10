@@ -133,3 +133,76 @@ test("a disabled header carries no native attribute and cannot open its panel", 
     );
     expect(await offsetHeight(page.locator(panel(MULTI)).nth(3))).toBe(0);
 });
+
+/**
+ * `Accordion` is a set of `Collapsible`s, and the split is what each layer states about the page rather than
+ * how either opens: the disclosure owns `aria-expanded`, `aria-controls` and the measured height, while the
+ * heading element, the panel's `region` role and the arrow-key walk are the accordion's, because those are
+ * claims about a section belonging to a set. A "show more" in the middle of a paragraph is none of those
+ * things, so it must be able to have none of them — which is what these assert.
+ */
+const SINGLE_PANEL = variant("A single panel, no heading");
+
+test("a lone Collapsible is a trigger and a panel and nothing else", async ({ page }) => {
+    const trigger = page.locator(`${SINGLE_PANEL} button`);
+
+    await expect(trigger, "collapsed to begin with").toHaveAttribute("aria-expanded", "false");
+    await expect(trigger, "and pointing at the panel it controls").toHaveAttribute("aria-controls", /.+/);
+
+    await expect(
+        page.locator(`${SINGLE_PANEL} h1, ${SINGLE_PANEL} h2, ${SINGLE_PANEL} h3, ${SINGLE_PANEL} h4`),
+        "no heading element, because a show-more is not a section of the document",
+    ).toHaveCount(0);
+    await expect(
+        page.locator(`${SINGLE_PANEL} [role="region"]`),
+        "and no region landmark either, for the same reason",
+    ).toHaveCount(0);
+});
+
+test("it opens and closes itself, writing the boolean its owner handed over", async ({ page }) => {
+    const trigger = page.locator(`${SINGLE_PANEL} button`);
+
+    await trigger.click();
+
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    expect(await readout(page, "A single panel, no heading"), "the owner's own signal is what moved").toContain(
+        "expanded: true",
+    );
+
+    await trigger.click();
+
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(await readout(page, "A single panel, no heading")).toContain("expanded: false");
+});
+
+test("the panel animates to its content's measured height, and is inert while closed", async ({ page }) => {
+    const panel = page.locator(`${SINGLE_PANEL} button`).evaluate((element) => element.getAttribute("aria-controls"));
+    const panelId = await panel;
+    const panelLocator = page.locator(`#${panelId}`);
+
+    await expect(panelLocator, "a closed panel is out of the tab order and the accessibility tree").toHaveAttribute(
+        "inert",
+        "",
+    );
+    expect(await offsetHeight(panelLocator), "and has no height").toBe(0);
+
+    const contentHeight = await offsetHeight(panelLocator.locator("> *"));
+
+    expect(contentHeight, "while its content is still built, and measurable").toBeGreaterThan(0);
+
+    await page.locator(`${SINGLE_PANEL} button`).click();
+
+    await expect
+        .poll(() => offsetHeight(panelLocator), { message: "opening animates the panel to that measured height" })
+        .toBe(contentHeight);
+    await expect(panelLocator, "and it stops being inert").not.toHaveAttribute("inert", "");
+});
+
+test("arrow keys do nothing to a lone panel, because it is not part of a set", async ({ page }) => {
+    const trigger = page.locator(`${SINGLE_PANEL} button`);
+
+    await trigger.focus();
+    await page.keyboard.press("ArrowDown");
+
+    expect(await activeText(page), "focus stays where it was rather than walking to a sibling").toContain("Show more");
+});

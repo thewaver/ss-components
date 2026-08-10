@@ -27,8 +27,8 @@ reading.
 10. What the verification suite still cannot see — _open_
 11. The SVG defs' geometry cannot be reached without rendering — _open_
 12. Planned: strip `style.css`, add a theme, and add opinionated control presets — _planned_
-13. `Toasts` — six things deliberately not built — _open_
-14. `Calendar` — six things deliberately not built — _open_
+13. `Toasts` — five things deliberately not built — _open_
+14. `Calendar` — five things deliberately not built — _open_
 15. `ColorInput` — four things deliberately not built — _open_
 16. `Accordion` — four things deliberately not built — _open_
 
@@ -590,7 +590,7 @@ same example.
 
 ---
 
-## 13. `Toasts` — six things deliberately not built
+## 13. `Toasts` — five things deliberately not built
 
 The decisions behind what exists are in `conventions.md` under the two `Toasts` headings. These are the
 gaps, each with the reason it is still a gap.
@@ -609,10 +609,6 @@ gaps, each with the reason it is still a gap.
   distance, but a painter that wants each card offset by the height of the one in front of it needs its
   neighbours' measured heights and can only measure itself. That is the same measuring `Abstract` item 9
   wants for auto-height animation, from a different direction.
-- **Nothing pauses when the tab is hidden.** Timers still run in a background tab, so a burst raised
-  while the tab is not being looked at will have expired by the time it is. `visibilitychange` would fix
-  it in a handful of lines; whether that is wanted is a product decision rather than a correctness one,
-  which is why it is here rather than done.
 - **No per-toast lifecycle callbacks.** `Modal` has `onShow` and `onHide`. Here the consumer owns the
   list, so an effect over their own signal sees every arrival and departure — but not the transition
   boundaries, which is what those callbacks actually report.
@@ -620,8 +616,10 @@ gaps, each with the reason it is still a gap.
   id never left the rendered list. It is the reasonable behaviour and it is not obvious, so it is written
   down rather than left to be rediscovered.
 
-The pause arithmetic is covered now, on a fake clock — see item 10 — so what is left in this item is the
-six gaps above and nothing about verification.
+A hidden tab now holds every countdown, so that gap is closed — see `conventions.md`, and note the signal is
+`document.hidden` rather than window focus, which is the narrower of the two published choices. The pause
+arithmetic is covered on a fake clock too, per item 10, so what is left in this item is the five gaps above
+and nothing about verification.
 
 **_Elsewhere._** Every bullet above has a published answer, and two of them are answers this item did not
 have.
@@ -655,7 +653,7 @@ have.
 
 ---
 
-## 14. `Calendar` — six things deliberately not built
+## 14. `Calendar` — five things deliberately not built
 
 Item 8 covers the missing components. These are `Calendar`'s own gaps, each with the reason it is still
 one. The decisions behind what exists are in `conventions.md` under _"Controls: `Calendar`, and the date
@@ -679,10 +677,6 @@ value the library owns"_.
 - **42 `InteractionWrapper`s per month is the cost of consistency, and it is unmeasured.** Every cell is
   a full wrapper so a day gets hover, focus, disabled and tooltip handling like every other control.
   Nothing has been profiled; a multi-month view is where this would first hurt.
-- **Nothing announces the month change.** Paging swaps 42 cells with no live region, so a screen reader
-  user who pages hears nothing until they move the focus. The published pattern puts the month title in
-  a live region, and the title is the consumer's markup here, so the fix is either a documented
-  instruction to them or a library-owned announcer.
 
 **_Elsewhere._**
 
@@ -763,7 +757,8 @@ auto-height measurement lives"_.
 - **A collapsed panel's content is still built.** `inert` plus a zero height is what makes the panel
   measurable and animatable, so an accordion of a hundred expensive panels builds all hundred. A
   `getIsLazy` that withholds the panel until first expansion would cost the open animation on that first
-  expansion, since there would be nothing to measure yet.
+  expansion, since there would be nothing to measure yet. This now belongs to `Collapsible` rather than to
+  `Accordion` — see `conventions.md` — so whatever is decided lands in one place for both.
 - **Nothing scrolls a newly opened section into view.** Opening the last section of a long list animates
   it open below the fold. `Select`'s option does this for itself off its own `isHighlighted` flag; here
   it would have to happen when the transition finishes rather than when it starts, so it needs the

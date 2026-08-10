@@ -6,6 +6,7 @@ import type {
     DateValueWeekdayWidth,
 } from "../../../Abstracts/DateValue/DateValue.types";
 import { DateValueUtils } from "../../../Abstracts/DateValue/DateValue.utils";
+import { LiveAnnouncer } from "../../../Abstracts/LiveAnnouncer/LiveAnnouncer";
 import { NavigationUtils } from "../../../Abstracts/Navigation/Navigation.utils";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import type { CalendarDayProps, CalendarFlags, CalendarProps } from "./Calendar.types";
@@ -21,6 +22,7 @@ const MONTH_STEP = 1;
 const SELECT_KEYS = ["Enter", " "];
 
 const DAY_LABEL_OPTIONS: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
+const MONTH_ANNOUNCE_OPTIONS: Intl.DateTimeFormatOptions = { month: "long", year: "numeric" };
 
 const CalendarDay = (props: CalendarDayProps) => {
     const getIsDisabled = () => props.getFlags().isDisabled ?? false;
@@ -125,6 +127,26 @@ export const Calendar = (props: CalendarProps) => {
         if (!value) return;
 
         setHighlighted(() => value);
+    });
+
+    /**
+     * Paging swaps all 42 cells and nothing else changes, so a screen reader user who pages hears nothing at
+     * all until they move the focus. The month title is the consumer's own markup — `Calendar` renders no
+     * header — so the announcement cannot come from reading it; it is formatted here from the month itself,
+     * through the same `Intl` path the day labels already use, and spoken through a region that belongs to no
+     * component. Politely, because paging is something the reader just did rather than news.
+     *
+     * The previous month arrives as the effect's own argument, so the first run has nothing to compare against
+     * and announces nothing — a calendar must not talk about itself as it mounts.
+     */
+    createEffect<DateValue | undefined>((previous) => {
+        const month = getMonth();
+
+        if (previous && (previous.year !== month.year || previous.month !== month.month)) {
+            LiveAnnouncer.announce(DateValueUtils.format(month, MONTH_ANNOUNCE_OPTIONS, props.getLocale?.()));
+        }
+
+        return month;
     });
 
     createEffect(() => {

@@ -2,13 +2,9 @@ import type { Accessor, JSX, Signal } from "solid-js";
 
 import type { InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
-import type { InteractionControlProps } from "../InteractionWrapper/InteractionWrapper.types";
+import type { CollapsibleFlags } from "../Collapsible/Collapsible.types";
 
 export type AccordionSizing = "fit-content" | "fill";
-
-export type AccordionFlags = {
-    isExpanded: boolean;
-};
 
 export type AccordionItem<T> = {
     value: T;
@@ -17,7 +13,7 @@ export type AccordionItem<T> = {
 
 export type AccordionHeaderRenderer<T> = (
     getItem: Accessor<AccordionItem<T>>,
-    getFlags: () => InteractionFlags<AccordionFlags>,
+    getFlags: () => InteractionFlags<CollapsibleFlags>,
 ) => JSX.Element;
 
 export type AccordionPanelRenderer<T> = (
@@ -26,21 +22,10 @@ export type AccordionPanelRenderer<T> = (
     getTransitionDurationMs: () => number,
 ) => JSX.Element;
 
-export type AccordionHeaderProps<T> = AccessorProps<
-    Omit<InteractionControlProps<AccordionFlags>, "renderContent"> & {
-        panelId: string;
-        isExpanded: boolean;
-    }
-> & {
-    getItem: Accessor<AccordionItem<T>>;
-    renderHeader: AccordionHeaderRenderer<T>;
-    onToggle: () => void;
-};
-
 export type AccordionSectionProps<T> = AccessorProps<{
     headingLevel: number;
     isExpanded: boolean;
-    transitionDurationMs: number;
+    transitionDurationMs?: number;
     ref?: (element: HTMLElement) => void;
 }> & {
     getItem: Accessor<AccordionItem<T>>;

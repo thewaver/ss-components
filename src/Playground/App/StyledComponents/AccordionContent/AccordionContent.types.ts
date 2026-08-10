@@ -1,9 +1,9 @@
 import type { InteractionFlags } from "../../../../Lib/Abstracts/Interaction/Interaction.types";
-import type { AccordionFlags } from "../../../../Lib/Fundamentals/Accordion/Accordion.types";
+import type { CollapsibleFlags } from "../../../../Lib/Fundamentals/Collapsible/Collapsible.types";
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
 export type AccordionHeaderProps = AccessorProps<{
-    flags: InteractionFlags<AccordionFlags>;
+    flags: InteractionFlags<CollapsibleFlags>;
 }>;
 
 export type AccordionPanelProps = AccessorProps<{

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { type Page, expect, test } from "@playwright/test";
 
 import { computedStyle } from "./helpers";
 
@@ -179,5 +179,62 @@ test.describe("the pause arithmetic", () => {
 
         await page.clock.runFor(DURATION_MS);
         await expect(page.locator(QUEUED), "and the rest of it dismisses").toContainText("queued: 0");
+    });
+});
+
+/**
+ * A hidden tab cannot be driven by Playwright — there is no API for backgrounding a page — so the platform's
+ * own signal is faked: `document.hidden` is redefined and `visibilitychange` dispatched, which is exactly
+ * what the browser does when a tab goes away. The clock is faked alongside it, because the question is
+ * whether the duration was consumed while nobody could see it.
+ */
+test.describe("a hidden tab", () => {
+    const setHidden = (page: Page, isHidden: boolean) =>
+        page.evaluate((hidden) => {
+            Object.defineProperty(document, "hidden", { value: hidden, configurable: true });
+            document.dispatchEvent(new Event("visibilitychange"));
+        }, isHidden);
+
+    test.beforeEach(async ({ page }) => {
+        await page.clock.install();
+        await page.goto("/toasts");
+        await expect(page.locator("button", { hasText: "Info" })).toBeVisible();
+    });
+
+    test("holds every countdown, so a burst raised in the background is still there on return", async ({ page }) => {
+        await page.locator("button", { hasText: "Info" }).click();
+        await expect(page.locator(TOASTS)).toHaveCount(1);
+
+        await setHidden(page, true);
+        await page.clock.runFor(DURATION_MS * 3);
+
+        await expect(
+            page.locator(TOASTS),
+            "three times the duration passes while the tab is away and the toast survives it",
+        ).toHaveCount(1);
+
+        await setHidden(page, false);
+        await page.clock.runFor(DURATION_MS - TRANSITION_MS);
+
+        await expect(page.locator(QUEUED), "and the clock resumes from where it was").toContainText("queued: 0");
+    });
+
+    test("pauses the countdown the painter draws, the same way hovering does", async ({ page }) => {
+        await page.locator("button", { hasText: "Info" }).click();
+        await expect(page.locator(COUNTDOWN)).toHaveCount(1);
+
+        await setHidden(page, true);
+
+        await expect
+            .poll(() => computedStyle(page.locator(COUNTDOWN), "animation-play-state"), {
+                message: "the same isPaused flag reaches the painter",
+            })
+            .toBe("paused");
+
+        await setHidden(page, false);
+
+        await expect
+            .poll(() => computedStyle(page.locator(COUNTDOWN), "animation-play-state"), { message: "and releases" })
+            .toBe("running");
     });
 });
