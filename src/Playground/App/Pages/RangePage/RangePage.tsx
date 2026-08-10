@@ -21,6 +21,7 @@ export const RangePage = () => {
 
     const priceSignal = createSignal<RangeValues>({ start: 20, end: 80 });
     const verticalPairSignal = createSignal<RangeValues>({ start: 30, end: 70 });
+    const disabledPairSignal = createSignal<RangeValues>({ start: 35, end: 65 });
 
     const getVariants = createMemo(() => {
         return [
@@ -102,6 +103,21 @@ export const RangePage = () => {
                     <Range
                         valueSignal={[getDisabled, setDisabled]}
                         getAriaLabel={() => "Disabled range"}
+                        getIsDisabled={() => true}
+                        getThumbSize={() => RANGE_THUMB_SIZE}
+                        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
+                    />
+                ),
+            },
+            {
+                name: "Disabled pair",
+                readout: () =>
+                    `start: ${disabledPairSignal[0]().start} | end: ${disabledPairSignal[0]().end} — both thumbs must be out of the tab order`,
+                component: () => (
+                    <Range
+                        rangeSignal={disabledPairSignal}
+                        getAriaLabel={() => "Locked band"}
+                        getThumbLabels={() => ["Locked floor", "Locked ceiling"]}
                         getIsDisabled={() => true}
                         getThumbSize={() => RANGE_THUMB_SIZE}
                         renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}

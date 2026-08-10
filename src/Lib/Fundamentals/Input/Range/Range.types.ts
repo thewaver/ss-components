@@ -49,6 +49,7 @@ export type RangeElementProps = AccessorProps<
         Required<Omit<RangeState, "name" | "ariaLabel" | "thumbLabels">> &
         Pick<RangeState, "name" | "ariaLabel" | "thumbLabels"> & {
             values: number[];
+            isTabbable?: boolean;
             setValue: (index: number, value: number) => void;
             setFocusedThumb: (index?: number) => void;
         }

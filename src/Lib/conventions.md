@@ -2770,6 +2770,110 @@ third dismissal story in the repo. It is the same open question `review.md` reco
 for the opener, `renderDay` and `renderWeekday` for the grid, and `renderPopup` for the surround, which
 receives the month signal so the consumer draws the title and the paging buttons.
 
+### The mask: only digits are typed, and the caret is computed rather than preserved
+
+Settled **2026-08-10**, on the user's call to try a mask rather than the element-per-segment shape every
+other library uses (`review.md` item 7's survey). It is the primitive two shipped fields were waiting on.
+
+**`TextSyncUtils.applyMask(pattern, previous, next, caret)` is a pure function, so the caret arithmetic is
+reachable from `npm test`.** A pattern is `#` for a digit slot and any other character as a literal, so
+`dd/mm/yyyy` is `##/##/####`. It returns the text and where the caret belongs, and
+`TextSync.utils.test.ts` covers the cases that are easy to get wrong.
+
+**Only the digits carry meaning.** Everything that is not a digit is discarded on the way in and re-emitted
+from the pattern on the way out. That single rule is what makes typing `25122026`, pasting `25/12/2026`,
+pasting `25.12.2026` and pasting ` 25 12 2026` all land the same value, and it is why the caret cannot
+simply be preserved: the position that survives an edit is _how many digits precede it_, and the offset in
+the text is derived from that afterwards.
+
+**A literal appears only once the digit after it exists.** Two digits in, the text is `12` rather than
+`12/`. So an abandoned field never holds a trailing separator, and nothing downstream has to decide whether
+an incomplete value ends at a digit or at punctuation. The alternative — emitting the separator as soon as
+its group fills — was not taken because it makes `12/` a state the parse then has to ignore.
+
+**Deleting a literal deletes the digit in front of it.** Backspacing the slash in `12/34` would otherwise
+strip a character the mask immediately puts back, so the key would read as broken. The tell is that the
+digit count did not change across an edit that shortened the text.
+
+**The mask lives in `TextSync` because it owns the caret, and a transforming setter cannot.** The owner's
+setter runs after the browser has already written the text; it can refuse or rewrite a value, but it cannot
+move a caret it never saw, and a caret left where the keystroke put it lands before the separator the mask
+just inserted. `createValueSync` therefore takes an optional `getMask` and, when there is one, writes the
+masked text, sets the caret and reports upward — instead of reporting first and syncing back.
+
+**One consequence, accepted: inserting into the middle shifts rather than overwrites.** Typing a digit into
+the middle of a complete date pushes every later digit along and drops the last one, because the mask holds
+a digit string and not a set of fixed-width fields. Overwrite-in-place is what per-segment elements give
+you for free, and it is the main thing this shape does not.
+
+**What a mask cannot do at all**, worth stating because it is the line where segments would come back: with
+one input the browser draws the whole string, so nothing can tint or box the segment the caret is in, and
+nothing can be placed _between_ two segments. What it keeps is everything about the field being one input —
+`renderLeading` / `renderTrailing` are untouched, the measured adornment inset still applies, and
+`computeTextStyle` still styles the value. Verified on the masked `DatePicker`, whose trailing trigger
+insets the text exactly as it did before.
+
+### Controls: `DateInput`'s format states the order, and the mask follows from it
+
+Settled **2026-08-10**, with the mask above. `getFormat` takes `"iso"`, `"day-month-year"` or
+`"month-day-year"`, defaulting to ISO so nothing changed for existing call sites.
+
+**An arbitrary mask string is deliberately not the prop.** A consumer who could pass `##/##/####` directly
+would leave the component guessing which of its slots were the month, and a pattern the parse does not agree
+with is a field that reads a date wrong in silence. So the order is what is stated and the pattern is
+derived from it — one source of truth, the same argument the discriminated `SelectItem` record makes.
+
+**`fromIso` is still the only thing that decides whether a date exists.** The display order is reassembled
+into `yyyy-mm-dd` and handed to it, so the 31st of February is refused in every order rather than once per
+order, and no second validator exists to disagree with the first.
+
+**ISO is masked too, on the same path.** It could have kept its unmasked branch, and did not, because two
+paths would be two behaviours to keep in step. Nothing observable changed: typing the separators still
+produces the same string, since a typed `-` is discarded and the mask supplies its own.
+
+**`TextSyncUtils` is not exported from `index.ts` yet.** `DateInput` is its only consumer and the standing
+rule is private until a second one arrives — which will be `TimeInput`'s 12-hour clock or the formatted
+number, and either would also be the moment to decide whether a consumer building their own masked field
+should be able to reach it.
+
+### The am/pm segment is a control in the trailing slot, not a slot in the mask
+
+Settled **2026-08-10**, on the user's suggestion, and it removes the extension the mask looked like it needed.
+A 12-hour field was the reason to add a non-digit slot to the pattern; putting the meridiem in
+`renderTrailing` instead means **the pattern stays digits-only** and nothing about the mask changes.
+
+**It is `renderTrailing` widened, not a new slot, and not `renderDecoration`.** `TimeInput` re-declares that
+one slot as `(getFlags, meridiem)`, which is exactly what `NumberInput` does with its stepper — same
+argument: both would want the same physical position, and one slot lets a painter draw a unit and a control
+together. The decoration overlay was the other candidate and cannot host this at all: it is one full-box
+overlay that inherits `pointer-events: none`, so a control inside it is unclickable, and it is not
+positional.
+
+**The value stays 24-hour and the meridiem is a way of reading it.** `TimeValue` gains no fourth field.
+`TimeValueUtils.getMeridiem` / `getTwelveHour` / `withMeridiem` / `fromTwelveHour` are pure and tested, and
+they are tested because **midnight reads as 12 am and noon as 12 pm** — the mapping is not `hour % 12` in
+either direction, and nothing in the type system catches an off-by-twelve. Keeping the value in 24-hour form
+also makes the hard case free: stepping the hour past eleven carries into the next half of the day with no
+arithmetic of its own, because the meridiem is derived from the hour rather than stored beside it.
+
+**The meridiem is nonetheless a signal, and only because of the empty field.** With no value there is no hour
+to read it off, and a consumer who chooses "pm" before typing has to have that remembered. Whenever a value
+exists it wins — an effect pushes the value's own meridiem back into the signal — so the two cannot disagree
+about a time that is actually held. The parse reads the signal `untrack`ed, per the rule the colour picker's
+mirrors established: an effect whose job is one-directional must depend only on the direction it syncs from.
+
+**The consequence, accepted: it is a second tab stop.** Native `<input type="time">` makes am/pm a third
+segment inside one control, reachable by arrow keys. Here it is a `Button` in the trailing slot with its own
+focus ring, which is the same call recorded above for a two-thumb `Range` — and the slot was already
+documented as able to hold a control with its own ring and tooltip. It has to carry a name: the Playground's
+toggle sets `aria-label` to "Before or after noon: AM", because the glyph is `aria-hidden` like every other
+painter's text.
+
+**`TimeInput` still does not use the mask**, and that is deliberate rather than pending. Its caret arithmetic
+works because ISO segments are fixed width, adopting the mask would change how typing feels in a field whose
+behaviour was not what this change was about, and bundling the two would have put a judgment call inside a
+feature. What it gained is the 12-hour reading and nothing else.
+
 ### Controls: `TimeInput`, and stepping the segment the caret is in
 
 Settled **2026-08-10**, immediately after `DateInput` and on the same shape.
@@ -2908,6 +3012,54 @@ working one until someone taps.
 **The painter also stops on `mouseleave`.** Pointer capture is not used here, so dragging off the button
 would otherwise keep repeating with nothing under the cursor. That is the painter's call rather than the
 library's, and worth noting because it is the one part of the arrangement the shell does not enforce.
+
+### A leaf with more than one focusable element owns the disabled half itself
+
+Settled **2026-08-10**, closing a defect found while writing `e2e/range.spec.ts` and confirmed by driving
+it: on a **disabled two-thumb `Range`** the second thumb kept a `tabIndex` of 0 and took focus from a
+click, and on a **disabled `ColorArea`** both axis sliders did. The first thumb was always correct, which
+is exactly what made it invisible.
+
+**The cause is that `wrapElement` acts on one element, and the wrapper only ever has one.**
+`InteractionWrapper` passes a single `setElementRef` into `renderControl`, and everything it does about
+disabled — the `tabIndex` rule and the `mousedown` `preventDefault` that refuses focus — is done to that
+element. `RangeElement` forwards only thumb 0 (`if (index === 0) props.ref?.(element)`) and
+`ColorAreaElement` forwards the `role="group"` rather than either slider, so every other focusable element
+those leaves render was outside all of it, at a native `tabIndex` of 0.
+
+**`InteractionUtils.wrapExtraControls(getRefs, getIsDisabled, opts)` is the fix, and it is deliberately
+only the disabled half.** It sets `tabIndex` and attaches the same focus refusal, and it is in
+`InteractionUtils` rather than in either leaf because two components needed it the day it was written —
+the standing "private until a second consumer" rule firing immediately.
+
+**Reachability deliberately does not enter into it, and that is what keeps the fix small.** A control that
+is reachable while disabled is focusable so that its tooltip can be read, and the tooltip is anchored on
+the wrapper's single element — one target reveals it. So the extra elements leave the tab order whenever
+the control is disabled, reachable or not, which means the leaf never has to know whether it is reachable.
+That matters because _"Reachable mode is no longer visible to a leaf"_ removed exactly that knowledge on
+purpose, and a fix that put it back would have undone the wrapper split to repair a tab stop.
+
+**Two rejected alternatives, each for a reason worth keeping.** Having the wrapper apply the rules to every
+focusable element inside its root is wrong rather than merely broad: `TextField`'s `renderTrailing` slot
+routinely holds a real `Button` with its own wrapper — the Playground's password field is one — and a
+disabled field must not take that button's tab stop away. And having the leaf compute the rule from its own
+copy of the predicate is the duplication `computeIsReachable` was extracted to prevent.
+
+**`ColorArea` had a second bug in the same place, and it is `syncElement`'s rule for the fifth time.** Its
+axis `onInput` returned early while disabled, which skipped the push-back — so a refused arrow press left
+the slider holding a position the state had never accepted, `aria-valuetext` disagreeing with the element,
+and the next press moving on from the wrong base. It now gates the write and always calls `syncAxis`, which
+is what `Range` already did. The general form: **a disabled control gates the write and still syncs the
+element**; returning before the sync is the bug.
+
+**An enabled multi-element control stays one tab stop per element — settled 2026-08-10, on the user's
+call.** A two-thumb `Range` is two stops and a `ColorArea` is two, and the roving single-stop treatment
+`RadioGroup` and `Tabs` use is deliberately not applied. The distinction is what the members _are_: a radio
+group's members are N spellings of one value, so stopping on each would make the tab order describe the
+options rather than the control, while a range's two thumbs are two values with their own names and their
+own `aria-valuetext`, and a colour surface's two axes likewise. `Calendar`'s previous and next buttons are
+the same call one level out — they are the consumer's own two `Button`s, so they are two stops because they
+are two controls.
 
 ### The wrapper between a container role and its items is presentational
 

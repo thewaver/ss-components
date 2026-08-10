@@ -93,3 +93,73 @@ describe("format", () => {
         );
     });
 });
+
+describe("the twelve-hour reading", () => {
+    it("reads midnight as 12 am and noon as 12 pm, which is where the off-by-twelve lives", () => {
+        expect(
+            TimeValueUtils.getTwelveHour({ hour: 0, minute: 0 }),
+            "midnight is the twelfth hour, not the zeroth",
+        ).toBe(12);
+        expect(TimeValueUtils.getMeridiem({ hour: 0, minute: 0 })).toBe("am");
+        expect(TimeValueUtils.getTwelveHour({ hour: 12, minute: 0 })).toBe(12);
+        expect(TimeValueUtils.getMeridiem({ hour: 12, minute: 0 }), "noon is pm, not am").toBe("pm");
+    });
+
+    it("reads the ordinary hours the ordinary way", () => {
+        expect(TimeValueUtils.getTwelveHour({ hour: 9, minute: 30 })).toBe(9);
+        expect(TimeValueUtils.getMeridiem({ hour: 9, minute: 30 })).toBe("am");
+        expect(TimeValueUtils.getTwelveHour({ hour: 13, minute: 30 })).toBe(1);
+        expect(TimeValueUtils.getMeridiem({ hour: 13, minute: 30 })).toBe("pm");
+        expect(TimeValueUtils.getTwelveHour({ hour: 23, minute: 59 })).toBe(11);
+    });
+
+    it("moves an hour between halves of the day without touching the rest of it", () => {
+        expect(TimeValueUtils.withMeridiem({ hour: 9, minute: 30 }, "pm")).toEqual({ hour: 21, minute: 30 });
+        expect(TimeValueUtils.withMeridiem({ hour: 21, minute: 30 }, "am")).toEqual({ hour: 9, minute: 30 });
+        expect(TimeValueUtils.withMeridiem({ hour: 0, minute: 5 }, "pm"), "12 am becomes 12 pm").toEqual({
+            hour: 12,
+            minute: 5,
+        });
+        expect(TimeValueUtils.withMeridiem({ hour: 12, minute: 5 }, "am"), "and back again").toEqual({
+            hour: 0,
+            minute: 5,
+        });
+    });
+
+    it("is idempotent when the half of the day already matches", () => {
+        expect(TimeValueUtils.withMeridiem({ hour: 13, minute: 0 }, "pm")).toEqual({ hour: 13, minute: 0 });
+        expect(TimeValueUtils.withMeridiem({ hour: 1, minute: 0 }, "am")).toEqual({ hour: 1, minute: 0 });
+    });
+
+    it("keeps seconds through the conversion, and only when they were there", () => {
+        expect(TimeValueUtils.withMeridiem({ hour: 9, minute: 30, second: 15 }, "pm")).toEqual({
+            hour: 21,
+            minute: 30,
+            second: 15,
+        });
+        expect(TimeValueUtils.withMeridiem({ hour: 9, minute: 30 }, "pm")).not.toHaveProperty("second");
+    });
+
+    it("refuses a twelve-hour reading that is not one", () => {
+        expect(
+            TimeValueUtils.fromTwelveHour(0, 30, "am"),
+            "there is no zeroth hour on a 12-hour clock",
+        ).toBeUndefined();
+        expect(TimeValueUtils.fromTwelveHour(13, 30, "pm"), "nor a thirteenth").toBeUndefined();
+        expect(TimeValueUtils.fromTwelveHour(9, 60, "am"), "nor a sixtieth minute").toBeUndefined();
+        expect(TimeValueUtils.fromTwelveHour(9, 30, "am", 60)).toBeUndefined();
+    });
+
+    it("builds the value the field means from the digits and the half of the day", () => {
+        expect(TimeValueUtils.fromTwelveHour(12, 30, "am"), "12:30 am is half past midnight").toEqual({
+            hour: 0,
+            minute: 30,
+        });
+        expect(TimeValueUtils.fromTwelveHour(12, 30, "pm"), "12:30 pm is half past noon").toEqual({
+            hour: 12,
+            minute: 30,
+        });
+        expect(TimeValueUtils.fromTwelveHour(1, 5, "pm")).toEqual({ hour: 13, minute: 5 });
+        expect(TimeValueUtils.fromTwelveHour(11, 45, "am", 30)).toEqual({ hour: 11, minute: 45, second: 30 });
+    });
+});

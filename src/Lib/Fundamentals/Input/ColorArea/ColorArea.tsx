@@ -41,17 +41,30 @@ const ColorAreaElement = (props: ColorAreaElementProps) => {
         props.setIsDragging(getIsDragging());
     });
 
-    createRenderEffect(() => {
-        const hsv = props.getHsv();
+    /**
+     * The single writer for an axis input, in `BinarySwitch`'s shape and for its reason: the browser moves a
+     * range before it reports, so an owner that refuses or clamps the write would otherwise leave the
+     * element holding a position the state never accepted. It has to run on the refused path too, which is
+     * why `onInput` gates the write rather than returning.
+     */
+    const syncAxis = (element: HTMLInputElement, axis: ColorAreaAxis) => {
+        const value = `${getAxisRatio(props.getHsv(), axis)}`;
 
+        if (element.value === value) return;
+
+        element.value = value;
+    };
+
+    createRenderEffect(() => {
         for (const axis of AXES) {
             const element = getAxisRefs()[axis];
-            const value = `${getAxisRatio(hsv, axis)}`;
 
-            if (!element || element.value === value) continue;
-
-            element.value = value;
+            if (element) syncAxis(element, axis);
         }
+    });
+
+    InteractionUtils.wrapExtraControls(() => AXES.map((axis) => getAxisRefs()[axis]), getIsDisabled, {
+        getIsTabbable: props.getIsTabbable,
     });
 
     return (
@@ -93,9 +106,11 @@ const ColorAreaElement = (props: ColorAreaElementProps) => {
                         aria-valuetext={`${Math.round(getAxisRatio(props.getHsv(), axis) * PERCENT)}%`}
                         aria-disabled={getIsDisabled() || undefined}
                         onInput={(e) => {
-                            if (getIsDisabled()) return;
+                            const element = e.currentTarget;
 
-                            props.setAxis(axis, Number(e.currentTarget.value));
+                            if (!getIsDisabled()) props.setAxis(axis, Number(element.value));
+
+                            syncAxis(element, axis);
                         }}
                         onFocus={() => props.setFocusedAxis(axis)}
                         onBlur={() => props.setFocusedAxis(undefined)}
@@ -138,6 +153,7 @@ export const ColorArea = (props: ColorAreaProps) => {
                     getStep={() => props.getStep?.() ?? DEFAULT_COLOR_AREA_STEP}
                     getFlags={getFlags}
                     getHsv={() => props.hsvSignal[0]()}
+                    getIsTabbable={props.getIsTabbable}
                     renderContent={props.renderContent}
                     setAxis={setAxis}
                     setFocusedAxis={setFocusedAxis}

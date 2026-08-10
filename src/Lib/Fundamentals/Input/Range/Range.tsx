@@ -2,6 +2,7 @@ import { Index, createMemo, createRenderEffect, createSignal } from "solid-js";
 
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
+import { InteractionUtils } from "../../../Abstracts/Interaction/Interaction.utils";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { FormFieldUtils } from "../FormField/FormField.utils";
 import { LabelUtils } from "../Label/Label.utils";
@@ -64,6 +65,10 @@ const RangeElement = (props: RangeElementProps) => {
 
     createRenderEffect(() => {
         getElementRefs().forEach(syncElement);
+    });
+
+    InteractionUtils.wrapExtraControls(() => getElementRefs().slice(1), getIsDisabled, {
+        getIsTabbable: props.getIsTabbable,
     });
 
     return (
@@ -205,6 +210,7 @@ export const Range = (props: RangeProps) => {
                     getThumbSize={getThumbSize}
                     getFlags={getFlags}
                     getValues={getValues}
+                    getIsTabbable={props.getIsTabbable}
                     setValue={setValue}
                     setFocusedThumb={setFocusedThumb}
                     renderContent={props.renderContent}

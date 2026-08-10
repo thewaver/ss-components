@@ -5,3 +5,5 @@ export type TimeValue = {
 };
 
 export type TimeValueUnit = "hour" | "minute" | "second";
+
+export type TimeValueMeridiem = "am" | "pm";

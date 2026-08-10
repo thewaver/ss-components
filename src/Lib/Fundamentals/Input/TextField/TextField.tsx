@@ -155,6 +155,7 @@ const TextFieldElement = (props: TextFieldElementProps) => {
             onInput: (value) => {
                 void props.onInput?.(value);
             },
+            getMask: props.getMask,
         },
     );
 
@@ -313,6 +314,7 @@ export const TextField = (props: TextFieldProps) => {
                     getIsSpinButton={props.getIsSpinButton}
                     getAutoComplete={props.getAutoComplete}
                     getInputMode={props.getInputMode}
+                    getMask={props.getMask}
                     getMin={props.getMin}
                     getMax={props.getMax}
                     getStep={props.getStep}

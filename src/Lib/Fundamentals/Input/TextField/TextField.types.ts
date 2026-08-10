@@ -57,6 +57,7 @@ export type TextFieldState = {
     isSpinButton?: boolean;
     autoComplete?: JSX.HTMLAutocomplete;
     inputMode?: TextFieldMode;
+    mask?: string;
     min?: number;
     max?: number;
     step?: number;

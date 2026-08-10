@@ -17,6 +17,7 @@ import {
     PageCalendarWeekday,
 } from "../../StyledComponents/CalendarContent/CalendarContent";
 import { PageDatePickerTrigger } from "../../StyledComponents/DatePickerTrigger/DatePickerTrigger";
+import { PageMeridiemToggle } from "../../StyledComponents/MeridiemToggle/MeridiemToggle";
 import {
     PageTextFieldContent,
     computePageTextFieldTextStyle,
@@ -42,10 +43,12 @@ const describeTime = (value: TimeValue | undefined) => (value ? TimeValueUtils.t
 
 export const DatePickerPage = () => {
     const typedSignal = createSignal<DateValue | undefined>(TODAY);
+    const localeSignal = createSignal<DateValue | undefined>(TODAY);
     const pickedSignal = createSignal<DateValue | undefined>();
     const boundedSignal = createSignal<DateValue | undefined>();
     const timeSignal = createSignal<TimeValue | undefined>({ hour: 9, minute: 30 });
     const preciseSignal = createSignal<TimeValue | undefined>({ hour: 9, minute: 30, second: 0 });
+    const twelveHourSignal = createSignal<TimeValue | undefined>({ hour: 14, minute: 30 });
     const shiftSignal = createSignal<TimeValue | undefined>();
 
     const renderField = () => ({
@@ -113,6 +116,19 @@ export const DatePickerPage = () => {
                 ),
             },
             {
+                name: "Day first",
+                readout: () =>
+                    `value: ${describe(localeSignal[0]())} — dd/mm/yyyy, and the separators are the mask's rather than yours to type`,
+                component: () => (
+                    <DateInput
+                        {...renderField()}
+                        valueSignal={localeSignal}
+                        getFormat={() => "day-month-year"}
+                        getAriaLabel={() => "Day-first date"}
+                    />
+                ),
+            },
+            {
                 name: "With a calendar",
                 readout: () => `value: ${describe(pickedSignal[0]())} — typing and picking write the same signal`,
                 component: () => renderPicker(pickedSignal),
@@ -129,6 +145,26 @@ export const DatePickerPage = () => {
                     `value: ${describeTime(timeSignal[0]())} — the arrows step whichever segment the caret is in`,
                 component: () => (
                     <TimeInput {...renderField()} valueSignal={timeSignal} getAriaLabel={() => "Start time"} />
+                ),
+            },
+            {
+                name: "Twelve hour",
+                readout: () =>
+                    `value: ${describeTime(twelveHourSignal[0]())} — the value stays 24-hour, the field reads it as 12`,
+                component: () => (
+                    <TimeInput
+                        {...renderField()}
+                        valueSignal={twelveHourSignal}
+                        getIsTwelveHour={() => true}
+                        getAriaLabel={() => "Meeting time"}
+                        renderTrailing={(getFlags, meridiem) => (
+                            <PageMeridiemToggle
+                                getMeridiem={meridiem.getValue}
+                                getIsDisabled={() => getFlags().isDisabled ?? false}
+                                onToggle={meridiem.toggle}
+                            />
+                        )}
+                    />
                 ),
             },
             {

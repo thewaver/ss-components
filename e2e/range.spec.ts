@@ -7,6 +7,7 @@ const STEPPED = variant("Stepped");
 const PAIR = variant("Pair");
 const VERTICAL = variant("Vertical");
 const DISABLED = variant("Disabled");
+const DISABLED_PAIR = variant("Disabled pair");
 const REACHABLE = variant("Disabled + reachable");
 const ERRORED = variant("Error");
 
@@ -138,6 +139,28 @@ test("a disabled range refuses both the write and the focus", async ({ page }) =
     ).toBe(25);
     expect(await readout(page, "Disabled"), "and the owner never hears about it").toContain("value: 25");
     expect(await activeMatches(page, thumbs(DISABLED)), "the mousedown refusal also keeps focus off it").toBe(false);
+});
+
+/**
+ * `InteractionWrapper` is handed one control element and does everything about disabled to that one, so a
+ * pair's second thumb used to keep the native `tabIndex` of 0 and take focus from a click while the whole
+ * control was disabled — tab-reachable, focusable, and refusing to move. Only the first thumb was covered
+ * because only the first is the wrapper's. Both are asserted here, because the one that was wrong is the
+ * one no other variant on the page can show.
+ */
+test("a disabled pair takes both of its thumbs out of the tab order, not just the wrapper's own", async ({ page }) => {
+    const low = page.locator(thumbs(DISABLED_PAIR)).first();
+    const high = page.locator(thumbs(DISABLED_PAIR)).last();
+
+    expect(await tabIndex(low), "the thumb the wrapper holds is skipped").toBe(-1);
+    expect(await tabIndex(high), "and so is the one it never saw").toBe(-1);
+
+    const box = (await high.boundingBox())!;
+
+    await page.mouse.click(box.x + box.width * 0.9, box.y + box.height / 2);
+
+    expect(await activeMatches(page, thumbs(DISABLED_PAIR)), "neither thumb takes focus from a click").toBe(false);
+    expect(await readout(page, "Disabled pair"), "and the value is where it started").toContain("start: 35 | end: 65");
 });
 
 test("the owner's error reaches the element as ARIA, and leaves when the owner's rule stops holding", async ({

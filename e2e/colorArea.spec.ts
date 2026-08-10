@@ -1,6 +1,6 @@
 import { type Page, expect, test } from "@playwright/test";
 
-import { attributesOf, inputValue, readout, variant } from "./helpers";
+import { attributesOf, inputValue, readout, tabIndex, variant } from "./helpers";
 
 const BARE = variant("The surface alone");
 const DROPDOWN = variant("In a dropdown, replacing the OS dialog");
@@ -233,4 +233,32 @@ test("a disabled surface attaches no drag and uses no native attribute", async (
         await inputValue(page.locator(axis(DISABLED)).first()),
         "clicking it moves nothing, because the listener was never attached",
     ).toBe("0.6");
+});
+
+/**
+ * The axis inputs are the surface's keyboard, and they are not the element `InteractionWrapper` holds — the
+ * `role="group"` is. So the wrapper's tab-order rule reached neither of them, and a disabled surface could
+ * be tabbed into and arrowed: the write was refused, but nothing pushed the element back afterwards, so the
+ * slider ended up holding a position the state had never accepted and the next press moved on from it.
+ */
+test("a disabled surface cannot be reached or moved by the keyboard either", async ({ page }) => {
+    const saturation = page.locator(axis(DISABLED)).first();
+
+    expect(await tabIndex(saturation), "the axis inputs leave the tab order with the control").toBe(-1);
+    expect(await tabIndex(page.locator(axis(DISABLED)).last())).toBe(-1);
+
+    const before = await inputValue(saturation);
+
+    await saturation.evaluate((element) => (element as HTMLInputElement).focus());
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowRight");
+
+    expect(
+        await inputValue(saturation),
+        "and a refused write is pushed back onto the element, so state and slider cannot drift apart",
+    ).toBe(before);
+    await expect(
+        page.locator(`${DISABLED} [aria-valuetext]`).first(),
+        "the announced value agrees with the element, which is what drifting apart would break",
+    ).toHaveAttribute("aria-valuetext", `${Math.round(Number(before) * 100)}%`);
 });

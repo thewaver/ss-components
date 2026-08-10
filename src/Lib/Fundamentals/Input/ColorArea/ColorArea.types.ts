@@ -34,6 +34,7 @@ export type ColorAreaElementProps = AccessorProps<
         Required<Omit<ColorAreaState, "name" | "ariaLabel">> &
         Pick<ColorAreaState, "name" | "ariaLabel"> & {
             hsv: ColorValueHsv;
+            isTabbable?: boolean;
             setAxis: (axis: ColorAreaAxis, ratio: number) => void;
             setFocusedAxis: (axis?: ColorAreaAxis) => void;
             setIsDragging: (isDragging: boolean) => void;

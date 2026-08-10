@@ -3,9 +3,11 @@ import { expect, test } from "@playwright/test";
 import { inputValue, readout, variant } from "./helpers";
 
 const TYPED = variant("Typed only");
+const LOCALE = variant("Day first");
 const PICKED = variant("With a calendar");
 const BOUNDED = variant("Bounded");
 const TIME = variant("A time, typed or stepped");
+const TWELVE = variant("Twelve hour");
 const PRECISE = variant("To the second");
 const SHIFT = variant("Within opening hours");
 const POPUP = '[role="dialog"]';
@@ -44,6 +46,74 @@ test("a date that does not exist reports nothing rather than being nudged", asyn
     await typeInto(page, field(TYPED), "2026-02-28");
 
     expect(await readout(page, "Typed only"), "while a real date lands").toContain("value: 2026-02-28");
+});
+
+/**
+ * The day-first field is the mask's only consumer, and the mask's contract is that **only digits are typed**:
+ * the separators are supplied from the pattern, so what a user presses and what the field holds are different
+ * strings. That is the whole reason the caret is computed rather than preserved, so these drive real
+ * keystrokes rather than filling the value.
+ */
+test.describe("a day-first field", () => {
+    test("supplies its own separators, and reads back as a real date", async ({ page }) => {
+        await typeInto(page, field(LOCALE), "25122026");
+
+        expect(await inputValue(page.locator(field(LOCALE))), "eight digits become a punctuated date").toBe(
+            "25/12/2026",
+        );
+        expect(await readout(page, "Day first"), "and the owner gets the date, in its own order").toContain(
+            "value: 2026-12-25",
+        );
+    });
+
+    test("refuses a date that does not exist, in this order too", async ({ page }) => {
+        await typeInto(page, field(LOCALE), "31022026");
+
+        expect(await inputValue(page.locator(field(LOCALE))), "the text is what was typed").toBe("31/02/2026");
+        expect(await readout(page, "Day first"), "but the 31st of February is still not a date").toContain(
+            "value: none",
+        );
+    });
+
+    test("takes the digit with the separator when the separator is backspaced", async ({ page }) => {
+        await typeInto(page, field(LOCALE), "2512");
+
+        expect(await inputValue(page.locator(field(LOCALE)))).toBe("25/12");
+
+        await page.locator(field(LOCALE)).press("Backspace");
+        await page.locator(field(LOCALE)).press("Backspace");
+
+        expect(
+            await inputValue(page.locator(field(LOCALE))),
+            "two presses remove two digits, not a digit and a slash",
+        ).toBe("25");
+    });
+
+    test("accepts a paste in a punctuation it does not use", async ({ page }) => {
+        await page.locator(field(LOCALE)).click();
+        await page.keyboard.press("ControlOrMeta+a");
+        await page.locator(field(LOCALE)).fill("25.12.2026");
+
+        expect(await inputValue(page.locator(field(LOCALE))), "the mask re-punctuates it").toBe("25/12/2026");
+        expect(await readout(page, "Day first")).toContain("value: 2026-12-25");
+    });
+
+    test("leaves the previous value alone while it is half typed, and snaps back on blur", async ({ page }) => {
+        await typeInto(page, field(LOCALE), "25122026");
+        await typeInto(page, field(LOCALE), "2512");
+
+        expect(
+            await readout(page, "Day first"),
+            "four digits are not a date, so they neither commit nor clear",
+        ).toContain("value: 2026-12-25");
+
+        await page.locator(field(TYPED)).click();
+
+        expect(
+            await inputValue(page.locator(field(LOCALE))),
+            "and leaving restores the spelling of the value that is actually held",
+        ).toBe("25/12/2026");
+    });
 });
 
 test("a half-typed date leaves the previous value alone until it is complete", async ({ page }) => {
@@ -201,4 +271,83 @@ test("bounds refuse a typed time and clamp a stepped one", async ({ page }) => {
         await readout(page, "Within opening hours"),
         "and stepping past the end clamps rather than wrapping",
     ).toContain("value: 17:30");
+});
+
+/**
+ * A 12-hour field is the mask's other half of the story and deliberately not a mask feature: the digits stay
+ * digits, and the half of the day is a control in the trailing slot rather than a letter slot in the pattern.
+ * So the value the owner holds is still 24-hour and the field is only a way of reading it — which is what
+ * these drive, since nothing about it is visible in the text alone.
+ */
+test.describe("a twelve-hour field", () => {
+    const toggle = `${TWELVE} button`;
+
+    test("reads a 24-hour value as twelve hours plus a half of the day", async ({ page }) => {
+        expect(await inputValue(page.locator(field(TWELVE))), "half past two in the afternoon reads as 02:30").toBe(
+            "02:30",
+        );
+        await expect(page.locator(toggle), "with the half of the day named for a screen reader").toHaveAttribute(
+            "aria-label",
+            "Before or after noon: PM",
+        );
+        expect(await readout(page, "Twelve hour"), "while the owner still holds 14:30").toContain("value: 14:30");
+    });
+
+    test("the toggle moves the value by twelve hours without touching the text", async ({ page }) => {
+        await page.locator(toggle).click();
+
+        expect(await readout(page, "Twelve hour"), "pm becomes am, so 14:30 becomes 02:30").toContain("value: 02:30");
+        expect(
+            await inputValue(page.locator(field(TWELVE))),
+            "and the text is unchanged, because it reads the same",
+        ).toBe("02:30");
+
+        await page.locator(toggle).click();
+
+        expect(await readout(page, "Twelve hour"), "and back again").toContain("value: 14:30");
+    });
+
+    test("typing twelve-hour digits lands the hour the half of the day says", async ({ page }) => {
+        await typeInto(page, field(TWELVE), "09:15");
+
+        expect(await readout(page, "Twelve hour"), "nine fifteen in the afternoon is 21:15").toContain("value: 21:15");
+
+        await page.locator(toggle).click();
+
+        expect(await readout(page, "Twelve hour"), "and in the morning it is 09:15").toContain("value: 09:15");
+    });
+
+    test("twelve o'clock is the case that catches an off-by-twelve", async ({ page }) => {
+        await typeInto(page, field(TWELVE), "12:00");
+
+        expect(await readout(page, "Twelve hour"), "12:00 pm is noon, not midnight").toContain("value: 12:00");
+
+        await page.locator(toggle).click();
+
+        expect(await readout(page, "Twelve hour"), "and 12:00 am is midnight, not noon").toContain("value: 00:00");
+    });
+
+    test("refuses an hour a twelve-hour clock does not have", async ({ page }) => {
+        await typeInto(page, field(TWELVE), "13:00");
+
+        expect(await readout(page, "Twelve hour"), "there is no thirteenth hour to read").toContain("value: none");
+    });
+
+    test("stepping the hour crosses noon and takes the half of the day with it", async ({ page }) => {
+        await typeInto(page, field(TWELVE), "11:30");
+        await caretAt(page, field(TWELVE), 0);
+
+        expect(await readout(page, "Twelve hour"), "starting at half past eleven in the evening").toContain(
+            "value: 23:30",
+        );
+
+        await page.keyboard.press("ArrowUp");
+
+        expect(await readout(page, "Twelve hour"), "stepping the hour wraps around midnight").toContain("value: 00:30");
+        await expect(
+            page.locator(toggle),
+            "and the toggle follows the value rather than being set twice",
+        ).toHaveAttribute("aria-label", "Before or after noon: AM");
+        expect(await inputValue(page.locator(field(TWELVE))), "with the text reading twelve, not zero").toBe("12:30");
+    });
 });

@@ -31,7 +31,6 @@ reading.
 14. `Calendar` — six things deliberately not built — _open_
 15. `ColorInput` — four things deliberately not built — _open_
 16. `Accordion` — four things deliberately not built — _open_
-17. `Range`'s second thumb is outside the wrapper's disabled handling — _open, unobserved_
 
 ### Build order
 
@@ -43,12 +42,10 @@ decision is made once with several consumers in view rather than inferred from t
 **Blocked on a primitive that has to be designed first.** Do not start these by inventing the primitive
 privately inside them.
 
-1. **The mask over `TextSync`, then the locale-ordered date and time fields.** Both fields ship in ISO
-   order; the mask is what a `dd/mm/yyyy` field and a formatted number need, and it is the one primitive
-   two shipped controls are already waiting on. Extracting the field shape `DateInput` and `TimeInput`
-   duplicate belongs in the same pass — see item 7. Read item 7's _Elsewhere_ note before starting
-   this: no library checked masks a date field, and the published answer to a locale-ordered one is an
-   element per segment rather than a caret that skips separators inside a single input.
+1. **The mask ships, `DateInput` reads any of three orders and `TimeInput` reads a 12-hour clock**; see
+   `conventions.md`. Nothing here is blocked on a primitive any more. What is left is the formatted number,
+   which needs a growing group count rather than a fixed pattern, and the field shape `DateInput` and
+   `TimeInput` still duplicate — both unblocked, and neither waiting on the other. See item 7.
 2. **`Tree`** — `computeNextCell` ships, and `Select`'s tree-flattening model is the other half. Wants
    virtualization, which is also `Select`'s loose end in item 5, so that `Abstract` belongs here.
 
@@ -282,15 +279,19 @@ gaps, each with the reason it is still a gap.
 `Abstracts/TimeValue`. The decisions are in `conventions.md`. What is left, in the order it would be worth
 doing:
 
-- **The mask, whose job is now exactly one thing.** Both fields read ISO order only — `yyyy-mm-dd` and
-  `HH:mm` — because those spellings parse and refuse precisely. A locale-ordered field (`dd/mm/yyyy`, or a
-  12-hour clock with an am/pm segment) is what needs the caret to skip literal separators and a display
-  form that differs from the value form. That is the whole of what `TextSync` cannot do, and a formatted
-  number wants the same primitive. `TimeInput`'s caret arithmetic is a hint at the shape but not a
-  substitute: it works because ISO segments are fixed width.
+- **The mask ships, and the 12-hour clock turned out not to need it.** `TextSyncUtils.applyMask`,
+  `DateInput`'s `getFormat` and `TimeInput`'s `getIsTwelveHour` are all in `conventions.md`: the meridiem is
+  a control in the trailing slot, so the pattern stayed digits-only and the non-digit slot this bullet
+  predicted was never built. What is left is the **formatted number**, which is the one consumer that does
+  need the pattern to change — thousands separators mean a group count that grows with the value rather than
+  a fixed run of slots, and that is a different function rather than a longer pattern. `TimeInput` also
+  still does not use the mask at all; its fixed-width ISO segments do not need one, and adopting it would
+  change how typing feels in a field for reasons unrelated to why anyone would.
 - **No time popup.** A list of times in a `Popover` is a `Select` over generated options; whether that
   belongs inside `TimeInput` as a mode or beside it as a `TimePicker` is the decision, and it should be
-  taken with the `openSignal` question below rather than separately.
+  taken with the `openSignal` question below rather than separately. Note the trailing slot is now spoken
+  for on a 12-hour field, so a picker trigger and an am/pm control would have to share it — which is what
+  that slot taking `(getFlags, meridiem)` already allows, since the painter draws both or neither.
 - **No date-and-time value.** The two fields exist side by side and nothing composes them. Which signal
   owns the pair is the question — one `{ date, time }` record, or two signals a consumer keeps in step.
   The former is a new value type; the latter is the mirror problem again.
@@ -400,9 +401,10 @@ any of those without first deciding these would bake the decision in by accident
 - **Pointer drag capture, and pointer geometry in the flags contract.** Item 2 records that
   `renderContent`/`renderDecoration` receive state and never events or pointer position. `Range` cannot
   be built without it, so the opt-in design that item asks for has to be settled first.
-- **Masking and formatting.** `TextSync` handles a setter that transforms or refuses while preserving
-  the caret. A mask is more: the caret must skip literal characters, and a formatted number or date has
-  a display form and a value form that are not the same string.
+- **Masking and formatting** is built for digits and fixed groups — `TextSyncUtils.applyMask`, in
+  `conventions.md`. What is not built is a slot that is not a digit (an am/pm segment) or a group count
+  that grows with the value (thousands separators), so a 12-hour clock and a formatted number are both
+  still waiting; see item 7.
 - **Virtualization.** Already recorded as a `Select` loose end in item 5; `Tree` and any grid need the
   same thing, so it is an `Abstract`, not a per-control feature.
 - **The form story is decided and wired.** `Form` and `FormField` ship and every control reads the
@@ -796,35 +798,3 @@ auto-height measurement lives"_.
   prop.
 
 ---
-
-## 17. `Range`'s second thumb is outside the wrapper's disabled handling
-
-Found while writing `e2e/range.spec.ts`, from reading rather than from driving, and **not yet observed** —
-which is the first thing to fix about it.
-
-`InteractionWrapper` is handed one control element, and everything it does about disabled is done to that
-element: `wrapElement` sets `tabIndex = (!isDisabled || isReachable) && isTabbable ? 0 : -1`, and in the
-disabled-and-not-reachable branch it attaches the `mousedown` `preventDefault` that refuses focus.
-`RangeElement` renders one input per thumb and forwards only the first — `if (index === 0)
-props.ref?.(element)` — so a pair's second input receives neither. A native range input's default
-`tabIndex` is 0, so on a **disabled pair** the high thumb should still be tab-reachable and still take
-focus from a click, while the low thumb is correctly skipped and refuses both.
-
-What is _not_ broken is the value: `onInput` gates on `getIsDisabled()` for every thumb and `syncElement`
-writes state back over the element, which is the same guard the spec now pins for the single case. So the
-symptom is tab order and focus, not a value the owner never asked for — which is also why nothing has
-noticed.
-
-Three things follow, in order:
-
-1. **The Playground cannot show it**, because no variant is both disabled and a pair — `RangePage`'s
-   disabled and reachable variants are both single. A variant is the first step, and it makes the claim
-   testable rather than reasoned.
-2. **The fix is a decision about where multi-element leaves live**, not a line. Either the leaf manages the
-   extra elements itself (duplicating the wrapper's two rules, which is what `computeIsReachable` was
-   extracted to stop), or `InteractionWrapper` learns to take more than one control element, which is a
-   change to the contract every leaf shares. `ColorArea` has the same shape — a `role="group"` over two
-   collapsed range inputs — so whatever is decided has a second consumer immediately.
-3. **`getIsTabbable` already exists** for an ancestor narrowing the tab order, so a pair is arguably that
-   case: one control, one tab stop, arrows moving between thumbs. That would be a behaviour change rather
-   than a repair, and it is the kind of thing to decide deliberately rather than as a side effect.
