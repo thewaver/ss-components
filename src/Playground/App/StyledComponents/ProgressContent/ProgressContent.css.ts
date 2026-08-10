@@ -57,5 +57,5 @@ export const progressRow = style({
     flexDirection: "column",
     gap: themeVars.spacing.half,
     width: "100%",
-    minWidth: 260,
+    minWidth: 200,
 });
