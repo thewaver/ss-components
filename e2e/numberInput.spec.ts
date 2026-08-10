@@ -135,3 +135,33 @@ test("a disabled field uses no native disabled attribute and takes nothing", asy
     await page.keyboard.press("ArrowUp");
     expect(await inputValue(page.locator(DISABLED)), "a disabled field takes nothing").toBe(before);
 });
+
+/**
+ * Holding the stepper repeats, which is what a native spinner does and what this one could not do until
+ * `Button` reported the pointer going down. A tap has to stay a single step, so both halves are asserted:
+ * the repeat only starts after the delay, and releasing stops it.
+ */
+test("holding a stepper repeats, and a tap does not", async ({ page }) => {
+    const readValue = async () => Number(/value: (\d+)/.exec(await readout(page, "Stepped and clamped"))?.[1]);
+
+    const box = (await page.locator(QUANTITY_UP).boundingBox())!;
+
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+
+    await page.mouse.down();
+    await page.mouse.up();
+
+    const afterTap = await readValue();
+
+    await page.mouse.down();
+    await page.waitForTimeout(1000);
+    await page.mouse.up();
+
+    const afterHold = await readValue();
+
+    expect(afterHold, "holding steps repeatedly rather than once").toBeGreaterThan(afterTap + 1);
+
+    await page.waitForTimeout(300);
+
+    expect(await readValue(), "and releasing stops it").toBe(afterHold);
+});

@@ -1,7 +1,8 @@
 import type { JSX, Signal } from "solid-js";
-import { createEffect, createSignal } from "solid-js";
+import { createSignal } from "solid-js";
 
 import type { AnchorPlacement } from "../../../../Lib/Abstracts/Anchor/Anchor.types";
+import { SignalMirror } from "../../../../Lib/Abstracts/SignalMirror/SignalMirror";
 import { Checkbox } from "../../../../Lib/Fundamentals/Input/Checkbox/Checkbox";
 import { ColorInput } from "../../../../Lib/Fundamentals/Input/ColorInput/ColorInput";
 import { FileInput } from "../../../../Lib/Fundamentals/Input/FileInput/FileInput";
@@ -9,6 +10,7 @@ import { NumberInput } from "../../../../Lib/Fundamentals/Input/NumberInput/Numb
 import { Select } from "../../../../Lib/Fundamentals/Input/Select/Select";
 import { TextInput } from "../../../../Lib/Fundamentals/Input/TextInput/TextInput";
 import { PageCheckboxContent } from "../../StyledComponents/CheckboxContent/CheckboxContent";
+import { pageColorPickerSlots } from "../../StyledComponents/ColorAreaContent/ColorAreaContent";
 import { PageColorInputContent } from "../../StyledComponents/ColorInputContent/ColorInputContent";
 import { PageFileInputContent } from "../../StyledComponents/FileInputContent/FileInputContent";
 import { PageNumberInputStepper } from "../../StyledComponents/NumberInputStepper/NumberInputStepper";
@@ -63,14 +65,10 @@ const renderFieldPopup = (
 );
 
 export const PageNumberField = (props: PageNumberFieldProps) => {
-    const valueSignal = createSignal<number | undefined>(props.getValue());
+    const valueSignal = SignalMirror.createValueMirror<number | undefined>(props.getValue, (value) => {
+        if (value === undefined) return;
 
-    createEffect(() => {
-        const value = props.getValue();
-
-        if (valueSignal[0]() === value) return;
-
-        valueSignal[1](value);
+        props.onInput(value);
     });
 
     return (
@@ -101,15 +99,7 @@ export const PageNumberField = (props: PageNumberFieldProps) => {
 };
 
 export const PageTextField = (props: PageTextFieldProps) => {
-    const textSignal = createSignal(props.getValue());
-
-    createEffect(() => {
-        const value = props.getValue();
-
-        if (textSignal[0]() === value) return;
-
-        textSignal[1](value);
-    });
+    const textSignal = SignalMirror.createValueMirror(props.getValue, props.onInput);
 
     return (
         <TextInput
@@ -126,21 +116,19 @@ export const PageTextField = (props: PageTextFieldProps) => {
                     <PageTextFieldPlaceholder getFlags={getFlags}>{props.getPlaceholder!()}</PageTextFieldPlaceholder>
                 ))
             }
-            onInput={props.onInput}
         />
     );
 };
 
 export const PageSelectField = <T,>(props: PageSelectFieldProps<T>) => {
-    const valueSignal: Signal<T | undefined> = createSignal<T | undefined>(props.getValue());
+    const valueSignal: Signal<T | undefined> = SignalMirror.createValueMirror<T | undefined>(
+        props.getValue,
+        (value) => {
+            if (value === undefined) return;
 
-    createEffect(() => {
-        const value = props.getValue();
-
-        if (valueSignal[0]() === value) return;
-
-        valueSignal[1](() => value);
-    });
+            props.onChange(value);
+        },
+    );
 
     return (
         <Select
@@ -164,25 +152,19 @@ export const PageSelectField = <T,>(props: PageSelectFieldProps<T>) => {
                 </PageSelectOptionContent>
             )}
             renderPopup={renderFieldPopup}
-            onSelectionChange={(value) => {
-                if (value === undefined) return;
-
-                props.onChange(value);
-            }}
         />
     );
 };
 
 export const PageGroupedSelectField = <T,>(props: PageGroupedSelectFieldProps<T>) => {
-    const valueSignal: Signal<T | undefined> = createSignal<T | undefined>(props.getValue());
+    const valueSignal: Signal<T | undefined> = SignalMirror.createValueMirror<T | undefined>(
+        props.getValue,
+        (value) => {
+            if (value === undefined) return;
 
-    createEffect(() => {
-        const value = props.getValue();
-
-        if (valueSignal[0]() === value) return;
-
-        valueSignal[1](() => value);
-    });
+            props.onChange(value);
+        },
+    );
 
     return (
         <Select
@@ -209,25 +191,12 @@ export const PageGroupedSelectField = <T,>(props: PageGroupedSelectFieldProps<T>
                 </PageSelectOptionContent>
             )}
             renderPopup={renderFieldPopup}
-            onSelectionChange={(value) => {
-                if (value === undefined) return;
-
-                props.onChange(value);
-            }}
         />
     );
 };
 
 export const PageCheckField = (props: PageCheckFieldProps) => {
-    const checkedSignal = createSignal(props.getValue());
-
-    createEffect(() => {
-        const value = props.getValue();
-
-        if (checkedSignal[0]() === value) return;
-
-        checkedSignal[1](value);
-    });
+    const checkedSignal = SignalMirror.createValueMirror(props.getValue, props.onChange);
 
     return (
         <Checkbox
@@ -235,21 +204,12 @@ export const PageCheckField = (props: PageCheckFieldProps) => {
             getIsDisabled={props.getIsDisabled}
             getAriaLabel={props.getAriaLabel}
             renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
-            onChange={props.onChange}
         />
     );
 };
 
 export const PageColorField = (props: PageColorFieldProps) => {
-    const valueSignal = createSignal(props.getValue());
-
-    createEffect(() => {
-        const value = props.getValue();
-
-        if (valueSignal[0]() === value) return;
-
-        valueSignal[1](value);
-    });
+    const valueSignal = SignalMirror.createValueMirror(props.getValue, props.onInput);
 
     return (
         <ColorInput
@@ -257,7 +217,7 @@ export const PageColorField = (props: PageColorFieldProps) => {
             getIsDisabled={props.getIsDisabled}
             getAriaLabel={props.getAriaLabel}
             renderContent={(getFlags) => <PageColorInputContent getFlags={getFlags} getIsCompact={() => true} />}
-            onInput={props.onInput}
+            {...pageColorPickerSlots}
         />
     );
 };

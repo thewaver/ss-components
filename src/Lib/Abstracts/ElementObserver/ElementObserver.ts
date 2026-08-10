@@ -1,5 +1,5 @@
 import type { Accessor, Setter } from "solid-js";
-import { createEffect, onCleanup, onMount } from "solid-js";
+import { createEffect, createSignal, onCleanup, onMount } from "solid-js";
 
 import { Bounds, type Point2d, type Rect } from "@thewaver/ss-utils";
 
@@ -7,6 +7,33 @@ import { useViewportContext } from "../../Fundamentals/Viewport/Viewport.context
 import { ViewportUtils } from "../../Fundamentals/Viewport/Viewport.utils";
 
 export namespace ElementObserver {
+    export const createBorderBoxHeightObserver = (
+        getRef: Accessor<HTMLElement | undefined>,
+        getIsEnabled?: Accessor<boolean>,
+    ) => {
+        const [getHeight, setHeight] = createSignal(0);
+
+        createEffect(() => {
+            const ref = getRef();
+
+            if (!ref || getIsEnabled?.() === false) return;
+
+            setHeight(ref.offsetHeight);
+
+            const observer = new ResizeObserver(([entry]) => {
+                setHeight(entry.borderBoxSize[0].blockSize);
+            });
+
+            observer.observe(ref);
+
+            onCleanup(() => {
+                observer.disconnect();
+            });
+        });
+
+        return getHeight;
+    };
+
     export const createViewportRectObserver = <T extends HTMLElement>(
         getRef: Accessor<T | undefined>,
         getIsVisible: Accessor<boolean>,

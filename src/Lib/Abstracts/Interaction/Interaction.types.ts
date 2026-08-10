@@ -11,3 +11,8 @@ export type InternalInteractionFlags = {
 };
 
 export type InteractionFlags<TExtra extends object = {}> = InternalInteractionFlags & ExternalInteractionFlags & TExtra;
+
+export type InteractionDragRatio = {
+    x: number;
+    y: number;
+};

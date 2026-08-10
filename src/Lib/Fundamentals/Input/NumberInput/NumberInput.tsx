@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, untrack } from "solid-js";
+import { createEffect, createMemo, createSignal, onCleanup, untrack } from "solid-js";
 
 import { TextField } from "../TextField/TextField";
 import type { TextFieldMode } from "../TextField/TextField.types";
@@ -7,6 +7,8 @@ import { NumberInputUtils } from "./NumberInput.utils";
 
 const DEFAULT_NUMBER_INPUT_STEP = 1;
 const DEFAULT_NUMBER_INPUT_MODE: TextFieldMode = "decimal";
+const DEFAULT_NUMBER_INPUT_REPEAT_DELAY_MS = 400;
+const DEFAULT_NUMBER_INPUT_REPEAT_INTERVAL_MS = 60;
 
 export const NumberInput = (props: NumberInputProps) => {
     const textSignal = createSignal(NumberInputUtils.formatValue(props.valueSignal[0]()));
@@ -37,6 +39,31 @@ export const NumberInput = (props: NumberInputProps) => {
         applyValue(NumberInputUtils.computeStep(props.valueSignal[0](), direction, getStepDefs()));
     };
 
+    let repeatDelay: ReturnType<typeof setTimeout> | undefined;
+    let repeatInterval: ReturnType<typeof setInterval> | undefined;
+
+    const stopStepping = () => {
+        clearTimeout(repeatDelay);
+        clearInterval(repeatInterval);
+
+        repeatDelay = undefined;
+        repeatInterval = undefined;
+    };
+
+    const startStepping = (direction: 1 | -1) => {
+        stopStepping();
+        stepValue(direction);
+
+        repeatDelay = setTimeout(() => {
+            repeatInterval = setInterval(
+                () => stepValue(direction),
+                props.getRepeatIntervalMs?.() ?? DEFAULT_NUMBER_INPUT_REPEAT_INTERVAL_MS,
+            );
+        }, props.getRepeatDelayMs?.() ?? DEFAULT_NUMBER_INPUT_REPEAT_DELAY_MS);
+    };
+
+    onCleanup(stopStepping);
+
     const stepper: NumberInputStepper = {
         getIsAtMin: () => {
             const value = props.valueSignal[0]();
@@ -52,6 +79,9 @@ export const NumberInput = (props: NumberInputProps) => {
         },
         stepUp: () => stepValue(1),
         stepDown: () => stepValue(-1),
+        startSteppingUp: () => startStepping(1),
+        startSteppingDown: () => startStepping(-1),
+        stopStepping,
     };
 
     createEffect(() => {

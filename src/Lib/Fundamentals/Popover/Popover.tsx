@@ -81,7 +81,11 @@ export const Popover = (props: PopoverProps) => {
                     {...props.getAriaAttributes?.()}
                     onKeyDown={(e) => props.onKeyDown?.(e)}
                     onBlur={(e) => props.onBlur?.(e)}
-                    onMouseDown={(e) => e.preventDefault()}
+                    onMouseDown={(e) => {
+                        if (props.getRole() === "dialog") return;
+
+                        e.preventDefault();
+                    }}
                 >
                     {props.renderContent(getTransitionTarget, getTransitionDurationMs, getPlacement)}
                 </div>

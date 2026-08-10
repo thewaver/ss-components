@@ -168,7 +168,7 @@ export namespace CellAnimationWeights {
             }
         }
 
-        return 1 - (result - 1) / maxWeight;
+        return Math.min(Math.max(1 - (result - 1) / maxWeight, 0), 1);
     };
 
     const weightRegistry: Record<WeightType, WeightFn> = {

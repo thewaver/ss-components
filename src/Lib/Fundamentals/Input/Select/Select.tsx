@@ -8,6 +8,7 @@ import { NavigationUtils } from "../../../Abstracts/Navigation/Navigation.utils"
 import { TextSync } from "../../../Abstracts/TextSync/TextSync";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { Popover } from "../../Popover/Popover";
+import { FormFieldUtils } from "../FormField/FormField.utils";
 import { LabelUtils } from "../Label/Label.utils";
 import type {
     SelectCompositeProps,
@@ -27,6 +28,7 @@ const EMPTY_SELECTION: never[] = [];
 
 const SelectField = (props: SelectFieldProps) => {
     const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
+    const getAriaDescribedBy = FormFieldUtils.resolveAriaDescribedBy();
 
     const [getElementRef, setElementRef] = createSignal<HTMLInputElement>();
 
@@ -41,6 +43,9 @@ const SelectField = (props: SelectFieldProps) => {
     const commonProps: Omit<JSX.HTMLAttributes<HTMLElement>, "ref"> = {
         "role": "combobox",
         "aria-haspopup": "listbox",
+        get "aria-describedby"() {
+            return getAriaDescribedBy();
+        },
         get "aria-label"() {
             return getAriaLabel();
         },

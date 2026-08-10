@@ -3,7 +3,7 @@ import { style } from "@vanilla-extract/css";
 import { themeVars } from "../../Theme.css";
 
 const FIELD_WIDTH = 240;
-const FIELD_HEIGHT = 40;
+export const FIELD_HEIGHT = 40;
 const FIELD_BORDER = 2;
 
 export const FIELD_PADDING = 10 + FIELD_BORDER;

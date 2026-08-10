@@ -2,11 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { ToastsUtils } from "./Toasts.utils";
 
-/**
- * Alignment names a corner of the screen and direction names which end new toasts enter from, and the
- * two have to stay independent. A reversed flex direction swaps the meaning of "start" on the main axis,
- * so the flip is what keeps `bottom-right` pointing at the same corner in all four directions.
- */
 describe("computeStackAlignment", () => {
     it("maps a corner onto both flex axes for a plain column", () => {
         expect(ToastsUtils.computeStackAlignment("bottom-right", "column")).toEqual({

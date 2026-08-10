@@ -22,11 +22,6 @@ const OPPOSITE_EDGE = {
 } as const;
 
 export namespace ToastsUtils {
-    /**
-     * A reversed flex direction inverts what "start" means on the main axis, so the requested alignment
-     * is flipped back on that axis alone — `bottom-right` names the same corner whichever end new
-     * toasts enter from.
-     */
     export const computeStackAlignment = (alignment: ToastsAlignment, dir: ToastsDir): ToastsStackAlignment => {
         const [vertical, horizontal] = alignment.split("-") as [ToastsVerticalAlignment, ToastsHorizontalAlignment];
         const isColumn = dir === "column" || dir === "column-reverse";

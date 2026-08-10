@@ -13,7 +13,7 @@ import { PageTooltipContent } from "../../StyledComponents/TooltipContent/Toolti
 
 import { FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/TextFieldContent/TextFieldContent.css";
 
-const FIELD_WIDTH = 360;
+const FIELD_WIDTH = 260;
 const FIXED_HEIGHT = 110;
 const MIN_ROWS = 2;
 const MAX_ROWS = 8;

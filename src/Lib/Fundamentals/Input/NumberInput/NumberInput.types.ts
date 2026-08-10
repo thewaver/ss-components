@@ -17,12 +17,17 @@ export type NumberInputStepper = {
     getIsAtMax: () => boolean;
     stepUp: () => void;
     stepDown: () => void;
+    startSteppingUp: () => void;
+    startSteppingDown: () => void;
+    stopStepping: () => void;
 };
 
 export type NumberInputProps = Omit<
     TextFieldPresetProps,
     "getType" | "getAutoComplete" | "valueSignal" | "renderTrailing" | "onInput"
 > & {
+    getRepeatDelayMs?: () => number;
+    getRepeatIntervalMs?: () => number;
     valueSignal: Signal<number | undefined>;
     renderTrailing?: (getFlags: () => InteractionFlags<TextFieldFlags>, stepper: NumberInputStepper) => JSX.Element;
     onInput?: (value: number | undefined) => void | Promise<void>;

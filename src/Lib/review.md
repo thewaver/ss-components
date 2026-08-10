@@ -9,57 +9,49 @@ having done the work does not go anywhere.
 ### Index
 
 1. `Show when={... ?? EMPTY_ARRAY} keyed` can't fire as written — _parked_
-2. One-shot positioned effects have nowhere to go — _open_
+2. One-shot positioned effects still have nowhere to go — _open_
 3. Neither animation component can paint its own background — _open_
 4. Cell animation timing is linear-only — _open_
-5. `spiralSingle` overshoots 1 when the origin lands on a half-pixel — _open_
-6. `Select` — six things deliberately not built — _open_
-7. `Menu` — five things deliberately not built — _open_
-8. Date, time and calendar are not built — _open_
-9. Other core controls the library does not have — _open_
-10. Machinery those controls need, none of which exists — _open_
-11. What the verification suite still cannot see — _open_
-12. The SVG defs' geometry cannot be reached without rendering — _open_
-13. Planned: strip `style.css`, add a theme, and add opinionated control presets — _planned_
-14. `ImageSwitcher` draws a broken-image icon when its `src` is cleared — _open_
-15. A stepper cannot repeat while held, because `Button` has no press event — _open_
-16. `Toasts` — six things deliberately not built — _open_
+5. `Select` — six things deliberately not built — _open_
+6. `Menu` — five things deliberately not built — _open_
+7. What the date and time family still lacks — _open_
+8. Other core controls the library does not have — _open_
+9. Machinery those controls need, none of which exists — _open_
+10. What the verification suite still cannot see — _open_
+11. The SVG defs' geometry cannot be reached without rendering — _open_
+12. Planned: strip `style.css`, add a theme, and add opinionated control presets — _planned_
+13. `Toasts` — six things deliberately not built — _open_
+14. `Calendar` — six things deliberately not built — _open_
+15. `ColorInput` — four things deliberately not built — _open_
+16. `Accordion` — four things deliberately not built — _open_
 
 ### Build order
 
-Covers the unbuilt controls in items 8 to 10. The ordering principle is **how much of the existing base
+Covers the unbuilt controls in items 7 to 9. The ordering principle is **how much of the existing base
 a thing reuses**: anything that is a preset or a composition of what already works comes before anything
 that needs a new primitive, and anything blocked on an architectural decision comes last, so the
 decision is made once with several consumers in view rather than inferred from the first one.
 
-One thing breaks that ordering on purpose, and it is noted where it falls.
+**Blocked on a primitive that has to be designed first.** Do not start these by inventing the primitive
+privately inside them.
 
-**Tier 2 — new components whose every mechanism already exists somewhere.**
-
-1. **`Accordion`** — trivial ARIA over an auto-height _animation_. `TextField`'s auto-sizing measures a
-   target height already; what is missing is animating to it, which is the same measurement plus a
-   transition and belongs in `Abstracts/ElementObserver`.
-
-**Tier 3 — blocked on a primitive that has to be designed first.** Do not start these by inventing the
-primitive privately inside them.
-
-2. **The custom `ColorInput` picker surface** — a pointer drag in two dimensions. `Range` shipped
-   without needing item 2's primitive, because a native `<input type="range">` per thumb carries the
-   drag; a colour surface has no native equivalent, so this is where item 2 stops being theoretical.
-   The field itself ships; this is the surface that would replace the OS dialog.
-3. **`NavigationUtils.computeNextCell` beside the 1D walk that now ships, then `Calendar`.**
-4. **A mask layer over `TextSync`, plus the date-dependency decision, then `DateInput`** — and only
-   then `DatePicker`, which is `Calendar` inside the `Popover` that now ships. Date-time and ranges
-   compose from those rather than being new components.
-5. **`Tree`** — the 2D walk from 3 plus `Select`'s tree-flattening model. Wants virtualization,
-   which is also `Select`'s loose end in item 6, so that `Abstract` belongs here.
+1. **The mask over `TextSync`, then the locale-ordered date and time fields.** Both fields ship in ISO
+   order; the mask is what a `dd/mm/yyyy` field and a formatted number need, and it is the one primitive
+   two shipped controls are already waiting on. Extracting the field shape `DateInput` and `TimeInput`
+   duplicate belongs in the same pass — see item 7.
+2. **`Tree`** — `computeNextCell` ships, and `Select`'s tree-flattening model is the other half. Wants
+   virtualization, which is also `Select`'s loose end in item 5, so that `Abstract` belongs here.
 
 **Out of the cost ordering, deliberately:**
 
-- **The form story (item 10) should be decided far earlier than its size suggests.** It is the one item
+- **The form story (item 9) should be decided far earlier than its size suggests.** It is the one item
   whose cost _grows_ with delay: every control built without it grows its own half of error and validation
-  plumbing, and each becomes a retrofit. `Progress`, `FileInput`, `ColorInput` and the two `Modal` presets
-  each carry their own `hasError` with nothing on the other end of it.
+  plumbing, and each becomes a retrofit. The count of controls carrying a `hasError` with nothing on the
+  other end of it is now sixteen.
+- **Dismissal should be settled once, across four consumers.** `Select` and `Menu` close on blur because
+  their popups refuse focus; `ColorInput` and `DatePicker` cannot, so each runs its own outside-pointer
+  listener. Four stories for one behaviour is the argument, and it is the same `openSignal` question items
+  5 and 6 record.
 - **`Table` / data grid stays out of scope**, and specifically must not arrive as a by-product of
   `Tree` or of virtualization.
 
@@ -102,20 +94,19 @@ export type SVGAnimationDefs = {
 
 ---
 
-## 2. One-shot positioned effects have nowhere to go
+## 2. One-shot positioned effects still have nowhere to go
 
-`renderDecoration(getFlags)` hands a painter a snapshot of state, and the flags describe state
-only — never events, never pointer geometry. A painter can watch `isActive` flip with its own
-effect, but it cannot know **where** the pointer was, so a ripple or any other effect that has to
-start at the point of contact cannot be expressed at all.
+`InteractionUtils.trackDrag` now reports pointer position, so the primitive this item asked for exists —
+but it reports a **ratio while a drag lasts**, which is not the same thing as an event with an origin.
+A ripple needs to know where a single click landed and then run once from there; the flags a painter
+receives still describe state only, and `trackDrag` is something a control opts into rather than something
+a decoration can read.
 
-This surfaced when the React `BinarySwitch` was audited: its `Checkbox` and `RadioButton` both
-spawned ripples imperatively through a controller ref, and nothing in this project's contract can
-reproduce that. It is recorded as a shape the current design cannot express rather than as a request
-for ripples.
+What remains is the smaller half: getting a one-shot origin from the control to `renderDecoration`. The
+shape is probably a flag carrying the last activation ratio, since that reuses the extensible-flags
+mechanism and stays opt-in — a control that never calls `trackDrag` emits nothing.
 
-Not worth building until something asks for it, and it should be opt-in when it is — otherwise every
-control that wants no effect pays for a listener it ignores.
+Not worth building until something asks for it, which is where this item started.
 
 ---
 
@@ -140,31 +131,7 @@ needs nothing outside the samples file.
 
 ---
 
-## 5. `spiralSingle` overshoots 1 when the origin lands on a half-pixel
-
-A `center`, `left` or `right` origin is `(count - 1) / 2`, so on an **even** count it sits on a
-half-integer and every distance from it does too. Sweeping every weight type over a 1×8 column with a
-centre origin leaves exactly one out of range: `spiralSingle` reaches `1.008`, where every other
-weight function stays inside 0..1. Nothing crashes, because `computeBreakpoints` clamps its progress,
-but two cells collide at the extreme.
-
-`spiralSingle` reads no parity predicate, which is why it survived the fix below and has to be
-handled on its own terms. `CellAnimationWeights.const.test.ts` pins the measured value, so a fix that
-leaves it out of range fails rather than passing quietly.
-
-**The eighteen parity weights that shared this trigger are fixed.** They tested `dist.y % 2 === 0`,
-which is false for every half-integer, so the alternating branch never ran and each function
-degenerated into its fallback branch — `lineRowAlternate` spanned only `0 … 0.429` and
-`lineRowConvergent` returned `-0.071`. They now call `MathUtils.isEven`, which truncates before the
-bit test, so half-integer distances alternate as the names promise: on the same column
-`lineRowAlternate` is `[0, 0.643, 0.286, 0.929, 0.929, 0.286, 0.643, 0]` and `lineRowConvergent`
-spans `0.071 … 0.929`. This is the "round the distance before testing parity" option that was
-recorded here as a candidate; whole-number distances are unaffected, so nothing changed on the odd
-grids the Playground ships by default.
-
----
-
-## 6. `Select` — six things deliberately not built
+## 5. `Select` — six things deliberately not built
 
 The decisions behind what exists are in `conventions.md` under the three `Select` headings. These are
 the gaps, each with the reason it is still a gap.
@@ -195,7 +162,7 @@ the gaps, each with the reason it is still a gap.
 
 ---
 
-## 7. `Menu` — five things deliberately not built
+## 6. `Menu` — five things deliberately not built
 
 The decisions behind what exists are in `conventions.md` under _"`Popover` extracted, and `Menu` as the
 second consumer"_ and _"`Menu` submenus: a level per popup, focus moving between them"_. These are the
@@ -224,46 +191,41 @@ gaps, each with the reason it is still a gap.
 
 ---
 
-## 8. Date, time and calendar are not built
+## 7. What the date and time family still lacks
 
-**Not one component.** It decomposes into at least four, and the decomposition is the first decision:
+`Calendar`, `DateInput`, `DatePicker` and `TimeInput` ship, over `Abstracts/DateValue` and
+`Abstracts/TimeValue`. The decisions are in `conventions.md`. What is left, in the order it would be worth
+doing:
 
-- `Calendar` — the month grid alone, no popup and no field. Selection by date, the same
-  data-driven-records shape `Select` settled on.
-- `DateInput` — a masked text field, so a date can be typed rather than clicked.
-- `DatePicker` — the field plus a popup over `Calendar`, which is `Select`'s composition exactly:
-  `Abstracts/Anchor` for placement, a private popup, `aria-activedescendant` on the field.
-- Range variants of all three, where the value is two dates and the grid paints the span between them.
-
-Time and date-time sit on top: a `TimeInput` is the mask plus stepping per segment, and a date-time is
-the two composed rather than a third thing.
-
-Three blockers, each shared with another item:
-
-**The grid needs a 2D walk, and `NavigationUtils.computeNextPosition` is 1D.** A calendar's arrows move
-by day and by week, `Home`/`End` mean start and end of week, `PageUp`/`PageDown` mean month, and the
-walk crosses month boundaries. That is `computeNextCell` beside the existing function rather than a
-hand-rolled walk inside `Calendar` — see item 10.
-
-**A mask is more than `TextSync`'s transforming setter.** `TextSync` preserves the caret when a setter
-rewrites the value, which is the right base, but a mask also has to skip literal separators, decide what
-a partially typed date means, and keep a display form and a value form that are not the same string.
-
-**There is no date handling to inherit.** `@thewaver/ss-utils` exports `MathUtils` and nothing for dates,
-so month arithmetic, week starts, locale month and weekday names, and timezone behaviour are all
-undecided — and that is a real dependency decision (`Intl` alone versus a date library) rather than an
-implementation detail. Timezones are the trap: a date-only value that round-trips through a `Date` will
-shift across a boundary.
+- **The mask, whose job is now exactly one thing.** Both fields read ISO order only — `yyyy-mm-dd` and
+  `HH:mm` — because those spellings parse and refuse precisely. A locale-ordered field (`dd/mm/yyyy`, or a
+  12-hour clock with an am/pm segment) is what needs the caret to skip literal separators and a display
+  form that differs from the value form. That is the whole of what `TextSync` cannot do, and a formatted
+  number wants the same primitive. `TimeInput`'s caret arithmetic is a hint at the shape but not a
+  substitute: it works because ISO segments are fixed width.
+- **No time popup.** A list of times in a `Popover` is a `Select` over generated options; whether that
+  belongs inside `TimeInput` as a mode or beside it as a `TimePicker` is the decision, and it should be
+  taken with the `openSignal` question below rather than separately.
+- **No date-and-time value.** The two fields exist side by side and nothing composes them. Which signal
+  owns the pair is the question — one `{ date, time }` record, or two signals a consumer keeps in step.
+  The former is a new value type; the latter is the mirror problem again.
+- **Range variants of all of them.** `Calendar` holds one date, so a span needs two ends, a half-entered
+  state while the first is being picked, and `isInRange` / `isRangeStart` / `isRangeEnd` on the flags.
+  Decide once, for `Calendar` and `DatePicker` together.
+- **`DateInput` and `TimeInput` share a shape and no code.** Both are a `TextField` over a private text
+  signal with parse-on-complete and refresh-on-blur. That is now written twice, and a third typed value
+  (a formatted number) would write it a third time. Extracting it is the smaller half of the mask work and
+  probably wants doing at the same time.
 
 ---
 
-## 9. Other core controls the library does not have
+## 8. Other core controls the library does not have
 
 `Fundamentals/Input` covers `TextInput`, `TextArea`, `NumberInput`, `Checkbox`, `Toggle`, `Radio`,
-`RadioGroup`, `Select`, `MultiSelect`, `FileInput`, `ColorInput` and `Label`; `Fundamentals` adds
-`Button`, `Tabs`, `Tooltip`, `Popover`, `Menu`, `Modal`, `Drawer`, `AlertDialog`, `Progress`, `Range` and
-`Toasts`.
-Beyond item 8, this is what is missing, ordered by how much of it is a new architectural problem rather
+`RadioGroup`, `Select`, `MultiSelect`, `FileInput`, `ColorInput`, `Label`, `Calendar`, `DateInput`,
+`DatePicker` and `TimeInput`; `Fundamentals` adds `Accordion`, `Button`, `Tabs`, `Tooltip`, `Popover`, `Menu`, `Modal`,
+`Drawer`, `Progress`, `Range` and `Toasts`.
+Beyond item 7, this is what is missing, ordered by how much of it is a new architectural problem rather
 than by how much markup it is.
 
 **This list cannot be inferred from the Playground**, and reading it as the evidence for what is missing
@@ -271,9 +233,6 @@ is the trap: every control on every page and in every props panel is now a libra
 Playground has nothing left to say about what the library lacks.
 
 ### Structure
-
-**`Accordion` / disclosure.** Behaviourally small but it needs animating to an auto height, which means
-measuring content and animating to a computed pixel value; nothing in this library does that yet.
 
 **`Tree`.** `role="tree"`, expand/collapse, and a keyboard model where arrows do two different things
 by axis. The model transfers directly from `Select`'s option groups: render a tree, walk a flat list,
@@ -297,48 +256,31 @@ of the contract by definition — the Playground already builds three of them as
 
 ---
 
-## 10. Machinery those controls need, none of which exists
+## 9. Machinery those controls need, none of which exists
 
-Grouped here because each one is shared by several of the controls in items 8 and 9, and because building
+Grouped here because each one is shared by several of the controls in items 7 and 8, and because building
 any of those without first deciding these would bake the decision in by accident.
 
-- **A 2D roving keyboard model.** The 1D walk is now `NavigationUtils.computeNextPosition` and all four
-  consumers are on it. `Calendar`, `Tree` and any grid need two axes, where the row and column steps
-  differ, `Home`/`End` mean start and end of row, `PageUp`/`PageDown` mean a page of rows, and the walk
-  crosses the collection's own boundaries. That is `computeNextCell` beside the existing function, and
-  it should not be written before there is a grid pulling on it.
 - **Pointer drag capture, and pointer geometry in the flags contract.** Item 2 records that
   `renderContent`/`renderDecoration` receive state and never events or pointer position. `Range` cannot
   be built without it, so the opt-in design that item asks for has to be settled first.
-- **Auto-height _animation_.** Half of this now exists: `TextField`'s auto-sizing measures a target
-  height and publishes it as the wrapper's `getMinHeight`, so the measuring is settled. `Accordion` needs
-  the other half, animating to that height rather than jumping to it, and the shared piece belongs in
-  `Abstracts/ElementObserver` rather than being written a second time inside `TextField`.
 - **Masking and formatting.** `TextSync` handles a setter that transforms or refuses while preserving
   the caret. A mask is more: the caret must skip literal characters, and a formatted number or date has
   a display form and a value form that are not the same string.
-- **Virtualization.** Already recorded as a `Select` loose end in item 6; `Tree` and any grid need the
+- **Virtualization.** Already recorded as a `Select` loose end in item 5; `Tree` and any grid need the
   same thing, so it is an `Abstract`, not a per-control feature.
-- **A form story, which is the largest gap and is not a component.** Controls carry `hasError` and
-  nothing else: there is no association between a field and its message (no `aria-describedby` wiring,
-  which is what makes an error announceable), no validation contract, no submit or reset, and no way to
-  ask a group of controls whether they are valid. `Label` solves the accessible **name** and stops
-  there. Every control built above will otherwise grow its own half of this by accident — `FileInput` and
-  `ColorInput` both shipped carrying `hasError` and nothing on the other end of it, so the count of
-  controls to retrofit is now thirteen.
-- **A `Signal<string>` codec, which is the smallest of these and the one with a consumer already.** Every
-  control here owns its value as a `*Signal`, and every value that is not a string needs a mirror: a local
-  signal, an effect that writes the owner's value in when the two disagree, and a parse on the way out.
-  `NumberInput` now owns the number half of that internally, which is the proof the shape works, but it
-  solved one type rather than the general problem: `PageSelectField`, `PageCheckField` and `PageColorField`
-  are still three copies of the mirror, and a consumer with a store rather than signals will write a
-  fourth. What is undecided is whether the answer is an `Abstract` that builds the mirror, or a
-  controls-take-getter-plus-setter escape hatch next to `*Signal` — and _"Signal tuples for two-way state"_
-  already records the cost this is the tail of: "the owner has to _have_ a signal".
+- **The form story is decided and wired.** `Form` and `FormField` ship and every control reads the
+  description context; see `conventions.md`. What is still unbuilt is smaller: nothing groups fields into
+  sections with their own validity, and `hasSubmitted` is exposed but no control uses it to hold its error
+  back until the first attempt.
+- **The `Signal` mirror is now `Abstracts/SignalMirror`**, taking a getter and a setter so a consumer
+  without a signal is served too; see `conventions.md`. What remains is that no library control accepts
+  the getter-plus-setter pair directly — a consumer still wraps it in a mirror to hand a control its
+  `*Signal`, which is one indirection rather than none.
 
 ---
 
-## 11. What the verification suite still cannot see
+## 10. What the verification suite still cannot see
 
 `e2e/` drives real clicks and keystrokes in a real browser through Playwright, and `npm run verify:dom`
 runs it. What is worth stating is the shape of its blind spots, because a green run reads as broader
@@ -386,7 +328,7 @@ it.
 
 ---
 
-## 12. The SVG defs' geometry cannot be reached without rendering
+## 11. The SVG defs' geometry cannot be reached without rendering
 
 `SVGPatternDefsUtils` is 321 lines of tiling arithmetic — the row and column offsets that make a grid, a
 diagonal, a half-drop, a triangle and two hex packings line up — and every one of those `compute*`
@@ -408,7 +350,7 @@ anyone noticing, because a wrong tiling still tiles.
 
 ---
 
-## 13. Planned: strip `style.css`, add a theme, and add opinionated control presets
+## 12. Planned: strip `style.css`, add a theme, and add opinionated control presets
 
 Recorded **2026-08-07** as advance notice, not as work to start. The user's plan, in three parts:
 
@@ -444,57 +386,7 @@ contract, which decides everything else about it.
 
 ---
 
-## 14. `ImageSwitcher` draws a broken-image icon when its `src` is cleared
-
-Visible on `/image-switcher` by choosing the `none` source: the box shows the browser's broken-image
-placeholder in its top-left corner instead of going empty. Both `<img>` elements stay mounted for the
-life of the component — that is deliberate, since the cross-fade needs the outgoing frame to still be
-there — and when `getSrc()` returns `undefined` the visible one is left with no `src` attribute at all.
-Chrome paints its placeholder glyph for an `<img>` that has dimensions and nothing to show; the
-element is otherwise doing exactly what it should, and the DOM confirms it (visible element `src`
-absent, hidden one still holding the previous URL at `opacity: 0`).
-
-An empty `src` is a state the component already handles on purpose — the effect has an explicit
-`if (!src) { swap(); return; }` branch that skips preloading — so this is the paint half of that branch
-being unfinished rather than an unconsidered case.
-
-The fix is to stop painting a frame that has nothing in it — hiding the element whose own source is
-undefined, rather than leaving it visible and empty. It costs nothing: during a real cross-fade both
-elements have a source, so nothing is ever hidden while it is being faded, and the outgoing image
-still fades out normally when the `src` is cleared, because that image is the other element.
-
-Left alone rather than done, because it is a change to a shipped component's paint and it arrived as a
-by-product of building the page rather than as work that was asked for.
-
----
-
-## 15. A stepper cannot repeat while held, because `Button` has no press event
-
-Holding a native number field's spinner repeats the step; holding `NumberInput`'s does not, and it stops
-at exactly one place. The stepper is painted by the consumer — the library paints nothing — so the two
-buttons are whatever the painter puts in `renderTrailing`, and the natural thing to put there is a
-`Button`. `ButtonCbs` carries `onClick`, `onMouseEnter` and `onMouseLeave` and nothing else, so a painter
-using the library's own button has no way to learn that the pointer went **down** and stayed down. The
-`stepper` handle could grow `startStepping` / `stopStepping` in an afternoon; there would be nothing on
-the painter's side to call them from.
-
-The keyboard does not have this problem: holding `ArrowUp` repeats, because the browser auto-repeats
-`keydown` and the shell handles that key itself. So the gap is mouse-and-touch only.
-
-Two ways out, and the choice is about `Button` rather than about `NumberInput`. Widening `ButtonCbs` with
-`onPointerDown` / `onPointerUp` is small and would serve press-and-hold anywhere — but it is a change to a
-shipped control's public surface, made on one consumer's account, and _"presence as a trigger fails
-invisibly"_ is the kind of caution that applies to growing an event surface too. The alternative is that a
-painter wanting repeat writes its own element instead of using `Button`, which works today and loses the
-focus ring, the flags and the tooltip anchoring that made `Button` worth having.
-
-Parked **2026-08-10**: the pointer handlers on `Button` are the direction, not the painter writing its
-own element — but it is a change to a shipped control's surface, so it waits for its own turn rather than
-riding along with `NumberInput`.
-
----
-
-## 16. `Toasts` — six things deliberately not built
+## 13. `Toasts` — six things deliberately not built
 
 The decisions behind what exists are in `conventions.md` under the two `Toasts` headings. These are the
 gaps, each with the reason it is still a gap.
@@ -511,7 +403,7 @@ gaps, each with the reason it is still a gap.
   tabbed into by accident.
 - **A pile cannot overlap by measured height.** `index` and `count` are enough for a fixed peek
   distance, but a painter that wants each card offset by the height of the one in front of it needs its
-  neighbours' measured heights and can only measure itself. That is the same measuring `Abstract` item 10
+  neighbours' measured heights and can only measure itself. That is the same measuring `Abstract` item 9
   wants for auto-height animation, from a different direction.
 - **Nothing pauses when the tab is hidden.** Timers still run in a background tab, so a burst raised
   while the tab is not being looked at will have expired by the time it is. `visibilitychange` would fix
@@ -527,3 +419,77 @@ gaps, each with the reason it is still a gap.
 The pause arithmetic is also the one behaviour with no automated cover: `e2e/toasts.spec.ts` asserts that
 the `isPaused` flag reaches the painter, which is what the DOM can show, but nothing checks that a toast
 paused half way through actually gets its remaining half rather than a fresh full duration.
+
+---
+
+## 14. `Calendar` — six things deliberately not built
+
+Item 8 covers the missing components. These are `Calendar`'s own gaps, each with the reason it is still
+one. The decisions behind what exists are in `conventions.md` under _"Controls: `Calendar`, and the date
+value the library owns"_.
+
+- **One date, not a range.** `valueSignal` is `Signal<DateValue | undefined>`. A range needs two ends,
+  a partially-entered state while the first end is picked, and `isInRange` / `isRangeStart` /
+  `isRangeEnd` on the flags. Whether that is a second component or a widened value is the decision, and
+  it should be made with `DatePicker` in view rather than for `Calendar` alone.
+- **No month or year jump.** Paging is a month at a time, by the consumer's own buttons or by
+  `PageUp`/`PageDown`. Jumping to an arbitrary month or year wants a `Select` inside the consumer's
+  header, which works today, or `Shift+PageUp`/`Shift+PageDown` for a year — the published pattern's
+  binding, deliberately not added because nothing asked for it.
+- **No week numbers and no multi-month view.** Both are extra columns or extra grids around the same
+  `DateValueUtils.getMonthGrid`, so neither needs new library machinery; they need a decision about
+  whether `Calendar` grows a mode or a consumer composes two of them.
+- **The disabled predicate runs per cell per render.** `computeIsDayDisabled` is called for each of the
+  42 cells inside a reactive read, so a consumer whose predicate hits a network cache will do it 42
+  times a month change. Memoising is the consumer's to do today; whether the library should batch it
+  into one call per grid is open.
+- **42 `InteractionWrapper`s per month is the cost of consistency, and it is unmeasured.** Every cell is
+  a full wrapper so a day gets hover, focus, disabled and tooltip handling like every other control.
+  Nothing has been profiled; a multi-month view is where this would first hurt.
+- **Nothing announces the month change.** Paging swaps 42 cells with no live region, so a screen reader
+  user who pages hears nothing until they move the focus. The published pattern puts the month title in
+  a live region, and the title is the consumer's markup here, so the fix is either a documented
+  instruction to them or a library-owned announcer.
+
+---
+
+## 15. `ColorInput` — four things deliberately not built
+
+`ColorInput` is the custom picker now; the decisions are in `conventions.md` under the `ColorArea` heading.
+These are the gaps.
+
+- **No native colour input anywhere, so no form value and no OS picker.** Deliberate, and the cost of
+  owning the surface. A consumer who wants the OS dialog has nothing to fall back on.
+- **Alpha is expressible but has no control of its own.** The value carries it and the surface preserves
+  it, but nothing in the library sets it — an alpha slider would be a second `Range` over a checkerboard,
+  and the Playground's channel inputs are currently the only way to reach it.
+- **No eyedropper, no swatch presets, no recent colours.** All three are paint plus a value write, so all
+  three are the consumer's today; whether presets deserve a `renderPresets` slot depends on whether the
+  keyboard order should include them, which is a real question and not a styling one.
+- **The popup's dismissal is per-consumer.** `ColorInput` now runs its own outside-click listener, which
+  means `Select`, `Menu` and it have three different dismissal stories. That is the `openSignal` question
+  items 5 and 6 record, and it should be settled once across all three rather than a fourth time.
+
+---
+
+## 16. `Accordion` — four things deliberately not built
+
+The decisions behind what exists are in `conventions.md` under _"Controls: `Accordion`, and where
+auto-height measurement lives"_.
+
+- **A collapsed panel's content is still built.** `inert` plus a zero height is what makes the panel
+  measurable and animatable, so an accordion of a hundred expensive panels builds all hundred. A
+  `getIsLazy` that withholds the panel until first expansion would cost the open animation on that first
+  expansion, since there would be nothing to measure yet.
+- **Nothing scrolls a newly opened section into view.** Opening the last section of a long list animates
+  it open below the fold. `Select`'s option does this for itself off its own `isHighlighted` flag; here
+  it would have to happen when the transition finishes rather than when it starts, so it needs the
+  fader's completion rather than its target.
+- **The height animates, and nothing else can.** A consumer wanting the panel to slide in from the side
+  gets it from `renderPanel`'s visibility target, but the panel box itself only ever animates `height`.
+  Animating width instead — a horizontal accordion — would need the observer's twin and a direction prop.
+- **No single-expand guarantee that at least one stays open.** `getIsSingleExpand` allows zero expanded,
+  since clicking the open header closes it. An "always exactly one" mode is a third state for that prop
+  rather than a boolean, and no consumer has asked.
+
+---

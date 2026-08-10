@@ -2058,10 +2058,11 @@ to share the type is that sharing it would file a non-interactive component's ge
 `InteractionWrapper.types` — the import would be the only thing tying them together and it would misdescribe
 both.
 
-### Controls: `Drawer` and `AlertDialog` as `Modal` presets
+### Controls: `Drawer` as a `Modal` preset, and why `AlertDialog` is not one
 
-Settled **2026-08-06**. Both are the `Toggle`-over-`Checkbox` shape: a few lines that narrow the base and
-force what makes them what they are.
+Settled **2026-08-06** for `Drawer`, which is the `Toggle`-over-`Checkbox` shape: a few lines that narrow
+the base and force what makes it what it is. `AlertDialog` shipped the same day on the same reasoning and
+was **deleted 2026-08-10** — see the end of this section.
 
 **Placement is geometry, not paint, and that is a correction to the note that asked for these.** The
 review entry said "placement and slide are paint". The slide is — a painter transitions its own
@@ -2085,13 +2086,23 @@ is the "two contracts under one name" trap this log has hit before.
 `"center"`, and `getEdge` is required where `getAlignment` was optional. An edge-attached dialog that could
 be centred is not a drawer.
 
-**`AlertDialog` forces three things and hides all three.** `role="alertdialog"`, a **required**
-`getInitialFocusRef`, and overlay-click dismissal off. The role is why the focus target is mandatory rather
-than optional: an alert interrupts to demand a decision, so focus has to land on the control that answers
-it, and APG names that as the requirement. Overlay dismissal going off is the same argument continued — a
-dialog that demands an answer must not be answerable by clicking next to it. `Escape` still closes it,
-because every dialog must be escapable regardless of role. All three are `Omit`ted from `AlertDialogProps`,
-so a consumer cannot set them back; that is the `BinarySwitch` preset rule applied to a `Modal`.
+**`AlertDialog` was a preset that earned nothing, and it is gone.** It set `role="alertdialog"`, required
+`getInitialFocusRef`, and turned overlay-click dismissal off — three props, all of them already public on
+`Modal`, and it added no behaviour of its own. That is the line between a preset worth having and one worth
+deleting: `Drawer` narrows a vocabulary (`DrawerEdge` drops `"center"`, so an edge-attached dialog that
+could be centred is unexpressible), while `AlertDialog` only pre-filled values a consumer can pass
+directly. A component whose whole body is three defaults is a comment with a build step.
+
+The reasoning it carried is still right and now belongs to whoever sets those three props: an alert
+interrupts to demand a decision, so focus has to land on the control that answers it, which is why the
+initial focus target is not optional in that mode; and a dialog that demands an answer must not be
+answerable by clicking next to it. `Escape` still closes it, because every dialog must be escapable
+regardless of role. The Playground's `ModalPage` carries it as a second variant, which is also the honest
+demonstration — it shows the three props rather than hiding them.
+
+What this does **not** overturn is the `Toggle`-over-`Checkbox` rule. A preset is worth its file when it
+removes something from the surface or adds semantics a consumer cannot reach; `Toggle` does both (the
+`switch` role, and the mixed-state role swap). Pre-filling optional props is not that.
 
 **`FocusUtils.autoFocus` reads the initial ref untracked, and "initial" is why.** The effect already
 depends on the container ref and on visibility; a third dependency that can change while the dialog is open
@@ -2472,3 +2483,488 @@ out of the consumer's list so the newest is what is on screen; `hold-newest` ren
 leaves the rest queued, entering as slots free. They are genuinely different products — latest-news
 versus lose-nothing — and the request for a prop rather than a default is why both exist. Held entries are
 not rendered at all, so they run no clock, which falls out of the design rather than needing a rule.
+
+### Controls: `Accordion`, and where auto-height measurement lives
+
+Settled **2026-08-10**. The first component whose geometry cannot be expressed in CSS at all, which is
+what decides the division of labour.
+
+**The height animation is the library's, and that is not a contradiction of "a control paints nothing".**
+CSS cannot transition to `auto`, so animating a panel open requires measuring the content and animating
+to a pixel value. Measurement is not paint — it is the same category as `Modal`'s alignment and `Label`'s
+gap, and a painter cannot do it because the element being constrained is the library's. What the painter
+still owns is everything visible: `renderPanel` receives `getVisibilityTarget` and
+`getTransitionDurationMs` in `Modal`'s shape, so a fade or a slide inside the panel is the consumer's,
+layered on top of a height the library drives.
+
+**Three boxes, and each one exists for a reason.** The section wraps a heading and a panel. The panel
+carries `overflow: hidden` and the animated height. Inside it sits an unconstrained content div, and that
+inner box is what gets measured. Measuring the constrained box instead would need the height released and
+restored on every pass — the trick `TextField`'s auto-sizing uses on an absolutely positioned overlay —
+and it would fight the transition it is feeding.
+
+**`ElementObserver.createBorderBoxHeightObserver` is the extracted half, and `TextField` was
+deliberately not migrated onto it.** `review.md` asked for the shared piece so the measurement would not
+be written twice. On reading both, they share less than that implied: `TextField` clamps to a row count
+derived from `line-height`, releases `bottom` to measure a `scrollHeight`, and republishes the result as
+the wrapper's `getMinHeight`. What is genuinely common is "observe an element and republish its own
+height", which is what the new observer is and all it is. Its name follows the coordinate-space rule —
+border box, layout pixels, so `Viewport`'s scale never enters and neither does the height being animated.
+
+**The panel stays mounted and goes `inert` rather than being unmounted or hidden.** Unmounting would
+make the content unmeasurable and the animation impossible; `display: none` the same. `inert` takes the
+subtree out of the tab order and out of the accessibility tree while leaving it laid out, which is what
+`Popover` already does with its own root. The cost is that a collapsed panel's content is still built, so
+an accordion of a hundred expensive panels builds all hundred.
+
+**Headers are all in the tab order, and the arrows are an extra rather than a roving order.** This is the
+published accordion pattern and the opposite of `Tabs` and `RadioGroup`, which are single tab stops. The
+difference is what the collection means: a tab list or a radio group is one control with several states,
+so it gets one stop; an accordion is several independent disclosures. Arrow, `Home` and `End` support
+comes from `NavigationUtils.computeNextPosition` unchanged, moving focus without selecting anything.
+
+**Each header is wrapped in a real heading element, and its level is a prop.** A `getHeadingLevel`
+defaulting to 3 picks `h1`..`h6` from a fixed list rather than building a tag name, so it stays typed. The
+level is document structure, which only the consumer knows; the library owning it would either invent an
+outline or force `role="heading"` with `aria-level`, and a real element is better for both AT and
+document outline. The heading gets `margin: 0; font: inherit` — a reset in the same category as
+`interactionRoot > * { margin: 0 !important }`, not paint.
+
+**`getSizing` defaults to `"fill"`, following `Progress` rather than `InteractionWrapper`.** Found by
+driving it: with the root shrink-wrapping its content, opening one section changed the widest section and
+re-wrapped the text in every other one. An accordion's natural width is its container's. The type is
+declared on `Accordion` rather than imported, for the reason `Progress` records — sharing it would file a
+non-interactive geometry vocabulary under `InteractionWrapper.types`.
+
+**The header leaf must re-enable pointer events, and forgetting to is invisible to types.** `interactionRoot`
+sets `pointer-events: none` and every leaf sets `pointer-events: all` on its own element; the first
+version of `Accordion.css.ts` did not, and the result was a header that looked perfect and could not be
+clicked, because the hit test landed on the heading above it. `Button.css.ts` and `BinarySwitch.css.ts`
+are the precedent. Worth stating because nothing in the type system or in a DOM assertion catches it —
+only a real click does.
+
+### `NavigationUtils.computeNextCell`: the two-axis walk never wraps and never clamps
+
+Settled **2026-08-10**, beside the 1D walk rather than replacing it, and it deliberately behaves
+differently at the edges.
+
+`computeNextPosition` wraps within its length, because a tab list or a menu is a closed ring.
+`computeNextCell` does neither: overflow along a row **carries** into the neighbouring row, and `y` is
+allowed out of range. That is what lets a caller whose grid is a window onto something larger resolve the
+overflow by moving the window — `Calendar` reads `y === -1` as "the previous month" and needs no special
+case for the first or last day. `x` is always in range, because carrying is what puts it there.
+
+**Page keys mean a page of rows, and a caller for whom they mean something else turns them off.** That is
+the only thing they can mean to a grid. A month is not six weeks, so `Calendar` passes
+`hasPageKeys: false` and does month arithmetic itself. `hasEdgeKeys` works as it already did, and `Home`
+/ `End` are the ends of the **row**, not of the grid.
+
+### Controls: `Calendar`, and the date value the library owns
+
+Settled **2026-08-10**. This closes the dependency question `review.md` recorded as a real decision
+rather than an implementation detail.
+
+**No date library, and no `Date` in the public API.** `Abstracts/DateValue` holds
+`DateValue = { year, month, day }` with **`month` 1-12**, plus `DateValueUtils` over it. Two things drove
+that. A `Date` is an instant, so a date-only value that round-trips through one shifts across a zone
+boundary — the trap the review note named — and a record cannot shift because it has nothing to shift by.
+And `Intl.DateTimeFormat` already supplies every locale-dependent string (month names, weekday names,
+formatted dates), so the only thing left to own is arithmetic, which is about eighty lines. Months are
+1-12 rather than `Date`'s 0-11 because an off-by-one month is the most common bug in date code and no
+type catches it.
+
+**Every conversion goes through midday.** `new Date(year, month - 1, day, 12)`, never midnight. A midnight
+anchor can land on the hour a zone skips or repeats, and then "add a day" moves by 23 or 25 hours and
+comes back on the same or the wrong calendar date — a stepper that appears to stick. Midday is never
+inside a transition anywhere on Earth. `DateValue.utils.test.ts` pins both European transition dates.
+
+**`addMonths` clamps the day; `fromIso` refuses an impossible date.** The 31st of January plus a month is
+the 28th or 29th of February, never the 2nd or 3rd of March, because `Date.setMonth`'s rollover makes a
+month stepper skip months. And `fromIso("2026-02-31")` is `undefined` rather than the 3rd of March: a
+field that silently moves what was typed is worse than one that reports the value as not yet valid.
+
+**The grid is always six weeks of seven days, and carries the neighbouring months' days.** A fixed row
+count is what stops the calendar changing height as months are paged. The neighbouring days are what make
+the keyboard walk work without a special case — the grid is a continuous run of dates, so the next cell
+from `computeNextCell` maps back to a date as `addDays(gridStart, y * 7 + x)` whatever `y` is.
+
+**The visible month is a `Signal` the consumer owns, and `Calendar` renders no header.** `monthSignal` is
+required, and the month title and the paging buttons are the consumer's own markup outside the component.
+The alternative — a private month plus a `renderHeader` slot handed paging callbacks — would have invented
+a controller record for something the settled convention already covers: state the component both reads
+and writes arrives as the whole signal. `Calendar` writes it when the keyboard walk leaves the month,
+which is exactly the two-way case. It also means `DatePicker` can snap the month to the value when its
+popup opens without the component needing an opinion about that.
+
+**Selection is by date, one tab stop, and the cell carries the whole date as its name.** `valueSignal`
+holds a `DateValue | undefined`. The grid is a roving tab order over 42 `InteractionWrapper`s, following
+`Tabs` rather than `Select`'s `aria-activedescendant`, because each day is a real element that can hold
+focus. Since the painter draws a bare number, the cell sets `aria-label` to the full formatted date —
+otherwise a screen reader announces "17" with no month. `aria-current="date"` marks today,
+`aria-selected` the selection.
+
+**`CalendarFlags` carries the day itself**, unlike every other flags record, because the painter's whole
+job is to draw that date and it would otherwise have to be handed the accessor twice — once as
+`renderDay`'s first argument and once inside the flags. Both are available and the flag is the one a
+`classList` block can read alongside `isSelected` and `isOutsideMonth`.
+
+**An intervening wrapper div sits between `role="row"` and `role="gridcell"`**, because every cell is an
+`InteractionWrapper` and the wrapper owns its own root. `Select` already made this trade between
+`role="listbox"` and `role="option"`; it is recorded in `review.md` now that a second component has hit
+it, since a grid's row/cell relationship is the stricter of the two.
+
+### Pointer drag: a ratio, opt-in, and captured
+
+Settled **2026-08-10**, closing the primitive `review.md` #2 asked for. `InteractionUtils.trackDrag(ref,
+disabled, opts)` reports where a pointer is inside an element for as long as a drag lasts.
+
+**It is a separate call rather than part of `wrapElement`**, which is what item 2 asked for and the reason
+is unchanged: most controls want no listener at all, and a two-dimensional surface is the one shape that
+cannot borrow a native input the way `Range` borrows one per thumb.
+
+**It reports a ratio of the element's own box, not a position, and that is what keeps it out of the
+coordinate-space trap.** Pointer coordinates and the element's rect are both client-space, so `Viewport`'s
+scale divides out of the fraction exactly and never has to be looked up — no `ViewportUtils` call, nothing
+to get wrong. This is the same insight that fixed the two geometry specs: a ratio of two same-space
+measurements is scale-free by construction.
+
+**`setPointerCapture` is load-bearing.** A drag that stops reporting when the pointer leaves the element
+strands the control mid-drag, and releasing outside must still land the value. Capture also means the
+`pointermove` handler can be on the element rather than the document, so nothing leaks when the component
+goes away.
+
+**`pointerdown` reports immediately**, so a click positions the value without a drag — which is what a
+colour surface and any track-clicking slider need.
+
+### Controls: `ColorArea`, and the value form a picker has to hold
+
+Settled **2026-08-10**. The saturation-and-brightness surface that replaces the OS colour dialog, plus the
+arithmetic under it.
+
+**Hex is the storage form and HSV the working one, and they do not round-trip.** `Abstracts/ColorValue`
+holds both plus the conversions. Eight bits per channel cannot carry hue at black or saturation at grey,
+so a surface that re-read the hex on every drag frame would drift and then stick — drag brightness to zero
+and the hue is gone for good. `ColorArea` therefore takes `hsvSignal: Signal<ColorValueHsv>` and never
+touches hex; converting at the boundary is the consumer's, and `ColorValueUtils.getIsSameHex` exists so a
+caller can tell whether the hex it was handed still describes the HSV it is holding. This is the same
+shape as the timezone decision under `Calendar`: keep the lossless form in the working state and convert
+only at the edges.
+
+**The surface is a `role="group"` over two real range inputs, one per axis.** Both are collapsed to a
+pixel and taken out of hit-testing, so the drag on the group owns the pointer while the keyboard and
+assistive technology get the native slider for free — arrow keys, `aria-valuetext`, the lot. Collapsed
+rather than `display: none`, because a hidden element is not focusable and the tab order is the whole
+point of them. A single element with `role="slider"` was the alternative and was rejected: one slider
+cannot honestly carry two values, and it would mean reimplementing the key handling that two native
+inputs already have.
+
+The cost, accepted: the axis inputs' own focus rings are invisible, so the painter draws focus from
+`focusedAxis` in the flags. That is the same arrangement `TextInput` uses for its caret colour — the
+library hands over the state and the painter draws it — rather than the rejected `:has(:focus-visible)`
+shape, because here the flag reaches the painter directly.
+
+**`syncElement` returns for a fourth time.** Both axis inputs are pushed from state in a render effect,
+for `BinarySwitch`'s reason: the browser moves a range input before it reports, so an owner that refuses
+or snaps the write would leave the element holding a value the state does not agree with.
+
+**`PopoverRole` gained `"dialog"`.** `Select` brought `listbox` and `Menu` brought `menu`; a popup holding
+a control surface rather than a list of choices is a dialog. The union grows as consumers arrive rather
+than being a general string, which is why the addition is a word and not a widening.
+
+**`ColorInput` **is** the picker now, and the OS dialog is gone — settled 2026-08-10.** It was a native
+`<input type="color">` behind a painter; it is now a field button plus a `Popover`, with `ColorArea` and a
+hue `Range` inside. The three ownership questions that were open are answered as follows.
+
+- **The hex boundary is the component's.** `valueSignal` stays `Signal<string>`, so no consumer changed,
+  and the HSV working state lives inside where a drag cannot lose hue at black. Both directions of that
+  sync guard with `getIsSameHex` and read the far side `untrack`ed, for the reason recorded above — a
+  mirror that tracks both sides writes its stale half back over the new value. The emitted spelling is six
+  digits while alpha is 1 and eight when it is not, so the old contract is unchanged until a consumer
+  actually uses opacity.
+- **Dismissal is the component's, and it needs a document listener.** `Select` closes on blur because its
+  popup refuses focus; a colour popup cannot, since the surface's axis sliders and the hue slider must be
+  focusable. So `ColorInput` listens for a `pointerdown` outside both the popup and the field while open,
+  and `Escape` closes from either and returns focus to the field. This is the first popup here that needs
+  outside-click detection, and it is why `Popover` still has none — the need is the consumer's, not the
+  layer's.
+- **The paint is four slots**, following `Select`'s count rather than inventing a smaller surface:
+  `renderContent` for the field, `renderArea` and `renderHue` for the two controls, and `renderPopup` for
+  everything around them. `renderPopup` receives a thunk that renders the surface plus the HSV signal
+  itself, which is what lets a consumer add a colour-space toggle and channel inputs — those are paint and
+  arithmetic over a value they now hold, not behaviour the library owes them.
+
+**A native colour input is no longer reachable through this control**, which is the cost. There is no form
+value and no OS picker, and `FileInput` remains the only control where the UA still owns activation. The
+suite got better for it: every part of the picker is drivable, where the OS dialog could only ever be
+tested by writing the value and reporting it.
+
+**`Popover` refuses `mousedown` for a list, not for a dialog.** The `preventDefault` that makes `Select`
+work — focus never leaves the field, so close-on-blur is correct rather than fatal — also cancels the
+default action of pressing a native control, and a range thumb's drag **is** that default action. So a
+`dialog` popover holding real controls skips it: the hue slider inside the colour picker could be typed
+into but not dragged, and nothing in the DOM showed it. The role already states the intent, which is why
+this is a branch on `getRole()` rather than a new prop.
+
+**Alpha is optional on the working form, and 0-1 everywhere except in a hex string.** `ColorValueHsv`
+gained `a?: number`, so `ColorArea` — which has no opinion about opacity — passes it through untouched and
+an absent alpha means opaque. `toHexa` always emits eight digits, because a form that only sometimes
+carries alpha is a form you cannot type into. `hsl` is a display form only: it is what `hsl()` and an HSLA
+input want, and it is not what a saturation-and-brightness square is drawn in.
+
+**A two-way mirror must track only its own source, and this cost two bugs to learn.** The Playground's
+colour picker mirrors the hue into a `Signal<number>` for the slider, and both directions originally read
+the other side's value inside the effect. That makes the pair fight: picking a colour anywhere else re-ran
+the hue-to-picker direction, which found the hue signal still holding the previous hue and wrote that
+stale hue straight back over the new colour — so typing a hex produced a different colour entirely. The
+guard on the far side has to be read `untrack`ed. The same shape broke the hex field twice over: an effect
+that refreshed the field's text while tracking the picker overwrote what was being typed. This is the
+fourth mirror in the Playground and the first two to go wrong, which is the argument for extracting it —
+see `review.md`.
+
+**A hex field owns its text until it is left.** Three and four digit hex forms parse, so a half-typed
+value commits early; pushing the canonical spelling back in would replace the text under the caret and
+send the rest of the keystrokes into the middle of it. Refreshing on the way out is `NumberInput`'s
+clamp-on-blur rule applied to a different kind of incompleteness.
+
+**`PageTextField` cannot be used for a field whose value is derived.** Its internal mirror lands one tick
+behind the element, and `TextSync` then restores the caret to the offsets it captured before the write, so
+every character after the first is inserted one position early. The colour picker's hex field uses
+`TextInput` directly with a signal it owns, so the element and the source can never disagree. Worth
+recording because the field wrapper is used on nine other pages and works fine for all of them — the
+difference is only that their values are not converted on the way through.
+
+### Controls: `DateInput` and `DatePicker`, without the mask
+
+Settled **2026-08-10**. Both ship; the mask `review.md` named as their blocker turned out not to be one for
+a typed date, and that is the decision worth recording.
+
+**`DateInput` is a `TextField` over a private text signal, and it reads and writes ISO order only.**
+`yyyy-mm-dd`, because that is the one spelling `DateValueUtils.fromIso` accepts and refuses exactly — it
+returns nothing for the 31st of February rather than nudging it into March. A locale-ordered display
+(`dd/mm/yyyy`) is what actually needs the mask, since the caret has to skip the separators and the display
+form stops matching the value form. Refusing to build half a mask is why the field is ISO for now.
+
+**The field owns its text while it is being typed, and snaps when it is left.** Exactly the rule the
+colour picker's hex field arrived at, for the same reason: a partial value is not a value, so a shorter
+string than a complete date is ignored rather than treated as cleared, and the canonical spelling is
+written back on blur. This is also why `DateInput` sits on `TextField` rather than on `TextInput` —
+`TextFieldPresetProps` omits `onBlur`, and the blur is the whole mechanism.
+
+**Its two range props are `getMinDate` / `getMaxDate`, not `getMin` / `getMax`.** `TextFieldState` already
+has numeric `min` and `max` for a spin button, and spreading a `DateValue` into those would either fail to
+compile or set a nonsense attribute. Renaming is cheaper than an `Omit` plus a hand-written pass-through,
+and it reads better on a date field anyway. There is no `onInput` either: the consumer owns the signal, so
+an effect over it sees every change — the argument `Toasts` already settled.
+
+**`DatePicker` is `DateInput` plus `Calendar` in a `Popover`, and the trigger lives in the field's trailing
+slot.** That slot existed for `NumberInput`'s stepper and needed no widening. The visible month is the
+picker's own signal, snapped to the value each time the popup opens, which is what `Calendar`'s required
+`monthSignal` was left public for. Typing a date and picking one therefore agree without either knowing
+about the other — both write the same value signal, and the calendar follows it.
+
+**Dismissal repeats `ColorInput`'s arrangement**, outside-`pointerdown` plus `Escape`, and that is now the
+third dismissal story in the repo. It is the same open question `review.md` records for `Select` and
+`Menu`; the count is the argument, not any one of them.
+
+**Paint is four slots**, matching `ColorInput` and `Select`: the field's own `renderContent`, `renderTrigger`
+for the opener, `renderDay` and `renderWeekday` for the grid, and `renderPopup` for the surround, which
+receives the month signal so the consumer draws the title and the paging buttons.
+
+### Controls: `TimeInput`, and stepping the segment the caret is in
+
+Settled **2026-08-10**, immediately after `DateInput` and on the same shape.
+
+**`TimeValue` is `{ hour, minute, second? }` and mirrors `DateValue` deliberately.** A record rather than a
+`Date`, its own arithmetic, `Intl` only for formatting. There is no midday trick to worry about because a
+time of day carries no zone at all — which is also why `second` is optional in a way `DateValue`'s fields
+are not: a time to the minute and a time to the second are both complete values, and the shape says which
+one a consumer is holding.
+
+**Everything compares through `getSecondOfDay`**, so a value with seconds and one without mix safely:
+`09:00` and `09:00:00` are the same time and `isSame` says so. Comparing the records field by field would
+have made those two different, which is the kind of thing that shows up as a filter quietly dropping rows.
+
+**Stepping wraps around the day; typing does not.** `addUnit` carries between segments and wraps at
+midnight, because a clock has no end — stepping the hour up from 23:30 is 00:30. A **typed** time is
+refused instead: `24:00` reports no value rather than becoming midnight, on `fromIso`'s rule that a field
+which silently moves what was typed is worse than one that says the value is not there yet. Bounds behave
+the same way in both directions: a stepped value clamps, a typed one outside the range is simply not a
+value.
+
+**The arrow keys step whichever segment the caret is in, and then select it.** The segment is derived from
+the caret offset — three characters per segment including its separator — so no per-segment elements and no
+mask are needed. Selecting the stepped segment afterwards is what makes a run of presses work: the caret
+would otherwise drift and the second press would land on a different unit. This is the one part of the
+control with no precedent in the repo, and it is why `TimeInput` takes `onKeyDown` for itself rather than
+passing it through.
+
+**No time popup.** A list of times in a `Popover` is a `Select` with generated options, and nothing here
+needed one yet; typing plus stepping covers the field. Recorded in `review.md` rather than guessed at.
+
+### `Button` can be named, and the label wins over the painter
+
+Settled **2026-08-10**, closing the gap `Calendar`'s paging buttons exposed: a painter that draws only a
+glyph left the button announcing "black left-pointing triangle".
+
+**`ariaLabel` joins `InteractionControlProps`**, so it is the wrapper's to hand every leaf rather than each
+leaf's to invent, and `ButtonProps` picks it up through the same pass-through `id` and `renderContent`
+already use. Only `Button` applies it so far; a leaf that has its own naming story (`BinarySwitch` reads
+the `Label` context, `TextField` names its input) keeps it.
+
+**It goes through `LabelUtils.resolveAriaLabel`, so the `Label` rule is inherited rather than restated.**
+Inside a `Label` the prop is suppressed and warned about, for the reason recorded under _"`aria-label` loses
+to a visible caption"_ — a control carrying both is announced as something other than what can be read.
+
+**Against painter text, the label wins, and that is the platform's rule rather than a choice.** An
+`aria-label` overrides descendant text as the accessible name. There is no way to detect that a painter drew
+words, so this cannot be warned about; the existing requirement that a painter mark decorative glyphs
+`aria-hidden` is the other half of it. The Playground briefly used a visually-hidden span instead, which
+worked and is gone: it made every icon button carry a clip-rect idiom the consumer had to know.
+
+### `spiralSingle`'s overshoot is clamped, not re-derived
+
+Closed **2026-08-10**. The spiral mapping subtracts its raw result from 1 and divides, so a result below 1
+lifts the weight above it — which happens only with a half-integer origin, because the formula is built for
+whole-number distances. The return is now clamped into 0..1.
+
+What that deliberately does **not** do is separate the two cells that share the extreme. Fixing that means
+rounding the distances before the formula runs, which changes measured weights across all three spiral
+variants — and measured values are the user's call, not something to re-bless while fixing a range
+violation. The test now pins the range rather than the old 1.008.
+
+### The form story: the library wires, the consumer validates
+
+Settled **2026-08-10**, on the user's call. It closes the largest open item, and the decision is the whole
+of it.
+
+**Validation is not the library's.** No validator prop, no required / min / max / pattern, no rule
+language. Validation is application logic — schemas, async server checks, rules that span fields — and a
+library that owns it ends up with a half-built rule language nobody can extend, plus two sources of truth
+the moment a rule needs another field's value. `hasError` stays exactly what it was on every control: a
+prop the owner sets. What changes is that it now has somewhere to go.
+
+**What the library owns is association and announcement.** `FormField` generates the ids and wires a
+control to its message; `Form` collects what its fields **report** and never computes anything. Those two
+are the whole surface.
+
+**`FormField` publishes a context and the control reads it, which is `Label`'s shape reused.**
+`FormFieldUtils.resolveAriaDescribedBy` sits beside `LabelUtils.resolveAriaLabel` and merges the context's
+message id with any `aria-describedby` the consumer passed. The consumer therefore wires nothing: put a
+control inside a `FormField` with a message and it points at that message. The alternative — handing ids
+out through a render prop for the consumer to thread — puts an accessibility relationship in application
+code where a missing attribute fails silently.
+
+**An error message is a live region; a hint is not.** The message element takes `role="alert"` only while
+the field reports an error, so an error that appears is read out and a standing hint is not re-read every
+time it renders. A message that empties takes the description reference with it, so a control is never
+described by nothing.
+
+**`Form` collects entries the way `RadioGroup` collects radios.** Each `FormField` registers
+`{ getHasError }` during setup and cleans itself up; `getIsValid` is the memo over all of them. A submit
+button reads it through the context, so disabling itself needs no state of its own. This is registration
+rather than a data-driven list because a form's fields are written as markup, not enumerated as records —
+the same argument `RadioGroup` records.
+
+**`Form` renders a real `<form>` with `noValidate`, and prevents the default on both events.** The element
+is what gives Enter-to-submit and the reset behaviour for free; `noValidate` is there because the browser's
+own bubble would compete with the messages the consumer is already drawing. `hasSubmitted` is exposed
+because "show the errors only after the first attempt" is the one piece of form state that is not a field's.
+
+**`Button` gained `getType`.** A submit button has to be a `<button type="submit">`, and the leaf hardcoded
+`"button"` — so before this the form story could not have a submit button that was also a `Button`. It
+defaults to `"button"`, so nothing changed for existing call sites.
+
+**Only `TextField` and `BinarySwitch` read the description context so far.** Those cover `TextInput`,
+`TextArea`, `NumberInput`, `DateInput`, `TimeInput`, `Checkbox`, `Toggle` and `Radio`. `Select`,
+`ColorInput`, `FileInput` and `Range` still need the same one-line call, and that is recorded in
+`review.md` rather than left to be discovered.
+
+### `Button` reports the pointer, and `NumberInput` repeats while held
+
+Settled **2026-08-10**, on the user's call, closing the item that had been parked for its own turn.
+
+**`ButtonCbs` gained `onPointerDown` and `onPointerUp`**, both gated on disabled like every other callback
+there. `pointercancel` is routed to `onPointerUp` as well: a drag that leaves the button, a touch the
+browser takes over for scrolling, or a context menu all cancel rather than release, and a control that
+started repeating on down must stop in every one of those cases or it never stops at all. Pointer events
+rather than mouse ones because they cover touch and pen without a second pair.
+
+**The repeat itself is the library's, not the painter's.** `NumberInputStepper` grew `startSteppingUp`,
+`startSteppingDown` and `stopStepping`; the painter calls them from the pointer events and owns no timer.
+A painter running its own interval would be four lines of behaviour duplicated in every consumer's
+stepper, and behaviour is the shell's — the same argument that put the auto-dismiss clock inside `Toasts`
+rather than in a toast painter.
+
+**Both timings are props with defaults, because they are tuned values.** `getRepeatDelayMs` at 400 and
+`getRepeatIntervalMs` at 60 match what a native spin button feels like, and they are exposed rather than
+baked because the rule about measured values applies: a consumer with a slow store or a coarse step wants
+different numbers, and nobody should have to fork the control to get them.
+
+**A tap still steps exactly once.** `startStepping` steps immediately and only then arms the delay, so the
+first step is not deferred; releasing before the delay elapses leaves that single step behind. Both halves
+are pinned in `numberInput.spec.ts`, since a repeat that starts too eagerly is indistinguishable from a
+working one until someone taps.
+
+**The painter also stops on `mouseleave`.** Pointer capture is not used here, so dragging off the button
+would otherwise keep repeating with nothing under the cursor. That is the painter's call rather than the
+library's, and worth noting because it is the one part of the arrangement the shell does not enforce.
+
+### The wrapper between a container role and its items is presentational
+
+Settled **2026-08-10**, on the user's call, closing the structural item two components had hit.
+
+`InteractionWrapper` owns its own root, so any component that wraps each item puts a div between the
+container's role and the item's — `Select` between `role="listbox"` and each `role="option"`, `Calendar`
+between `role="row"` and each `role="gridcell"`. The wrapper root now carries `role="presentation"`, which
+removes its own semantics and leaves the container owning the items directly.
+
+**It is a `getRole` prop defaulting to `"presentation"`, not a hardcoded attribute.** The default is what
+fixes every existing consumer without each one remembering, and it is the honest default because the
+wrapper is structural by definition: it paints nothing, means nothing, and holds no ARIA of its own.
+Keeping it a prop leaves the door open for a container that wants the wrapper to _be_ the item — which is
+the alternative that was rejected here, because moving `role="option"` up would take the id, the
+`aria-selected` and the `aria-activedescendant` target with it, and that is a refactor rather than an
+attribute.
+
+**`role="presentation"` is only ignored on an element that is focusable or carries global ARIA**, and the
+wrapper is neither, so it applies cleanly. The two rejected alternatives are worth recording: hand-rolling
+each item's flags to avoid the wrapper is what _"the composition is an implementation detail"_ argues
+against, and `aria-owns` on the container would state a relationship the DOM no longer shows — indirection
+that rots silently the moment the markup moves.
+
+**One residue, and it is the consumer's.** `Select`'s popup surround is the consumer's markup inside the
+popover root, so a listbox still has a consumer div between it and the wrapper. The library cannot mark
+that one, and it is the same category as the padding agreement `TextInput` records: where the consumer
+supplies structure, the consumer owns its semantics.
+
+### `SignalMirror`, and the form wiring finished
+
+Settled **2026-08-10**, closing two unblocked items in one pass.
+
+**Every control here owns its value as a `*Signal`, and a consumer who holds a getter plus a callback had
+to build the same mirror by hand.** `PageTextField`, `PageSelectField`, `PageCheckField`,
+`PageNumberField` and `PageColorField` were five copies of it, and the colour picker's hue slider made a
+sixth. `SignalMirror.createMirror(getOuter, setOuter, opts)` is that mirror once, with
+`createValueMirror` for the common case where nothing converts.
+
+**It takes a getter and a setter rather than a `Signal`**, which is the escape hatch `review.md` named as
+the alternative to a signal-only surface. A consumer who does have a signal passes its two halves; one who
+has a store field, a route param or a callback passes those. The first attempt took a `Signal` and could
+not express any of the Playground's own wrappers, which is what settled it.
+
+**Each direction reads the far side `untrack`ed**, which is the whole reason this is worth extracting: the
+two bugs the colour picker hit were both a mirror whose guard tracked the other side, so an unrelated
+change re-ran it and wrote a stale half back. Writing that correctly once is worth more than the lines it
+saves.
+
+**It converts only when the value changes, so a half-written inner value survives.** Typing `7.0` into a
+field mirroring a number leaves the text alone, because the number did not change — the same rule the hex
+and date fields needed, now free for anything built on it.
+
+**It is not unit tested, deliberately.** _"Unit tests: `vitest`, colocated, and only for functions"_ rules
+it out — a mirror is two effects and a scheduler, not a function of its arguments. Its four consumers are
+driven in `e2e/`, which is where its behaviour is actually observable.
+
+**The form wiring is complete.** `Select`, `ColorInput`, `FileInput` and `Range` now read the description
+context alongside `TextField` and `BinarySwitch`, so every control that can sit in a `FormField` points at
+its message without the consumer wiring anything.

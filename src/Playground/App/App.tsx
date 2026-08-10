@@ -8,14 +8,18 @@ import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
 import type { Tab } from "../../Lib/Fundamentals/Tabs/Tabs.types";
 import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
 import { PageTextField } from "./PageComponents/Field/Field";
-import { AlertDialogPage } from "./Pages/AlertDialogPage/AlertDialogPage";
+import { AccordionPage } from "./Pages/AccordionPage/AccordionPage";
 import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
+import { CalendarPage } from "./Pages/CalendarPage/CalendarPage";
 import { CellAnimationPage } from "./Pages/CellAnimationPage/CellAnimationPage";
 import { CheckboxPage } from "./Pages/CheckboxPage/CheckboxPage";
+import { ColorAreaPage } from "./Pages/ColorAreaPage/ColorAreaPage";
 import { ColorInputPage } from "./Pages/ColorInputPage/ColorInputPage";
+import { DatePickerPage } from "./Pages/DatePickerPage/DatePickerPage";
 import { DrawerPage } from "./Pages/DrawerPage/DrawerPage";
 import { ElementHighlightPage } from "./Pages/ElementHighlightPage/ElementHighlightPage";
 import { FileInputPage } from "./Pages/FileInputPage/FileInputPage";
+import { FormPage } from "./Pages/FormPage/FormPage";
 import { ImageSwitcherPage } from "./Pages/ImageSwitcherPage/ImageSwitcherPage";
 import { LabelPage } from "./Pages/LabelPage/LabelPage";
 import { MenuPage } from "./Pages/MenuPage/MenuPage";
@@ -65,12 +69,16 @@ const TAB_CONFIGS: TabConfig[] = [
     },
     */
     {
-        name: "AlertDialog",
-        component: () => <AlertDialogPage />,
+        name: "Accordion",
+        component: () => <AccordionPage />,
     },
     {
         name: "Button",
         component: () => <ButtonPage />,
+    },
+    {
+        name: "Calendar",
+        component: () => <CalendarPage />,
     },
     {
         name: "CellAnimation",
@@ -81,8 +89,16 @@ const TAB_CONFIGS: TabConfig[] = [
         component: () => <CheckboxPage />,
     },
     {
+        name: "ColorArea",
+        component: () => <ColorAreaPage />,
+    },
+    {
         name: "ColorInput",
         component: () => <ColorInputPage />,
+    },
+    {
+        name: "DatePicker",
+        component: () => <DatePickerPage />,
     },
     {
         name: "Drawer",
@@ -95,6 +111,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "FileInput",
         component: () => <FileInputPage />,
+    },
+    {
+        name: "Form",
+        component: () => <FormPage />,
     },
     {
         name: "ImageSwitcher",

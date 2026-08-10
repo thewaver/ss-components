@@ -18,6 +18,7 @@ export type PageTextFieldProps = AccessorProps<{
     ariaLabel?: string;
     placeholder?: string;
     onInput: (value: string) => void;
+    onBlur?: () => void;
 }>;
 
 export type PageCheckFieldProps = AccessorProps<{
@@ -41,19 +42,16 @@ export type PageFileFieldProps = AccessorProps<{
     onPick: (file: File) => void;
 }>;
 
-/**
- * Declared by hand rather than through `AccessorProps`, because a generic prop cannot pass through it
- * — the key filter cannot resolve while `T` is unbound and the prop silently vanishes.
- */
 export type PageSelectFieldProps<T> = {
     getValue: () => T;
     getValues: () => readonly T[];
-    getWidth?: () => number;
-    getIsDisabled?: () => boolean;
-    getAriaLabel?: () => string;
     computeLabel?: (value: T) => string;
     onChange: (value: T) => void;
-};
+} & AccessorProps<{
+    width?: number;
+    isDisabled?: boolean;
+    ariaLabel?: string;
+}>;
 
 export type PageGroupedSelectFieldProps<T> = Omit<PageSelectFieldProps<T>, "getValues"> & {
     getGroups: () => readonly (readonly [string, readonly T[]])[];

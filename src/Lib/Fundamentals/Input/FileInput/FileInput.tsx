@@ -1,6 +1,7 @@
 import { createRenderEffect, createSignal } from "solid-js";
 
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
+import { FormFieldUtils } from "../FormField/FormField.utils";
 import { LabelUtils } from "../Label/Label.utils";
 import type { FileInputElementProps, FileInputFlags, FileInputProps } from "./FileInput.types";
 
@@ -10,6 +11,7 @@ const EMPTY_FILE_INPUT_VALUE = "";
 
 const FileInputElement = (props: FileInputElementProps) => {
     const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
+    const getAriaDescribedBy = FormFieldUtils.resolveAriaDescribedBy();
 
     const [getElementRef, setElementRef] = createSignal<HTMLInputElement>();
 
@@ -51,6 +53,7 @@ const FileInputElement = (props: FileInputElementProps) => {
                 accept={props.getAccept?.()}
                 multiple={props.getIsMultiple?.()}
                 aria-label={getAriaLabel()}
+                aria-describedby={getAriaDescribedBy()}
                 aria-disabled={getIsDisabled() || undefined}
                 aria-invalid={props.getFlags().hasError || undefined}
                 onClick={(e) => {

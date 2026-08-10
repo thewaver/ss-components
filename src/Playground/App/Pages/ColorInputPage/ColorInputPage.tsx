@@ -4,6 +4,7 @@ import { ColorInput } from "../../../../Lib/Fundamentals/Input/ColorInput/ColorI
 import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
 import { PageLabelCaption } from "../../PageComponents/LabelCaption/LabelCaption";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
+import { pageColorPickerSlots } from "../../StyledComponents/ColorAreaContent/ColorAreaContent";
 import { PageColorInputContent } from "../../StyledComponents/ColorInputContent/ColorInputContent";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 
@@ -37,6 +38,7 @@ export const ColorInputPage = () => {
                 readout: () => `value: ${defaultSignal[0]()} — the swatch is the painter's, not the browser's`,
                 component: () => (
                     <ColorInput
+                        {...pageColorPickerSlots}
                         valueSignal={defaultSignal}
                         getAriaLabel={() => "Brand colour"}
                         renderContent={(getFlags) => <PageColorInputContent getFlags={getFlags} />}
@@ -48,6 +50,7 @@ export const ColorInputPage = () => {
                 readout: () => `value: ${compactSignal[0]()} — swatch only, no hex readout`,
                 component: () => (
                     <ColorInput
+                        {...pageColorPickerSlots}
                         valueSignal={compactSignal}
                         getAriaLabel={() => "Compact colour"}
                         renderContent={(getFlags) => (
@@ -61,6 +64,7 @@ export const ColorInputPage = () => {
                 readout: () => `value: ${snappingSignal[0]()} — snapped to the nearest of four`,
                 component: () => (
                     <ColorInput
+                        {...pageColorPickerSlots}
                         valueSignal={snappingSignal}
                         getAriaLabel={() => "Palette colour"}
                         renderContent={(getFlags) => <PageColorInputContent getFlags={getFlags} />}
@@ -75,6 +79,7 @@ export const ColorInputPage = () => {
                 readout: () => `value: ${disabledSignal[0]()}`,
                 component: () => (
                     <ColorInput
+                        {...pageColorPickerSlots}
                         valueSignal={disabledSignal}
                         getIsDisabled={() => true}
                         getAriaLabel={() => "Disabled colour"}
@@ -87,6 +92,7 @@ export const ColorInputPage = () => {
                 readout: () => `value: ${reachableSignal[0]()}`,
                 component: () => (
                     <ColorInput
+                        {...pageColorPickerSlots}
                         valueSignal={reachableSignal}
                         getIsDisabled={() => true}
                         getIsReachableWhenDisabled={() => true}
@@ -112,6 +118,7 @@ export const ColorInputPage = () => {
                 readout: () => `value: ${erroredSignal[0]()} — black is not a brand colour`,
                 component: () => (
                     <ColorInput
+                        {...pageColorPickerSlots}
                         valueSignal={erroredSignal}
                         getHasError={() => erroredSignal[0]() === "#000000"}
                         getAriaLabel={() => "Validated colour"}
@@ -127,6 +134,8 @@ export const ColorInputPage = () => {
                         <PageLabelCaption>Accent</PageLabelCaption>
 
                         <ColorInput
+                            {...pageColorPickerSlots}
+                            {...pageColorPickerSlots}
                             valueSignal={labelledSignal}
                             renderContent={(getFlags) => <PageColorInputContent getFlags={getFlags} />}
                         />

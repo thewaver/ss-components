@@ -43,13 +43,13 @@ test("the keyboard walks the column and skips the disabled headers", async ({ pa
     ).toBe("Label");
 
     await page.keyboard.press("Home");
-    expect(await activeText(page), "Home skips the disabled category above it").toBe("AlertDialog");
+    expect(await activeText(page), "Home skips the disabled category above it").toBe("Accordion");
 
     await page.keyboard.press("End");
     expect(await activeText(page), "and End skips the one in the middle").toBe("Surface");
 
     await page.keyboard.press("ArrowDown");
-    expect(await activeText(page), "the walk wraps from the last entry to the first").toBe("AlertDialog");
+    expect(await activeText(page), "the walk wraps from the last entry to the first").toBe("Accordion");
 
     await page.keyboard.press("ArrowUp");
     expect(await activeText(page), "and back the other way").toBe("Surface");

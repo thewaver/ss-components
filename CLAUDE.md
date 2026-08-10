@@ -84,6 +84,13 @@ caniuse are expected sources. Probing the local toolchain is a useful supplement
 it reveals only what that tool happens to encode, and says nothing about features it has no data for,
 which is easy to misread as support.
 
+## Running things
+
+**Never kill the user's processes.** No `pkill`, no killing a dev server, no stopping anything you did not
+start. They keep `npm start` running while working, and losing it interrupts them. `npm run verify:dom`
+serves a production preview on its own port and `reuseExistingServer` handles a stale one, so it never
+needs the dev server out of the way — and if a port really is taken, say so rather than clearing it.
+
 ## Writing code
 
 **Do not add code comments.** The codebase carries essentially none and that is deliberate; adding any is
@@ -92,9 +99,11 @@ that needs recording goes in `conventions.md`, or in the reply. Correcting or de
 already there is fine — that is editing what exists, not adding. If a change seems to need an inline
 comment to be understandable, that is a signal the code should be clearer instead.
 
-**`/** */` blocks above declarations stay, but are not added unprompted.** Where one already sits above a
-function or an exported declaration it is wanted: keep it, and update it when the thing it describes
-changes. Do not attach a new one to a declaration that has none unless asked for it.
+**`/** */` blocks above declarations stay, but are not added unprompted in `src/Lib` or `src/Playground`.**
+Where one already sits above a function or an exported declaration it is wanted: keep it, and update it
+when the thing it describes changes. Do not attach a new one to a declaration that has none unless asked
+for it. **`e2e/` is the exception** — explanatory blocks are welcome there, and the existing specs carry
+them, so a new spec should read like its neighbours.
 
 **Read a neighbouring component before writing a new one.** House style is tight and consistent, and
 `conventions.md` records the parts of it that were argued rather than assumed. Copy the neighbour's shape

@@ -10,6 +10,11 @@ const OPTION = '[role="listbox"] [role="option"]';
 
 const DISMISS_TIMEOUT_MS = 10_000;
 
+/**
+ * Pausing is asserted through the countdown's `animation-play-state` rather than by waiting out a
+ * duration, because that is the one place the `isPaused` flag becomes something the DOM can show. What it
+ * cannot show is the arithmetic — that a toast paused half way through gets its remaining half back.
+ */
 const prop = (label: string) => `[data-prop="${label}"]`;
 
 test.beforeEach(async ({ page }) => {

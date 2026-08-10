@@ -8,6 +8,7 @@ import type { InteractionSizing, InteractionWrapperProps } from "./InteractionWr
 import * as styles from "./InteractionWrapper.css";
 
 const DEFAULT_INTERACTION_SIZING: InteractionSizing = "fit-content";
+const DEFAULT_INTERACTION_ROLE = "presentation";
 
 export const InteractionWrapper = <TExtra extends object = {}>(props: InteractionWrapperProps<TExtra>) => {
     const [getElementRef, setElementRef] = createSignal<HTMLElement>();
@@ -48,6 +49,7 @@ export const InteractionWrapper = <TExtra extends object = {}>(props: Interactio
     return (
         <div
             class={[styles.interactionRoot, styles.interactionSizingVariants[getSizing()]].join(" ")}
+            role={props.getRole?.() ?? DEFAULT_INTERACTION_ROLE}
             style={{
                 "min-width": props.getMinWidth ? `${props.getMinWidth()}px` : undefined,
                 "min-height": props.getMinHeight?.() ? `${props.getMinHeight()}px` : undefined,

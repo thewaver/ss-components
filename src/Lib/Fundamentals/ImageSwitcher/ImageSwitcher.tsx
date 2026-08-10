@@ -63,6 +63,7 @@ export const ImageSwitcher = (props: ImageSwitcherProps) => {
                 style={{
                     "opacity": isEven() ? 1 : 0,
                     "transition-duration": `${getTransitionDurationMs()}ms`,
+                    "visibility": (isEven() ? getCurrentImage() : getPrevImage()) ? undefined : "hidden",
                 }}
                 src={isEven() ? getCurrentImage() : getPrevImage()}
                 alt=""
@@ -72,6 +73,7 @@ export const ImageSwitcher = (props: ImageSwitcherProps) => {
                 style={{
                     "opacity": !isEven() ? 1 : 0,
                     "transition-duration": `${getTransitionDurationMs()}ms`,
+                    "visibility": (!isEven() ? getCurrentImage() : getPrevImage()) ? undefined : "hidden",
                 }}
                 src={!isEven() ? getCurrentImage() : getPrevImage()}
                 alt=""

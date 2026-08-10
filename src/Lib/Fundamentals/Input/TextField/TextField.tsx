@@ -7,6 +7,7 @@ import { CSSUtils, StringUtils } from "@thewaver/ss-utils";
 import type { TextSyncElement } from "../../../Abstracts/TextSync/TextSync";
 import { TextSync } from "../../../Abstracts/TextSync/TextSync";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
+import { FormFieldUtils } from "../FormField/FormField.utils";
 import { LabelUtils } from "../Label/Label.utils";
 import type { TextFieldElementProps, TextFieldProps, TextFieldType } from "./TextField.types";
 
@@ -119,6 +120,7 @@ const createAutoHeight = (
 
 const TextFieldElement = (props: TextFieldElementProps) => {
     const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
+    const getAriaDescribedBy = FormFieldUtils.resolveAriaDescribedBy();
 
     const [getElementRef, setElementRef] = createSignal<TextSyncElement>();
 
@@ -191,6 +193,7 @@ const TextFieldElement = (props: TextFieldElementProps) => {
                 readOnly={getIsDisabled() || getIsReadOnly()}
                 role={getIsSpinButton() ? "spinbutton" : undefined}
                 aria-label={getAriaLabel()}
+                aria-describedby={getAriaDescribedBy()}
                 aria-valuenow={getIsSpinButton() ? getValueNow() : undefined}
                 aria-valuemin={getIsSpinButton() ? props.getMin?.() : undefined}
                 aria-valuemax={getIsSpinButton() ? props.getMax?.() : undefined}

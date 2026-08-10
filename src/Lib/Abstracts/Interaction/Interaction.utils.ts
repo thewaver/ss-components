@@ -1,7 +1,19 @@
 import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 import { createStore } from "solid-js/store";
 
-import type { InternalInteractionFlags } from "./Interaction.types";
+import type { InteractionDragRatio, InternalInteractionFlags } from "./Interaction.types";
+
+const RATIO_MIN = 0;
+const RATIO_MAX = 1;
+
+const computeRatio = (element: HTMLElement, clientX: number, clientY: number): InteractionDragRatio => {
+    const rect = element.getBoundingClientRect();
+
+    return {
+        x: Math.min(Math.max(rect.width > 0 ? (clientX - rect.left) / rect.width : 0, RATIO_MIN), RATIO_MAX),
+        y: Math.min(Math.max(rect.height > 0 ? (clientY - rect.top) / rect.height : 0, RATIO_MIN), RATIO_MAX),
+    };
+};
 
 export namespace InteractionUtils {
     export const computeIsReachable = (isDisabled: boolean, isReachableWhenDisabled: boolean, hasTooltip: boolean) =>
@@ -124,5 +136,68 @@ export namespace InteractionUtils {
         });
 
         return { getFlags };
+    };
+
+    export const trackDrag = (
+        getRef: () => HTMLElement | undefined,
+        getIsDisabled: () => boolean,
+        opts: {
+            onDrag: (ratio: InteractionDragRatio) => void;
+            onDragEnd?: () => void;
+        },
+    ) => {
+        const [getIsDragging, setIsDragging] = createSignal(false);
+
+        createEffect(() => {
+            const ref = getRef();
+
+            if (!ref || getIsDisabled()) {
+                setIsDragging(false);
+
+                return;
+            }
+
+            const report = (e: PointerEvent) => {
+                opts.onDrag(computeRatio(ref, e.clientX, e.clientY));
+            };
+
+            const onPointerDown = (e: PointerEvent) => {
+                if (e.button !== 0) return;
+
+                e.preventDefault();
+
+                ref.setPointerCapture(e.pointerId);
+                setIsDragging(true);
+                report(e);
+            };
+
+            const onPointerMove = (e: PointerEvent) => {
+                if (!ref.hasPointerCapture(e.pointerId)) return;
+
+                report(e);
+            };
+
+            const onPointerUp = (e: PointerEvent) => {
+                if (!ref.hasPointerCapture(e.pointerId)) return;
+
+                ref.releasePointerCapture(e.pointerId);
+                setIsDragging(false);
+                opts.onDragEnd?.();
+            };
+
+            ref.addEventListener("pointerdown", onPointerDown);
+            ref.addEventListener("pointermove", onPointerMove);
+            ref.addEventListener("pointerup", onPointerUp);
+            ref.addEventListener("pointercancel", onPointerUp);
+
+            onCleanup(() => {
+                ref.removeEventListener("pointerdown", onPointerDown);
+                ref.removeEventListener("pointermove", onPointerMove);
+                ref.removeEventListener("pointerup", onPointerUp);
+                ref.removeEventListener("pointercancel", onPointerUp);
+            });
+        });
+
+        return { getIsDragging };
     };
 }

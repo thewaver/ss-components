@@ -1,50 +1,120 @@
-import { expect, test } from "@playwright/test";
+import { type Page, expect, test } from "@playwright/test";
 
-import { clickIsAllowed, computedStyle, inputValue, readout, setColor, tabIndex, variant } from "./helpers";
+import { inputValue, readout, variant } from "./helpers";
 
-const DEFAULT = `${variant("Default")} input`;
-const SNAPPING = `${variant("Snapping setter")} input`;
-const DISABLED = `${variant("Disabled")} input`;
+const DEFAULT = variant("Default");
+const SNAPPING = variant("Snapping setter");
+const DISABLED = variant("Disabled");
+const POPUP = '[role="dialog"]';
+
+const field = (scope: string) => `${scope} button[aria-haspopup="dialog"]`;
+
+const OUTSIDE_POINT = 5;
+
+/**
+ * The OS colour dialog is gone, so everything here is drivable for the first time: the surface is a real
+ * element with a real drag, and the hue slider is a native range. What is worth asserting is that the value
+ * still leaves as a hex string, since that is the whole of the control's public contract.
+ */
+const dragAcross = async (page: Page, selector: string, from: [number, number], to: [number, number]) => {
+    const box = (await page.locator(selector).boundingBox())!;
+
+    await page.mouse.move(box.x + box.width * from[0], box.y + box.height * from[1]);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * to[0], box.y + box.height * to[1], { steps: 5 });
+    await page.mouse.up();
+};
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/color-input");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator(field(DEFAULT))).toBeVisible();
 });
 
-test("the control is a real colour input the painter draws for", async ({ page }) => {
-    await expect(page.locator(DEFAULT), "the control is a real colour input").toHaveAttribute("type", "color");
-    expect(await inputValue(page.locator(DEFAULT)), "whose value is synced from the owner's signal").toBe("#3366ff");
-    await expect(page.locator("input[disabled]"), "and none of them carries the native attribute").toHaveCount(0);
-
-    expect(
-        await computedStyle(page.locator(`${variant("Default")} [aria-hidden] > div`).first(), "background-color"),
-        "the painter draws the swatch from the flags, since the native one is suppressed",
-    ).toBe("rgb(51, 102, 255)");
-});
-
-test("a change reaches the owner and a snapping owner can rewrite it", async ({ page }) => {
-    await setColor(page.locator(DEFAULT), "#00ff00");
-    expect(await readout(page, "Default"), "a change reaches the owner's signal").toContain("value: #00ff00");
-
-    await setColor(page.locator(SNAPPING), "#00d0b0");
-    expect(await readout(page, "Snapping setter"), "a snapping owner can rewrite the value").toContain(
-        "value: #00d1b2",
+test("the control is a popup button rather than a native colour input", async ({ page }) => {
+    await expect(page.locator("input[type='color']"), "no native colour input survives").toHaveCount(0);
+    await expect(page.locator(field(DEFAULT)), "the field announces the popup it owns").toHaveAttribute(
+        "aria-haspopup",
+        "dialog",
     );
-    expect(
-        await inputValue(page.locator(SNAPPING)),
-        "and the input is resynced rather than left holding what the picker reported",
-    ).toBe("#00d1b2");
+    await expect(page.locator(field(DEFAULT)), "and says whether it is open").toHaveAttribute("aria-expanded", "false");
+    await expect(page.locator(POPUP), "with nothing portalled until it is").toHaveCount(0);
 });
 
-test("a disabled field cancels the click that would open the OS picker", async ({ page }) => {
-    await expect(page.locator(DISABLED), "a disabled field says so through ARIA").toHaveAttribute(
-        "aria-disabled",
-        "true",
+test("opening it points the field at the popup and back", async ({ page }) => {
+    await page.locator(field(DEFAULT)).click();
+
+    await expect(page.locator(field(DEFAULT))).toHaveAttribute("aria-expanded", "true");
+
+    const controls = await page.locator(field(DEFAULT)).getAttribute("aria-controls");
+
+    expect(await page.locator(`#${controls}`).getAttribute("role"), "which is the dialog it just opened").toBe(
+        "dialog",
     );
-    expect(await tabIndex(page.locator(DISABLED)), "and is out of the tab order").toBe(-1);
+});
+
+test("dragging the surface writes a hex value to the owner", async ({ page }) => {
+    const before = await readout(page, "Default");
+
+    await page.locator(field(DEFAULT)).click();
+    await dragAcross(page, `${POPUP} [role="group"]`, [0.5, 0.5], [0.9, 0.1]);
+
+    const after = await readout(page, "Default");
+
+    expect(after, "the value changed").not.toBe(before);
+    expect(after, "and it is still a six digit hex, since nothing asked for alpha").toMatch(/#[0-9a-f]{6}/);
+});
+
+test("the hue slider is a real range and moves the same value", async ({ page }) => {
+    await page.locator(field(DEFAULT)).click();
+
+    const hue = page.locator(`${POPUP} input[aria-label="Hue"]`);
+
+    await expect(hue, "one native range carries hue").toHaveCount(1);
+
+    const before = await inputValue(hue);
+
+    await hue.focus();
+    await page.keyboard.press("ArrowRight");
+
+    expect(Number(await inputValue(hue)), "an arrow moves it").toBeGreaterThan(Number(before));
+});
+
+test("Escape closes it and hands focus back to the field", async ({ page }) => {
+    await page.locator(field(DEFAULT)).click();
+    await expect(page.locator(POPUP)).toBeVisible();
+
+    await page.keyboard.press("Escape");
+
+    await expect(page.locator(POPUP)).toHaveCount(0);
+    await expect(page.locator(field(DEFAULT)), "and the field is focused again").toBeFocused();
+});
+
+test("clicking outside closes it, clicking its own controls does not", async ({ page }) => {
+    await page.locator(field(DEFAULT)).click();
+    await expect(page.locator(POPUP)).toBeVisible();
+
+    await page.locator(`${POPUP} input[aria-label="Hue"]`).click();
+    await expect(page.locator(POPUP), "the popup's own controls keep it open").toBeVisible();
+
+    await page.mouse.click(OUTSIDE_POINT, OUTSIDE_POINT);
+    await expect(page.locator(POPUP), "a click anywhere else closes it").toHaveCount(0);
+});
+
+test("a snapping owner rewrites the value and the field follows", async ({ page }) => {
+    await page.locator(field(SNAPPING)).click();
+    await dragAcross(page, `${POPUP} [role="group"]`, [0.5, 0.5], [0.1, 0.9]);
 
     expect(
-        await clickIsAllowed(page.locator(DISABLED)),
-        "and the click that would open the OS picker is cancelled",
-    ).toBe(false);
+        await readout(page, "Snapping setter"),
+        "the owner's own value wins, because the field reads the signal back",
+    ).toMatch(/#(ff0055|00d1b2|ffb400|7a5cff)/);
+});
+
+test("a disabled field opens nothing and uses no native attribute", async ({ page }) => {
+    await expect(page.locator("button[disabled]"), "no field carries the native disabled attribute").toHaveCount(0);
+    await expect(page.locator(field(DISABLED))).toHaveAttribute("aria-disabled", "true");
+
+    await page.locator(field(DISABLED)).dispatchEvent("click");
+
+    await expect(page.locator(POPUP), "clicking it opens nothing").toHaveCount(0);
 });

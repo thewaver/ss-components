@@ -3,6 +3,7 @@ import { Index, createMemo, createRenderEffect, createSignal } from "solid-js";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
+import { FormFieldUtils } from "../FormField/FormField.utils";
 import { LabelUtils } from "../Label/Label.utils";
 import type { RangeElementProps, RangeFlags, RangeOrientation, RangeProps, RangeSpan } from "./Range.types";
 
@@ -17,6 +18,7 @@ const MIN_TRACK_TRAVEL_PX = 1;
 
 const RangeElement = (props: RangeElementProps) => {
     const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
+    const getAriaDescribedBy = FormFieldUtils.resolveAriaDescribedBy();
 
     const [getActiveThumb, setActiveThumb] = createSignal(0);
     const [getElementRefs, setElementRefs] = createSignal<HTMLInputElement[]>([]);
@@ -94,6 +96,7 @@ const RangeElement = (props: RangeElementProps) => {
                         max={getThumbMax(index)}
                         step={props.getStep()}
                         aria-label={props.getThumbLabels?.()?.[index] ?? getAriaLabel()}
+                        aria-describedby={getAriaDescribedBy()}
                         aria-disabled={getIsDisabled() || undefined}
                         aria-invalid={props.getFlags().hasError || undefined}
                         onPointerDown={(e) => raiseNearestThumb(e, e.currentTarget)}

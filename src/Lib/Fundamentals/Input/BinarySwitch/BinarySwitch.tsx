@@ -1,6 +1,7 @@
 import { createRenderEffect, createSignal } from "solid-js";
 
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
+import { FormFieldUtils } from "../FormField/FormField.utils";
 import { LabelUtils } from "../Label/Label.utils";
 import type { BinarySwitchElementProps, BinarySwitchFlags, BinarySwitchProps } from "./BinarySwitch.types";
 
@@ -8,6 +9,7 @@ import * as styles from "./BinarySwitch.css";
 
 const BinarySwitchElement = (props: BinarySwitchElementProps) => {
     const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
+    const getAriaDescribedBy = FormFieldUtils.resolveAriaDescribedBy();
 
     const [getElementRef, setElementRef] = createSignal<HTMLInputElement>();
 
@@ -45,6 +47,7 @@ const BinarySwitchElement = (props: BinarySwitchElementProps) => {
                 role={getRole()}
                 class={styles.binarySwitchElement}
                 aria-label={getAriaLabel()}
+                aria-describedby={getAriaDescribedBy()}
                 aria-disabled={getIsDisabled() || undefined}
                 aria-invalid={props.getFlags().hasError || undefined}
                 onClick={(e) => {

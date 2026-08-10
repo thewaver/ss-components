@@ -9,6 +9,7 @@ export type InteractionSizing = "fit-content" | "fill";
 
 export type InteractionControlProps<TExtra extends object = {}> = {
     id?: string;
+    ariaLabel?: string;
     flags: InteractionFlags<TExtra>;
     ref?: (element: HTMLElement) => void;
     renderContent: (getFlags: () => InteractionFlags<TExtra>) => JSX.Element;
@@ -28,6 +29,7 @@ export type InteractionTooltipDefs<TExtra extends object = {}> = Omit<
 
 export type InteractionWrapperProps<TExtra extends object = {}> = AccessorProps<
     ExternalInteractionFlags & {
+        role?: JSX.AriaAttributes["role"];
         sizing?: InteractionSizing;
         minWidth?: number;
         minHeight?: number;

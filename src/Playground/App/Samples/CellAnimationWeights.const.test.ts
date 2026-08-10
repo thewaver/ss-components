@@ -128,17 +128,19 @@ describe("CellAnimationWeightsConst", () => {
     });
 
     /**
-     * The measured symptom of `review.md` #5, kept as a test so that fixing it turns this red rather
-     * than passing unnoticed. `spiralSingle` reads no parity predicate, so the parity fix above left
-     * it untouched and it still overshoots.
+     * `spiralSingle` used to reach 1.008 here: a half-integer origin gives half-integer distances, and the
+     * spiral formula is built for whole ones, so its result dips below the 1 the mapping subtracts from.
+     * The clamp keeps it in range; what it does not do is separate the two cells that now share the
+     * extreme, because doing that would change measured weights across all three spiral variants.
      */
-    it("overshoots 1 on spiralSingle with a half-integer origin, which is the open bug", () => {
-        const overshooting = CellAnimationWeights.computeCellWeights(
+    it("keeps spiralSingle inside 0..1 on a half-integer origin", () => {
+        const weights = CellAnimationWeights.computeCellWeights(
             "spiralSingle",
             EVEN_COLUMN,
             centreOf(EVEN_COLUMN),
         ).flat();
 
-        expect(Math.max(...overshooting)).toBe(1.008);
+        expect(Math.max(...weights)).toBe(1);
+        expect(Math.min(...weights)).toBeGreaterThanOrEqual(0);
     });
 });

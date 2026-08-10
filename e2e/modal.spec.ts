@@ -116,11 +116,11 @@ test.describe("Drawer", () => {
     });
 });
 
-test.describe("AlertDialog", () => {
+test.describe("Modal in its alert mode", () => {
     const TRIGGER = `${variant("Destructive confirmation")} button`;
 
     test.beforeEach(async ({ page }) => {
-        await page.goto("/alert-dialog");
+        await page.goto("/modal");
         await expect(page.locator("[data-variant]").first()).toBeVisible();
     });
 

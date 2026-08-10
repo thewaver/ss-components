@@ -5,7 +5,7 @@ import { Point2d, Size2d } from "@thewaver/ss-utils";
 import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
 
-export type PopoverRole = "listbox" | "menu";
+export type PopoverRole = "listbox" | "menu" | "dialog";
 
 export type PopoverProps = AccessorProps<{
     id: string;

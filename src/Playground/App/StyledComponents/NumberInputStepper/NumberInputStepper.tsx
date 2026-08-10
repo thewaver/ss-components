@@ -9,7 +9,9 @@ export const PageNumberInputStepper = (props: NumberInputStepperProps) => (
             getIsDisabled={() =>
                 props.getFlags().isDisabled || props.getFlags().isReadOnly || props.stepper.getIsAtMax()
             }
-            onClick={props.stepper.stepUp}
+            onPointerDown={props.stepper.startSteppingUp}
+            onPointerUp={props.stepper.stopStepping}
+            onMouseLeave={props.stepper.stopStepping}
             renderContent={(getFlags) => (
                 <div
                     class={styles.numberInputStepperButton}
@@ -28,7 +30,9 @@ export const PageNumberInputStepper = (props: NumberInputStepperProps) => (
             getIsDisabled={() =>
                 props.getFlags().isDisabled || props.getFlags().isReadOnly || props.stepper.getIsAtMin()
             }
-            onClick={props.stepper.stepDown}
+            onPointerDown={props.stepper.startSteppingDown}
+            onPointerUp={props.stepper.stopStepping}
+            onMouseLeave={props.stepper.stopStepping}
             renderContent={(getFlags) => (
                 <div
                     class={styles.numberInputStepperButton}
