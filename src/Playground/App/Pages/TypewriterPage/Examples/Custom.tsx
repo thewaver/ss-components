@@ -2,8 +2,8 @@ import { createEffect, createSignal, on } from "solid-js";
 
 import { FunctionUtils } from "@thewaver/ss-utils";
 
-import { Typewriter } from "../../../../../Lib/Fundamentals/Typewriter/Typewriter";
-import type { TypewriterController } from "../../../../../Lib/Fundamentals/Typewriter/Typewriter.types";
+import { Typewriter } from "../../../../../Lib/Exotics/Typewriter/Typewriter";
+import type { TypewriterController } from "../../../../../Lib/Exotics/Typewriter/Typewriter.types";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import type { TypewriterExampleProps } from "../TypewriterPage.types";
 

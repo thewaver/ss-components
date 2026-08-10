@@ -1,7 +1,7 @@
 import { type Point2d, Point2dUtils } from "@thewaver/ss-utils";
 
 import type { CellAnimationEvaluationDefs } from "../../../Lib";
-import { CellAnimationUtils } from "../../../Lib/Fundamentals/CellAnimation/CellAnimation.utils";
+import { CellAnimationUtils } from "../../../Lib/Exotics/CellAnimation/CellAnimation.utils";
 
 export namespace CellAnimationZones {
     export const ZONE_TYPES = [

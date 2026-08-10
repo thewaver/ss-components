@@ -3,7 +3,7 @@ import { createStore } from "solid-js/store";
 
 import type { Point2d } from "@thewaver/ss-utils";
 
-import type { CellAnimationController } from "../../../../Lib/Fundamentals/CellAnimation/CellAnimation.types";
+import type { CellAnimationController } from "../../../../Lib/Exotics/CellAnimation/CellAnimation.types";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import {
@@ -32,12 +32,32 @@ import * as styles from "./CellAnimationPage.css";
 
 const IMAGE_CONTAINER_SIZE = 480 + MEASURE_BOX_PADDING * 2;
 const STRESS_CELL_COUNT: Point2d = { x: 11, y: 11 };
-const STRESS_ITEM_SIZE = 120 + MEASURE_BOX_PADDING * 2;
+const STRESS_ITEM_SIZE = 120;
 const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
-    { count: 8, cols: 4, gap: 10, size: STRESS_ITEM_SIZE },
-    { count: 18, cols: 6, gap: 10, size: STRESS_ITEM_SIZE },
-    { count: 32, cols: 8, gap: 10, size: STRESS_ITEM_SIZE },
-    { count: 50, cols: 10, gap: 10, size: STRESS_ITEM_SIZE },
+    {
+        count: 4 * 3,
+        cols: 4,
+        gap: 10,
+        size: STRESS_ITEM_SIZE,
+    },
+    {
+        count: 6 * 4,
+        cols: 6,
+        gap: 10,
+        size: STRESS_ITEM_SIZE,
+    },
+    {
+        count: 8 * 6,
+        cols: 8,
+        gap: 10,
+        size: STRESS_ITEM_SIZE,
+    },
+    {
+        count: 12 * 6,
+        cols: 12,
+        gap: 10,
+        size: STRESS_ITEM_SIZE,
+    },
 ];
 
 const DEFAULT_SOURCE = highlighter.codeToHtml(DefaultExampleRaw, getDefaultHighlighterConfig());
@@ -100,6 +120,7 @@ const StressTestWrapper = (props: CellAnimationExampleProps & { controllers: Cel
                     <PageMeasureBox
                         getWidth={() => STRESS_ITEMS[getConfigIndex()].size}
                         getHeight={() => STRESS_ITEMS[getConfigIndex()].size}
+                        getPadding={() => 0}
                     >
                         <DefaultExample {...props} getCellCount={() => STRESS_CELL_COUNT} />
                     </PageMeasureBox>

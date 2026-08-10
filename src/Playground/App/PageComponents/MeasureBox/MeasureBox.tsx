@@ -8,6 +8,7 @@ export const PageMeasureBox = (props: PageMeasureBoxProps) => (
         style={{
             width: props.getWidth && `${props.getWidth()}px`,
             height: props.getHeight && `${props.getHeight()}px`,
+            padding: `${props.getPadding?.() ?? styles.MEASURE_BOX_PADDING}px`,
         }}
     >
         {props.children}

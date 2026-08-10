@@ -3,7 +3,7 @@ import { createMemo, createSignal, createUniqueId } from "solid-js";
 import { ShapeConst, ShapeUtils } from "@thewaver/ss-utils";
 
 import { InteractionUtils } from "../../../../../Lib/Abstracts/Interaction/Interaction.utils";
-import { Shape } from "../../../../../Lib/Fundamentals/Shape/Shape";
+import { Shape } from "../../../../../Lib/Exotics/Shape/Shape";
 import type { ShapeExampleProps } from "../ShapePage.types";
 
 import * as styles from "../ShapePage.css";

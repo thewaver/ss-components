@@ -4,7 +4,7 @@ import { Portal } from "solid-js/web";
 import { CSSUtils, StringUtils } from "@thewaver/ss-utils";
 
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
-import { useViewportContext } from "../Viewport/Viewport.context";
+import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
 import type {
     Toast,
     ToastState,

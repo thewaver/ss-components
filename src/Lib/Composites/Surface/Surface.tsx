@@ -5,7 +5,7 @@ import { ShapeConst, Size2d, StringUtils } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import type { SVGDefs } from "../../Abstracts/SVG/Defs/SVGDefs.types";
-import { Shape } from "../../Fundamentals/Shape/Shape";
+import { Shape } from "../../Exotics/Shape/Shape";
 import type { SurfaceProps } from "./Surface.types";
 
 import * as styles from "./Surface.css";

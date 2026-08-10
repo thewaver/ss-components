@@ -1,4 +1,4 @@
-import { ScanlineAnimation } from "../../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
+import { ScanlineAnimation } from "../../../../../Lib/Exotics/ScanlineAnimation/ScanlineAnimation";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import { CellAnimationBreakpoints } from "../../../Samples/CellAnimationBreakpoints.const";
 import { ScanlineAnimationKeyframes } from "../../../Samples/ScanlineAnimationKeyframes.const";

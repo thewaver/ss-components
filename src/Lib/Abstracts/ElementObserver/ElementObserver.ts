@@ -3,8 +3,8 @@ import { createEffect, createSignal, onCleanup, onMount } from "solid-js";
 
 import { Bounds, type Point2d, type Rect } from "@thewaver/ss-utils";
 
-import { useViewportContext } from "../../Fundamentals/Viewport/Viewport.context";
-import { ViewportUtils } from "../../Fundamentals/Viewport/Viewport.utils";
+import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
+import { ViewportUtils } from "../../Exotics/Viewport/Viewport.utils";
 
 export namespace ElementObserver {
     export const createBorderBoxHeightObserver = (

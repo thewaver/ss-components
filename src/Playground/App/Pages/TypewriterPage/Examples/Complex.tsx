@@ -1,4 +1,4 @@
-import { Typewriter } from "../../../../../Lib/Fundamentals/Typewriter/Typewriter";
+import { Typewriter } from "../../../../../Lib/Exotics/Typewriter/Typewriter";
 import knight from "../../../knight.png";
 import type { TypewriterExampleProps } from "../TypewriterPage.types";
 

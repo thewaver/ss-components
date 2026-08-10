@@ -1,6 +1,6 @@
 import type { Point2d } from "@thewaver/ss-utils";
 
-import type { CellAnimationController } from "../../../../Lib/Fundamentals/CellAnimation/CellAnimation.types";
+import type { CellAnimationController } from "../../../../Lib/Exotics/CellAnimation/CellAnimation.types";
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 import type { CellAnimationKeyframes } from "../../Samples/CellAnimation.const";
 import type { CellAnimationBreakpoints } from "../../Samples/CellAnimationBreakpoints.const";

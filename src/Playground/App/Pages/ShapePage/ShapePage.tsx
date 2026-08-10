@@ -4,7 +4,7 @@ import { createStore } from "solid-js/store";
 import { ShapeConst } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
-import { Shape } from "../../../../Lib/Fundamentals/Shape/Shape";
+import { Shape } from "../../../../Lib/Exotics/Shape/Shape";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import {

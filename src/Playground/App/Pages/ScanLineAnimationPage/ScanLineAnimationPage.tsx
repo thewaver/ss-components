@@ -3,8 +3,8 @@ import { createStore } from "solid-js/store";
 
 import type { Point2d } from "@thewaver/ss-utils";
 
-import { ScanlineAnimation } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation";
-import type { ScanlineAnimationController } from "../../../../Lib/Fundamentals/ScanlineAnimation/ScanlineAnimation.types";
+import { ScanlineAnimation } from "../../../../Lib/Exotics/ScanlineAnimation/ScanlineAnimation";
+import type { ScanlineAnimationController } from "../../../../Lib/Exotics/ScanlineAnimation/ScanlineAnimation.types";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import {
@@ -68,31 +68,31 @@ const STRESS_ITEMS: (StressTestDefs & { size: number; kind: "transform" | "filte
 )
     .map((kind) => [
         {
-            count: 8,
+            count: 4 * 3,
             cols: 4,
             gap: 10,
-            size: STRESS_LINE_COUNT + MEASURE_BOX_PADDING * 2,
+            size: STRESS_LINE_COUNT,
             kind,
         },
         {
-            count: 18,
+            count: 6 * 4,
             cols: 6,
             gap: 10,
-            size: STRESS_LINE_COUNT + MEASURE_BOX_PADDING * 2,
+            size: STRESS_LINE_COUNT,
             kind,
         },
         {
-            count: 32,
+            count: 8 * 6,
             cols: 8,
             gap: 10,
-            size: STRESS_LINE_COUNT + MEASURE_BOX_PADDING * 2,
+            size: STRESS_LINE_COUNT,
             kind,
         },
         {
-            count: 50,
-            cols: 10,
+            count: 12 * 6,
+            cols: 12,
             gap: 10,
-            size: STRESS_LINE_COUNT + MEASURE_BOX_PADDING * 2,
+            size: STRESS_LINE_COUNT,
             kind,
         },
     ])
@@ -158,6 +158,7 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
                         <PageMeasureBox
                             getWidth={() => STRESS_ITEMS[getConfigIndex()].size}
                             getHeight={() => STRESS_ITEMS[getConfigIndex()].size}
+                            getPadding={() => 0}
                         >
                             <ScanlineAnimation
                                 {...props}

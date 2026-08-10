@@ -6,5 +6,6 @@ export type PageMeasureBoxProps = ParentProps<
     AccessorProps<{
         width?: number;
         height?: number;
+        padding?: number;
     }>
 >;

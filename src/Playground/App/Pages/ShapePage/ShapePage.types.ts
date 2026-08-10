@@ -1,6 +1,6 @@
 import type { ShapeConst, Size2d } from "@thewaver/ss-utils";
 
-import type { ShapeProps } from "../../../../Lib/Fundamentals/Shape/Shape.types";
+import type { ShapeProps } from "../../../../Lib/Exotics/Shape/Shape.types";
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 import type { SVGDefsSamples } from "../../Samples/SVGDefs.const";
 

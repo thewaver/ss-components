@@ -1,6 +1,6 @@
 import { MathUtils, type Point2d, Point2dUtils, type Size2d } from "@thewaver/ss-utils";
 
-import { CellAnimationUtils } from "../../../Lib/Fundamentals/CellAnimation/CellAnimation.utils";
+import { CellAnimationUtils } from "../../../Lib/Exotics/CellAnimation/CellAnimation.utils";
 
 export namespace CellAnimationWeights {
     export const WEIGHT_TYPES = [

@@ -17,7 +17,6 @@ export const measureBoxRoot = style({
     backgroundColor: checkerColorB,
     backgroundSize: `${checkerSize}px ${checkerSize}px`,
     backgroundPosition: `0 0, 0 ${checkerSize * 0.5}px, ${checkerSize * 0.5}px -${checkerSize * 0.5}px, -${checkerSize * 0.5}px 0`,
-    padding: MEASURE_BOX_PADDING,
 
     selectors: {
         "&::after": {

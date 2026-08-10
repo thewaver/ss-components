@@ -5,7 +5,7 @@ import { Anchor } from "../../Abstracts/Anchor/Anchor";
 import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { FocusUtils } from "../../Abstracts/Focus/Focus.utils";
-import { useViewportContext } from "../Viewport/Viewport.context";
+import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
 import type { PopoverProps } from "./Popover.types";
 
 import * as styles from "./Popover.css";

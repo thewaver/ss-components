@@ -4,9 +4,9 @@ import { createEffect, createMemo, createSignal, onCleanup, onMount } from "soli
 import { A, Route, type RouteSectionProps, Router } from "@solidjs/router";
 import { FunctionUtils, Size2d, StringUtils } from "@thewaver/ss-utils";
 
+import { Viewport } from "../../Lib/Exotics/Viewport/Viewport";
 import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
 import type { Tab } from "../../Lib/Fundamentals/Tabs/Tabs.types";
-import { Viewport } from "../../Lib/Fundamentals/Viewport/Viewport";
 import { PageTextField } from "./PageComponents/Field/Field";
 import { AccordionPage } from "./Pages/AccordionPage/AccordionPage";
 import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
@@ -56,9 +56,39 @@ const isComponentConfig = (config: TabConfig): config is ComponentTabConfig => "
 
 const componentToRouteName = (name: string) => `/${StringUtils.camelToKebabCase(name)}`;
 
+const SHOW_COMPOSITES = false;
 const SEARCH_FIELD_WIDTH = 200;
 
 const TAB_CONFIGS: TabConfig[] = [
+    {
+        name: "Exotics",
+    },
+    {
+        name: "CellAnimation",
+        component: () => <CellAnimationPage />,
+    },
+    /*
+    {
+        name: "RichText",
+        component: () => null,
+    },
+    */
+    {
+        name: "ScanlineAnimation",
+        component: () => <ScanlineAnimationPage />,
+    },
+    {
+        name: "ScreenWiper",
+        component: () => <ScreenWiperPage />,
+    },
+    {
+        name: "Shape",
+        component: () => <ShapePage />,
+    },
+    {
+        name: "TypeWriter",
+        component: () => <TypewriterPage />,
+    },
     {
         name: "Fundamentals",
     },
@@ -79,10 +109,6 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "Calendar",
         component: () => <CalendarPage />,
-    },
-    {
-        name: "CellAnimation",
-        component: () => <CellAnimationPage />,
     },
     {
         name: "Checkbox",
@@ -148,27 +174,9 @@ const TAB_CONFIGS: TabConfig[] = [
         name: "Range",
         component: () => <RangePage />,
     },
-    /*
-    {
-        name: "RichText",
-        component: () => null,
-    },
-    */
-    {
-        name: "ScanlineAnimation",
-        component: () => <ScanlineAnimationPage />,
-    },
-    {
-        name: "ScreenWiper",
-        component: () => <ScreenWiperPage />,
-    },
     {
         name: "Select",
         component: () => <SelectPage />,
-    },
-    {
-        name: "Shape",
-        component: () => <ShapePage />,
     },
     {
         name: "TextArea",
@@ -186,17 +194,17 @@ const TAB_CONFIGS: TabConfig[] = [
         name: "Toggle",
         component: () => <TogglePage />,
     },
-    {
-        name: "TypeWriter",
-        component: () => <TypewriterPage />,
-    },
-    {
-        name: "Composites",
-    },
-    {
-        name: "Surface",
-        component: () => <SurfacePage />,
-    },
+    ...(SHOW_COMPOSITES
+        ? [
+              {
+                  name: "Composites",
+              },
+              {
+                  name: "Surface",
+                  component: () => <SurfacePage />,
+              },
+          ]
+        : []),
 ];
 
 const TAB_CONFIGS_BY_ROUTE = Object.fromEntries(
@@ -273,7 +281,7 @@ export function AppContent(props: RouteSectionProps) {
     );
 }
 
-const SIZE_ANCHOR = 1080;
+const SIZE_ANCHOR = window.screen.height;
 
 const getWindowInnerSize = () => ({ width: window.innerWidth, height: window.innerHeight });
 

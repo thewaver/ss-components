@@ -1,4 +1,4 @@
-import { CellAnimation } from "../../../../../Lib/Fundamentals/CellAnimation/CellAnimation";
+import { CellAnimation } from "../../../../../Lib/Exotics/CellAnimation/CellAnimation";
 import { CellAnimationKeyframes } from "../../../Samples/CellAnimation.const";
 import { CellAnimationBreakpoints } from "../../../Samples/CellAnimationBreakpoints.const";
 import type { CellAnimationExampleProps } from "../CellAnimationPage.types";

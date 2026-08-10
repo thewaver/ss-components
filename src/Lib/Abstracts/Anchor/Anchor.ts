@@ -3,7 +3,7 @@ import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
 import { type Point2d, Rect, Size2d } from "@thewaver/ss-utils";
 
-import { useViewportContext } from "../../Fundamentals/Viewport/Viewport.context";
+import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
 import { ElementObserver } from "../ElementObserver/ElementObserver";
 import type { AnchorPlacement } from "./Anchor.types";
 import { AnchorUtils } from "./Anchor.utils";
