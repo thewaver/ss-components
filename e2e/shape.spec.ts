@@ -20,17 +20,24 @@ test.beforeEach(async ({ page }) => {
 test("it draws a fill layer and a stroke layer over the same box", async ({ page }) => {
     await expect(page.locator(LAYERS), "a fill layer and a stroke layer, in that order").toHaveCount(2);
 
-    const box = (await page.locator(DEFAULT).locator("svg").first().boundingBox())!;
+    const box = await page
+        .locator(LAYERS)
+        .first()
+        .evaluate((svg) => {
+            const root = svg.parentElement!;
+
+            return { width: root.offsetWidth, height: root.offsetHeight };
+        });
 
     for (const index of [0, 1]) {
         const layer = page.locator(LAYERS).nth(index);
 
         expect(
             Number(await layer.getAttribute("width")),
-            "the layer is sized from the measured box rather than from a prop",
-        ).toBe(Math.round(box.width));
+            "the layer is sized from the root's own layout box rather than from a prop",
+        ).toBe(box.width);
         expect(await layer.getAttribute("viewBox"), "and its viewBox matches, so nothing is scaled twice").toBe(
-            `0 0 ${Math.round(box.width)} ${Math.round(box.height)}`,
+            `0 0 ${box.width} ${box.height}`,
         );
     }
 });

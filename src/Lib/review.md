@@ -23,6 +23,7 @@ having done the work does not go anywhere.
 13. Planned: strip `style.css`, add a theme, and add opinionated control presets — _planned_
 14. `ImageSwitcher` draws a broken-image icon when its `src` is cleared — _open_
 15. A stepper cannot repeat while held, because `Button` has no press event — _open_
+16. `Toasts` — six things deliberately not built — _open_
 
 ### Build order
 
@@ -31,7 +32,7 @@ a thing reuses**: anything that is a preset or a composition of what already wor
 that needs a new primitive, and anything blocked on an architectural decision comes last, so the
 decision is made once with several consumers in view rather than inferred from the first one.
 
-Two things break that ordering on purpose, and both are noted where they fall.
+One thing breaks that ordering on purpose, and it is noted where it falls.
 
 **Tier 2 — new components whose every mechanism already exists somewhere.**
 
@@ -59,9 +60,6 @@ primitive privately inside them.
   whose cost _grows_ with delay: every control built without it grows its own half of error and validation
   plumbing, and each becomes a retrofit. `Progress`, `FileInput`, `ColorInput` and the two `Modal` presets
   each carry their own `hasError` with nothing on the other end of it.
-- **Toasts are not blocked by any primitive, only by a shape decision** — an out-of-tree queue and an API
-  that is called rather than bound, which nothing here has. That makes them schedulable at any point, and
-  worth doing standalone rather than wedged next to something else.
 - **`Table` / data grid stays out of scope**, and specifically must not arrive as a by-product of
   `Tree` or of virtualization.
 
@@ -263,20 +261,14 @@ shift across a boundary.
 
 `Fundamentals/Input` covers `TextInput`, `TextArea`, `NumberInput`, `Checkbox`, `Toggle`, `Radio`,
 `RadioGroup`, `Select`, `MultiSelect`, `FileInput`, `ColorInput` and `Label`; `Fundamentals` adds
-`Button`, `Tabs`, `Tooltip`, `Popover`, `Menu`, `Modal`, `Drawer`, `AlertDialog`, `Progress` and `Range`.
+`Button`, `Tabs`, `Tooltip`, `Popover`, `Menu`, `Modal`, `Drawer`, `AlertDialog`, `Progress`, `Range` and
+`Toasts`.
 Beyond item 8, this is what is missing, ordered by how much of it is a new architectural problem rather
 than by how much markup it is.
 
 **This list cannot be inferred from the Playground**, and reading it as the evidence for what is missing
 is the trap: every control on every page and in every props panel is now a library control, so the
 Playground has nothing left to say about what the library lacks.
-
-### Overlays and feedback
-
-**Toasts.** The only item here whose hard part is not the markup: a notification stack needs a queue
-that outlives the component that raised it, which means state owned outside the tree and an API that is
-called rather than bound. Every control here takes signals in props; nothing has ever been imperative.
-That shape is the decision, and it should be made before any of it is built.
 
 ### Structure
 
@@ -499,3 +491,39 @@ focus ring, the flags and the tooltip anchoring that made `Button` worth having.
 Parked **2026-08-10**: the pointer handlers on `Button` are the direction, not the painter writing its
 own element — but it is a change to a shipped control's surface, so it waits for its own turn rather than
 riding along with `NumberInput`.
+
+---
+
+## 16. `Toasts` — six things deliberately not built
+
+The decisions behind what exists are in `conventions.md` under the two `Toasts` headings. These are the
+gaps, each with the reason it is still a gap.
+
+- **Urgency is per region, not per toast.** One region carries one `aria-live` politeness, so an error
+  cannot be assertive while a confirmation stays polite. A consumer needing both mounts two `Toasts` with
+  two queues, which is the honest answer — nesting an assertive announcement inside a polite region is
+  not reliably handled. Making it a record field would mean either two regions the component owns
+  privately or moving a live region per entry, which announces on every re-render.
+- **There is no keyboard route into the stack.** The published pattern gives one (`F6` to jump to the
+  notification region and back). What exists instead is that auto-dismiss is held while anything inside
+  the region has focus, which covers the hazard that actually bites — a toast cannot vanish out from
+  under the button someone is reaching for — but a keyboard user cannot get to a toast they have not
+  tabbed into by accident.
+- **A pile cannot overlap by measured height.** `index` and `count` are enough for a fixed peek
+  distance, but a painter that wants each card offset by the height of the one in front of it needs its
+  neighbours' measured heights and can only measure itself. That is the same measuring `Abstract` item 10
+  wants for auto-height animation, from a different direction.
+- **Nothing pauses when the tab is hidden.** Timers still run in a background tab, so a burst raised
+  while the tab is not being looked at will have expired by the time it is. `visibilitychange` would fix
+  it in a handful of lines; whether that is wanted is a product decision rather than a correctness one,
+  which is why it is here rather than done.
+- **No per-toast lifecycle callbacks.** `Modal` has `onShow` and `onHide`. Here the consumer owns the
+  list, so an effect over their own signal sees every arrival and departure — but not the transition
+  boundaries, which is what those callbacks actually report.
+- **An id re-added while it is leaving fades back in** rather than restarting as a new entry, because the
+  id never left the rendered list. It is the reasonable behaviour and it is not obvious, so it is written
+  down rather than left to be rediscovered.
+
+The pause arithmetic is also the one behaviour with no automated cover: `e2e/toasts.spec.ts` asserts that
+the `isPaused` flag reaches the painter, which is what the DOM can show, but nothing checks that a toast
+paused half way through actually gets its remaining half rather than a fresh full duration.

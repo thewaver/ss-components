@@ -100,7 +100,7 @@ test("an empty field has no value rather than zero", async ({ page }) => {
 
 test("a typed value is clamped when the field is left, not while it is typed", async ({ page }) => {
     await page.locator(QUANTITY).focus();
-    await page.keyboard.press("Control+a");
+    await page.keyboard.press("ControlOrMeta+a");
     await page.keyboard.type("999");
     expect(
         await inputValue(page.locator(QUANTITY)),

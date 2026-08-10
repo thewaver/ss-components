@@ -2320,3 +2320,155 @@ clears the previous one instead of leaving it stuck, and it zips each value agai
 `z-index` from weight so earlier ones layer above later ones while they overlap; without
 `isolation: isolate` on the container those values escape into the nearest ancestor stacking context.
 In the Playground they landed in the stress test modal's context and painted over its FPS counter.
+
+### Controls: `Toasts`, and a queue the consumer owns
+
+Settled **2026-08-10**. It closes the shape question `review.md` had toasts parked on, and the answer is
+that the question rested on a premise that does not hold here.
+
+**`review.md` claimed toasts needed "an out-of-tree queue and an API that is called rather than bound,
+which nothing here has". Both halves were already covered by settled conventions.** "Out of tree" is a
+signal created outside any component — `createRoot(() => createSignal<Toast<T>[]>([]))`, which
+`Viewport.context.ts` already does for its fallback context — so the list outlives whatever raised a
+notification without the library owning anything. "Called rather than bound" is what a signal's setter
+already is: `queue[1]((prev) => [...prev, toast])` is an imperative call from arbitrary code with no
+component in scope. What the note was actually reaching for is sugar — `toast.error("…")` — and that is
+the layer _"Planned: strip `style.css`…"_ files under a consumer who has been met. A library that has not
+met them should not pick their vocabulary.
+
+So the prop is `toastsSignal: Signal<Toast<T>[]>`, per _"Signal tuples for two-way state"_.
+
+**The division of writes is what makes the two-way signal correct rather than convenient.** The consumer
+is the only thing that adds; the component is the only thing that removes — a duration elapsing, and the
+limit being exceeded. One variable, both sides write, neither can disagree with the other, which is
+`Modal`'s `visibilitySignal` argument with a list instead of a boolean.
+
+It also settles an ownership question no other shape answers cleanly. If the consumer owned the list
+outright and the component only reported, "show at most three" would be enforced consumer-side — making
+queue policy the consumer's job, when policy is behaviour and behaviour is the shell's. If the component
+owned the list privately, nothing could raise a toast without a handle to a mounted component. A shared
+signal is the only arrangement where the component enforces policy by writing something the consumer can
+see.
+
+**A controller handed over at mount was available and is deliberately not used.** The `onMount` shape
+`AudioSwitcher`, `Typewriter` and `ScanlineAnimation` use issues commands to a mounted thing — play,
+restart. A queue is state, and state that has to outlive the mount cannot be reached through a handle the
+mount gives out.
+
+**The component keeps everything with a clock**: the enter transition, which needs a painted frame at the
+pre-transition value first and is `ElementFader` unchanged; the retention window, during which an entry
+that has already left the consumer's list stays mounted to play its exit; the auto-dismiss duration and
+its pausing; and the limit.
+
+**Duration lives on the record and nowhere else — there is no component-wide default.** `Toast<T>` is
+`{ id, value, durationMs? }`, and an absent `durationMs` means the toast waits to be dismissed. A default
+prop would make per-toast stickiness inexpressible, since `undefined` would then read as "use the
+default" and there would be no second spelling for "never" that was not a magic number. A consumer who
+wants four seconds everywhere puts it in the push helper they already have. This is _"the absent value is
+the mode"_ from `Progress`, and unlike a silent semantic change it fails visibly: a toast with no duration
+sits there until closed.
+
+**`id` is a separate field rather than identity living on `value`.** `Tabs` keys on `value` because two
+tabs with the same value are meaningless. Two identical toasts are entirely meaningful — "Saved" twice in
+a row happens — so keying on value would collapse them into one, or make a change look like no change.
+That is the invisible-failure shape this log keeps refusing.
+
+**One piece of internal state: the ordered list of rendered ids**, which is the admitted list plus the
+ids still playing their exit. Everything else derives — an id absent from the admitted list is leaving.
+Ids are strings, so `<For>` keys them by value and each entry keeps a stable node whatever the consumer
+does with record references; the problem that forced `Tabs` onto `<Index>` does not arise. The record for
+an id is latched inside the `<For>` callback, so an entry keeps painting its last known content while it
+fades out.
+
+**An unexported `ToastsItem` leaf per entry**, in the `TabsItem` shape, owning its own `ElementFader` and
+its own duration timer so both are disposed with the entry rather than accumulating in a container that
+lives as long as the application. It reports upward once its exit transition has finished, and the
+container drops the id then.
+
+**The duration timer arms and disarms through `onCleanup` inside its own effect, and that is load-bearing
+rather than stylistic.** The first version cleared a timeout at the top of the effect and only measured
+elapsed time when pausing, which meant the clock restarted from full whenever the effect re-ran — and it
+re-ran on every array change, because it read whether the entry was exiting. Three toasts raised together
+therefore dismissed one and reset the other two, indefinitely. Arming inside the effect and subtracting
+the elapsed time in its cleanup makes the arithmetic correct regardless of _why_ the effect re-runs, and
+the dependency set shrinks to the two things that should drive it: the duration and whether it is paused.
+Found by driving the page, invisible to every type and DOM assertion.
+
+**Pausing is region-wide and forced.** Hovering or focusing anywhere in the region holds every countdown;
+there is no prop to switch it off. Focus is the half that matters — a toast must not vanish out from under
+the button someone is reaching for. The listeners are `mouseover` / `mouseout` and `focusin` / `focusout`
+on the region with a `relatedTarget` containment guard, **not** `mouseenter` / `mouseleave`, because the
+region is `pointer-events: none` so it is never itself a hit-test target; bubbling from the entries is the
+only thing that reaches it.
+
+### `Toasts`: what the painter gets, and why position is not fully delegated
+
+**`renderToast(getToast, getVisibilityTarget, getTransitionDurationMs, getState)` opens with `Modal`'s
+contract, in `Modal`'s order.** A consumer's toast painter and their modal painter are the same kind of
+object — something that transitions itself between two states over a duration it was handed — and
+spelling that two ways would be _"two contracts under one name"_ inverted: one contract under two shapes.
+Four arguments is not new; `InteractionTooltipDefs.renderContent` already takes four with the same
+ordering, transition pair first and context after. `getToast` is an accessor and comes first, following
+`Tabs.renderTab`, because a consumer may replace the record for an id — "Uploading" becoming "Uploaded" —
+and the painter has to see that without its node remounting and restarting the entry animation.
+
+**`ToastState` is `{ index, count, isPaused }`, and those are the stacking hints.** `index` and `count`
+are the pair everything positional derives from: the number of cards in front of an entry is
+`count - 1 - index`, and newest-ness is a comparison against the ends. `index` is queue position, oldest
+first, independent of `getDir` — the consumer sets the direction so they can map it to visual order.
+Both are inside the reactive record rather than passed plain like `Tabs.renderTab`'s index, because they
+change while an entry is mounted: removing the first toast renumbers everything behind it, and a painter
+animating that shift has to re-read. `isPaused` is there so a painter drawing a countdown can hold it;
+the countdown itself is the painter's, for `Progress`'s reason — a library-owned clock would burn frames
+handing over a phase that `@keyframes` plus `animation-play-state` gives for free.
+
+**Nothing says _why_ an entry is leaving** — elapsed, closed, or pushed out by the limit. A painter that
+drew those differently would be animating a distinction the reader cannot act on.
+
+**Nothing carries a dismiss action, and that is not an omission.** The consumer owns the signal, so the
+close button their painter draws removes the entry from their own list, and the exit transition still
+plays because the component holds the entry through it. A callback would be a second route to something
+they already have.
+
+**Position cannot be fully delegated, and the reason is the live region rather than the geometry.** A
+notification region only announces content inserted into it if the element was already in the document,
+so it has to be a persistent element the component mounts once and keeps — and it has to be the
+component's element, by the same rule that keeps `Select`'s `<div role="group">` out of consumer markup,
+with more force here because a subtly wrong live region fails silently. Given the element is the
+component's, delegating its position would mean accepting a class name or a style object for it, and
+`TextInput` already argued that out: it rejected `computeClassName` and accepted a whitelisted style
+object _only_ because text the browser draws had no other hook. Here there is another hook, and three
+components use it — `Modal` with `getAlignment` and `getMargins`, `Drawer` with `getEdge`, `Label` with
+`getDir` and `getGap`. `Modal`'s entry states the rule: placement is geometry, not paint.
+
+So the region is a viewport-sized layer in the `Viewport` portal that paints nothing and clicks through,
+and four geometry props place the stack inside it: `getAlignment` (nine positions, three vertical by
+three horizontal), `getDir` (which end new entries enter from and whether the stack runs down an edge or
+along one), `getGap`, and `getMargins`. Each entry sits in a minimal library box that re-enables pointer
+events and is the flex item; it carries no role, since politeness is set once on the region and a role
+per entry would announce twice.
+
+**Alignment is independent of direction, and `ToastsUtils.computeStackAlignment` is what keeps it that
+way.** A reversed flex direction inverts "start" on the main axis, so a naive mapping would make
+`bottom-right` name different corners depending on `getDir`. The function flips the main axis alone,
+which is exact arithmetic over two enums rather than an approximation, and it is the one part of this
+component reachable from `npm test`.
+
+**Flow stacking is the geometry props; an overlapping pile is the painter's**, offsetting and scaling
+itself off `index` and `count`, which works for a fixed peek distance. Overlapping by each card's own
+measured height does not work and is recorded in `review.md` rather than half-solved.
+
+**Toasts sit above dialogs** — `z-index` 200 against `Modal`'s 100 — because a toast routinely reports
+the outcome of the action a dialog just took.
+
+**`getLimit` is written out as `Accessor<number | undefined>` rather than left to `AccessorProps`**, for
+the hole recorded under _"`AccessorProps`"_: an optional prop whose own value may be `undefined` cannot
+pass through the mapped type, and "no limit" is a value a consumer switches to at runtime rather than a
+prop they omit. `getAriaLabel` is **required**, since a `role="region"` with no name is not exposed as a
+landmark at all.
+
+**`getOverflow` keeps both queue behaviours rather than picking one.** `dismiss-oldest` writes the excess
+out of the consumer's list so the newest is what is on screen; `hold-newest` renders only the limit and
+leaves the rest queued, entering as slots free. They are genuinely different products — latest-news
+versus lose-nothing — and the request for a prop rather than a default is why both exist. Held entries are
+not rendered at all, so they run no clock, which falls out of the design rather than needing a rule.

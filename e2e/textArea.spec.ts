@@ -58,7 +58,7 @@ test("an auto-sizing field grows with what is typed and shrinks back", async ({ 
     expect(grown, "three lines need more room than the two it starts at").toBeGreaterThan(empty);
     expect(await isScrolling(page.locator(GROWING)), "and it grew instead of scrolling").toBe(false);
 
-    await page.keyboard.press("Control+a");
+    await page.keyboard.press("ControlOrMeta+a");
     await page.keyboard.press("Backspace");
     expect(await offsetHeight(page.locator(GROWING)), "emptying it returns to the row floor").toBe(empty);
 });

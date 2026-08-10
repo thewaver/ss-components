@@ -52,25 +52,28 @@ test("the hole is the element plus the padding the consumer asked for", async ({
         .locator(HIGHLIGHT_CORNERS)
         .first()
         .evaluate((polygon) => {
-            const rect = polygon.closest("div")!.parentElement!.parentElement!.getBoundingClientRect();
+            const box = polygon.closest("div")!.parentElement!.parentElement!;
 
-            return { width: rect.width, height: rect.height };
+            return { width: box.offsetWidth, height: box.offsetHeight };
         });
 
     const container = await page
         .locator(TRIGGER)
         .first()
         .evaluate((button) => {
-            const rect = button.parentElement!.getBoundingClientRect();
+            const box = button.parentElement!;
 
-            return { width: rect.width, height: rect.height };
+            return { width: box.offsetWidth, height: box.offsetHeight };
         });
 
     expect(
-        Math.round(decoration.width - container.width),
+        decoration.width - container.width,
         "getPadding returns 20, which has to be applied on both sides rather than once",
     ).toBe(40);
-    expect(Math.round(decoration.height - container.height)).toBe(40);
+    expect(
+        decoration.height - container.height,
+        "and both boxes are read in layout space, since a client rect carries the Viewport's scale",
+    ).toBe(40);
 });
 
 test("Escape closes it from anywhere on the page", async ({ page }) => {

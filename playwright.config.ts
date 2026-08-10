@@ -4,9 +4,12 @@ const PORT = 4173;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 
 /**
- * `Viewport` scales its content to the window, so a window whose aspect ratio matches the one the
- * Playground derives from it puts the scale at exactly 1 and leaves client coordinates equal to layout
- * coordinates. Any other size still works, but a scale of 1 keeps a failure readable.
+ * `Viewport` scales its content to the window, and the scale is almost never 1: it is 1 only when the
+ * window's **height** equals the Playground's own `SIZE_ANCHOR`, since the derived viewport always
+ * matches the window's aspect ratio and `RectUtils.fit` scales up as readily as down. So a client rect
+ * measured here — `boundingBox`, `getBoundingClientRect` — is the layout value times that factor, which
+ * reads as a component measuring itself wrong. **Assert geometry in layout space** (`offsetWidth`,
+ * `offsetHeight`, an inline style the component wrote) and the size of this window stops mattering.
  */
 const WINDOW_SIZE = { width: 1600, height: 1200 };
 

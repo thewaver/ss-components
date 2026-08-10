@@ -31,6 +31,7 @@ import { ShapePage } from "./Pages/ShapePage/ShapePage";
 import { SurfacePage } from "./Pages/SurfacePage/SurfacePage";
 import { TextAreaPage } from "./Pages/TextAreaPage/TextAreaPage";
 import { TextInputPage } from "./Pages/TextInputPage/TextInputPage";
+import { ToastsPage } from "./Pages/ToastsPage/ToastsPage";
 import { TogglePage } from "./Pages/TogglePage/TogglePage";
 import { TypewriterPage } from "./Pages/TypewriterPage/TypewriterPage";
 
@@ -156,6 +157,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "TextInput",
         component: () => <TextInputPage />,
+    },
+    {
+        name: "Toasts",
+        component: () => <ToastsPage />,
     },
     {
         name: "Toggle",
