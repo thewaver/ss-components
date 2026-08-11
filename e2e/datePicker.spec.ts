@@ -4,6 +4,7 @@ import { inputValue, readout, variant } from "./helpers";
 
 const TYPED = variant("Typed only");
 const LOCALE = variant("Day first");
+const ERA = variant("Before the common era");
 const PICKED = variant("With a calendar");
 const BOUNDED = variant("Bounded");
 const TIME = variant("A time, typed or stepped");
@@ -13,7 +14,7 @@ const SHIFT = variant("Within opening hours");
 const POPUP = '[role="dialog"]';
 
 const field = (scope: string) => `${scope} input`;
-const trigger = (scope: string) => `${scope} button`;
+const trigger = (scope: string) => `${scope} button[aria-label="Open the calendar"]`;
 const day = (label: string) => `${POPUP} [role="gridcell"][aria-label="${label}"]`;
 
 /**
@@ -352,5 +353,74 @@ test.describe("a twelve-hour field", () => {
             "and the toggle follows the value rather than being set twice",
         ).toHaveAttribute("aria-label", "Before or after noon: AM");
         expect(await inputValue(page.locator(field(TWELVE))), "with the text reading twelve, not zero").toBe("12:30");
+    });
+});
+
+/**
+ * The era is a control in the field's leading slot rather than a segment of the mask, so the mask stays
+ * digits-only and the year the field spells is the year *within* the era. Locating the control by the start of
+ * its accessible name keeps these tests independent of the era's display name, which is the locale's to choose.
+ */
+test.describe("eras and other calendar systems", () => {
+    const prop = (label: string) => `[data-prop="${label}"]`;
+    const option = '[role="listbox"] [role="option"]';
+    const eraButton = (scope: string) => `${scope} button[aria-label^="Era:"]`;
+
+    const chooseProp = async (page: import("@playwright/test").Page, label: string, text: string) => {
+        await page.locator(`${prop(label)} [role="combobox"]`).click();
+        await page.locator(option, { hasText: text }).first().click();
+    };
+
+    test("spells a year before the common era as a positive year beside its era", async ({ page }) => {
+        expect(await inputValue(page.locator(field(ERA))), "four digits, and no sign among them").toBe("0044-03-15");
+        await expect(page.locator(eraButton(ERA)), "the era is named beside the digits").toHaveText("BC");
+        expect(await readout(page, "Before the common era"), "and the value is the astronomical year").toContain(
+            "value: -000043-03-15",
+        );
+    });
+
+    test("moving the era keeps the year and lands on a different real date", async ({ page }) => {
+        await page.locator(eraButton(ERA)).click();
+
+        await expect(page.locator(eraButton(ERA))).toHaveText("AD");
+        expect(await readout(page, "Before the common era")).toContain("value: 0044-03-15");
+        expect(await inputValue(page.locator(field(ERA))), "the digits are untouched by the era moving").toBe(
+            "0044-03-15",
+        );
+    });
+
+    test("a typed date is re-expressed when the calendar system changes", async ({ page }) => {
+        expect(await inputValue(page.locator(field(TYPED)))).toBe("2026-08-10");
+
+        await chooseProp(page, "Calendar", "japanese");
+
+        expect(
+            await inputValue(page.locator(field(TYPED))),
+            "the same day, counted inside the era the Japanese calendar is in",
+        ).toBe("0008-08-10");
+        expect(await readout(page, "Typed only"), "and the value itself has not moved").toContain("value: 2026-08-10");
+    });
+
+    test("offers the calendar's own era list rather than a pair", async ({ page }) => {
+        await chooseProp(page, "Calendar", "japanese");
+
+        await expect(page.locator(eraButton(TYPED)), "a date in 2026 is in the current era").toHaveText("reiwa");
+
+        await page.locator(eraButton(TYPED)).click();
+
+        await expect(
+            page.locator(eraButton(TYPED)),
+            "and cycling past the last of five wraps to the first rather than toggling a pair",
+        ).toHaveText("meiji");
+    });
+
+    test("typing a date in another calendar reads back as that calendar's date", async ({ page }) => {
+        await chooseProp(page, "Calendar", "hebrew");
+        await typeInto(page, field(TYPED), "5784-06-01");
+
+        expect(
+            await readout(page, "Typed only"),
+            "Adar I of a leap year is a real month and lands a real day",
+        ).toContain("value: 2024-02-10");
     });
 });

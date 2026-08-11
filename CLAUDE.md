@@ -50,6 +50,15 @@ recommendation. An acknowledgement or a decision is one or two lines. Do not rec
 do not re-list open items they have already seen, and do not close by offering next steps unless asked.
 Detail belongs in the files, not repeated in chat.
 
+**A choice between approaches is a pros-and-cons list, not prose.** Asked for on **2026-08-11**, after three
+prose answers in a row were called too verbose. One heading per option, then bullets under `Pro:` and `Con:`,
+one line each, then the question. No paragraphs around it, no preamble, no recommendation dressed as
+narrative — the trade-offs stand side by side so they can be compared by eye. If an option is a non-starter
+it still gets listed with the reason as its con, rather than argued away in a sentence above the list.
+
+The reasoning that would have gone into those paragraphs goes into `review.md` or `conventions.md`, which is
+where length is wanted.
+
 **Surface one decision at a time.** A long batched list of issues does not land; a single well-argued
 question does. They often work by voice and read in short bursts, so a bundled reply means the important
 item competes with three others and none land. When several decisions genuinely exist, say there are N
@@ -139,7 +148,11 @@ are decisions backed by benchmarks you cannot see. Flag a concern; do not change
   record of arguments already had, so they are not re-litigated. Before making an architectural call,
   check whether it is already there; after making a new one, add it.
 - **`review.md`** — outstanding work: bugs, smells, missing implementation, pending decisions. Numbered
-  and contiguous from 1.
+  and contiguous from 1. Its last section, **_Accepted limits_**, is the exception: faults consciously left
+  alone, unnumbered and outside the index. **They are not "what's left".** Do not raise one in a report on the
+  state of the project, do not re-argue the trade, and do not weigh one against real work — say something only
+  if a change has made the recorded reasoning wrong. Moving an item into that section is the user's decision to
+  take, never a way to retire an item that has gone quiet.
 
 **When an item in `review.md` is done or dropped, delete it outright** and renumber the rest. Nothing is
 marked "resolved" in place. If closing it settled a decision that drives future work, that decision moves

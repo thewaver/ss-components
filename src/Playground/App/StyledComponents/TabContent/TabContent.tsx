@@ -1,10 +1,10 @@
 import type { ParentProps } from "solid-js";
 
+import { TabPanel } from "../../../../Lib";
 import type { TabPanelProps } from "../../../../Lib/Fundamentals/Tabs/Tabs.types";
 import type { TabContentProps, TabDecorationProps } from "./TabContent.types";
 
 import * as styles from "./TabContent.css";
-import { TabPanel } from "../../../../Lib";
 
 export const PageTabContent = (props: ParentProps<TabContentProps>) => (
     <div

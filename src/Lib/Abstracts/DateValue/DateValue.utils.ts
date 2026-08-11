@@ -1,66 +1,139 @@
-import type { DateValue, DateValueMonthGrid, DateValueWeekStart, DateValueWeekdayWidth } from "./DateValue.types";
+import {
+    CalendarDate,
+    createCalendar,
+    getLocalTimeZone,
+    isSameDay,
+    startOfMonth,
+    toCalendar,
+    toCalendarDate,
+    fromDate as toDateValue,
+} from "@internationalized/date";
+
+import type {
+    DateValue,
+    DateValueCalendarId,
+    DateValueEra,
+    DateValueMonthGrid,
+    DateValueParts,
+    DateValueWeekStart,
+    DateValueWeekdayWidth,
+} from "./DateValue.types";
 
 const DAYS_PER_WEEK = 7;
-const MONTHS_PER_YEAR = 12;
 const GRID_WEEKS = 6;
-const MIDDAY_HOUR = 12;
-const ANCHOR_YEAR = 2000;
+const DEFAULT_CALENDAR_ID: DateValueCalendarId = "gregory";
 const ISO_PATTERN = /^(\d{4}|[+-]\d{6})-(\d{2})-(\d{2})$/;
-const ISO_PART_DIGITS = 2;
-const ISO_YEAR_DIGITS = 4;
-const ISO_EXPANDED_YEAR_DIGITS = 6;
-const ISO_MIN_PLAIN_YEAR = 0;
-const ISO_MAX_PLAIN_YEAR = 9999;
+const ERA_SEARCH_MIN_YEAR = -5000;
+const ERA_SEARCH_MAX_YEAR = 5000;
 
-const buildLocalDate = (year: number, month: number, day: number) => {
-    const date = new Date(ANCHOR_YEAR, 0, 1, MIDDAY_HOUR);
+const CALENDAR_IDS: DateValueCalendarId[] = [
+    "gregory",
+    "buddhist",
+    "coptic",
+    "ethiopic",
+    "ethioaa",
+    "hebrew",
+    "indian",
+    "islamic-civil",
+    "islamic-tbla",
+    "islamic-umalqura",
+    "japanese",
+    "persian",
+    "roc",
+];
 
-    date.setFullYear(year, month, day);
+const eraCache = new Map<string, DateValueEra[]>();
+const monthNameCache = new Map<string, string[]>();
 
-    return date;
+const getCalendarOf = (id: DateValueCalendarId) => createCalendar(id);
+
+const fromAstronomicalYear = (year: number, month: number, day: number) =>
+    year > 0 ? new CalendarDate(year, month, day) : new CalendarDate("BC", 1 - year, month, day);
+
+const getEraIndexAt = (id: DateValueCalendarId, isoYear: number) => {
+    const calendar = getCalendarOf(id);
+    const at = toCalendar(fromAstronomicalYear(isoYear, 1, 1), calendar);
+
+    return calendar.getEras().indexOf(at.era);
 };
 
-const toLocalDate = (value: DateValue) => buildLocalDate(value.year, value.month - 1, value.day);
+const findEraAnchor = (id: DateValueCalendarId, eraIndex: number) => {
+    let low = ERA_SEARCH_MIN_YEAR;
+    let high = ERA_SEARCH_MAX_YEAR;
 
-const toIsoYear = (year: number) => {
-    if (year >= ISO_MIN_PLAIN_YEAR && year <= ISO_MAX_PLAIN_YEAR) {
-        return `${year}`.padStart(ISO_YEAR_DIGITS, "0");
+    while (low < high) {
+        const middle = Math.floor((low + high) / 2);
+
+        if (getEraIndexAt(id, middle) < eraIndex) low = middle + 1;
+        else high = middle;
     }
 
-    return `${year < 0 ? "-" : "+"}${`${Math.abs(year)}`.padStart(ISO_EXPANDED_YEAR_DIGITS, "0")}`;
+    return toCalendar(fromAstronomicalYear(low, 1, 1), getCalendarOf(id));
 };
 
 export namespace DateValueUtils {
+    export const getCalendarIds = () => [...CALENDAR_IDS];
+
+    export const getCalendarId = (value: DateValue) => value.calendar.identifier as DateValueCalendarId;
+
+    export const withCalendar = (value: DateValue, id: DateValueCalendarId) =>
+        toCalendar(value, getCalendarOf(id)) as DateValue;
+
     export const isSame = (a: DateValue | undefined, b: DateValue | undefined) =>
-        a?.year === b?.year && a?.month === b?.month && a?.day === b?.day;
+        a === undefined || b === undefined ? a === b : isSameDay(a, b);
 
-    export const compare = (a: DateValue, b: DateValue) => a.year - b.year || a.month - b.month || a.day - b.day;
+    export const compare = (a: DateValue, b: DateValue) => a.compare(b);
 
-    export const fromDate = (date: Date): DateValue => ({
-        year: date.getFullYear(),
-        month: date.getMonth() + 1,
-        day: date.getDate(),
-    });
+    export const fromDate = (date: Date, id: DateValueCalendarId = DEFAULT_CALENDAR_ID) =>
+        withCalendar(toCalendarDate(toDateValue(date, getLocalTimeZone())), id);
 
-    export const toDate = (value: DateValue) => toLocalDate(value);
+    export const toDate = (value: DateValue) => value.toDate(getLocalTimeZone());
 
-    export const getDaysInMonth = (year: number, month: number) => buildLocalDate(year, month, 0).getDate();
+    export const getEras = (value: DateValue, locale?: string): DateValueEra[] => {
+        const id = getCalendarId(value);
+        const key = `${id}:${locale ?? ""}`;
+        const cached = eraCache.get(key);
 
-    export const addDays = (value: DateValue, days: number): DateValue => {
-        const date = toLocalDate(value);
+        if (cached) return cached;
 
-        date.setDate(date.getDate() + days);
+        const ids = getCalendarOf(id).getEras();
+        const formatter = new Intl.DateTimeFormat(locale, {
+            era: "long",
+            year: "numeric",
+            calendar: id,
+            timeZone: getLocalTimeZone(),
+        });
+        const eras = ids.map((eraId, index) => {
+            const anchor = findEraAnchor(id, index);
+            const name = formatter.formatToParts(toDate(anchor)).find((part) => part.type === "era")?.value;
 
-        return fromDate(date);
+            return { id: eraId, name: name ?? eraId };
+        });
+
+        eraCache.set(key, eras);
+
+        return eras;
     };
 
-    export const addMonths = (value: DateValue, months: number): DateValue => {
-        const flat = value.year * MONTHS_PER_YEAR + (value.month - 1) + months;
-        const year = Math.floor(flat / MONTHS_PER_YEAR);
-        const month = (((flat % MONTHS_PER_YEAR) + MONTHS_PER_YEAR) % MONTHS_PER_YEAR) + 1;
+    export const withEra = (value: DateValue, era: string) => {
+        const anchor = findEraAnchor(getCalendarId(value), value.calendar.getEras().indexOf(era));
 
-        return { year, month, day: Math.min(value.day, getDaysInMonth(year, month)) };
+        return anchor.set({ year: value.year, month: value.month, day: value.day }) as DateValue;
     };
+
+    export const getMonthsInYear = (value: DateValue) => value.calendar.getMonthsInYear(value);
+
+    export const getYearsInEra = (value: DateValue) => value.calendar.getYearsInEra?.(value) ?? Infinity;
+
+    export const getDaysInMonth = (value: DateValue) => value.calendar.getDaysInMonth(value);
+
+    export const getStartOfMonth = (value: DateValue) => startOfMonth(value) as DateValue;
+
+    export const addDays = (value: DateValue, days: number) => value.add({ days }) as DateValue;
+
+    export const addMonths = (value: DateValue, months: number) => value.add({ months }) as DateValue;
+
+    export const addYears = (value: DateValue, years: number) => value.add({ years }) as DateValue;
 
     export const clamp = (value: DateValue, min?: DateValue, max?: DateValue) => {
         if (min && compare(value, min) < 0) return min;
@@ -73,15 +146,14 @@ export namespace DateValueUtils {
         (!min || compare(value, min) >= 0) && (!max || compare(value, max) <= 0);
 
     export const getWeekdayOffset = (value: DateValue, weekStartsOn: DateValueWeekStart) =>
-        (toLocalDate(value).getDay() - weekStartsOn + DAYS_PER_WEEK) % DAYS_PER_WEEK;
+        (toDate(value).getDay() - weekStartsOn + DAYS_PER_WEEK) % DAYS_PER_WEEK;
 
-    export const getMonthGrid = (year: number, month: number, weekStartsOn: DateValueWeekStart): DateValueMonthGrid => {
-        const first: DateValue = { year, month, day: 1 };
-        const start = addDays(first, -getWeekdayOffset(first, weekStartsOn));
+    export const getMonthGrid = (value: DateValue, weekStartsOn: DateValueWeekStart): DateValueMonthGrid => {
+        const anchor = getStartOfMonth(value);
+        const start = addDays(anchor, -getWeekdayOffset(anchor, weekStartsOn));
 
         return {
-            year,
-            month,
+            anchor,
             weeks: Array.from({ length: GRID_WEEKS }, (_, week) =>
                 Array.from({ length: DAYS_PER_WEEK }, (_, day) => addDays(start, week * DAYS_PER_WEEK + day)),
             ),
@@ -98,31 +170,68 @@ export namespace DateValueUtils {
         return undefined;
     };
 
-    export const toIso = (value: DateValue) =>
-        `${toIsoYear(value.year)}-${`${value.month}`.padStart(ISO_PART_DIGITS, "0")}-${`${value.day}`.padStart(ISO_PART_DIGITS, "0")}`;
+    export const toParts = (value: DateValue): DateValueParts => ({
+        calendar: getCalendarId(value),
+        era: value.era,
+        year: value.year,
+        month: value.month,
+        day: value.day,
+    });
 
-    export const fromIso = (text: string): DateValue | undefined => {
+    export const fromParts = (parts: DateValueParts): DateValue | undefined => {
+        const calendar = getCalendarOf(parts.calendar);
+
+        if (!calendar.getEras().includes(parts.era)) return undefined;
+
+        const built = new CalendarDate(calendar, parts.era, parts.year, parts.month, parts.day);
+
+        if (built.year !== parts.year || built.month !== parts.month || built.day !== parts.day) return undefined;
+
+        return built;
+    };
+
+    export const toIso = (value: DateValue) => withCalendar(value, DEFAULT_CALENDAR_ID).toString();
+
+    export const fromIso = (text: string, id: DateValueCalendarId = DEFAULT_CALENDAR_ID): DateValue | undefined => {
         const parts = ISO_PATTERN.exec(text);
 
-        if (!parts) return;
+        if (!parts) return undefined;
 
         const year = Number(parts[1]);
         const month = Number(parts[2]);
         const day = Number(parts[3]);
 
-        if (parts[1].startsWith("-") && year === 0) return;
-        if (month < 1 || month > MONTHS_PER_YEAR) return;
-        if (day < 1 || day > getDaysInMonth(year, month)) return;
+        if (parts[1].startsWith("-") && year === 0) return undefined;
 
-        return { year, month, day };
+        const built = fromAstronomicalYear(year, month, day);
+
+        if (built.year !== (year > 0 ? year : 1 - year) || built.month !== month || built.day !== day) {
+            return undefined;
+        }
+
+        return withCalendar(built, id);
     };
 
-    export const getMonthNames = (locale?: string) => {
-        const formatter = new Intl.DateTimeFormat(locale, { month: "long" });
+    export const getMonthNames = (value: DateValue, locale?: string) => {
+        const id = getCalendarId(value);
+        const key = `${id}:${locale ?? ""}:${value.era}:${value.year}`;
+        const cached = monthNameCache.get(key);
 
-        return Array.from({ length: MONTHS_PER_YEAR }, (_, month) =>
-            formatter.format(new Date(2021, month, 1, MIDDAY_HOUR)),
+        if (cached) return cached;
+
+        const formatter = new Intl.DateTimeFormat(locale, {
+            month: "long",
+            calendar: id,
+            timeZone: getLocalTimeZone(),
+        });
+        const anchor = getStartOfMonth(value);
+        const names = Array.from({ length: getMonthsInYear(value) }, (_, month) =>
+            formatter.format(toDate(anchor.set({ month: month + 1, day: 1 }))),
         );
+
+        monthNameCache.set(key, names);
+
+        return names;
     };
 
     export const getWeekdayNames = (
@@ -133,10 +242,14 @@ export namespace DateValueUtils {
         const formatter = new Intl.DateTimeFormat(locale, { weekday: width });
 
         return Array.from({ length: DAYS_PER_WEEK }, (_, index) =>
-            formatter.format(new Date(2021, 7, 1 + ((index + weekStartsOn) % DAYS_PER_WEEK), MIDDAY_HOUR)),
+            formatter.format(new Date(2021, 7, 1 + ((index + weekStartsOn) % DAYS_PER_WEEK), 12)),
         );
     };
 
     export const format = (value: DateValue, options?: Intl.DateTimeFormatOptions, locale?: string) =>
-        new Intl.DateTimeFormat(locale, options).format(toLocalDate(value));
+        new Intl.DateTimeFormat(locale, {
+            ...options,
+            calendar: getCalendarId(value),
+            timeZone: getLocalTimeZone(),
+        }).format(toDate(value));
 }

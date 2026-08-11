@@ -51,6 +51,21 @@ from the other direction: only `BinarySwitch.types` ships, because `Checkbox`, `
 its presets and the base itself is an implementation detail of those three. Worth stating because a
 missing export otherwise reads as an oversight — it has been raised as a bug once already.
 
+### What goes to `ss-utils` and what stays here
+
+Settled by the user on **2026-08-11**, when `@internationalized/date` was taken as a dependency and the
+obvious home for calendar arithmetic looked like `ss-utils` rather than this repo.
+
+**`ss-utils` is bare: it implements logic on top of nothing.** That, rather than "is it maths or is it
+layout", is the line. A standalone primitive — one that needs only the language to work — belongs there. A
+module whose job is to adapt a third-party package to this library's shape stays here, however
+mathematical it looks, because sending it to `ss-utils` would put a dependency inside a package whose value
+is having none.
+
+So `Abstracts/DateValue` wraps `@internationalized/date` from inside `src/Lib`, and the dependency is
+declared here. Pure formatting or numeric helpers that grow out of this work are candidates for `ss-utils`;
+anything holding an import of the date package is not.
+
 ### House style
 
 `const DEFAULT_X = …` at module scope, `createMemo` for derived props with a default, one blank line
@@ -3578,3 +3593,85 @@ layer, so nothing behind a nested viewport paints through it and nothing behind 
 Together with the root's `overflow: hidden` and each viewport portalling into itself, that is the whole
 of "a viewport is a black box": nothing inside it escapes its bounds, and nothing outside it shows
 through. `viewport.spec.ts` drives all three.
+
+### A masked field never spells a value approximately
+
+**The rule.** Given a value its mask cannot hold, a field shows nothing and raises `getHasError` — it is
+stating that something is held which it cannot show, which is the only honest reading of a blank box that is
+not empty. Truncating the digit run, clamping the value or dropping a sign each produce a _different_
+well-formed value that the field would then parse straight back, so the corruption survives a round trip
+without anything being raised.
+
+Written down after exactly that: the old signed-year `DateValue` accepted any year, `toIso` spelled one
+outside 0..9999 in ISO's expanded form, and `DateInput`'s four digit slots laid the longer run into the mask
+regardless — pushing every later part along, so 15 August 44 BC read as `0440-81-5`.
+
+**Where the check belongs, when one is needed.** Not in the mask. `TextSyncUtils` is told a pattern and a
+digit run and has no idea which digits were the year, so only the control that built the pattern can know the
+run is too long for it. And the text-to-value effect has to stand down while an unspellable value is held, or
+the blank text it just produced parses as "no value" and clears the consumer's — turning a display bug into
+data loss.
+
+**`DateInput` needs no such check any more, because the value type stopped being able to hold one.** A
+`CalendarDate`'s year is a year _within an era_ and every supported calendar bounds it at four digits, so
+`getYearsInEra` is at most 9999 and a date the four slots cannot spell no longer exists. The rule stays
+written down because the formatted number will meet it again — see `review.md`.
+
+**The rule has one accepted exception, and it is deliberate rather than overlooked.**
+`DateValueUtils.withCalendar` clamps when the target calendar cannot hold the date, and says nothing. Left
+alone by the user on **2026-08-11** with the cost of fixing it written out; it sits in `review.md` under
+_"Accepted limits"_, and is named here so the rule above is not read as absolute.
+
+### The date value carries its calendar system, and every bound is asked of it
+
+Settled by the user on **2026-08-11**, choosing to take `@internationalized/date` as a dependency rather than
+read the calendars out of `Intl` by hand, and to support as many calendar systems as the package really
+implements. The reasoning that led there — what the platform contains, what the reverse conversion costs, why
+`chinese` cannot be done this way — was measured and is recorded in the entry below and in `review.md`.
+
+**`DateValue` is `CalendarDate`, aliased rather than wrapped.** So a value carries the calendar it belongs to,
+an era, a **year within that era**, a month index and a day. The old `{ year, month, day }` record with a
+signed year is gone, and with it every constant the library used to hold about what a year is made of: month
+count, month length, month names, grid row count and year ceiling are now questions asked of the value's own
+calendar through `DateValueUtils`. Aliasing rather than wrapping is deliberate — a wrapper would have to
+re-expose `add`, `set`, `cycle` and `compare` to be useful, and would then be a second date library.
+
+**Thirteen calendars, and the list is explicit rather than the package's own.** `createCalendar` does not
+refuse an identifier it has no implementation for: asked for `chinese`, `dangi`, `islamic` or `islamic-rgsa`
+it returns a **Gregorian** calendar, so a consumer would get Gregorian dates labelled as something else and no
+indication of it. `DateValueCalendarId` therefore names the thirteen that map to themselves, and
+`getCalendarIds` is what a consumer offers in a picker. The lunisolar calendars are excluded rather than
+half-supported, which is the same call as `Table` being out of scope: a thing that looks supported and is not
+costs more than a thing that is absent.
+
+**An era is a list the calendar reports, never a pair.** `getEras` returns `{ id, name }` for each — two for
+Gregorian, one for Hebrew, five for Japanese. The names are not in the package, so they are read back out of
+`Intl` by formatting a date inside each era with `era: "long"`; finding a date inside era _n_ is a bisection
+over the ISO year, since era index is monotone in time, and the result is cached per calendar and locale. A
+BC/AD toggle was proposed first and withdrawn: it is one calendar's model, and hardcoding it would have put a
+Western assumption into a control's API.
+
+**The era is a control in `DateInput`'s leading slot, not a slot in the mask.** Exactly the arrangement the
+am/pm segment already has in the trailing slot, and for the same reason — the mask carries digits only, an era
+identifier is not digits, and a consumer paints it. `DateInput` hands `renderLeading` a `DateInputEra` with
+`getValue`, `getOptions` and `set`, so the painter can draw a cycle button, a select, or nothing at all when
+the calendar reports a single era. The Playground draws a cycle button and hides it below two eras, which is
+also what React Aria does with its era segment.
+
+**The signed year is gone, and that is a gain rather than a loss.** A year before the common era is now
+`era: "BC", year: 44` — no negative numbers, and no off-by-one at the origin to get wrong, because ISO's
+astronomical numbering (where year 0 is 1 BC) is the package's problem and stays inside `toIso` / `fromIso`.
+The cost is that a year past the end of an era, 12026 AD, can no longer be _held_ at all: the constructor
+constrains it to 9999 silently, so `fromIso` and `fromParts` compare the built fields back against what was
+asked for and return `undefined` rather than passing a different date on. **Anything built over this package
+must do that comparison** — `new CalendarDate(2026, 2, 31)` is February 28th, not an error.
+
+**`getMonthGrid` takes an anchor value rather than a year and a month number**, because a month index means
+nothing without the calendar it indexes. It still returns **six** week rows for every month of every supported
+calendar — the fixed height is deliberate and predates this work, so that paging never reflows the page around
+the grid — and six is enough because no supported calendar has a month longer than 31 days.
+
+**Two dates are the same day if they denote the same day, whatever calendar each is in.** `isSame` and
+`compare` go through absolute day, so a Gregorian `min` bounds a Hebrew value, and a selected date held in one
+system is found in another system's grid. `DateInput` converts a value into the calendar it is configured for
+rather than refusing it, so a consumer may hold Gregorian and show a Hebrew field over the same signal.

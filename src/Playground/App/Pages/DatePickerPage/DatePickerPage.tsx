@@ -1,12 +1,17 @@
 import { createMemo, createSignal } from "solid-js";
 
-import type { DateValue } from "../../../../Lib/Abstracts/DateValue/DateValue.types";
+import type { DateValue, DateValueCalendarId } from "../../../../Lib/Abstracts/DateValue/DateValue.types";
 import { DateValueUtils } from "../../../../Lib/Abstracts/DateValue/DateValue.utils";
+import type { InteractionFlags } from "../../../../Lib/Abstracts/Interaction/Interaction.types";
 import type { TimeValue } from "../../../../Lib/Abstracts/TimeValue/TimeValue.types";
 import { TimeValueUtils } from "../../../../Lib/Abstracts/TimeValue/TimeValue.utils";
 import { DateInput } from "../../../../Lib/Fundamentals/Input/DateInput/DateInput";
+import type { DateInputEra } from "../../../../Lib/Fundamentals/Input/DateInput/DateInput.types";
 import { DatePicker } from "../../../../Lib/Fundamentals/Input/DatePicker/DatePicker";
+import type { TextFieldFlags } from "../../../../Lib/Fundamentals/Input/TextField/TextField.types";
 import { TimeInput } from "../../../../Lib/Fundamentals/Input/TimeInput/TimeInput";
+import { PageProp } from "../../PageComponents/Prop/Prop";
+import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageCalendarCaption } from "../../StyledComponents/CalendarCaption/CalendarCaption";
 import {
@@ -15,6 +20,8 @@ import {
     PageCalendarWeekday,
 } from "../../StyledComponents/CalendarContent/CalendarContent";
 import { PageDatePickerTrigger } from "../../StyledComponents/DatePickerTrigger/DatePickerTrigger";
+import { PageEraCycle } from "../../StyledComponents/EraCycle/EraCycle";
+import { PageSelectField } from "../../StyledComponents/Field/Field";
 import { PageMeridiemToggle } from "../../StyledComponents/MeridiemToggle/MeridiemToggle";
 import {
     PageTextFieldContent,
@@ -25,10 +32,12 @@ import { PageTextFieldPlaceholder } from "../../StyledComponents/TextFieldPlaceh
 import { FIELD_GAP, FIELD_STEPPER_PADDING } from "../../StyledComponents/TextFieldContent/TextFieldContent.css";
 
 const FIELD_WIDTH = 220;
+const CALENDAR_FIELD_WIDTH = 180;
 const LOCALE = "en-GB";
-const TODAY: DateValue = { year: 2026, month: 8, day: 10 };
-const MIN_DATE: DateValue = { year: 2026, month: 8, day: 5 };
-const MAX_DATE: DateValue = { year: 2026, month: 8, day: 20 };
+const TODAY = DateValueUtils.fromIso("2026-08-10")!;
+const MIN_DATE = DateValueUtils.fromIso("2026-08-05")!;
+const MAX_DATE = DateValueUtils.fromIso("2026-08-20")!;
+const CAESAR = DateValueUtils.fromIso("-000043-03-15")!;
 
 const OPENING_TIME: TimeValue = { hour: 9, minute: 0 };
 const CLOSING_TIME: TimeValue = { hour: 17, minute: 30 };
@@ -38,14 +47,31 @@ const describe = (value: DateValue | undefined) => (value ? DateValueUtils.toIso
 const describeTime = (value: TimeValue | undefined) => (value ? TimeValueUtils.toIso(value) : "none");
 
 export const DatePickerPage = () => {
+    const [getCalendarId, setCalendarId] = createSignal<DateValueCalendarId>("gregory");
+
     const typedSignal = createSignal<DateValue | undefined>(TODAY);
     const localeSignal = createSignal<DateValue | undefined>(TODAY);
     const pickedSignal = createSignal<DateValue | undefined>();
     const boundedSignal = createSignal<DateValue | undefined>();
+    const eraSignal = createSignal<DateValue | undefined>(CAESAR);
     const timeSignal = createSignal<TimeValue | undefined>({ hour: 9, minute: 30 });
     const preciseSignal = createSignal<TimeValue | undefined>({ hour: 9, minute: 30, second: 0 });
     const twelveHourSignal = createSignal<TimeValue | undefined>({ hour: 14, minute: 30 });
     const shiftSignal = createSignal<TimeValue | undefined>();
+
+    const renderDateField = () => ({
+        ...renderField(),
+        getCalendar: getCalendarId,
+        getLocale: () => LOCALE,
+        renderLeading: (getFlags: () => InteractionFlags<TextFieldFlags>, era: DateInputEra) => (
+            <PageEraCycle
+                getEra={era.getValue}
+                getOptions={era.getOptions}
+                getIsDisabled={() => getFlags().isDisabled ?? false}
+                onChange={era.set}
+            />
+        ),
+    });
 
     const renderField = () => ({
         getPadding: () => FIELD_STEPPER_PADDING,
@@ -64,7 +90,7 @@ export const DatePickerPage = () => {
         bounds?: { minDate: DateValue; maxDate: DateValue },
     ) => (
         <DatePicker
-            {...renderField()}
+            {...renderDateField()}
             valueSignal={valueSignal}
             getMinDate={bounds && (() => bounds.minDate)}
             getMaxDate={bounds && (() => bounds.maxDate)}
@@ -90,7 +116,7 @@ export const DatePickerPage = () => {
                 name: "Typed only",
                 readout: () => `value: ${describe(typedSignal[0]())} — a half-typed date reports nothing`,
                 component: () => (
-                    <DateInput {...renderField()} valueSignal={typedSignal} getAriaLabel={() => "Start date"} />
+                    <DateInput {...renderDateField()} valueSignal={typedSignal} getAriaLabel={() => "Start date"} />
                 ),
             },
             {
@@ -99,11 +125,19 @@ export const DatePickerPage = () => {
                     `value: ${describe(localeSignal[0]())} — dd/mm/yyyy, and the separators are the mask's rather than yours to type`,
                 component: () => (
                     <DateInput
-                        {...renderField()}
+                        {...renderDateField()}
                         valueSignal={localeSignal}
                         getFormat={() => "day-month-year"}
                         getAriaLabel={() => "Day-first date"}
                     />
+                ),
+            },
+            {
+                name: "Before the common era",
+                readout: () =>
+                    `value: ${describe(eraSignal[0]())} — the era is a control in the leading slot, offering whatever the calendar reports`,
+                component: () => (
+                    <DateInput {...renderDateField()} valueSignal={eraSignal} getAriaLabel={() => "Historical date"} />
                 ),
             },
             {
@@ -174,5 +208,21 @@ export const DatePickerPage = () => {
         ];
     });
 
-    return <PageVariants getItems={getVariants} />;
+    return (
+        <>
+            <PagePropsPanel getScope={() => "global"}>
+                <PageProp getLabel={() => "Calendar"}>
+                    <PageSelectField
+                        getValue={getCalendarId}
+                        getValues={DateValueUtils.getCalendarIds}
+                        getWidth={() => CALENDAR_FIELD_WIDTH}
+                        getAriaLabel={() => "Calendar system"}
+                        onChange={(id) => setCalendarId(() => id)}
+                    />
+                </PageProp>
+            </PagePropsPanel>
+
+            <PageVariants getItems={getVariants} />
+        </>
+    );
 };

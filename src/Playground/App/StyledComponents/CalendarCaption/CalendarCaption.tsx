@@ -13,13 +13,12 @@ import type { PageCalendarCaptionProps } from "./CalendarCaption.types";
 
 import * as styles from "./CalendarCaption.css";
 
-const MONTHS_PER_YEAR = 12;
 const MONTH_STEP = 1;
 const MONTH_FIELD_WIDTH = 122;
 const YEAR_FIELD_WIDTH = 80;
 const YEAR_SETTLE_MS = 300;
-const MONTH_VALUES = Array.from({ length: MONTHS_PER_YEAR }, (_, index) => index + 1);
 const TITLE_OPTIONS: Intl.DateTimeFormatOptions = { month: "long", year: "numeric" };
+const PAST_ERA_TITLE_OPTIONS: Intl.DateTimeFormatOptions = { ...TITLE_OPTIONS, era: "short" };
 
 export const PageCalendarCaption = (props: PageCalendarCaptionProps) => {
     const [getIsEditing, setIsEditing] = createSignal(false);
@@ -32,12 +31,27 @@ export const PageCalendarCaption = (props: PageCalendarCaptionProps) => {
 
     const getMonth = () => props.monthSignal[0]();
 
-    const getMonthNames = createMemo(() => DateValueUtils.getMonthNames(props.getLocale?.()));
+    const getMonthNames = createMemo(() => DateValueUtils.getMonthNames(getMonth(), props.getLocale?.()));
 
-    const getTitle = () => DateValueUtils.format(getMonth(), TITLE_OPTIONS, props.getLocale?.());
+    const getMonthValues = createMemo(() =>
+        Array.from({ length: DateValueUtils.getMonthsInYear(getMonth()) }, (_, index) => index + 1),
+    );
 
-    const jumpTo = (value: Partial<DateValue>) => {
-        props.monthSignal[1]({ year: getMonth().year, month: getMonth().month, day: 1, ...value });
+    /**
+     * The era is named only when it is not the calendar's current one, which is why a Gregorian caption reads
+     * "August 2026" rather than "August 2026 AD" while a date before the common era says so. Nobody writes the
+     * era they are living in, and the rule holds for the Japanese calendar too — Reiwa is implied, Shōwa is not.
+     */
+    const getTitle = () => {
+        const month = getMonth();
+        const eras = DateValueUtils.getEras(month, props.getLocale?.());
+        const isPastEra = month.era !== eras[eras.length - 1].id;
+
+        return DateValueUtils.format(month, isPastEra ? PAST_ERA_TITLE_OPTIONS : TITLE_OPTIONS, props.getLocale?.());
+    };
+
+    const jumpTo = (value: { year?: number; month?: number }) => {
+        props.monthSignal[1]((prev) => prev.set({ ...value, day: 1 }));
     };
 
     const page = (direction: 1 | -1) => {
@@ -83,7 +97,7 @@ export const PageCalendarCaption = (props: PageCalendarCaptionProps) => {
         setIsRestoringFocus(true);
         setIsEditing(false);
 
-        if (restorePoint) props.monthSignal[1](restorePoint);
+        if (restorePoint) props.monthSignal[1](() => restorePoint!);
     };
 
     createEffect(() => {
@@ -147,7 +161,7 @@ export const PageCalendarCaption = (props: PageCalendarCaptionProps) => {
                 >
                     <PageSelectField
                         getValue={() => getMonth().month}
-                        getValues={() => MONTH_VALUES}
+                        getValues={getMonthValues}
                         getWidth={() => MONTH_FIELD_WIDTH}
                         getAriaLabel={() => "Month"}
                         computeLabel={(month) => getMonthNames()[month - 1]}

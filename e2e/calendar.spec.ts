@@ -15,6 +15,18 @@ const cell = (scope: string) => `${scope} [role="gridcell"]`;
 const roving = (scope: string) => `${cell(scope)}[tabindex="0"]`;
 const day = (scope: string, label: string) => `${cell(scope)}[aria-label="${label}"]`;
 
+/**
+ * The week start and the calendar system are props-panel knobs rather than buttons inside one variant, so
+ * they govern all three calendars at once. A knob is driven through its own `Select` the way a consumer would.
+ */
+const prop = (label: string) => `[data-prop="${label}"]`;
+const option = '[role="listbox"] [role="option"]';
+
+const chooseProp = async (page: import("@playwright/test").Page, label: string, text: string) => {
+    await page.locator(`${prop(label)} [role="combobox"]`).click();
+    await page.locator(option, { hasText: text }).first().click();
+};
+
 const activeLabel = (page: import("@playwright/test").Page) =>
     page.evaluate(() => document.activeElement?.getAttribute("aria-label") ?? "");
 
@@ -121,7 +133,7 @@ test("a consumer's own predicate can refuse days the range allows", async ({ pag
         "twelve weekend days in a six-week grid",
     ).toHaveCount(12);
 
-    await page.locator(`${WEEKDAYS} button`, { hasText: "Flip week start" }).click();
+    await chooseProp(page, "Week starts on", "Sunday");
 
     await expect(
         page.locator(`${WEEKDAYS} [role="columnheader"]`).first(),
@@ -183,4 +195,54 @@ test("moving within a month announces nothing, so only paging talks", async ({ p
         page.locator(`${ANNOUNCER} > *`),
         "a walk inside the visible month is not a page, and says nothing",
     ).toHaveCount(0);
+});
+
+/**
+ * The calendar system is a property of the value rather than a way of drawing it, so switching it does not
+ * re-label the same grid — it re-expresses the same instant in another system, and every displayed calendar
+ * has to follow because the knob is a panel knob. Days are still located by accessible name, which is why
+ * these tests assert on the name rather than on the number a painter drew.
+ */
+test.describe("another calendar system", () => {
+    test("re-expresses the same instant without changing the grid's shape", async ({ page }) => {
+        await expect(page.locator(day(DEFAULT, "10 August 2026"))).toHaveCount(1);
+
+        await chooseProp(page, "Calendar", "hebrew");
+
+        await expect(page.locator(cell(DEFAULT)), "still six weeks of seven days").toHaveCount(42);
+        await expect(
+            page.locator(day(DEFAULT, "10 August 2026")),
+            "and no day is named the way the Gregorian calendar named it",
+        ).toHaveCount(0);
+    });
+
+    test("reaches every calendar on the page, not just the first", async ({ page }) => {
+        await chooseProp(page, "Calendar", "hebrew");
+
+        for (const scope of [DEFAULT, BOUNDED, WEEKDAYS]) {
+            await expect(page.locator(cell(scope)), "each variant is drawn in the chosen system").toHaveCount(42);
+            await expect(page.locator(day(scope, "10 August 2026"))).toHaveCount(0);
+        }
+    });
+
+    test("offers a thirteenth month where the calendar has one", async ({ page }) => {
+        await chooseProp(page, "Calendar", "ethiopic");
+
+        await page.locator(`${DEFAULT} button[aria-label*="pick a month and year"]`).click();
+        await page.locator(`${DEFAULT} [role="combobox"]`).click();
+
+        await expect(
+            page.locator(option),
+            "an Ethiopian year is twelve months of thirty days plus a short thirteenth",
+        ).toHaveCount(13);
+    });
+
+    test("keeps a bounded calendar's refusals on the same real days", async ({ page }) => {
+        await chooseProp(page, "Calendar", "hebrew");
+
+        await expect(
+            page.locator(`${cell(BOUNDED)}[aria-disabled="true"]`),
+            "the bounds are dates, so re-expressing them refuses exactly the same days",
+        ).toHaveCount(26);
+    });
 });

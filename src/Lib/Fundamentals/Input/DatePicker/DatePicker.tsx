@@ -12,7 +12,7 @@ import type { DatePickerProps } from "./DatePicker.types";
 const DEFAULT_DATE_PICKER_PLACEMENT: AnchorPlacement = { x: "left-in", y: "bottom-out" };
 const DEFAULT_DATE_PICKER_CALENDAR_LABEL = "Choose a date";
 
-const toMonth = (value: DateValue): DateValue => ({ year: value.year, month: value.month, day: 1 });
+const toMonth = (value: DateValue): DateValue => DateValueUtils.getStartOfMonth(value);
 
 export const DatePicker = (props: DatePickerProps) => {
     const popupId = createUniqueId();
@@ -32,7 +32,7 @@ export const DatePicker = (props: DatePickerProps) => {
     const open = () => {
         const value = untrack(() => props.valueSignal[0]());
 
-        if (value) monthSignal[1](toMonth(value));
+        if (value) monthSignal[1](() => toMonth(value));
 
         setIsOpen(true);
     };

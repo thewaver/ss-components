@@ -6,6 +6,13 @@ than marked resolved, and the remaining items are renumbered to stay contiguous 
 settled a decision that drives future work, that decision moves to `conventions.md`; the record of
 having done the work does not go anywhere.
 
+**Accepted limits are not outstanding work, and live in their own section at the end.** Asked for by the user
+on **2026-08-11**: a fault that has been looked at and consciously left alone should not be re-read and
+re-weighed every time the question is "what is left". They are unnumbered, they are not in the index, and a
+report on the state of the library does not list them unless something has changed about one. Moving an item
+there is a **decision the user takes**, not a way of retiring an item that has merely gone stale — an item
+nobody has argued about is still open.
+
 Most items now carry an **_Elsewhere_** block: what other component libraries do about the same
 question, read off their own documentation and source on **2026-08-10**. It is evidence for decisions
 that have not been taken — not a recommendation, and not a decision. Where a published answer
@@ -288,10 +295,19 @@ doing:
   a fixed run of slots, and that is a different function rather than a longer pattern. `TimeInput` adopted
   the mask on 2026-08-11 and `TextSyncUtils` therefore has its second consumer, so whether it should be
   exported for a consumer building their own masked field is now a live question rather than a deferred one.
-  **A second consumer of the non-digit slot arrived the same day**: a year before the common era now stores,
-  computes and displays correctly and is written `-000044-08-15`, but `DateInput` cannot type one, because
-  the sign is not a digit and the mask discards everything that is not. So the missing primitive blocks two
-  things rather than one, which is an argument for building it rather than a new requirement on top of it.
+  **The signed year turned out not to need the non-digit slot either.** A year before the common era is now an
+  era plus a positive year, and the era is a control in the leading slot — so the mask stayed digits-only for a
+  second time, and the formatted number is the only consumer left that needs the pattern itself to change. See
+  `conventions.md`.
+- **Two calendar systems are deliberately absent**, and `getCalendarIds` is where that is enforced —
+  `chinese` and `dangi` report no era and no plain year, only a `relatedYear`, and `createCalendar` answers a
+  request for either with a **Gregorian** calendar rather than refusing it. Nothing here is outstanding; it is
+  recorded because from outside the omission reads as an oversight.
+- **An era's display name costs a bisection, and nothing measures whether that matters.** The package gives
+  era identifiers but no names, so `getEras` finds a date inside each era by bisecting the ISO year and formats
+  it through `Intl`. That is about thirteen reads per era, once per calendar and locale, behind a cache that is
+  never invalidated — fine for the thirteen calendars that exist and untested against a consumer switching
+  locale repeatedly.
 - **No time popup.** A list of times in a `Popover` is a `Select` over generated options; whether that
   belongs inside `TimeInput` as a mode or beside it as a `TimePicker` is the decision, and it should be
   taken with the `openSignal` question below rather than separately. Note the trailing slot is now spoken
@@ -860,3 +876,27 @@ that roams one of them at a scale you can change, and an anchor inside a scrolli
   `conventions.md`. `viewport.spec.ts` asserts the layer lands exactly on its anchor once the scroll
   settles, which is what a spec can see. The published fix for the intermediate frames is CSS anchor
   positioning, which is Chromium-only.
+
+---
+
+## Accepted limits
+
+Faults that have been looked at and consciously left alone. Not outstanding work, not numbered, and not part
+of the answer to "what is left" — see the note at the top of this file. Each one records what it is, how to
+reach it, and why it was accepted, so that nobody has to re-derive the argument in order to leave it alone
+again. An entry moves back up into the numbered items only if the user says so, or if something changes that
+makes the reasoning wrong.
+
+**Converting a date into a calendar that cannot hold it clamps, silently.** Accepted **2026-08-11**.
+`DateValueUtils.withCalendar` is `toCalendar`, and 15 March 44 BC asked for in the Japanese calendar comes back
+as Meiji 1 — 15 September 1868 — because that calendar's first era begins there. Nothing reports that the value
+moved. Reachable in the Playground in two clicks: hold the Date picker page's historical date and switch the
+calendar knob to `japanese`.
+
+This is the same class of fault as a mask laying too many digits into too few slots, and it is the one place the
+_"never approximate a value"_ rule in `conventions.md` is still broken — so the rule is stated there with this
+exception, rather than pretending to be absolute. The fix itself is cheap, a round-trip comparison; what made it
+not worth taking is that it forces `withCalendar` to return `undefined`, and then each of `Calendar`,
+`DateInput` and the Playground's knob has to decide separately what to show instead. Three judgment calls and a
+non-null assertion in `toIso`, to close a case only a deliberate calendar switch on an out-of-era date reaches.
+The clamp is also `Intl`'s own behaviour, so what ships is at least consistent with the platform.

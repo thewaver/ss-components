@@ -23,6 +23,8 @@ const SELECT_KEYS = ["Enter", " "];
 
 const DAY_LABEL_OPTIONS: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
 const MONTH_ANNOUNCE_OPTIONS: Intl.DateTimeFormatOptions = { month: "long", year: "numeric" };
+const PAST_ERA_DAY_LABEL_OPTIONS: Intl.DateTimeFormatOptions = { ...DAY_LABEL_OPTIONS, era: "short" };
+const PAST_ERA_MONTH_ANNOUNCE_OPTIONS: Intl.DateTimeFormatOptions = { ...MONTH_ANNOUNCE_OPTIONS, era: "short" };
 
 const CalendarDay = (props: CalendarDayProps) => {
     const getIsDisabled = () => props.getFlags().isDisabled ?? false;
@@ -57,11 +59,30 @@ export const Calendar = (props: CalendarProps) => {
 
     const getWeekStartsOn = createMemo(() => props.getWeekStartsOn?.() ?? DEFAULT_CALENDAR_WEEK_STARTS_ON);
 
-    const getToday = createMemo(() => props.getToday?.() ?? DateValueUtils.fromDate(new Date()));
-
     const getMonth = createMemo(() => props.monthSignal[0]());
 
-    const getGrid = createMemo(() => DateValueUtils.getMonthGrid(getMonth().year, getMonth().month, getWeekStartsOn()));
+    const getToday = createMemo(() =>
+        DateValueUtils.withCalendar(
+            props.getToday?.() ?? DateValueUtils.fromDate(new Date()),
+            DateValueUtils.getCalendarId(getMonth()),
+        ),
+    );
+
+    const getGrid = createMemo(() => DateValueUtils.getMonthGrid(getMonth(), getWeekStartsOn()));
+
+    /**
+     * Nobody writes the era they are living in, so a label says "10 August 2026" and not "10 August 2026 AD",
+     * while a date in any earlier era names it. The calendar reports its eras in chronological order, so the
+     * current one is the last — which holds for the five Japanese eras as much as for BC and AD.
+     */
+    const getCurrentEraId = createMemo(() => {
+        const eras = DateValueUtils.getEras(getMonth(), props.getLocale?.());
+
+        return eras[eras.length - 1].id;
+    });
+
+    const getDayLabelOptions = (day: DateValue) =>
+        day.era === getCurrentEraId() ? DAY_LABEL_OPTIONS : PAST_ERA_DAY_LABEL_OPTIONS;
 
     const getGridStart = createMemo(() => getGrid().weeks[0][0]);
 
@@ -91,7 +112,7 @@ export const Calendar = (props: CalendarProps) => {
 
         if (DateValueUtils.getCellOf(getGrid(), today)) return today;
 
-        return { year: getMonth().year, month: getMonth().month, day: 1 };
+        return DateValueUtils.getStartOfMonth(getMonth());
     });
 
     const setDayRef = (index: number, element: HTMLElement) => {
@@ -107,10 +128,12 @@ export const Calendar = (props: CalendarProps) => {
     const moveTo = (day: DateValue) => {
         const clamped = DateValueUtils.clamp(day, props.getMin?.(), props.getMax?.());
 
+        const month = DateValueUtils.getStartOfMonth(clamped);
+
         setHighlighted(() => clamped);
 
-        if (clamped.year !== getMonth().year || clamped.month !== getMonth().month) {
-            props.monthSignal[1]({ year: clamped.year, month: clamped.month, day: 1 });
+        if (!DateValueUtils.isSame(month, DateValueUtils.getStartOfMonth(getMonth()))) {
+            props.monthSignal[1](() => month);
         }
     };
 
@@ -142,8 +165,17 @@ export const Calendar = (props: CalendarProps) => {
     createEffect<DateValue | undefined>((previous) => {
         const month = getMonth();
 
-        if (previous && (previous.year !== month.year || previous.month !== month.month)) {
-            LiveAnnouncer.announce(DateValueUtils.format(month, MONTH_ANNOUNCE_OPTIONS, props.getLocale?.()));
+        if (
+            previous &&
+            !DateValueUtils.isSame(DateValueUtils.getStartOfMonth(previous), DateValueUtils.getStartOfMonth(month))
+        ) {
+            LiveAnnouncer.announce(
+                DateValueUtils.format(
+                    month,
+                    month.era === getCurrentEraId() ? MONTH_ANNOUNCE_OPTIONS : PAST_ERA_MONTH_ANNOUNCE_OPTIONS,
+                    props.getLocale?.(),
+                ),
+            );
         }
 
         return month;
@@ -236,7 +268,11 @@ export const Calendar = (props: CalendarProps) => {
                                             getId={() => `${gridId}-day-${DateValueUtils.toIso(getDay())}`}
                                             getFlags={getFlags}
                                             getAriaLabel={() =>
-                                                DateValueUtils.format(getDay(), DAY_LABEL_OPTIONS, props.getLocale?.())
+                                                DateValueUtils.format(
+                                                    getDay(),
+                                                    getDayLabelOptions(getDay()),
+                                                    props.getLocale?.(),
+                                                )
                                             }
                                             renderContent={(getDayFlags) => props.renderDay(getDay, getDayFlags)}
                                             onSelect={() => pickDay(getDay())}
