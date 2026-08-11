@@ -1,3 +1,5 @@
+import type { Signal } from "solid-js";
+
 import type { CSSAnimationKey, Point2d, Size2d } from "@thewaver/ss-utils";
 
 import type { AccessorProps } from "../../Utils/typeUtils";
@@ -11,11 +13,6 @@ export type CellAnimationEvaluationDefs = {
     size: Size2d;
 };
 
-export type CellAnimationController = {
-    start: () => void;
-    stop: () => void;
-};
-
 export type CellAnimationProps = AccessorProps<{
     src: string;
     ariaLabel?: string;
@@ -24,7 +21,7 @@ export type CellAnimationProps = AccessorProps<{
     animationDurationMs?: number;
     animationIterationCount?: number;
     animationIterationDelayMs?: number;
-    onMount?: (controller: CellAnimationController) => void;
+    playbackSignal?: Signal<boolean>;
     computeCellWeights?: (count: Point2d) => number[][];
     computeRootAnimation?: (timeline: number) => CellAnimationEvaluationResult;
     computeCellAnimation: (defs: CellAnimationEvaluationDefs, timeline: number) => CellAnimationEvaluationResult;

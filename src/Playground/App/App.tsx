@@ -8,6 +8,7 @@ import { Viewport } from "../../Lib/Exotics/Viewport/Viewport";
 import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
 import type { Tab } from "../../Lib/Fundamentals/Tabs/Tabs.types";
 import { AccordionPage } from "./Pages/AccordionPage/AccordionPage";
+import { AmountInputPage } from "./Pages/AmountInputPage/AmountInputPage";
 import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
 import { CalendarPage } from "./Pages/CalendarPage/CalendarPage";
 import { CellAnimationPage } from "./Pages/CellAnimationPage/CellAnimationPage";
@@ -165,6 +166,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "Modal",
         component: () => <ModalPage />,
+    },
+    {
+        name: "AmountInput",
+        component: () => <AmountInputPage />,
     },
     {
         name: "NumberInput",

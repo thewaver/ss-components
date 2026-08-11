@@ -69,6 +69,7 @@ export type SelectCompositeProps<T> = Omit<InteractionWrapperProps<SelectFlags>,
         isMultiple?: boolean;
         computeTextStyle?: (getFlags: () => InteractionFlags<SelectFlags>) => TextFieldTextStyle;
     }> & {
+        visibilitySignal?: Signal<boolean>;
         getOptions: Accessor<SelectItem<T>[]>;
         getSelectedOptions: Accessor<SelectOption<T>[]>;
         querySignal?: Signal<string>;

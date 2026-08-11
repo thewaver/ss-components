@@ -83,13 +83,20 @@ describe("eras", () => {
 
         expect(eras.map((era) => era.id)).toEqual(["BC", "AD"]);
         expect(eras.map((era) => era.name)).toEqual(["Before Christ", "Anno Domini"]);
+        expect(
+            eras.map((era) => era.shortName),
+            "the short form is what a compact control shows",
+        ).toEqual(["BC", "AD"]);
     });
 
     it("finds every Japanese era and its name", () => {
         const eras = DateValueUtils.getEras(inCalendar("japanese", 2026, 8, 11), "en-US");
 
         expect(eras.map((era) => era.id)).toEqual(["meiji", "taisho", "showa", "heisei", "reiwa"]);
-        expect(eras[4].name).toBe("Reiwa");
+        expect(
+            eras.map((era) => era.name),
+            "every era, not only the last one",
+        ).toEqual(["Meiji", "Taishō", "Shōwa", "Heisei", "Reiwa"]);
         expect(eras.length).toBeGreaterThan(2);
     });
 
@@ -300,5 +307,70 @@ describe("format", () => {
         expect(DateValueUtils.format(gregorian(2026, 12, 25), { month: "long", day: "numeric" }, "en-US")).toBe(
             "December 25",
         );
+    });
+});
+
+describe("era names are the locale's, never the identifier", () => {
+    it("never offers a raw identifier as something to display", () => {
+        for (const id of DateValueUtils.getCalendarIds()) {
+            for (const era of DateValueUtils.getEras(inCalendar(id, 2026, 8, 11), "en-GB")) {
+                expect(era.shortName, `${id}/${era.id}`).not.toContain("_");
+                expect(era.name, `${id}/${era.id}`).not.toContain("_");
+            }
+        }
+    });
+
+    it("reads the Taiwanese era as a word rather than as before_minguo", () => {
+        const eras = DateValueUtils.getEras(inCalendar("roc", 2026, 8, 11), "en-GB");
+
+        expect(eras.map((era) => era.id)).toContain("before_minguo");
+        expect(eras.map((era) => era.shortName)).not.toContain("before_minguo");
+    });
+
+    it("translates with the locale", () => {
+        const french = DateValueUtils.getEras(gregorian(2026, 8, 11), "fr-FR");
+        const english = DateValueUtils.getEras(gregorian(2026, 8, 11), "en-GB");
+
+        expect(french[1].name).not.toBe(english[1].name);
+    });
+});
+
+describe("getEraStart, through withEra", () => {
+    it("lands on the real first day of an era rather than a searched-for guess", () => {
+        const japanese = inCalendar("japanese", 2026, 8, 11);
+
+        expect(DateValueUtils.toIso(DateValueUtils.withEra(japanese.set({ year: 1, month: 9, day: 8 }), "meiji"))).toBe(
+            "1868-09-08",
+        );
+        expect(DateValueUtils.toIso(DateValueUtils.withEra(japanese.set({ year: 1, month: 5, day: 1 }), "reiwa"))).toBe(
+            "2019-05-01",
+        );
+    });
+
+    it("moves the era of a held date and keeps the year within it", () => {
+        const reiwa = inCalendar("japanese", 2026, 8, 10);
+        const meiji = DateValueUtils.withEra(reiwa, "meiji");
+
+        expect(reiwa.era, "the starting point is the current era").toBe("reiwa");
+        expect(meiji.era, "and moving it really moves it").toBe("meiji");
+        expect(meiji.year, "with the year read inside the new era").toBe(8);
+        expect(DateValueUtils.toIso(meiji)).toBe("1875-08-10");
+    });
+});
+
+describe("every era of every calendar gets a real name", () => {
+    it("never names an era after its neighbour, and never after itself twice", () => {
+        for (const id of DateValueUtils.getCalendarIds()) {
+            const eras = DateValueUtils.getEras(inCalendar(id, 2026, 8, 11), "en-GB");
+            const names = eras.map((era) => era.name);
+
+            expect(new Set(names).size, `${id} names: ${names.join(", ")}`).toBe(eras.length);
+
+            for (const name of names) {
+                expect(name, `${id}: a name with a date range in it is ICU naming a neighbouring era`).not.toMatch(
+                    /\(\d/,
+                );
+            }
+        }
     });
 });

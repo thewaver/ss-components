@@ -19,7 +19,7 @@ export type DateInputProps = Omit<
     | "getElement"
     | "getType"
     | "getInputMode"
-    | "getMask"
+    | "computeMaskedText"
     | "getPlaceholderHint"
     | "getIsSpinButton"
     | "getIsAutoSizing"

@@ -3,9 +3,11 @@ import { createMemo, createSignal } from "solid-js";
 
 import type { AnchorPlacement } from "../../../../Lib/Abstracts/Anchor/Anchor.types";
 import type { InteractionFlags } from "../../../../Lib/Abstracts/Interaction/Interaction.types";
+import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Menu } from "../../../../Lib/Fundamentals/Menu/Menu";
 import type { MenuItem, MenuItemFlags } from "../../../../Lib/Fundamentals/Menu/Menu.types";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
+import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import { PageMenuItemContent } from "../../StyledComponents/MenuItemContent/MenuItemContent";
 import { PageMenuTriggerContent } from "../../StyledComponents/MenuTriggerContent/MenuTriggerContent";
 import { PagePopoverSurface } from "../../StyledComponents/PopoverSurface/PopoverSurface";
@@ -119,9 +121,57 @@ export const MenuPage = () => {
     const [getLastNestedAction, setLastNestedAction] = createSignal(NOTHING_RUN);
     const [getLastFlippedAction, setLastFlippedAction] = createSignal(NOTHING_RUN);
     const [getLastLayerAction, setLastLayerAction] = createSignal(NOTHING_RUN);
+    const [getLastDrivenAction, setLastDrivenAction] = createSignal(NOTHING_RUN);
+
+    /**
+     * The consumer's own variable for the menu's open state, which is what `visibilitySignal` buys: the button
+     * beside the menu is not the menu's trigger and knows nothing about it, and the readout can say whether the
+     * popup is open — neither of which is possible while the state is private.
+     */
+    const drivenVisibility = createSignal(false);
 
     const getVariants = createMemo(() => {
         return [
+            {
+                name: "Driven from outside",
+                readout: () =>
+                    `${getLastDrivenAction()} — the menu is ${drivenVisibility[0]() ? "open" : "closed"}, and the button beside it is not its trigger`,
+                component: () => (
+                    <>
+                        <Menu
+                            visibilitySignal={drivenVisibility}
+                            getItems={() => ACTIONS}
+                            getAriaLabel={() => "Edit actions"}
+                            renderContent={(getFlags) => (
+                                <PageMenuTriggerContent getFlags={getFlags}>Edit</PageMenuTriggerContent>
+                            )}
+                            renderItem={renderMenuItem}
+                            renderPopup={renderMenuPopup}
+                            onActivate={(action) => setLastDrivenAction(action.name)}
+                        />
+
+                        <Button
+                            getAriaLabel={() => "Open the menu from outside"}
+                            renderContent={(getFlags) => (
+                                <PageButtonContent getFlags={getFlags}>Open it</PageButtonContent>
+                            )}
+                            onClick={() => {
+                                drivenVisibility[1](true);
+                            }}
+                        />
+
+                        <Button
+                            getAriaLabel={() => "Close the menu from outside"}
+                            renderContent={(getFlags) => (
+                                <PageButtonContent getFlags={getFlags}>Close it</PageButtonContent>
+                            )}
+                            onClick={() => {
+                                drivenVisibility[1](false);
+                            }}
+                        />
+                    </>
+                ),
+            },
             {
                 name: "Default",
                 readout: () => `${getLastAction()} — activating an item closes the menu`,

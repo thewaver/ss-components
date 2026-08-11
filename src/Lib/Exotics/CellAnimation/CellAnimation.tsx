@@ -3,6 +3,7 @@ import { For, createEffect, createMemo, createSignal, onCleanup, onMount } from 
 import { type Point2d, type Size2d } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
+import { SignalMirror } from "../../Abstracts/SignalMirror/SignalMirror";
 import type { CellAnimationEvaluationDefs, CellAnimationProps } from "./CellAnimation.types";
 import { CellAnimationUtils } from "./CellAnimation.utils";
 
@@ -37,7 +38,7 @@ export const CellAnimation = (props: CellAnimationProps) => {
     const [getImgRef, setImgRef] = createSignal<HTMLElement>();
     const [getContainerRef, setContainerRef] = createSignal<HTMLElement>();
     const [getIsWindowVisible, setIsWindowVisible] = createSignal(true);
-    const [getIsPlaying, setIsPlaying] = createSignal(true);
+    const [getIsPlaying] = SignalMirror.createOptional(() => props.playbackSignal, true);
     const [getCurrentIteration, setCurrentIteration] = createSignal(0);
     const [getRootSize, setRootSize] = createSignal<Size2d>({ width: 0, height: 0 });
 
@@ -105,15 +106,6 @@ export const CellAnimation = (props: CellAnimationProps) => {
             return { ...defs, size: { width: bounds.width, height: bounds.height } };
         }),
     );
-
-    const controller = createMemo(() => ({
-        start: () => {
-            setIsPlaying(true);
-        },
-        stop: () => {
-            setIsPlaying(false);
-        },
-    }));
 
     createEffect(() => {
         let rafId: ReturnType<typeof requestAnimationFrame>;
@@ -191,8 +183,6 @@ export const CellAnimation = (props: CellAnimationProps) => {
     });
 
     onMount(() => {
-        props.onMount?.(controller());
-
         const handleVisibilityChange = () => {
             setIsWindowVisible(document.visibilityState === "visible");
         };

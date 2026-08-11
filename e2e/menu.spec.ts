@@ -243,3 +243,69 @@ test("a disabled trigger opens nothing by pointer or by key", async ({ page }) =
     await page.keyboard.press("Enter");
     await expect(page.locator(MENU), "Enter on a reachable disabled trigger still opens nothing").toHaveCount(0);
 });
+
+/**
+ * The open state is the menu's own until a consumer hands it a signal, and then it is one variable both of them
+ * write. These drive it from the consumer's side: a button that is not the menu's trigger and knows nothing about
+ * it, and a readout that can say whether the popup is open — neither of which was reachable while the state was
+ * private.
+ */
+test.describe("an open state the consumer owns", () => {
+    const DRIVEN = variant("Driven from outside");
+    const openButton = `${DRIVEN} button[aria-label="Open the menu from outside"]`;
+    const closeButton = `${DRIVEN} button[aria-label="Close the menu from outside"]`;
+
+    test("a button that is not the trigger opens the menu", async ({ page }) => {
+        await expect(page.locator(MENU), "nothing is portalled to begin with").toHaveCount(0);
+        expect(await readout(page, "Driven from outside")).toContain("the menu is closed");
+
+        await page.locator(openButton).click();
+
+        await expect(page.locator(MENU)).toHaveCount(1);
+        expect(await readout(page, "Driven from outside"), "and the owner's own variable says so").toContain(
+            "the menu is open",
+        );
+    });
+
+    test("a second button closes it again", async ({ page }) => {
+        await page.locator(openButton).click();
+        await expect(page.locator(MENU)).toHaveCount(1);
+
+        await page.locator(closeButton).click();
+
+        await expect(page.locator(MENU)).toHaveCount(0);
+        expect(await readout(page, "Driven from outside")).toContain("the menu is closed");
+    });
+
+    test("the menu writes its own dismissal back into the consumer's variable", async ({ page }) => {
+        await page.locator(openButton).click();
+        await expect(page.locator(MENU)).toHaveCount(1);
+
+        await page.keyboard.press("Escape");
+
+        await expect(page.locator(MENU)).toHaveCount(0);
+        expect(
+            await readout(page, "Driven from outside"),
+            "one variable, both sides write — so Escape is visible to the owner",
+        ).toContain("the menu is closed");
+    });
+
+    test("activating an item closes it and reaches the owner too", async ({ page }) => {
+        await page.locator(openButton).click();
+        await expect(page.locator(MENU)).toHaveCount(1);
+
+        await page.locator(ITEM).filter({ hasText: "Copy" }).first().click();
+
+        await expect(page.locator(MENU)).toHaveCount(0);
+        expect(await readout(page, "Driven from outside")).toContain("Copy");
+        expect(await readout(page, "Driven from outside")).toContain("the menu is closed");
+    });
+
+    test("the menu's own trigger still works, and the owner sees that too", async ({ page }) => {
+        await openedWithHighlight(page, "Driven from outside");
+
+        expect(await readout(page, "Driven from outside"), "the trigger writes the same variable").toContain(
+            "the menu is open",
+        );
+    });
+});

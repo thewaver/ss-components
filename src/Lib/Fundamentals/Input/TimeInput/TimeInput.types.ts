@@ -22,7 +22,7 @@ export type TimeInputProps = Omit<
     | "getElement"
     | "getType"
     | "getInputMode"
-    | "getMask"
+    | "computeMaskedText"
     | "getPlaceholderHint"
     | "getIsSpinButton"
     | "getIsAutoSizing"

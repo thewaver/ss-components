@@ -5,6 +5,7 @@ import { CSSUtils, StringUtils } from "@thewaver/ss-utils";
 
 import { InteractionUtils } from "../../../Abstracts/Interaction/Interaction.utils";
 import { NavigationUtils } from "../../../Abstracts/Navigation/Navigation.utils";
+import { SignalMirror } from "../../../Abstracts/SignalMirror/SignalMirror";
 import { TextSync } from "../../../Abstracts/TextSync/TextSync";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { Popover } from "../../Popover/Popover";
@@ -152,7 +153,7 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
     const listboxId = createUniqueId();
 
     const [getFieldRef, setFieldRef] = createSignal<HTMLElement>();
-    const [getIsOpen, setIsOpen] = createSignal(false);
+    const [getIsOpen, setIsOpen] = SignalMirror.createOptional(() => props.visibilitySignal, false);
     const [getHasPopoverSettled, setHasPopoverSettled] = createSignal(true);
     const [getHighlightedValue, setHighlightedValue] = createSignal<T | undefined>();
 
@@ -232,11 +233,32 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
 
         setIsOpen(true);
     };
+    /**
+     * A disabled control cannot be opened, whoever asks. `open` already refuses, but a consumer writing `true`
+     * into `visibilitySignal` bypasses it — so the invariant is enforced against the state instead, and the
+     * component writes `false` back the way `Modal` writes its own dismissal back.
+     */
+    createEffect(() => {
+        if (!getIsOpen() || !getIsDisabled()) return;
+
+        setIsOpen(false);
+    });
 
     const close = () => {
         setIsOpen(false);
-        setHighlightedValue(() => undefined);
     };
+
+    /**
+     * The highlight is cleared from an effect rather than from `close`, so that a consumer writing `false` into
+     * `visibilitySignal` leaves the list in the same state a click outside would. Every side effect of closing has
+     * to hang off the state rather than off the path that changed it, or an externally closed popup keeps a
+     * highlight the reader can no longer see.
+     */
+    createEffect(() => {
+        if (getIsOpen()) return;
+
+        setHighlightedValue(() => undefined);
+    });
 
     const pickValue = (value: T) => {
         props.onPick(value);

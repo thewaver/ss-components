@@ -3,6 +3,13 @@ export type TextSyncMaskResult = {
     caret: number;
 };
 
+export type TextSyncGroupDefs = {
+    groupSize: number;
+    groupSeparator: string;
+    decimalSeparator: string;
+    decimals: number;
+};
+
 const DIGIT_FIRST = "0";
 const DIGIT_LAST = "9";
 
@@ -99,4 +106,73 @@ export namespace TextSyncUtils {
     /** Formats digits that are already in the pattern's own order — the mask used as a formatter. */
     export const formatWithMask = (pattern: string, digits: string) =>
         applyMask(pattern, "", getDigits(digits), digits.length).text;
+
+    /**
+     * Lays digits into a grouped number — thousands separators and a fixed number of decimal places — and says
+     * where the caret belongs afterwards.
+     *
+     * **This is the same digits-only contract as `applyMask`, anchored at the other end.** A pattern has a
+     * fixed run of slots, so what survives an edit there is _how many digits precede the caret_. A number has
+     * as many groups as its value needs, and digits arrive at the right: typing `1`, `2`, `3` into a
+     * two-decimal field walks `0.01`, `0.12`, `1.23`, and every separator moves as it goes. So what survives
+     * here is **how many digits follow the caret**, and the offset in the text is recovered from that.
+     *
+     * **The decimal separator is emitted, never typed**, which is what keeps the contract intact — the
+     * fraction has a fixed width, so digits fill it from the right rather than a keypress choosing where it
+     * starts. A field wanting a typed decimal point wants a different function, not another argument here.
+     *
+     * **Deleting a separator deletes the digit before it instead**, the same tell as `applyMask` uses: the
+     * digit count did not change across an edit that shortened the text.
+     */
+    export const applyGroupedMask = (
+        defs: TextSyncGroupDefs,
+        previous: string,
+        next: string,
+        caret: number,
+    ): TextSyncMaskResult => {
+        const previousDigits = getDigits(previous);
+        const isDeletion = next.length < previous.length;
+
+        let digits = getDigits(next);
+        let digitsAfter = getDigits(next.slice(caret)).length;
+
+        if (isDeletion && digits.length === previousDigits.length && digits.length > digitsAfter) {
+            const index = digits.length - digitsAfter;
+
+            digits = digits.slice(0, index - 1) + digits.slice(index);
+        }
+
+        digits = digits.replace(/^0+(?=\d)/, "");
+
+        if (digits.length === 0) return { text: "", caret: 0 };
+
+        const padded = digits.padStart(defs.decimals + 1, "0");
+        const whole = padded.slice(0, padded.length - defs.decimals);
+        const fraction = padded.slice(padded.length - defs.decimals);
+
+        const groups: string[] = [];
+
+        for (let end = whole.length; end > 0; end -= defs.groupSize) {
+            groups.unshift(whole.slice(Math.max(0, end - defs.groupSize), end));
+        }
+
+        const text = groups.join(defs.groupSeparator) + (defs.decimals > 0 ? defs.decimalSeparator + fraction : "");
+
+        digitsAfter = Math.min(digitsAfter, padded.length);
+
+        let seen = 0;
+        let offset = text.length;
+
+        while (offset > 0 && seen < digitsAfter) {
+            offset -= 1;
+
+            if (getIsDigit(text[offset])) seen += 1;
+        }
+
+        return { text, caret: offset };
+    };
+
+    /** Formats digits as a grouped number, the grouped mask used as a formatter. */
+    export const formatWithGroups = (defs: TextSyncGroupDefs, digits: string) =>
+        applyGroupedMask(defs, "", getDigits(digits), 0).text;
 }

@@ -17,6 +17,7 @@ export type DatePickerProps = Omit<DateInputProps, "renderTrailing"> &
         locale?: string;
         weekStartsOn?: DateValueWeekStart;
     }> & {
+        visibilitySignal?: Signal<boolean>;
         renderTrigger: (getIsOpen: () => boolean, onToggle: () => void) => JSX.Element;
         renderDay: CalendarDayRenderer;
         renderWeekday?: CalendarWeekdayRenderer;

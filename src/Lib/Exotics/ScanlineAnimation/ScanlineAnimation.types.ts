@@ -1,6 +1,5 @@
 import type { AccessorProps } from "../../Utils/typeUtils";
 import type {
-    CellAnimationController,
     CellAnimationEvaluationDefs,
     CellAnimationEvaluationResult,
     CellAnimationProps,
@@ -9,8 +8,6 @@ import type {
 export type ScanlineAnimationEvaluationDefs = CellAnimationEvaluationDefs;
 
 export type ScanlineAnimationEvaluationResult = CellAnimationEvaluationResult;
-
-export type ScanlineAnimationController = CellAnimationController;
 
 export type ScanlineAnimationProps = Omit<CellAnimationProps, "getCellCount" | "computeCellAnimation"> &
     AccessorProps<{

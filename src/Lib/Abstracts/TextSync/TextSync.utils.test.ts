@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import type { TextSyncGroupDefs } from "./TextSync.utils";
 import { TextSyncUtils } from "./TextSync.utils";
 
 const DATE = "##/##/####";
@@ -134,5 +135,84 @@ describe("formatWithMask", () => {
         expect(TextSyncUtils.formatWithMask(DATE, "2512")).toBe("25/12/");
         expect(TextSyncUtils.formatWithMask(DATE, "251")).toBe("25/1");
         expect(TextSyncUtils.formatWithMask(DATE, "")).toBe("");
+    });
+});
+
+/**
+ * The grouped mask is the same digits-only contract anchored at the other end: the group count grows with the
+ * value, so what survives an edit is how many digits _follow_ the caret rather than how many precede it. These
+ * drive the caret explicitly, because that arithmetic is the whole of what is new here.
+ */
+const MONEY: TextSyncGroupDefs = { groupSize: 3, groupSeparator: ",", decimalSeparator: ".", decimals: 2 };
+const PLAIN: TextSyncGroupDefs = { groupSize: 3, groupSeparator: " ", decimalSeparator: ".", decimals: 0 };
+
+const typeGrouped = (defs: TextSyncGroupDefs, keys: string) => {
+    let text = "";
+    let caret = 0;
+
+    for (const key of keys) {
+        const next = text.slice(0, caret) + key + text.slice(caret);
+        const result = TextSyncUtils.applyGroupedMask(defs, text, next, caret + 1);
+
+        text = result.text;
+        caret = result.caret;
+    }
+
+    return { text, caret };
+};
+
+describe("applyGroupedMask", () => {
+    it("fills a fixed fraction from the right as digits arrive", () => {
+        expect(typeGrouped(MONEY, "1").text).toBe("0.01");
+        expect(typeGrouped(MONEY, "12").text).toBe("0.12");
+        expect(typeGrouped(MONEY, "123").text).toBe("1.23");
+        expect(typeGrouped(MONEY, "123456").text).toBe("1,234.56");
+    });
+
+    it("grows a group every three whole digits, which is what a fixed pattern cannot do", () => {
+        expect(typeGrouped(PLAIN, "1").text).toBe("1");
+        expect(typeGrouped(PLAIN, "1234").text).toBe("1 234");
+        expect(typeGrouped(PLAIN, "1234567").text).toBe("1 234 567");
+        expect(typeGrouped(PLAIN, "1234567890").text).toBe("1 234 567 890");
+    });
+
+    it("leaves the caret after the digit that was just typed, however the separators moved", () => {
+        expect(typeGrouped(MONEY, "123456")).toEqual({ text: "1,234.56", caret: 8 });
+        expect(typeGrouped(PLAIN, "1234")).toEqual({ text: "1 234", caret: 5 });
+    });
+
+    it("keeps the digits that follow the caret when one is inserted in the middle", () => {
+        const result = TextSyncUtils.applyGroupedMask(MONEY, "1,234.56", "1,2934.56", 4);
+
+        expect(result.text).toBe("12,934.56");
+        expect(result.text.slice(result.caret), "four digits still follow the caret").toBe("34.56");
+    });
+
+    it("takes the digit before a separator when the separator is backspaced", () => {
+        const result = TextSyncUtils.applyGroupedMask(MONEY, "1,234.56", "1234.56", 1);
+
+        expect(result.text, "the comma cannot be deleted, so the 1 in front of it goes").toBe("234.56");
+    });
+
+    it("drops leading zeros rather than accumulating them", () => {
+        expect(typeGrouped(MONEY, "000123").text).toBe("1.23");
+        expect(typeGrouped(PLAIN, "0007").text).toBe("7");
+    });
+
+    it("is empty when nothing has been typed, rather than a bare separator", () => {
+        expect(TextSyncUtils.applyGroupedMask(MONEY, "", "", 0)).toEqual({ text: "", caret: 0 });
+        expect(TextSyncUtils.applyGroupedMask(MONEY, "0.01", "", 0)).toEqual({ text: "", caret: 0 });
+    });
+
+    it("ignores punctuation in a paste and keeps only the digits", () => {
+        expect(TextSyncUtils.applyGroupedMask(MONEY, "", "1.234.567,89", 12).text).toBe("1,234,567.89");
+    });
+});
+
+describe("formatWithGroups", () => {
+    it("groups digits without a caret to preserve", () => {
+        expect(TextSyncUtils.formatWithGroups(MONEY, "123456")).toBe("1,234.56");
+        expect(TextSyncUtils.formatWithGroups(PLAIN, "1234567")).toBe("1 234 567");
+        expect(TextSyncUtils.formatWithGroups(MONEY, "")).toBe("");
     });
 });

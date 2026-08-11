@@ -4,6 +4,7 @@ import { Index, Show, createEffect, createMemo, createSignal, createUniqueId } f
 import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
 import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
 import { NavigationUtils } from "../../Abstracts/Navigation/Navigation.utils";
+import { SignalMirror } from "../../Abstracts/SignalMirror/SignalMirror";
 import { LabelUtils } from "../Input/Label/Label.utils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import { Popover } from "../Popover/Popover";
@@ -329,7 +330,7 @@ export const Menu = <T,>(props: MenuProps<T>) => {
     const menuId = createUniqueId();
 
     const [getTriggerRef, setTriggerRef] = createSignal<HTMLElement>();
-    const [getIsOpen, setIsOpen] = createSignal(false);
+    const [getIsOpen, setIsOpen] = SignalMirror.createOptional(() => props.visibilitySignal, false);
     const [getInitialHighlightPosition, setInitialHighlightPosition] = createSignal<MenuHighlightPosition>("first");
 
     const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
@@ -342,10 +343,31 @@ export const Menu = <T,>(props: MenuProps<T>) => {
         setInitialHighlightPosition(position);
         setIsOpen(true);
     };
+    /**
+     * A disabled control cannot be opened, whoever asks. `open` already refuses, but a consumer writing `true`
+     * into `visibilitySignal` bypasses it — so the invariant is enforced against the state instead, and the
+     * component writes `false` back the way `Modal` writes its own dismissal back.
+     */
+    createEffect(() => {
+        if (!getIsOpen() || !getIsDisabled()) return;
+
+        setIsOpen(false);
+    });
 
     const close = () => {
         setIsOpen(false);
     };
+
+    /**
+     * Closing resets where the next open will put the highlight, so a consumer opening the menu through
+     * `visibilitySignal` gets the first item rather than inheriting `last` from whoever pressed ArrowUp before
+     * them. An external open cannot state a position, so the position has to be right by default.
+     */
+    createEffect(() => {
+        if (getIsOpen()) return;
+
+        setInitialHighlightPosition("first");
+    });
 
     const handleTriggerKeyDown = (e: KeyboardEvent) => {
         if (getIsDisabled()) return;

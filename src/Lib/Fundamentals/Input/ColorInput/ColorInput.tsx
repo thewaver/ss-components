@@ -4,6 +4,7 @@ import { createEffect, createMemo, createSignal, createUniqueId, untrack } from 
 import type { AnchorPlacement } from "../../../Abstracts/Anchor/Anchor.types";
 import type { ColorValueHsv } from "../../../Abstracts/ColorValue/ColorValue.types";
 import { ColorValueUtils } from "../../../Abstracts/ColorValue/ColorValue.utils";
+import { SignalMirror } from "../../../Abstracts/SignalMirror/SignalMirror";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { Popover } from "../../Popover/Popover";
 import { ColorArea } from "../ColorArea/ColorArea";
@@ -72,7 +73,7 @@ export const ColorInput = (props: ColorInputProps) => {
     const popupId = createUniqueId();
 
     const [getFieldRef, setFieldRef] = createSignal<HTMLElement>();
-    const [getIsOpen, setIsOpen] = createSignal(false);
+    const [getIsOpen, setIsOpen] = SignalMirror.createOptional(() => props.visibilitySignal, false);
     const [getHsv, setHsv] = createSignal<ColorValueHsv>(
         ColorValueUtils.fromHexa(props.valueSignal[0]())
             ? ColorValueUtils.rgbaToHsv(ColorValueUtils.fromHexa(props.valueSignal[0]())!)

@@ -34,7 +34,7 @@ export const PageEraCycle = (props: EraCycleProps) => {
                         }}
                         aria-hidden
                     >
-                        {getCurrent()?.id ?? props.getEra()}
+                        {getCurrent()?.shortName ?? props.getEra()}
                     </div>
                 )}
             />

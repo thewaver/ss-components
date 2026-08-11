@@ -51,10 +51,9 @@ decision is made once with several consumers in view rather than inferred from t
 **Blocked on a primitive that has to be designed first.** Do not start these by inventing the primitive
 privately inside them.
 
-1. **The mask ships, `DateInput` reads any of three orders and `TimeInput` reads a 12-hour clock**; see
-   `conventions.md`. Nothing here is blocked on a primitive any more. What is left is the formatted number,
-   which needs a growing group count rather than a fixed pattern, and the field shape `DateInput` and
-   `TimeInput` still duplicate — both unblocked, and neither waiting on the other. See item 7.
+1. **Nothing in the date and time family is blocked any more.** The mask covers fixed patterns and growing
+   groups, `MaskedField` holds the shared field, and `AmountInput` is the third consumer that proved the seam;
+   see `conventions.md`. What is left in item 7 is composition and range work, none of it waiting on a primitive.
 2. **`Tree`** — `computeNextCell` ships, and `Select`'s tree-flattening model is the other half. Wants
    virtualization, which is also `Select`'s loose end in item 5, so that `Abstract` belongs here.
 
@@ -63,10 +62,10 @@ privately inside them.
 - **The form story (item 9) should be decided far earlier than its size suggests.** It is the one item
   whose cost _grows_ with delay: every control built without it grows its own half of error and validation
   plumbing, and each becomes a retrofit. The count of controls carrying a `hasError` with nothing on the
-  other end of it is now sixteen.
-- **Dismissal is settled; the open state is not.** All five layers dismiss through `DismissStack`, so what
-  is left of this is the `openSignal` question items 5 and 6 record — a consumer still cannot open or close
-  a popup programmatically.
+  other end of it is now seventeen.
+- **Dismissal and open state are both settled.** All five layers dismiss through `DismissStack` and all five take
+  a `visibilitySignal`; see `conventions.md`. What is left of this family is `Menu` accepting an anchor and an
+  opener, in item 6.
 - **`Table` / data grid stays out of scope**, and specifically must not arrive as a by-product of
   `Tree` or of virtualization.
 
@@ -201,10 +200,9 @@ the gaps, each with the reason it is still a gap.
 - **Virtualization is still possible but nothing uses it.** The record shape was chosen to keep it
   open. Only one thing now assumes every option is mounted: each option scrolls _itself_ into view off
   its own `isHighlighted` flag, which a virtualizer would have to replace with its own scroll-to.
-- **Open state is private, and dismissal does not restore the query.** There is no `openSignal`, so a
-  consumer cannot close the popup programmatically; if that is ever wanted it is a `*Signal` prop by
-  the existing rule. Escape and blur clear the query rather than restoring the selected option's text,
-  because restoring it would need the per-option string this design does not have.
+- **Dismissal does not restore the query.** Escape and blur clear it rather than restoring the selected option's
+  text, because restoring it would need the per-option string this design does not have. The open state itself is
+  no longer private — `visibilitySignal` ships; see `conventions.md`.
 
 **_Elsewhere._** Checked against Radix, React Aria and Kobalte, which is the SolidJS one.
 
@@ -258,10 +256,14 @@ gaps, each with the reason it is still a gap.
 - **There is no typeahead**, for the same reason `Select` has none — it needs a string per item that
   the painter already renders, or a consumer predicate. Unlike `Select` there is no autocomplete to
   offer instead.
-- **The trigger is a button and only a button.** A right-click context menu and a split button are both
-  the same popup on a different opener, and both want `Menu` to accept an anchor and an open signal it
-  does not own. That is the same `openSignal` question `Select` records, and it should be answered once
-  for both.
+- **The trigger is a button and only a button.** A right-click context menu and a split button are both the same
+  popup on a different opener. Half of what they needed now exists — `Menu` takes a `visibilitySignal`, so a
+  consumer can open it from anywhere; see `conventions.md`. What is missing is the **anchor** and the opener's
+  place in the dismiss layer: a consumer's own button is outside the popup, so pressing it while the menu is open
+  dismisses the menu and then re-opens it, which is why a toggle button appears not to close. `Menu` would have to
+  accept an anchor element and register it as part of the layer, the way its own trigger already is. The published
+  mechanism for exactly this is quoted in item 15's **_Elsewhere_**: Radix's `DismissableLayer` marks a layer during
+  the capture phase when a press _began_ inside it, so an opener that belongs to the layer never dismisses it.
 - **There is no `menuitemcheckbox` or `menuitemradio`.** Those carry state, which is the line this
   control is on the other side of — `MenuFlags` has no selection and items have no `aria-checked`.
   Adding them means deciding whether a stateful menu is this component or a `Select` with menu paint.
@@ -287,30 +289,27 @@ gaps, each with the reason it is still a gap.
 `Abstracts/TimeValue`. The decisions are in `conventions.md`. What is left, in the order it would be worth
 doing:
 
-- **The mask ships, and the 12-hour clock turned out not to need it.** `TextSyncUtils.applyMask`,
-  `DateInput`'s `getFormat` and `TimeInput`'s `getIsTwelveHour` are all in `conventions.md`: the meridiem is
-  a control in the trailing slot, so the pattern stayed digits-only and the non-digit slot this bullet
-  predicted was never built. What is left is the **formatted number**, which is the one consumer that does
-  need the pattern to change — thousands separators mean a group count that grows with the value rather than
-  a fixed run of slots, and that is a different function rather than a longer pattern. `TimeInput` adopted
-  the mask on 2026-08-11 and `TextSyncUtils` therefore has its second consumer, so whether it should be
-  exported for a consumer building their own masked field is now a live question rather than a deferred one.
-  **The signed year turned out not to need the non-digit slot either.** A year before the common era is now an
-  era plus a positive year, and the era is a control in the leading slot — so the mask stayed digits-only for a
-  second time, and the formatted number is the only consumer left that needs the pattern itself to change. See
-  `conventions.md`.
+- **The mask covers every field the library has, and only the sign is still unreachable.**
+  `TextSyncUtils.applyMask` for fixed patterns, `applyGroupedMask` for a group count that grows with the value,
+  and `TextField.computeMaskedText` taking the transform rather than a pattern; all in `conventions.md`. Both
+  things this bullet once predicted would need a non-digit slot were answered without one — the meridiem and the
+  era are controls in the trailing and leading slots. What no mask here can express is a **typed sign**, so
+  `AmountInput` holds no negative amount and a consumer wanting one has nothing to reach for. Whether
+  `TextSyncUtils` should be exported for a consumer building their own masked field is still open, and it now has
+  three in-library consumers arguing for it.
+- **Grouping is uniform, so the Indian and Chinese groupings cannot be spelled.** `applyGroupedMask` takes one
+  `groupSize` and repeats it, which is right for every locale that groups in threes and wrong for `en-IN`, where
+  `1234567` is written `12,34,567` — three digits then twos. `Intl.NumberFormat` gets this right and the mask does
+  not, so a consumer setting an Indian locale gets that locale's _separators_ with the wrong _grouping_. The fix is
+  a group pattern rather than a group size; nothing has asked, and it is recorded because the locale prop makes the
+  omission look like a bug rather than a limit.
 - **Two calendar systems are deliberately absent**, and `getCalendarIds` is where that is enforced —
   `chinese` and `dangi` report no era and no plain year, only a `relatedYear`, and `createCalendar` answers a
   request for either with a **Gregorian** calendar rather than refusing it. Nothing here is outstanding; it is
   recorded because from outside the omission reads as an oversight.
-- **An era's display name costs a bisection, and nothing measures whether that matters.** The package gives
-  era identifiers but no names, so `getEras` finds a date inside each era by bisecting the ISO year and formats
-  it through `Intl`. That is about thirteen reads per era, once per calendar and locale, behind a cache that is
-  never invalidated — fine for the thirteen calendars that exist and untested against a consumer switching
-  locale repeatedly.
 - **No time popup.** A list of times in a `Popover` is a `Select` over generated options; whether that
-  belongs inside `TimeInput` as a mode or beside it as a `TimePicker` is the decision, and it should be
-  taken with the `openSignal` question below rather than separately. Note the trailing slot is now spoken
+  belongs inside `TimeInput` as a mode or beside it as a `TimePicker` is the decision, and nothing blocks it now
+  that a popup's open state can be shared. Note the trailing slot is now spoken
   for on a 12-hour field, so a picker trigger and an am/pm control would have to share it — which is what
   that slot taking `(getFlags, meridiem)` already allows, since the painter draws both or neither.
 - **No date-and-time value.** The two fields exist side by side and nothing composes them. Which signal
@@ -319,10 +318,6 @@ doing:
 - **Range variants of all of them.** `Calendar` holds one date, so a span needs two ends, a half-entered
   state while the first is being picked, and `isInRange` / `isRangeStart` / `isRangeEnd` on the flags.
   Decide once, for `Calendar` and `DatePicker` together.
-- **`DateInput` and `TimeInput` share a shape and no code.** Both are a `TextField` over a private text
-  signal with parse-on-complete and refresh-on-blur. That is now written twice, and a third typed value
-  (a formatted number) would write it a third time. Extracting it is the smaller half of the mask work and
-  probably wants doing at the same time.
 
 **_Elsewhere._**
 
@@ -358,7 +353,7 @@ doing:
 
 ## 8. Other core controls the library does not have
 
-`Fundamentals/Input` covers `TextInput`, `TextArea`, `NumberInput`, `Checkbox`, `Toggle`, `Radio`,
+`Fundamentals/Input` covers `TextInput`, `TextArea`, `NumberInput`, `AmountInput`, `Checkbox`, `Toggle`, `Radio`,
 `RadioGroup`, `Select`, `MultiSelect`, `FileInput`, `ColorInput`, `Label`, `Calendar`, `DateInput`,
 `DatePicker` and `TimeInput`; `Fundamentals` adds `Accordion`, `Button`, `Tabs`, `Tooltip`, `Popover`, `Menu`, `Modal`,
 `Drawer`, `Progress`, `Range` and `Toasts`.
@@ -422,10 +417,9 @@ any of those without first deciding these would bake the decision in by accident
 - **Pointer drag capture, and pointer geometry in the flags contract.** Item 2 records that
   `renderContent`/`renderDecoration` receive state and never events or pointer position. `Range` cannot
   be built without it, so the opt-in design that item asks for has to be settled first.
-- **Masking and formatting** is built for digits and fixed groups — `TextSyncUtils.applyMask`, in
-  `conventions.md`. What is not built is a slot that is not a digit (an am/pm segment) or a group count
-  that grows with the value (thousands separators), so a 12-hour clock and a formatted number are both
-  still waiting; see item 7.
+- **Masking and formatting is built, and the field over it is shared.** `applyMask`, `applyGroupedMask` and
+  `Abstracts/MaskedField` are all in `conventions.md`, with `DateInput`, `TimeInput` and `AmountInput` over them.
+  What is not built is a typed sign or a non-uniform group pattern; see item 7.
 - **Virtualization.** Already recorded as a `Select` loose end in item 5; `Tree` and any grid need the
   same thing, so it is an `Abstract`, not a per-control feature.
 - **The form story is decided and wired.** `Form` and `FormField` ship and every control reads the
@@ -438,10 +432,11 @@ any of those without first deciding these would bake the decision in by accident
   and `Popover` registers one, so all five controls dismiss through the same mechanism; a portalled layer's
   z-index is one above the highest on its anchor's ancestor chain, so a popup opened inside a `Modal` paints
   above it. Both are in `conventions.md`. Nothing here is outstanding.
-- **The `Signal` mirror is now `Abstracts/SignalMirror`**, taking a getter and a setter so a consumer
-  without a signal is served too; see `conventions.md`. What remains is that no library control accepts
-  the getter-plus-setter pair directly — a consumer still wraps it in a mirror to hand a control its
-  `*Signal`, which is one indirection rather than none.
+- **The `Signal` mirror is now `Abstracts/SignalMirror`**, taking a getter and a setter so a consumer without a
+  signal is served too, and `createOptional` beside it so a control's state can be private until a consumer asks
+  for it; see `conventions.md`. What remains is that no library control accepts the getter-plus-setter pair
+  directly — a consumer still wraps it in a mirror to hand a control its `*Signal`, which is one indirection
+  rather than none.
 
 **_Elsewhere._**
 
@@ -474,17 +469,12 @@ any of those without first deciding these would bake the decision in by accident
 runs it. What is worth stating is the shape of its blind spots, because a green run reads as broader
 coverage than it is.
 
-**Nothing checks appearance.** The suite reads the DOM, so the parity rule that forced
-`aria-disabled`-everywhere — that disabled and disabled-but-reachable must look _identical_ — is still
-only ever checked by eye. Playwright can compare screenshots, so this is now a decision rather than a
-limit: what wants settling first is whether a committed baseline image is wanted in this repo at all,
-given every painter lives in the Playground and a deliberate restyle would then have to re-bless the
-baselines.
-
-**Three components have a Playground page and no spec driving it**: `CellAnimation`,
-`ScanlineAnimation` and `ScreenWiper`. All three are the hard case rather than the neglected one — what
-they produce is motion over time, so a DOM-reading spec over them would assert structure and call it
-coverage. What would actually cover them is the screenshot decision above, and nothing else will.
+**Nothing checks appearance, and nothing will** — screenshot baselines are an accepted limit rather than a
+pending decision; see the section at the end of this file. So the parity rule that forced
+`aria-disabled`-everywhere — that disabled and disabled-but-reachable must look _identical_ — is checked by eye,
+permanently, and the same goes for `CellAnimation`, `ScanlineAnimation` and `ScreenWiper`, which have a
+Playground page and no spec because what they produce is motion over time. A DOM-reading spec over those three
+would assert structure and call it coverage; nothing else here will reach them.
 
 **`ImageSwitcher`'s one remaining hole is `onLoad`, and the page is why.** The rest of the contract is
 now driven — the pair staying mounted, the preload finishing before either element changes, a failed
@@ -495,7 +485,9 @@ invisible to a suite that drives the page, and `onMount` handoffs are in the sam
 
 **Components with no Playground page at all**, so nothing can drive them until one exists:
 `AudioSwitcher` and `RichText`, both commented out of `TAB_CONFIGS` in
-`src/Playground/App/App.tsx`.
+`src/Playground/App/App.tsx`. `AudioSwitcher` is the more pressing of the two now: its play and pause moved from a
+mount handle to a `playbackSignal` on **2026-08-12** and that change has never been run, because there is nothing
+to run it. The fades it drives are the part most likely to be wrong.
 
 **Covered only through a consumer**, which is worth distinguishing from uncovered because it decides
 whether a spec is worth writing: `Popover` through `Select` and `Menu`, `Radio` through
@@ -511,16 +503,6 @@ a positioner that stops updating when nothing is painting is also a bug is undec
 observable through the old suite, whose headless mode stopped producing frames; Playwright does not
 stall that way, so the question is now purely about the components and nothing in the suite will surface
 it.
-
-**_Elsewhere_, on the baseline question.** There are two published arrangements and they differ on where
-the image lives. Playwright's own screenshot assertion commits the baseline beside the spec, one file per
-browser and platform, re-blessed with `--update-snapshots` — and its docs are explicit that rendering
-varies with the host operating system, the browser build, headless mode, hardware and even whether the
-machine is on battery, so a committed image is only stable in the environment that produced it. The
-hosted services (Chromatic, Argos) keep baselines off the repo entirely and put the diff in the pull
-request for approval, which is what libraries with a design system to protect generally use. Either way,
-the re-blessing this item worries about is the routine operation rather than the exception — the
-difference is whether it is a commit or an approval click.
 
 **Time is no longer a blind spot, and the mechanism is worth knowing before the next timing bug.**
 Playwright's clock API fakes `Date`, `setTimeout`, `setInterval`, `requestAnimationFrame`,
@@ -742,9 +724,8 @@ These are the gaps.
 - **No eyedropper, no swatch presets, no recent colours.** All three are paint plus a value write, so all
   three are the consumer's today; whether presets deserve a `renderPresets` slot depends on whether the
   keyboard order should include them, which is a real question and not a styling one.
-- **Dismissal is shared now, and only the open state is still private.** `ColorInput` dismisses through
-  `DismissStack` like every other layer; see `conventions.md`. What remains is that a consumer cannot open
-  or close the popup themselves, which is the `openSignal` question items 5 and 6 record.
+- **Nothing about dismissal or open state is outstanding.** `ColorInput` dismisses through `DismissStack` like
+  every other layer and takes a `visibilitySignal` like every other popup; both are in `conventions.md`.
 
 **_Elsewhere._**
 
@@ -900,3 +881,24 @@ not worth taking is that it forces `withCalendar` to return `undefined`, and the
 `DateInput` and the Playground's knob has to decide separately what to show instead. Three judgment calls and a
 non-null assertion in `toIso`, to close a case only a deliberate calendar switch on an out-of-era date reaches.
 The clamp is also `Intl`'s own behaviour, so what ships is at least consistent with the platform.
+
+**Screenshot baselines, and with them any automated check on appearance.** Accepted **2026-08-11**, by the
+user, on two grounds: style in this project is far too fluid for a baseline image to mean anything for long,
+and appearance is **not the library's responsibility** in the first place — `src/Lib` paints nothing, every
+painter lives in the Playground, so a committed image would be asserting the demo's taste rather than the
+package's contract.
+
+What this permanently gives up is worth naming so nobody re-proposes it as a gap: the `aria-disabled`-parity
+rule — that disabled and disabled-but-reachable look identical — is checked by eye and only by eye, and
+`CellAnimation`, `ScanlineAnimation` and `ScreenWiper` will keep their Playground pages and no specs, because
+motion over time is the one thing a DOM-reading suite cannot see. Item 10 records the blind spot; this is the
+decision not to close it.
+
+For the record, since it was researched and would otherwise be re-researched: there are two published
+arrangements and they differ on where the image lives. Playwright's own screenshot assertion commits the
+baseline beside the spec, one file per browser and platform, re-blessed with `--update-snapshots` — and its docs
+are explicit that rendering varies with the host operating system, the browser build, headless mode, hardware
+and even whether the machine is on battery, so a committed image is only stable in the environment that
+produced it. The hosted services (Chromatic, Argos) keep baselines off the repo entirely and put the diff in the
+pull request for approval, which is what libraries with a design system to protect generally use. Neither
+arrangement survives the two grounds above.

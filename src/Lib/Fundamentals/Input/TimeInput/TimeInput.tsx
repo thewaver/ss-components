@@ -1,5 +1,6 @@
 import { createEffect, createMemo, createSignal, untrack } from "solid-js";
 
+import { MaskedField } from "../../../Abstracts/MaskedField/MaskedField";
 import { TextSyncUtils } from "../../../Abstracts/TextSync/TextSync.utils";
 import type { TimeValue, TimeValueMeridiem, TimeValueUnit } from "../../../Abstracts/TimeValue/TimeValue.types";
 import { TimeValueUtils } from "../../../Abstracts/TimeValue/TimeValue.utils";
@@ -76,83 +77,35 @@ export const TimeInput = (props: TimeInputProps) => {
             ? TimeValueUtils.fromTwelveHourText(text, untrack(getMeridiem))
             : TimeValueUtils.fromIso(text);
 
-    const getText = () => {
-        const value = props.valueSignal[0]();
-
-        return value ? toText(value) : "";
-    };
-
-    const textSignal = createSignal(untrack(getText));
-
-    const [getHasLeft, setHasLeft] = createSignal(false);
-
     const getSegmentCount = () => (props.getHasSeconds?.() ? SEGMENT_UNITS.length : SEGMENT_UNITS.length - 1);
 
     const getMask = createMemo(() => computeMask(getSegmentCount()));
 
-    const getDigits = () => TextSyncUtils.getMaskedDigits(textSignal[0]());
+    const fromDigits = (digits: string) => {
+        if (digits.length !== getSegmentCount() * SEGMENT_LENGTH) return undefined;
 
-    const getExpectedDigits = () => getSegmentCount() * SEGMENT_LENGTH;
-
-    const getExpectedLength = () => getSegmentCount() * SEGMENT_STRIDE - SEPARATOR_LENGTH;
-
-    const getAcceptedValue = (text: string) => {
-        const parsed = parseText(text);
+        const parsed = parseText(TextSyncUtils.formatWithMask(untrack(getMask), digits));
 
         return parsed && TimeValueUtils.getIsInRange(parsed, props.getMinTime?.(), props.getMaxTime?.())
             ? parsed
             : undefined;
     };
 
-    /**
-     * The same three moments `DateInput` reports at, for the same reasons: a 25th hour is wrong as soon as
-     * that segment is complete, a time outside the bounds needs all of them, and a half-typed time waits
-     * until the field is left.
-     */
-    const getHasIssue = createMemo(() => {
-        const digits = getDigits();
-
-        if (digits.length === 0) return false;
-        if (getHasImpossibleSegment(digits, getSegmentCount(), getIsTwelveHour())) return true;
-        if (digits.length < getExpectedDigits()) return getHasLeft();
-
-        return getAcceptedValue(textSignal[0]()) === undefined;
-    });
-
-    const refreshText = () => {
-        if (untrack(() => props.valueSignal[0]()) === undefined && untrack(getDigits).length > 0) return;
-
-        textSignal[1](untrack(getText));
-    };
-
-    const commit = (next: TimeValue | undefined) => {
-        if (
-            TimeValueUtils.isSame(
-                next,
-                untrack(() => props.valueSignal[0]()),
-            )
-        )
-            return;
-
-        props.valueSignal[1](() => next);
-    };
-
-    createEffect(() => {
-        const text = textSignal[0]();
-
-        if (text.length > 0 && text.length < getExpectedLength()) return;
-
-        commit(getAcceptedValue(text));
+    const field = MaskedField.createField<TimeValue>({
+        getValue: () => props.valueSignal[0](),
+        setValue: (next) => props.valueSignal[1](() => next),
+        formatDigits: (digits) => TextSyncUtils.formatWithMask(getMask(), digits),
+        getDigitCount: () => getSegmentCount() * SEGMENT_LENGTH,
+        toDigits: (value) => TextSyncUtils.getMaskedDigits(toText(value)),
+        fromDigits,
+        getHasImpossibleDigits: (digits) => getHasImpossibleSegment(digits, getSegmentCount(), getIsTwelveHour()),
+        getIsSame: TimeValueUtils.isSame,
     });
 
     createEffect(() => {
         const value = props.valueSignal[0]();
 
         if (value) setMeridiem(TimeValueUtils.getMeridiem(value));
-
-        if (TimeValueUtils.isSame(value, parseText(untrack(textSignal[0])))) return;
-
-        refreshText();
     });
 
     const meridiem: TimeInputMeridiem = {
@@ -164,7 +117,7 @@ export const TimeInput = (props: TimeInputProps) => {
 
             if (!value) return;
 
-            commit(
+            field.commit(
                 TimeValueUtils.clamp(
                     TimeValueUtils.withMeridiem(value, next),
                     props.getMinTime?.(),
@@ -194,28 +147,23 @@ export const TimeInput = (props: TimeInputProps) => {
         e.preventDefault();
 
         props.valueSignal[1](() => stepped);
-        textSignal[1](toText(stepped));
+        field.textSignal[1](field.formatValue(stepped));
         element.setSelectionRange(segment.start, segment.start + SEGMENT_LENGTH);
     };
 
     return (
         <TextField
             {...props}
-            valueSignal={textSignal}
+            valueSignal={field.textSignal}
             getElement={() => "input"}
             getInputMode={() => "numeric"}
-            getMask={getMask}
+            computeMaskedText={(previous, next, caret) => TextSyncUtils.applyMask(getMask(), previous, next, caret)}
             getPlaceholderHint={() => computeHint(getSegmentCount())}
-            getHasError={() => (props.getHasError?.() ?? false) || getHasIssue()}
+            getHasError={() => (props.getHasError?.() ?? false) || field.getHasIssue()}
             renderTrailing={props.renderTrailing && ((getFlags) => props.renderTrailing!(getFlags, meridiem))}
-            onInput={() => {
-                setHasLeft(false);
-            }}
+            onInput={field.onInput}
             onKeyDown={handleKeyDown}
-            onBlur={() => {
-                setHasLeft(true);
-                refreshText();
-            }}
+            onBlur={field.onBlur}
         />
     );
 };

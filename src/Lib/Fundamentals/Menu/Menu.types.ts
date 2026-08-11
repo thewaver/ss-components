@@ -1,4 +1,4 @@
-import type { Accessor, JSX } from "solid-js";
+import type { Accessor, JSX, Signal } from "solid-js";
 
 import { Point2d, Size2d } from "@thewaver/ss-utils";
 
@@ -98,6 +98,7 @@ export type MenuProps<T> = Omit<InteractionWrapperProps<MenuFlags>, "renderContr
         reservedScreenSize?: Size2d;
         transitionDurationMs?: number;
     }> & {
+        visibilitySignal?: Signal<boolean>;
         getItems: Accessor<MenuItem<T>[]>;
         renderContent: (getFlags: () => InteractionFlags<MenuFlags>) => JSX.Element;
         renderItem: MenuRenderItem<T>;

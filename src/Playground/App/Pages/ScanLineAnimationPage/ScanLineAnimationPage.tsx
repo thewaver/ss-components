@@ -4,7 +4,6 @@ import { createStore } from "solid-js/store";
 import type { Point2d } from "@thewaver/ss-utils";
 
 import { ScanlineAnimation } from "../../../../Lib/Exotics/ScanlineAnimation/ScanlineAnimation";
-import type { ScanlineAnimationController } from "../../../../Lib/Exotics/ScanlineAnimation/ScanlineAnimation.types";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
@@ -123,7 +122,7 @@ const BRIGHTNESS_SOURCE = highlighter.codeToHtml(BrightnessExampleRaw, getDefaul
 const GRAYSCALE_SOURCE = highlighter.codeToHtml(GrayscaleExampleRaw, getDefaultHighlighterConfig());
 const HUE_SOURCE = highlighter.codeToHtml(HueExampleRaw, getDefaultHighlighterConfig());
 
-const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers: ScanlineAnimationController[] }) => {
+const StressTestWrapper = (props: ScanlineAnimationExampleProps) => {
     return (
         <>
             <div>{"120 lines"}</div>
@@ -131,10 +130,10 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps & { controllers:
             <StressTest
                 getConfigs={() => STRESS_ITEMS}
                 onHideModal={() => {
-                    props.controllers.forEach((c) => c.start());
+                    props.playbackSignal[1](true);
                 }}
                 onShowModal={() => {
-                    props.controllers.forEach((c) => c.stop());
+                    props.playbackSignal[1](false);
                 }}
                 renderLabel={(getConfigIndex) =>
                     `Render ${STRESS_ITEMS[getConfigIndex()].count} ${STRESS_ITEMS[getConfigIndex()].kind} items`
@@ -455,7 +454,12 @@ const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 };
 
 export const ScanlineAnimationPage = () => {
-    let controllers: ScanlineAnimationController[] = [];
+    /**
+     * One signal shared by every animation on the page, which is what replaced collecting a controller per mount.
+     * The stress test suspends them all while its modal is up by writing one variable, and nothing has to still be
+     * mounted for that to work.
+     */
+    const playback = createSignal(true);
 
     const [getSrc, setSrc] = createSignal(knight);
     const [getLineCount, setLineCount] = createSignal(120);
@@ -468,12 +472,8 @@ export const ScanlineAnimationPage = () => {
     };
 
     const getExamples = createMemo(() => {
-        controllers = [];
-
         const commonProps: ScanlineAnimationExampleProps = {
-            onMount: (controller) => {
-                controllers.push(controller);
-            },
+            playbackSignal: playback,
             computeCellWeights: (count) =>
                 CellAnimationWeights.computeCellWeights(getWeightType(), count, SCANLINE_ORIGIN),
             getSrc,
@@ -520,7 +520,7 @@ export const ScanlineAnimationPage = () => {
             },
             {
                 name: "Stress Test",
-                component: () => <StressTestWrapper {...commonProps} controllers={controllers} />,
+                component: () => <StressTestWrapper {...commonProps} />,
                 src: "",
             },
         ];

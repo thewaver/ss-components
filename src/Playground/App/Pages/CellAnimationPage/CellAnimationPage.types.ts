@@ -1,6 +1,7 @@
+import type { Signal } from "solid-js";
+
 import type { Point2d } from "@thewaver/ss-utils";
 
-import type { CellAnimationController } from "../../../../Lib/Exotics/CellAnimation/CellAnimation.types";
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 import type { CellAnimationKeyframes } from "../../Samples/CellAnimation.const";
 import type { CellAnimationBreakpoints } from "../../Samples/CellAnimationBreakpoints.const";
@@ -14,5 +15,5 @@ export type CellAnimationExampleProps = AccessorProps<{
     animationDurationMs: number;
     animationIterationDelayMs: number;
     computeCellWeights: (count: Point2d) => number[][];
-    onMount: (controller: CellAnimationController) => void;
+    playbackSignal: Signal<boolean>;
 }>;

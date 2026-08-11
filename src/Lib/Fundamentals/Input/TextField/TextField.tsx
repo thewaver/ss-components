@@ -155,7 +155,7 @@ const TextFieldElement = (props: TextFieldElementProps) => {
             onInput: (value) => {
                 void props.onInput?.(value);
             },
-            getMask: props.getMask,
+            computeMaskedText: props.computeMaskedText,
         },
     );
 
@@ -314,7 +314,7 @@ export const TextField = (props: TextFieldProps) => {
                     getIsSpinButton={props.getIsSpinButton}
                     getAutoComplete={props.getAutoComplete}
                     getInputMode={props.getInputMode}
-                    getMask={props.getMask}
+                    computeMaskedText={props.computeMaskedText}
                     getPlaceholderHint={props.getPlaceholderHint}
                     getMin={props.getMin}
                     getMax={props.getMax}

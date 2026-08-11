@@ -4,6 +4,7 @@ import { MathUtils } from "@thewaver/ss-utils";
 
 import type { AnimDirection } from "../../Abstracts/Anim/Anim.types";
 import { AudioUtils } from "../../Abstracts/Audio/Audio.utils";
+import { SignalMirror } from "../../Abstracts/SignalMirror/SignalMirror";
 import type { AudioSwitcherProps } from "./AudioSwitcher.types";
 
 const DEFAULT_AUDIO_SWITCHER_CROSSFADE_MS = 500;
@@ -100,29 +101,28 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
         startFade(element, "out", fadeOutTick);
     };
 
+    const [getIsPlaying] = SignalMirror.createOptional(() => props.playbackSignal, false);
+
+    /**
+     * Play and pause are the same state read twice, so they arrive as one signal and the fades follow it. What
+     * the old controller's booleans reported — "there was nothing to do" — is not something a consumer can act
+     * on, and the guards that produced them are still here, now protecting the effect instead.
+     */
+    createEffect(() => {
+        const active = getActiveElement();
+
+        if (!active) return;
+
+        if (getIsPlaying()) {
+            if (!AudioUtils.isPlaying(active) || getFadeDirection(active) === "out") fadeIn(active);
+
+            return;
+        }
+
+        if (AudioUtils.isPlaying(active) && getFadeDirection(active) !== "out") fadeOut(active);
+    });
+
     const controller = createMemo(() => ({
-        play: () => {
-            const active = getActiveElement();
-
-            if (active && (!AudioUtils.isPlaying(active) || getFadeDirection(active) === "out")) {
-                fadeIn(active);
-
-                return true;
-            }
-            return false;
-        },
-
-        pause: () => {
-            const active = getActiveElement();
-
-            if (active && AudioUtils.isPlaying(active) && getFadeDirection(active) !== "out") {
-                fadeOut(active);
-
-                return true;
-            }
-            return false;
-        },
-
         reset: () => {
             const active = getActiveElement();
 

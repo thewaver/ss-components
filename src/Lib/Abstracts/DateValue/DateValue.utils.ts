@@ -21,10 +21,9 @@ import type {
 
 const DAYS_PER_WEEK = 7;
 const GRID_WEEKS = 6;
+const MIDDAY_MS = 12 * 60 * 60 * 1000;
 const DEFAULT_CALENDAR_ID: DateValueCalendarId = "gregory";
 const ISO_PATTERN = /^(\d{4}|[+-]\d{6})-(\d{2})-(\d{2})$/;
-const ERA_SEARCH_MIN_YEAR = -5000;
-const ERA_SEARCH_MAX_YEAR = 5000;
 
 const CALENDAR_IDS: DateValueCalendarId[] = [
     "gregory",
@@ -47,29 +46,39 @@ const monthNameCache = new Map<string, string[]>();
 
 const getCalendarOf = (id: DateValueCalendarId) => createCalendar(id);
 
+/**
+ * The instant handed to `Intl`, taken at **midday** rather than at the start of the day.
+ *
+ * A `CalendarDate` becomes an instant at local midnight, and midnight is the one moment that does not survive
+ * the trip: a daylight-saving change can put it on the previous day, and a pre-standard-time zone offset is not
+ * even a whole number of minutes. That cost an era its name — Meiji begins on 1868-09-08, and midnight on that
+ * day formatted as **Keiō**, the era before it. Midday is twelve hours clear of every such slip.
+ */
+const toIntlDate = (value: DateValue) => new Date(value.toDate(getLocalTimeZone()).getTime() + MIDDAY_MS);
+
 const fromAstronomicalYear = (year: number, month: number, day: number) =>
     year > 0 ? new CalendarDate(year, month, day) : new CalendarDate("BC", 1 - year, month, day);
 
-const getEraIndexAt = (id: DateValueCalendarId, isoYear: number) => {
-    const calendar = getCalendarOf(id);
-    const at = toCalendar(fromAstronomicalYear(isoYear, 1, 1), calendar);
+/**
+ * The first day of an era, built through the era-form constructor rather than searched for.
+ *
+ * Searching was the first implementation and it was quietly wrong: it bisected over the ISO year and converted
+ * each candidate into the target calendar, but converting a date the target calendar cannot hold does not fail —
+ * it clamps. Asking the Japanese calendar about the year -5000 returns a **Reiwa** date, so the search settled on
+ * nonsense and every era but the last was named after the wrong one. `new CalendarDate(calendar, era, 1, 1, 1)`
+ * asks the package the question directly and is exact: Meiji 1 is 1868-09-08, Minguo 1 is 1912-01-01.
+ */
+const getEraStart = (id: DateValueCalendarId, era: string) => new CalendarDate(getCalendarOf(id), era, 1, 1, 1);
 
-    return calendar.getEras().indexOf(at.era);
-};
-
-const findEraAnchor = (id: DateValueCalendarId, eraIndex: number) => {
-    let low = ERA_SEARCH_MIN_YEAR;
-    let high = ERA_SEARCH_MAX_YEAR;
-
-    while (low < high) {
-        const middle = Math.floor((low + high) / 2);
-
-        if (getEraIndexAt(id, middle) < eraIndex) low = middle + 1;
-        else high = middle;
-    }
-
-    return toCalendar(fromAstronomicalYear(low, 1, 1), getCalendarOf(id));
-};
+/**
+ * A date to *name* an era by, which is deliberately not its first day.
+ *
+ * The package and ICU do not agree on where a Japanese era begins — the package puts Meiji 1 at 1868-09-08 and
+ * ICU switches on the proclamation date some weeks later — so formatting an era's own first day reports the era
+ * **before** it, and Meiji came out named "Keiō". Year 2 is a full year clear of the boundary, and it works
+ * whichever way the era counts: forward for Meiji, backward for BC, where year 2 is earlier rather than later.
+ */
+const getEraSample = (id: DateValueCalendarId, era: string) => getEraStart(id, era).set({ year: 2 });
 
 export namespace DateValueUtils {
     export const getCalendarIds = () => [...CALENDAR_IDS];
@@ -97,17 +106,24 @@ export namespace DateValueUtils {
         if (cached) return cached;
 
         const ids = getCalendarOf(id).getEras();
-        const formatter = new Intl.DateTimeFormat(locale, {
-            era: "long",
-            year: "numeric",
-            calendar: id,
-            timeZone: getLocalTimeZone(),
-        });
-        const eras = ids.map((eraId, index) => {
-            const anchor = findEraAnchor(id, index);
-            const name = formatter.formatToParts(toDate(anchor)).find((part) => part.type === "era")?.value;
+        const readEra = (width: "long" | "short", at: Date) =>
+            new Intl.DateTimeFormat(locale, {
+                era: width,
+                year: "numeric",
+                calendar: id,
+                timeZone: getLocalTimeZone(),
+            })
+                .formatToParts(at)
+                .find((part) => part.type === "era")?.value;
 
-            return { id: eraId, name: name ?? eraId };
+        const eras = ids.map((eraId) => {
+            const at = toIntlDate(getEraSample(id, eraId));
+
+            return {
+                id: eraId,
+                name: readEra("long", at) ?? eraId,
+                shortName: readEra("short", at) ?? eraId,
+            };
         });
 
         eraCache.set(key, eras);
@@ -115,11 +131,12 @@ export namespace DateValueUtils {
         return eras;
     };
 
-    export const withEra = (value: DateValue, era: string) => {
-        const anchor = findEraAnchor(getCalendarId(value), value.calendar.getEras().indexOf(era));
-
-        return anchor.set({ year: value.year, month: value.month, day: value.day }) as DateValue;
-    };
+    export const withEra = (value: DateValue, era: string) =>
+        getEraStart(getCalendarId(value), era).set({
+            year: value.year,
+            month: value.month,
+            day: value.day,
+        }) as DateValue;
 
     export const getMonthsInYear = (value: DateValue) => value.calendar.getMonthsInYear(value);
 
@@ -146,7 +163,7 @@ export namespace DateValueUtils {
         (!min || compare(value, min) >= 0) && (!max || compare(value, max) <= 0);
 
     export const getWeekdayOffset = (value: DateValue, weekStartsOn: DateValueWeekStart) =>
-        (toDate(value).getDay() - weekStartsOn + DAYS_PER_WEEK) % DAYS_PER_WEEK;
+        (toIntlDate(value).getDay() - weekStartsOn + DAYS_PER_WEEK) % DAYS_PER_WEEK;
 
     export const getMonthGrid = (value: DateValue, weekStartsOn: DateValueWeekStart): DateValueMonthGrid => {
         const anchor = getStartOfMonth(value);
@@ -226,7 +243,7 @@ export namespace DateValueUtils {
         });
         const anchor = getStartOfMonth(value);
         const names = Array.from({ length: getMonthsInYear(value) }, (_, month) =>
-            formatter.format(toDate(anchor.set({ month: month + 1, day: 1 }))),
+            formatter.format(toIntlDate(anchor.set({ month: month + 1, day: 1 }))),
         );
 
         monthNameCache.set(key, names);
@@ -251,5 +268,5 @@ export namespace DateValueUtils {
             ...options,
             calendar: getCalendarId(value),
             timeZone: getLocalTimeZone(),
-        }).format(toDate(value));
+        }).format(toIntlDate(value));
 }

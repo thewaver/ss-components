@@ -404,14 +404,14 @@ test.describe("eras and other calendar systems", () => {
     test("offers the calendar's own era list rather than a pair", async ({ page }) => {
         await chooseProp(page, "Calendar", "japanese");
 
-        await expect(page.locator(eraButton(TYPED)), "a date in 2026 is in the current era").toHaveText("reiwa");
+        await expect(page.locator(eraButton(TYPED)), "a date in 2026 is in the current era").toHaveText("Reiwa");
 
         await page.locator(eraButton(TYPED)).click();
 
         await expect(
             page.locator(eraButton(TYPED)),
             "and cycling past the last of five wraps to the first rather than toggling a pair",
-        ).toHaveText("meiji");
+        ).toHaveText("Meiji");
     });
 
     test("typing a date in another calendar reads back as that calendar's date", async ({ page }) => {

@@ -53,6 +53,7 @@ export type ColorInputProps = Omit<InteractionWrapperProps<ColorInputFlags>, "re
                 valueSignal: Signal<string>;
             }
     > & {
+        visibilitySignal?: Signal<boolean>;
         renderArea: (getFlags: () => InteractionFlags<ColorAreaFlags>) => JSX.Element;
         renderHue: (getFlags: () => InteractionFlags<RangeFlags>) => JSX.Element;
         renderPopup: (

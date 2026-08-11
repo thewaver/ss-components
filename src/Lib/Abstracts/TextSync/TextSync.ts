@@ -1,6 +1,6 @@
 import { createRenderEffect, createSignal } from "solid-js";
 
-import { TextSyncUtils } from "./TextSync.utils";
+import type { TextSyncMaskResult } from "./TextSync.utils";
 
 export type TextSyncElement = HTMLInputElement | HTMLTextAreaElement;
 
@@ -10,7 +10,7 @@ export namespace TextSync {
         getValue: () => string,
         opts: {
             onInput: (value: string) => void;
-            getMask?: () => string | undefined;
+            computeMaskedText?: (previous: string, next: string, caret: number) => TextSyncMaskResult;
         },
     ) => {
         const [getIsComposing, setIsComposing] = createSignal(false);
@@ -49,10 +49,12 @@ export namespace TextSync {
          * cannot move a caret it never saw, and a caret left where the keystroke put it lands before the
          * separator the mask just inserted.
          */
-        const reportMaskedValue = (element: TextSyncElement, mask: string) => {
+        const reportMaskedValue = (
+            element: TextSyncElement,
+            computeMaskedText: (previous: string, next: string, caret: number) => TextSyncMaskResult,
+        ) => {
             const hasSelection = element.selectionStart !== null;
-            const { text, caret } = TextSyncUtils.applyMask(
-                mask,
+            const { text, caret } = computeMaskedText(
                 getValue(),
                 element.value,
                 element.selectionStart ?? element.value.length,
@@ -69,10 +71,8 @@ export namespace TextSync {
             handleInput: (element: TextSyncElement) => {
                 if (getIsComposing()) return;
 
-                const mask = opts.getMask?.();
-
-                if (mask !== undefined) {
-                    reportMaskedValue(element, mask);
+                if (opts.computeMaskedText) {
+                    reportMaskedValue(element, opts.computeMaskedText);
 
                     return;
                 }

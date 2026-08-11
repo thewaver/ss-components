@@ -20,6 +20,7 @@ export type DateValueCalendarId =
 export type DateValueEra = {
     id: string;
     name: string;
+    shortName: string;
 };
 
 export type DateValueParts = {

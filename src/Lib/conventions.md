@@ -3675,3 +3675,145 @@ the grid — and six is enough because no supported calendar has a month longer 
 `compare` go through absolute day, so a Gregorian `min` bounds a Hebrew value, and a selected date held in one
 system is found in another system's grid. `DateInput` converts a value into the calendar it is configured for
 rather than refusing it, so a consumer may hold Gregorian and show a Hebrew field over the same signal.
+
+### `MaskedField`: the half every field over a typed value shares
+
+Extracted **2026-08-12**, once `DateInput` and `TimeInput` had written the same thing twice and a formatted number
+was about to write it a third time. `Abstracts/MaskedField` owns the private text signal, the effects that keep it
+and the value in step, and the three moments at which a field reports a problem. What stays in each control is
+what differs: its codec, its bounds, and whatever control it puts in a slot.
+
+**The value arrives as a getter and a setter, not a `Signal`.** A control may not hand its own prop through
+unchanged — `DateInput` converts the value into the calendar the field types in first — so the field cannot own
+the signal. Same shape as `SignalMirror`, same reason.
+
+**Completeness is counted in digits, and may be absent.** Only digits are typed, so a half-typed value is one
+whose digit run is short; measuring the _text_ instead happens to agree while every group is a fixed width and
+stops agreeing the moment one is not. `getDigitCount` returning `undefined` says the field has no notion of
+half-typed at all, which is the honest answer for an amount — every digit run is a value.
+
+**The spelling follows the formatting as well as the value, and that needs its own effect.** Nothing else
+catches a change of format on its own: switching an amount field's locale leaves the value and the digits exactly
+as they were, so the effect comparing them stays quiet and the field goes on showing the old punctuation. The
+text is rebuilt **from the value** rather than from the digits on screen, because the same six digits are
+`1,234.56` at two decimal places and `123,456` at none — the value decides which.
+
+**A control must not keep a second copy of something the value already carries.** `DateInput`'s era signal is
+state _only_ for the empty field, and `fromDigits` reads the era off the held value. Reading the signal instead
+made the two fight: moving the era commits a new date, the new date re-spells the text, and the text-to-value
+effect then re-derived a date from those digits and the signal — which had not caught up — committing the old era
+straight back. Duplicated state plus two effects is a loop.
+
+### `TextField` takes a mask transform, not a pattern
+
+Changed **2026-08-12**, when the grouped number became the third consumer. `computeMaskedText(previous, next,
+caret)` replaces `getMask`: a pattern mask and a grouped number are the same function with a different body, and a
+grouped number has no pattern to state because it has as many separators as its value needs. The transform stays
+where `getMask` was — inside `TextSync.createValueSync` — because _"a mask owns the caret"_ is unchanged, and a
+transforming setter still cannot move a caret it never saw.
+
+### Controls: `AmountInput`, and why it is not `NumberInput` with grouping
+
+Settled by the user on **2026-08-12**, choosing a separate control over widening `NumberInput`.
+
+**The two fields are typed differently, not styled differently.** `NumberInput` refuses characters one keystroke
+at a time and keeps `-`, `1.`, `1e` and `1e-` typeable on the way to a number. `AmountInput` accepts digits only
+and fills a fixed fraction from the right, so `1`, `2`, `3` walk `0.01`, `0.12`, `1.23`. Neither behaviour is a
+mode of the other, and moving `NumberInput` onto the mask path to get grouping would have risked a shipped
+control for a field it is not.
+
+**The digits are the value in its smallest unit, and the shift is done on the decimal spelling.** Multiplying is
+the obvious way and rounds the wrong way at exactly the cases a money field exists for: `1.005 * 100` is
+`100.49999999999999`, so a rounded product loses the penny, and `toFixed` inherits the fault. `${value}` prints
+the shortest decimal that reads back as the same number, so moving the point along that string rounds on what the
+consumer wrote rather than on its binary approximation. A magnitude that prints in exponential form falls back to
+multiplying; an amount field is not where `1e21` belongs.
+
+**The separators come from the locale, not from props.** `Intl.NumberFormat` already knows them and the consumer
+has already said which locale they are in; asking twice invites the two to disagree. `getGroupSize` stays a prop
+because it is a layout choice rather than a locale fact — and because uniform groups are all `applyGroupedMask`
+can express, which is the limit `review.md` records.
+
+**There is no sign and no currency symbol.** The mask is digits-only, so a negative amount cannot be typed; the
+symbol is paint in a leading slot, because a library holding no colours does not hold currencies either.
+
+### An era is named from year 2, not from its first day
+
+Settled **2026-08-12**, from a defect that survived two wrong fixes. `getEras` needs a date to format each era's
+name from, and the era's own first day is the one date that does not work: the package puts Meiji 1 at 1868-09-08
+while ICU switches on the proclamation date weeks later, so formatting the first day reports the era _before_ it
+and Meiji came out named "Keiō (1865–1868)". Year 2 is a full year clear of the boundary and works whichever way
+an era counts — forward for Meiji, backward for BC, where year 2 is earlier rather than later.
+
+**Every instant handed to `Intl` is taken at midday.** A `CalendarDate` becomes an instant at local midnight, and
+midnight is the one moment that does not survive the trip: a daylight-saving change can put it on the previous
+day, and a pre-standard-time zone offset is not even a whole number of minutes. This is what the pre-package
+`DateValue` did, it was dropped in the rewrite, and it is back.
+
+**An era carries a long name and a short one.** `DateValueEra` is `{ id, name, shortName }`: the identifier is
+the package's and is not display text — it is `BC`, `meiji`, `before_minguo`, with no casing convention and an
+underscore in one of them — while both names come from `Intl` and are the locale's. A compact control shows
+`shortName` and labels itself with `name`. Nothing may render `id`.
+
+### A popup's open state is private until a consumer asks for it
+
+Settled by the user on **2026-08-12**, closing the `openSignal` question that items 5, 6, 7 and 15 of `review.md`
+had all been waiting on. `Select`, `MultiSelect`, `Menu`, `ColorInput` and `DatePicker` each take an optional
+`visibilitySignal`, which is `Modal`'s prop under `Modal`'s name and rules.
+
+**One variable, both sides write.** That is the `*Signal` convention rather than a new idea, and `Modal` already
+proved it on this exact kind of state: it reads `visibilitySignal` and writes `false` into it when it dismisses
+itself. A popup opens and closes for its own reasons — a query typed, an item picked, Escape, focus leaving — so a
+one-way "here is a boolean, obey it" prop would fight the component. The consumer who has no signal to hand over
+uses `SignalMirror`, which is what it is for.
+
+**`SignalMirror.createOptional` is how a control stays private by default.** It returns the signal the component
+was handed or one of its own, reading the prop through on every access, so there is one code path rather than a
+branch at every use. Without it each of the five would carry "the shared one if I was given one, otherwise mine",
+five times over.
+
+**Every side effect of opening or closing hangs off the state, never off the path that changed it.** This is the
+part that is easy to get wrong and the reason the change touched more than five prop types. `Select` cleared its
+highlight inside `close()`, `DatePicker` moved its calendar to the value's month inside `open()`, and `Menu` set
+the initial highlight position inside `open(position)` — all invisible to a consumer writing the signal directly.
+Each moved into an effect keyed on the open state, so a popup closed from outside ends up in the same condition a
+click outside would leave it.
+
+**An invariant the component owns is enforced against the state too.** A disabled control cannot be open:
+`open()` already refused, but a consumer writing `true` bypassed it, so `Select` and `Menu` now write `false`
+back — the same correction `Modal` makes for its own dismissal.
+
+**What this does not buy is an opener the dismiss layer knows about.** A consumer's own button sits outside the
+popup, so pressing it while the popup is open dismisses the popup first and the handler then re-opens it: a
+toggle button appears not to close. The Playground demonstrates open and close as two separate buttons for
+exactly that reason. Fixing it means `Menu` accepting an anchor and an opener, which is the next thing
+`review.md` item 6 asks for and is not this.
+
+### Playback is a signal; a rewind is a command
+
+Settled by the user on **2026-08-12**, applying the argument that had already retired the controller shape twice —
+for `Toasts` and for `Calendar` — to the components that still carried one.
+
+**Whether a thing is playing is state, so it arrives as `playbackSignal`.** `CellAnimation` and
+`ScanlineAnimation` had `start()` / `stop()` on a handle given out at mount, and both were literally
+`setIsPlaying(true)` and `setIsPlaying(false)` over a private signal. `AudioSwitcher` had `play()` / `pause()`,
+which is the same state behind a pair of fades. All three now take an optional `playbackSignal` through
+`SignalMirror.createOptional`, so the state stays private until a consumer asks for it.
+
+**What that buys is visible in the Playground rather than in the API.** Both animation pages used to collect a
+controller per mounted instance into an array and call `start()` on every one of them when the stress-test modal
+closed. They now share one signal and write it once, and nothing has to still be mounted for that to work — which
+is the same argument the `Toasts` entry makes about a queue.
+
+**A command that is not a state stays a handle handed over at mount.** `Typewriter` keeps `restartAnimation` and
+`update(cause)`, and `AudioSwitcher` keeps `reset`. Restarting an animation and rewinding a track are not values
+anyone can read; they are requests, and the reason they cannot be faked with a signal is timing. Restarting means
+the element must be **painted** in the pre-animation state for one frame before the animation is re-applied, and a
+consumer toggling a signal off and on — even across a `setTimeout(…, 0)` — is not guaranteed that frame, because
+the browser may fold both changes into a single paint. That is the same hazard `ElementFader` documents, and it
+fails intermittently rather than outright, which is worse. The frame discipline belongs inside the component that
+already owns the animation.
+
+**So the boundary is: can a consumer meaningfully read it?** Playing, open, selected, expanded — state, and a
+`*Signal`. Restart, rewind, re-measure — commands, and an `onMount` handle. Two of the four components turned out
+to need both, so the controller shape is not a legacy to be finished off.

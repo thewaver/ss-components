@@ -3,6 +3,7 @@ import type { JSX, Signal } from "solid-js";
 import type { CSSPadding } from "@thewaver/ss-utils";
 
 import type { InteractionFlags } from "../../../Abstracts/Interaction/Interaction.types";
+import type { TextSyncMaskResult } from "../../../Abstracts/TextSync/TextSync.utils";
 import type { AccessorProps } from "../../../Utils/typeUtils";
 import type {
     InteractionControlProps,
@@ -37,6 +38,12 @@ export type TextFieldTextStyle = Pick<
 >;
 
 export type TextFieldCbs = {
+    /**
+     * Rewrites an edit and says where the caret belongs afterwards. A pattern mask and a grouped number are both
+     * this function with a different body, which is why the field takes the transform rather than a pattern
+     * string: a grouped number has as many separators as its value needs and no pattern to state.
+     */
+    computeMaskedText?: (previous: string, next: string, caret: number) => TextSyncMaskResult;
     computeTextStyle?: (getFlags: () => InteractionFlags<TextFieldFlags>) => TextFieldTextStyle;
     renderPlaceholder?: (getFlags: () => InteractionFlags<TextFieldFlags>, hint: string | undefined) => JSX.Element;
     renderLeading?: (getFlags: () => InteractionFlags<TextFieldFlags>) => JSX.Element;
@@ -57,7 +64,6 @@ export type TextFieldState = {
     isSpinButton?: boolean;
     autoComplete?: JSX.HTMLAutocomplete;
     inputMode?: TextFieldMode;
-    mask?: string;
     placeholderHint?: string;
     min?: number;
     max?: number;

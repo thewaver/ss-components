@@ -2,6 +2,7 @@ import { createEffect, createMemo, createSignal, untrack } from "solid-js";
 
 import type { DateValue, DateValueCalendarId } from "../../../Abstracts/DateValue/DateValue.types";
 import { DateValueUtils } from "../../../Abstracts/DateValue/DateValue.utils";
+import { MaskedField } from "../../../Abstracts/MaskedField/MaskedField";
 import { TextSyncUtils } from "../../../Abstracts/TextSync/TextSync.utils";
 import { TextField } from "../TextField/TextField";
 import type { DateInputEra, DateInputFormat, DateInputProps } from "./DateInput.types";
@@ -104,8 +105,6 @@ export const DateInput = (props: DateInputProps) => {
 
     const getMask = createMemo(() => computeMask(getFormat()));
 
-    const [getHasLeft, setHasLeft] = createSignal(false);
-
     /**
      * The field types in one calendar, and a value handed to it in another is converted rather than refused —
      * so a consumer may hold Gregorian and show a Hebrew field over it. The anchor is what every bound and
@@ -126,11 +125,15 @@ export const DateInput = (props: DateInputProps) => {
     const getEraOptions = createMemo(() => DateValueUtils.getEras(getAnchor(), props.getLocale?.()));
 
     /**
-     * The era is state rather than a reading of the value, and only because of the empty field: with no value
-     * there is no year to read it off, and a consumer who picks an era before typing anything has to have that
-     * remembered. Whenever a value does exist it wins — the effect below pushes it back — so the two can never
-     * disagree about a date that is actually held. The default is the calendar's own last era, which is the
-     * current one in every system that has more than one.
+     * The era is state **only** for the empty field: with no value there is no year to read an era off, and a
+     * consumer who picks one before typing anything has to have that remembered. Whenever a value exists it is
+     * the era, and `fromDigits` reads it there rather than here.
+     *
+     * That is not a tidiness point. Reading this signal while a value was held made the two fight: moving the
+     * era commits a new date, the new date re-spells the text, and the text-to-value effect then re-derived a
+     * date from the same digits and *this* signal — which had not caught up yet — committing the old era
+     * straight back. Duplicated state plus two effects is a loop, and the fix is for only one of them to be the
+     * source. The default is the calendar's own last era, which is the current one wherever there is a choice.
      */
     const [getEra, setEra] = createSignal<string>(
         untrack(() => {
@@ -141,88 +144,38 @@ export const DateInput = (props: DateInputProps) => {
         }),
     );
 
-    const getText = () => {
-        const value = getFieldValue();
-
-        return value ? TextSyncUtils.formatWithMask(getMask(), toDigits(value, getFormat())) : "";
-    };
-
-    const textSignal = createSignal(untrack(getText));
-
-    const getDigits = () => TextSyncUtils.getMaskedDigits(textSignal[0]());
-
-    const parseDigits = (digits: string) => {
+    const fromDigits = (digits: string) => {
         if (digits.length !== DIGIT_COUNT) return undefined;
 
         const parts = readParts(digits, untrack(getFormat));
-
-        return DateValueUtils.fromParts({
+        const parsed = DateValueUtils.fromParts({
             calendar: untrack(getCalendar),
-            era: untrack(getEra),
+            era: untrack(getFieldValue)?.era ?? untrack(getEra),
             year: parts.year!,
             month: parts.month!,
             day: parts.day!,
         });
-    };
-
-    const getAcceptedValue = (digits: string) => {
-        const parsed = parseDigits(digits);
 
         return parsed && DateValueUtils.getIsInRange(parsed, props.getMinDate?.(), props.getMaxDate?.())
             ? parsed
             : undefined;
     };
 
-    /**
-     * A date is refused for three reasons and the field says so at three different moments. A part that
-     * cannot exist whatever follows it — a 13th month in a calendar that has twelve — is wrong as soon as that
-     * part is complete, without waiting for the rest. A date whose parts each look possible but disagree, or
-     * that falls outside the bounds, is only knowable once all the digits are in. And a date that is merely
-     * unfinished is not wrong yet: saying so mid-keystroke would be noise, so it waits until the field is left.
-     */
-    const getHasIssue = createMemo(() => {
-        const digits = getDigits();
-
-        if (digits.length === 0) return false;
-        if (getHasImpossiblePart(digits, getFormat(), getAnchor())) return true;
-        if (digits.length < DIGIT_COUNT) return getHasLeft();
-
-        return getAcceptedValue(digits) === undefined;
-    });
-
-    /**
-     * Rewriting the text from the value is what puts a typed date into its canonical spelling, and it must
-     * not run when there is no value to rewrite from — that would answer "this is not a date" by deleting
-     * what was typed, which is the one response that leaves the reader with nothing to correct.
-     */
-    const refreshText = () => {
-        if (untrack(getFieldValue) === undefined && untrack(getDigits).length > 0) return;
-
-        textSignal[1](untrack(getText));
-    };
-
-    const commit = (next: DateValue | undefined) => {
-        if (DateValueUtils.isSame(next, untrack(getFieldValue))) return;
-
-        props.valueSignal[1](() => next);
-    };
-
-    createEffect(() => {
-        const digits = getDigits();
-
-        if (digits.length > 0 && digits.length < DIGIT_COUNT) return;
-
-        commit(getAcceptedValue(digits));
+    const field = MaskedField.createField<DateValue>({
+        getValue: getFieldValue,
+        setValue: (next) => props.valueSignal[1](() => next),
+        formatDigits: (digits) => TextSyncUtils.formatWithMask(getMask(), digits),
+        getDigitCount: () => DIGIT_COUNT,
+        toDigits: (value) => toDigits(value, getFormat()),
+        fromDigits,
+        getHasImpossibleDigits: (digits) => getHasImpossiblePart(digits, getFormat(), getAnchor()),
+        getIsSame: DateValueUtils.isSame,
     });
 
     createEffect(() => {
         const value = getFieldValue();
 
         if (value) setEra(value.era);
-
-        if (DateValueUtils.isSame(value, parseDigits(untrack(getDigits)))) return;
-
-        refreshText();
     });
 
     const era: DateInputEra = {
@@ -235,7 +188,7 @@ export const DateInput = (props: DateInputProps) => {
 
             if (!value) return;
 
-            commit(
+            field.commit(
                 DateValueUtils.clamp(DateValueUtils.withEra(value, next), props.getMinDate?.(), props.getMaxDate?.()),
             );
         },
@@ -244,20 +197,15 @@ export const DateInput = (props: DateInputProps) => {
     return (
         <TextField
             {...props}
-            valueSignal={textSignal}
+            valueSignal={field.textSignal}
             getElement={() => "input"}
             getInputMode={() => "numeric"}
-            getMask={getMask}
+            computeMaskedText={(previous, next, caret) => TextSyncUtils.applyMask(getMask(), previous, next, caret)}
             getPlaceholderHint={() => computeHint(getFormat())}
-            getHasError={() => (props.getHasError?.() ?? false) || getHasIssue()}
+            getHasError={() => (props.getHasError?.() ?? false) || field.getHasIssue()}
             renderLeading={props.renderLeading && ((getFlags) => props.renderLeading!(getFlags, era))}
-            onInput={() => {
-                setHasLeft(false);
-            }}
-            onBlur={() => {
-                setHasLeft(true);
-                refreshText();
-            }}
+            onInput={field.onInput}
+            onBlur={field.onBlur}
         />
     );
 };
