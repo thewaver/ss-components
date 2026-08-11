@@ -6,13 +6,6 @@ import type { Point2d } from "@thewaver/ss-utils";
 import type { CellAnimationController } from "../../../../Lib/Exotics/CellAnimation/CellAnimation.types";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
-import {
-    PageCheckField,
-    PageFileField,
-    PageGroupedSelectField,
-    PageNumberField,
-    PageSelectField,
-} from "../../PageComponents/Field/Field";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
@@ -22,6 +15,13 @@ import { CellAnimationKeyframes } from "../../Samples/CellAnimation.const";
 import { CellAnimationBreakpoints } from "../../Samples/CellAnimationBreakpoints.const";
 import { CellAnimationOrigins } from "../../Samples/CellAnimationOrigins.const";
 import { CellAnimationWeights } from "../../Samples/CellAnimationWeights.const";
+import {
+    PageCheckField,
+    PageFileField,
+    PageGroupedSelectField,
+    PageNumberField,
+    PageSelectField,
+} from "../../StyledComponents/Field/Field";
 import knight_profile from "../../knight_profile.webp";
 import type { CellAnimationExampleProps } from "./CellAnimationPage.types";
 import { DefaultExample } from "./Examples/Default";

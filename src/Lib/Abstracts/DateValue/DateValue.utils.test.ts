@@ -87,6 +87,88 @@ describe("getDaysInMonth", () => {
         expect(DateValueUtils.getDaysInMonth(2026, 4)).toBe(30);
         expect(DateValueUtils.getDaysInMonth(2026, 12)).toBe(31);
     });
+
+    it("reads a two-digit year as itself rather than as the 1900s", () => {
+        expect(DateValueUtils.getDaysInMonth(4, 2), "year 4 is a leap year").toBe(29);
+        expect(DateValueUtils.getDaysInMonth(1904, 2)).toBe(29);
+        expect(DateValueUtils.getDaysInMonth(0, 2), "year 0 is a leap year and 1900 is not").toBe(29);
+        expect(DateValueUtils.getDaysInMonth(1900, 2)).toBe(28);
+    });
+});
+
+describe("years below 100", () => {
+    it("keeps its own century through a conversion to a native date", () => {
+        expect(DateValueUtils.toDate({ year: 44, month: 8, day: 1 }).getFullYear()).toBe(44);
+        expect(DateValueUtils.toDate({ year: 0, month: 1, day: 1 }).getFullYear()).toBe(0);
+        expect(DateValueUtils.toDate({ year: 99, month: 12, day: 31 }).getFullYear()).toBe(99);
+    });
+
+    it("survives the 29th of February in year 0, which the anchor's own century does not have", () => {
+        expect(DateValueUtils.fromDate(DateValueUtils.toDate({ year: 0, month: 2, day: 29 }))).toEqual({
+            year: 0,
+            month: 2,
+            day: 29,
+        });
+    });
+
+    it("walks days and months without jumping century", () => {
+        expect(DateValueUtils.addDays({ year: 44, month: 12, day: 31 }, 1)).toEqual({ year: 45, month: 1, day: 1 });
+        expect(DateValueUtils.addMonths({ year: 44, month: 1, day: 31 }, 1)).toEqual({ year: 44, month: 2, day: 29 });
+    });
+
+    it("builds a grid around the month it was asked for", () => {
+        const grid = DateValueUtils.getMonthGrid(44, 8, 1);
+
+        expect(DateValueUtils.getCellOf(grid, { year: 44, month: 8, day: 1 })).not.toBe(undefined);
+    });
+
+    it("round-trips through toIso", () => {
+        expect(DateValueUtils.toIso({ year: 44, month: 8, day: 1 })).toBe("0044-08-01");
+        expect(DateValueUtils.fromIso("0044-08-01")).toEqual({ year: 44, month: 8, day: 1 });
+    });
+});
+
+describe("years outside 0 to 9999", () => {
+    it("writes the expanded form, signed and six digits wide", () => {
+        expect(DateValueUtils.toIso({ year: -44, month: 8, day: 1 })).toBe("-000044-08-01");
+        expect(DateValueUtils.toIso({ year: -1, month: 1, day: 1 })).toBe("-000001-01-01");
+        expect(DateValueUtils.toIso({ year: 12026, month: 8, day: 1 })).toBe("+012026-08-01");
+    });
+
+    it("leaves every ordinary year in the plain four-digit form", () => {
+        expect(DateValueUtils.toIso({ year: 0, month: 1, day: 1 })).toBe("0000-01-01");
+        expect(DateValueUtils.toIso({ year: 2026, month: 8, day: 10 })).toBe("2026-08-10");
+        expect(DateValueUtils.toIso({ year: 9999, month: 12, day: 31 })).toBe("9999-12-31");
+    });
+
+    it("round-trips a date before the common era", () => {
+        expect(DateValueUtils.fromIso(DateValueUtils.toIso({ year: -44, month: 3, day: 15 }))).toEqual({
+            year: -44,
+            month: 3,
+            day: 15,
+        });
+    });
+
+    it("reads the expanded form of an ordinary year and writes it back in the plain one", () => {
+        expect(DateValueUtils.fromIso("+002026-08-10")).toEqual({ year: 2026, month: 8, day: 10 });
+        expect(DateValueUtils.toIso(DateValueUtils.fromIso("+002026-08-10")!)).toBe("2026-08-10");
+    });
+
+    it("refuses a negative zero year, which the standard does not allow", () => {
+        expect(DateValueUtils.fromIso("-000000-01-01")).toBe(undefined);
+        expect(DateValueUtils.fromIso("+000000-01-01")).toEqual({ year: 0, month: 1, day: 1 });
+    });
+
+    it("refuses a year that is signed but the wrong width, or unsigned and too wide", () => {
+        expect(DateValueUtils.fromIso("-0044-08-01")).toBe(undefined);
+        expect(DateValueUtils.fromIso("012026-08-01")).toBe(undefined);
+        expect(DateValueUtils.fromIso("-000044-08-01x")).toBe(undefined);
+    });
+
+    it("knows a leap year on the far side of zero", () => {
+        expect(DateValueUtils.getDaysInMonth(-44, 2), "-44 is divisible by four").toBe(29);
+        expect(DateValueUtils.fromIso("-000043-02-29"), "-43 is not").toBe(undefined);
+    });
 });
 
 describe("fromIso", () => {

@@ -21,6 +21,17 @@ exercises it. Vanilla-extract for styles, Vite for both builds.
   it fills and exported with the playground-wide `Page` prefix — `PageButtonContent`,
   `PageCheckboxContent`, `PageTooltipContent`. `App/PageComponents` keeps the playground's own page
   furniture instead: `PageVariants`, `PageExamples`, `PageCodeBox`.
+
+    **The line between the two folders is the library, not the shape of the thing.** Anything that dresses
+    a library component belongs in `StyledComponents` even when it is not a `renderContent` painter and
+    even when it composes several controls — `Field`, `ColorChannels`, `CalendarCaption` and `LabelCaption`
+    all sat in `PageComponents` until **2026-08-11** on the grounds that they were compositions rather than
+    paint, and that was the wrong test: they exist only to give library components an appearance, so a
+    reader looking for how a control is dressed has to find them there. `PageComponents` is for what the
+    Playground would still need if the library did not exist — the variant grid, the props panel, the code
+    box. The `<LibComponent>Content` naming is for slot painters and does not extend to these; they keep
+    the name of the thing they are.
+
 - **`e2e/`** — the interaction suite, in Playwright. Not published, imports from neither tree: it drives
   the built Playground in a real browser. See _"Verifying interaction"_ below.
 
@@ -408,6 +419,37 @@ The general invariant, worth stating because it predicts the next bug of this sh
 decouple the painted box from the wrapper's box. Sizing, padding, border and surface paint are the
 painter's to choose and the wrapper measures the result. `margin`, `transform`, `position`, `float`
 and `inset` on the in-flow child are not, and only `margin` is currently defended.
+
+**A painter's declared width is a preference, and `max-width: 100%` on the root is what makes it
+one.** Found **2026-08-10** in the Playground's own left menu: the search field is a `TextField`
+whose painter asks for 200px, sitting in a 240px column whose usable width drops to 190px the moment
+the column scrolls and a scrollbar takes its gutter. The field kept its 200px and hung 10px past the
+column's padding, flush against the scrollbar.
+
+The reason nothing else stopped it is worth writing down, because every instinct about it is wrong.
+`interactionSizingVariants["fit-content"]` sets `width: fit-content`, which reads as "never exceed
+the space I was given" and is not: `fit-content` resolves to `max(min-content, min(max-content,
+available))`, and a flex item whose width is definite has an automatic minimum size equal to that
+definite width — so the painter's 200px _is_ the container's min-content size, the outer `max` picks
+it over the 190px available, and the root is 200px wide by the same arithmetic that was supposed to
+shrink it. The painter cannot fix this from inside. `max-width: 100%` on the painter resolves against
+the root, which is sized from the painter, so it is circular and changes nothing; `min-width: 0` on
+the painter does not reach the container's min-content size either; and `width: 100%` on the painter
+collapses it outright, since a percentage against a shrink-to-fit parent is treated as `auto` and an
+empty div's `auto` width is zero. All three were measured against the running Playground before the
+one that works was kept.
+
+What works is `max-width: 100%` on `interactionRoot`. The root then clamps to the space it was given,
+and the painter — a flex item with the default `flex-shrink: 1` — follows it down, so the wrapper's
+box still equals the painted box and the absolutely positioned input, decoration and focus ring all
+land on the smaller box without any of them knowing. It is on `interactionRoot` rather than on the
+`fit-content` variant because it is the invariant for both: under `fill` it is a no-op, and stating it
+once says that a control never paints outside the box it was placed in.
+
+Sizing-neutral everywhere else, and that was checked rather than assumed: every `InteractionWrapper`
+root on all 29 Playground routes was measured before and after, and the search field is the only box
+in the app whose size changes. A percentage `max-width` against an indefinite containing block is
+treated as `none`, so a control inside a shrink-to-fit ancestor is unaffected by construction.
 
 **Render props receive what drives them.** `renderDecoration(getFlags)` replaced `Button`'s
 zero-argument `renderHighlight()`, under which the pressed linkage was faked consumer-side —
@@ -2638,10 +2680,57 @@ formatted dates), so the only thing left to own is arithmetic, which is about ei
 1-12 rather than `Date`'s 0-11 because an off-by-one month is the most common bug in date code and no
 type catches it.
 
-**Every conversion goes through midday.** `new Date(year, month - 1, day, 12)`, never midnight. A midnight
-anchor can land on the hour a zone skips or repeats, and then "add a day" moves by 23 or 25 hours and
-comes back on the same or the wrong calendar date — a stepper that appears to stick. Midday is never
-inside a transition anywhere on Earth. `DateValue.utils.test.ts` pins both European transition dates.
+**Every conversion goes through midday**, never midnight. A midnight anchor can land on the hour a zone
+skips or repeats, and then "add a day" moves by 23 or 25 hours and comes back on the same or the wrong
+calendar date — a stepper that appears to stick. Midday is never inside a transition anywhere on Earth.
+`DateValue.utils.test.ts` pins both European transition dates.
+
+**No conversion may pass a year to the `Date` constructor, because it reads 0 to 99 as the 1900s.**
+Corrected **2026-08-11**. `new Date(year, month - 1, day, 12)` was the single conversion for a long time
+and is wrong for any year below 100: the constructor treats those as shorthand for 1900 to 1999, so a
+Caesar born in year 44 was stored as 44 and then described everywhere as 1944 — wrong weekday, wrong
+month grid, wrong formatted label — with nothing reporting a problem. `getDaysInMonth` had it twice over:
+February in year 4 answered 29 because it was really being asked about 1904.
+
+Both now go through one private `buildLocalDate`, which builds an anchor date in a safe year and then
+calls `setFullYear(year, month, day)` — the documented way past the shorthand, since `setFullYear` takes
+the year literally. **All three fields go in that one call, and that is the part worth remembering**: set
+alone, the year lands on an anchor whose month and day have already been normalised, and year 0 is a leap
+year while the 1900 it was shorthand for is not, so the 29th of February in year 0 would have become the
+1st of March on the way through. Passing all three makes the date exist only once, in the year asked for.
+
+The shorthand is unreachable from the rest of the file — the two remaining `new Date` calls with a literal
+year build the month and weekday **name** lists, where the year is an arbitrary anchor and never read back.
+
+**A year outside 0000 to 9999 is written in ISO 8601's expanded form, and only then.** Settled the same
+day, closing the other half of the same bug. `toIso` was padding the _signed_ string, so year −44 came out
+as `0-44-08-01` with the minus sitting where the third digit belongs, and `fromIso`'s four-digit pattern
+then refused to read it back. Padding the absolute value and putting the sign in front is the whole fix;
+the pattern widens to "four bare digits, or a sign and six" and the fixed length check goes away, since a
+pattern anchored at both ends already rejects anything longer.
+
+Six digits with a leading `+` or `-` is what ISO 8601 prescribes for years outside the four-digit range,
+and what `Date.prototype.toISOString` emits, so the expanded form round-trips through the platform rather
+than being a private spelling.
+
+**Expanded only when the year needs it**, rather than always. Emitting a sign on every date would be more
+uniform and would rewrite every stored date string every consumer has, for a case almost nobody reaches.
+The cost of the narrower rule is that the writer is canonical while the reader is lenient — `fromIso` will
+accept `+002026-08-10` and `toIso` gives back `2026-08-10` — so reading and writing normalises rather than
+reproducing the input character for character. That is the right way round and it is not a pure
+round-trip; both halves are pinned by tests.
+
+`-000000` is refused. ISO 8601 does not allow a negative zero year, and `toIso` can never emit one, since
+year 0 is inside the plain range.
+
+**What this does not buy: a BC date still cannot be typed.** `DateInput`'s mask is a fixed run of digit
+slots, and everything that is not a digit is discarded on the way in, so a sign has nowhere to go — the
+same missing piece `review.md` already tracks for the formatted number. Storing, loading, computing and
+displaying a pre-common-era date all work; entering one is by code or by the calendar's own paging.
+
+Worth knowing before anything labels one: this is astronomical year numbering, inherited from `Date`, so
+there is a year 0 and it is 1 BC — year −44 is 45 BC. `Intl`'s `era` option already does that conversion.
+Nothing here should reimplement it.
 
 **`addMonths` clamps the day; `fromIso` refuses an impossible date.** The 31st of January plus a month is
 the 28th or 29th of February, never the 2nd or 3rd of March, because `Date.setMonth`'s rollover makes a
@@ -2660,6 +2749,58 @@ a controller record for something the settled convention already covers: state t
 and writes arrives as the whole signal. `Calendar` writes it when the keyboard walk leaves the month,
 which is exactly the two-way case. It also means `DatePicker` can snap the month to the value when its
 popup opens without the component needing an opinion about that.
+
+**That header being the consumer's is what made an interactive caption free.** Added **2026-08-11**: the
+Playground's caption is a month title that turns into a `Select` for the month and a `NumberInput` for the
+year when clicked, with the paging arrows either side of it throughout. `Calendar` was not touched to allow
+any of it — the caption writes `monthSignal` exactly as the arrows already did. It lives in
+`StyledComponents/CalendarCaption` and both `CalendarPage` and `DatePickerPage` use it, since the two had
+written the same header twice.
+
+**The fields are a mode, not the resting state**, so a calendar reads as a calendar until someone asks to
+jump. Three things end the mode and they are not interchangeable: `Enter` accepts and hands focus back to
+the title; `Escape` puts the month back to what it was when the mode opened, which is the only reason a
+restore point is kept at all; and focus leaving the group ends it without moving focus, since the usual way
+out is clicking a day and pulling focus off that day would undo the click's whole point.
+
+`Escape` layers correctly with the month `Select` underneath it — `Select` handles the key only while its
+popup is open and marks the event handled, so the first press closes the popup and the second closes the
+mode. The caption checks that flag rather than the key alone. The one thing this costs: `Enter` cannot
+close the mode from the month field, because `Select` claims `Enter` unconditionally to open or pick. From
+the year field it works, and `Escape` and `Tab` work from either.
+
+**Two bugs found building it, both worth stating because they will recur in any component with modes.**
+The first: a `focusout` fires when the fields unmount, _after_ the mode has already been ended by `Enter`
+or `Escape`, so the focus-out handler ran a second time and cancelled the focus restore the first exit had
+just asked for. The handler now ignores anything arriving once the mode is already closed. The second: the
+year field's `SignalMirror` pushes its inner value outward from an effect, which runs after the handler
+that closed the mode — so `Escape` restored the old month and the mirror immediately wrote the abandoned
+one back over it. The year write ignores anything queued while the mode is closed, for the same reason.
+Both are the same shape: **ending a mode is not one event, and the tail of the old mode arrives after it.**
+
+**The year is written on a `FunctionUtils.debounce`, not on every keystroke.** Typing 1066 into a live
+field pages the calendar through years 1, 10 and 106 on the way. The debounce waits for the typing to
+settle; `Enter` and focus-out flush whatever is pending rather than waiting for it, so nothing is lost by
+leaving quickly. The mirror tolerates this without special handling — while no write has landed the outer
+value has not changed, so nothing pushes back and overwrites what is being typed.
+
+**The year is a number field rather than a second `Select`, and the reason is not taste.** A `Select`
+materialises every option it is given and nothing here virtualises them, so a year list must be bounded —
+and any bound is invented, since a hundred years back is right for a birthday and absurd for a booking, and
+wrong for both if the date is ancient or fictional. A number field needs no bound, so no range has to be
+guessed, and typing four digits beats scrolling eighty rows even in the ordinary case.
+
+**The caption sets the calendar's width, which is why the day cell grew from 36px to 46px.** The header
+carries two arrow buttons, a month name and a four-digit year, and that does not fit across seven 36px
+columns — the frame was ending up a hundred pixels wider than the grid inside it, with the grid visibly
+floating. `Calendar`'s root is `width: fit-content` and the cell size is the Playground painter's, so the
+grid cannot stretch to a wider header and the cell is the only end of it that can move. 46px × 7 is 322px,
+which is what the caption needs. If a `getSizing` is ever added to `Calendar` — every other component of
+this shape has one — this is the constraint that would go away.
+
+It also keeps the frame still across the mode switch. The edit-mode header is the wider of the two, so
+sizing the grid to it means the box does not resize under the pointer when the title is clicked — which it
+would have done, by seventy pixels, at the old cell size.
 
 **Selection is by date, one tab stop, and the cell carries the whole date as its name.** `valueSignal`
 holds a `DateValue | undefined`. The grid is a roving tab order over 42 `InteractionWrapper`s, following
@@ -2899,7 +3040,100 @@ produces the same string, since a typed `-` is discarded and the mask supplies i
 **`TextSyncUtils` is not exported from `index.ts` yet.** `DateInput` is its only consumer and the standing
 rule is private until a second one arrives — which will be `TimeInput`'s 12-hour clock or the formatted
 number, and either would also be the moment to decide whether a consumer building their own masked field
-should be able to reach it.
+should be able to reach it. _`TimeInput` became that second consumer on 2026-08-11; the export decision is
+still open._
+
+### A masked field shows the separator it wants next, and never deletes what it could not read
+
+Both settled **2026-08-11**, from the user testing the fields and finding them, in their words, broken.
+Recorded together because they are one complaint: **a field must say what it is waiting for, and must never
+answer a mistake by throwing the mistake away.**
+
+**The separator arrives with the group before it, not the digit after it.** Four digits into `####-##-##`
+the text is now `2026-`, and the caret sits after the dash. The old rule was the opposite and is argued a
+few paragraphs up in this file — a half-finished field never held a trailing separator, so nothing had to
+decide whether an incomplete value ended at a digit or at punctuation. That is a real simplification and it
+was bought at the reader's expense: typing `2020` into an ISO field showed `2020` and gave no sign that a
+month was wanted next, or that the dash would be supplied rather than typed. Nothing downstream cared,
+because every consumer of the text counts digits rather than characters.
+
+The deletion rule is unchanged and now does more work: backspacing over a separator still removes the digit
+in front of it, so two presses remove two digits rather than a digit and a dash. What changes is where it
+stops — `25/12/` loses the `2` and becomes `25/1`, keeping the separator its first group still earns.
+
+**An unreadable field keeps its text and reports an error.** `DateInput` and `TimeInput` used to rewrite the
+text from the value whenever the field was left, and with no value that meant erasing what had been typed:
+entering `2020-20-20` and tabbing away left an empty field and no explanation. The rewrite now runs only
+when there is a value to rewrite from, so wrong text survives to be corrected.
+
+**Wrong and unfinished are different, and they report at different moments.** A spelling that cannot exist —
+the 20th month, `29:99`, a date outside `getMinDate`/`getMaxDate` — is wrong the instant the last digit
+lands, and errors immediately, while the field still has focus. A value that is merely half-typed is not
+wrong yet; saying so mid-keystroke would be noise, so it errors only once the field is left, and typing
+again clears that. Both surface through the flag the painter already reads: `getHasError` is the consumer's
+own prop **or** the field's own judgment, so a consumer who passes nothing still gets a field that says no.
+
+This is what `hasError` on sixteen controls was waiting for a producer to do, and it is worth noting that
+the producer turned out to be the control itself rather than the form story `review.md` files it under.
+
+**The value is still cleared when the text cannot be read.** The error is about the text; the owner is told
+there is no date, which is true. What changed is that the field stops agreeing with the owner by going
+blank.
+
+**A part that cannot exist is refused before the rest of the value does.** Added the same day, on the
+user's observation that a 13th month is already wrong without waiting for a day: `TextSyncUtils.readGroups`
+reads the **complete** fixed-width groups of the digits typed so far, and each is range-checked on its own —
+month 1-12, day 1-31, hour 0-23 or 1-12 on a 12-hour clock, minute and second 0-59. A group still being
+typed is not reported, so `1` never has to answer for the month it might still become.
+
+The bounds are deliberately per-part rather than per-value: the day's ceiling is the longest month, because
+a 30th of February is two parts _disagreeing_ rather than one part being impossible, and that stays
+`fromIso`'s to catch once all three exist. Three checks in order — impossible part, then complete-value
+parse and bounds, then unfinished — and each reports at the earliest moment it can be sure.
+
+**Not extended to an impossible _prefix_**, though the same argument reaches it: a month whose first digit
+is 2 can only ever become 20-29 and is already doomed. Refusing it needs the field to reason about what the
+group could still become, and the published answer to that case is auto-advance — typing `2` fills `02` and
+moves on — which is a different feature with its own keyboard consequences. Complete groups only, for now.
+
+### A masked field offers the placeholder that matches its own mask
+
+Settled **2026-08-11**. `renderPlaceholder` is now `(getFlags, hint)`, where `hint` is `yyyy-mm-dd`,
+`dd/mm/yyyy`, `hh:mm` or `hh:mm:ss` depending on what the field is actually spelling. A consumer that wants
+something else ignores the argument; the Playground now draws it and its eight variants stopped carrying
+eight hand-written strings, three of which were wrong — every time field said `yyyy-mm-dd`.
+
+**It comes from the format, not from the mask string.** The hint and the pattern are two renderings of one
+definition — the ordered parts and the separator — so `computeHint` sits beside `computeMask` and reads the
+same record. Deriving the hint by rewriting `####-##-##` would need a second thing to know that the first
+group is a year, which is exactly the guessing _"an arbitrary mask string is deliberately not the prop"_
+exists to avoid.
+
+**It is a plain string rather than an accessor**, following `Calendar.renderWeekday`'s `name`: the painter
+reads it where it is handed over, inside a tracking scope, so a format change re-renders it anyway.
+
+The prop behind it is `getPlaceholderHint` on `TextField`, and `DateInput` and `TimeInput` `Omit` it for the
+reason the presets omit `getMask` — they own the format, so two sources for the same string is the problem
+the omission prevents. A hand-built `TextField` or `TextInput` sets neither and its painter is handed
+`undefined`.
+
+### A popup opened from inside a popup is not outside it
+
+Settled **2026-08-11**, from a bug the calendar caption exposed: opening the month `Select` inside the
+`DatePicker`'s calendar and clicking an option shut the whole calendar. `DatePicker` dismisses on a pointer
+press that is not inside its popup, and a popup is portalled to the end of the document — so the select's
+list is a **sibling** of the calendar rather than a descendant of it, and `contains` reported the click as
+outside. Every nested popup has this shape; the calendar caption was just the first one built.
+
+`DismissUtils.getIsWithinOwnedLayer(target, roots)` walks up from the pressed element, and every time it
+reaches an element that something else points at with `aria-controls` it jumps to that controller and keeps
+walking. The select's list is controlled by the select's field, the field is inside the calendar, so the
+press resolves as inside. **Ownership is already in the markup**, put there for screen readers, so nothing
+has to be registered on open and no order has to be maintained.
+
+It is not the layer stack `review.md` asks for, and it does not pretend to be: a stack also decides which of
+several open layers a stray press dismisses, and orders them, which this cannot. It fixes the containment
+question only. `ColorInput` runs the same kind of listener and should adopt it when the stack is built.
 
 ### The am/pm segment is a control in the trailing slot, not a slot in the mask
 
@@ -2934,10 +3168,13 @@ documented as able to hold a control with its own ring and tooltip. It has to ca
 toggle sets `aria-label` to "Before or after noon: AM", because the glyph is `aria-hidden` like every other
 painter's text.
 
-**`TimeInput` still does not use the mask**, and that is deliberate rather than pending. Its caret arithmetic
-works because ISO segments are fixed width, adopting the mask would change how typing feels in a field whose
-behaviour was not what this change was about, and bundling the two would have put a judgment call inside a
-feature. What it gained is the 12-hour reading and nothing else.
+**`TimeInput` uses the mask too, as of 2026-08-11.** It did not, and the paragraph here argued that was
+deliberate; the user found out what it actually meant by typing `203` into the field and getting `203`
+rather than `20:3`. The reasoning was sound about not bundling and wrong about the outcome: a field whose
+twin punctuates itself and which does not is not a smaller feature, it is an inconsistency the reader hits
+immediately. `computeMask(segmentCount)` builds `##:##` or `##:##:##` from the same constants the caret
+arithmetic already uses, so the two cannot drift, and the segment stride is unchanged because a mask emits
+exactly the fixed-width segments the arithmetic assumed.
 
 ### Controls: `TimeInput`, and stepping the segment the caret is in
 

@@ -23,9 +23,11 @@ export namespace TextSyncUtils {
      * is also why the caret is computed rather than preserved: the position that survives an edit is _how
      * many digits precede it_, and the offset in the text follows from that.
      *
-     * **A literal appears only once the digit after it exists.** Two digits into `##/##/####` the text is
-     * `12`, not `12/`, so a field left half-finished never holds a trailing separator, and nothing has to
-     * decide whether an incomplete value ends at a digit or at punctuation.
+     * **A literal appears as soon as the digit _before_ it exists.** Two digits into `##/##/####` the text
+     * is `12/`, so the field says what it wants next instead of leaving the reader to guess that a slash is
+     * coming. The caret goes after the separator rather than before it, so the next digit typed lands where
+     * it looks like it will. An empty field stays empty — a leading literal would otherwise appear before
+     * anything had been typed.
      *
      * **Deleting a literal deletes the digit before it instead.** Backspace over the slash in `12/34` would
      * otherwise re-emit the slash and leave the text exactly as it was, so the key would read as broken. The
@@ -50,24 +52,49 @@ export namespace TextSyncUtils {
         let used = 0;
 
         for (const char of pattern) {
-            if (used >= digits.length) break;
-
             if (char === MASK_DIGIT) {
+                if (used >= digits.length) break;
+
                 text += digits[used];
                 used += 1;
                 offsetsAfterDigit.push(text.length);
             } else {
+                if (digits.length === 0) break;
+
                 text += char;
             }
         }
 
         const clampedIndex = Math.min(digitIndex, offsetsAfterDigit.length);
 
+        if (clampedIndex === offsetsAfterDigit.length) return { text, caret: text.length };
+
         return { text, caret: clampedIndex === 0 ? 0 : offsetsAfterDigit[clampedIndex - 1] };
     };
 
     /** The digits a masked value carries, which is the only part of it that means anything. */
     export const getMaskedDigits = getDigits;
+
+    /**
+     * The **complete** fixed-width groups of `digits`, read as numbers.
+     *
+     * A group still being typed is not reported, which is the whole point: a field can range-check `13` as a
+     * month the moment the second digit lands, without `1` having to answer for a month it might still become.
+     */
+    export const readGroups = (digits: string, lengths: number[]) => {
+        const groups: number[] = [];
+
+        let offset = 0;
+
+        for (const length of lengths) {
+            if (offset + length > digits.length) break;
+
+            groups.push(Number(digits.slice(offset, offset + length)));
+            offset += length;
+        }
+
+        return groups;
+    };
 
     /** Formats digits that are already in the pattern's own order — the mask used as a formatter. */
     export const formatWithMask = (pattern: string, digits: string) =>

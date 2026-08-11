@@ -2,8 +2,8 @@ import { createMemo, createSignal } from "solid-js";
 
 import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
 import { NumberInput } from "../../../../Lib/Fundamentals/Input/NumberInput/NumberInput";
-import { PageLabelCaption } from "../../PageComponents/LabelCaption/LabelCaption";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
+import { PageLabelCaption } from "../../StyledComponents/LabelCaption/LabelCaption";
 import { PageNumberInputStepper } from "../../StyledComponents/NumberInputStepper/NumberInputStepper";
 import { PageTextFieldAdornment } from "../../StyledComponents/TextFieldAdornment/TextFieldAdornment";
 import {

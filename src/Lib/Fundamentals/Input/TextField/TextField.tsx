@@ -165,7 +165,7 @@ const TextFieldElement = (props: TextFieldElementProps) => {
 
             {props.renderPlaceholder && (
                 <div class={styles.textFieldPlaceholder} style={props.getTextInset()}>
-                    {props.renderPlaceholder(props.getFlags)}
+                    {props.renderPlaceholder(props.getFlags, props.getPlaceholderHint?.())}
                 </div>
             )}
 
@@ -315,6 +315,7 @@ export const TextField = (props: TextFieldProps) => {
                     getAutoComplete={props.getAutoComplete}
                     getInputMode={props.getInputMode}
                     getMask={props.getMask}
+                    getPlaceholderHint={props.getPlaceholderHint}
                     getMin={props.getMin}
                     getMax={props.getMax}
                     getStep={props.getStep}

@@ -2,9 +2,9 @@ import { createMemo, createSignal } from "solid-js";
 
 import { FileInput } from "../../../../Lib/Fundamentals/Input/FileInput/FileInput";
 import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
-import { PageLabelCaption } from "../../PageComponents/LabelCaption/LabelCaption";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageFileInputContent } from "../../StyledComponents/FileInputContent/FileInputContent";
+import { PageLabelCaption } from "../../StyledComponents/LabelCaption/LabelCaption";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 
 const MAX_ATTACHMENT_BYTES = 1024;

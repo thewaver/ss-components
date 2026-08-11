@@ -4,16 +4,14 @@ import type { DateValue } from "../../../../Lib/Abstracts/DateValue/DateValue.ty
 import { DateValueUtils } from "../../../../Lib/Abstracts/DateValue/DateValue.utils";
 import type { TimeValue } from "../../../../Lib/Abstracts/TimeValue/TimeValue.types";
 import { TimeValueUtils } from "../../../../Lib/Abstracts/TimeValue/TimeValue.utils";
-import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { DateInput } from "../../../../Lib/Fundamentals/Input/DateInput/DateInput";
 import { DatePicker } from "../../../../Lib/Fundamentals/Input/DatePicker/DatePicker";
 import { TimeInput } from "../../../../Lib/Fundamentals/Input/TimeInput/TimeInput";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
-import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
+import { PageCalendarCaption } from "../../StyledComponents/CalendarCaption/CalendarCaption";
 import {
     PageCalendarDay,
     PageCalendarFrame,
-    PageCalendarHeader,
     PageCalendarWeekday,
 } from "../../StyledComponents/CalendarContent/CalendarContent";
 import { PageDatePickerTrigger } from "../../StyledComponents/DatePickerTrigger/DatePickerTrigger";
@@ -27,9 +25,7 @@ import { PageTextFieldPlaceholder } from "../../StyledComponents/TextFieldPlaceh
 import { FIELD_GAP, FIELD_STEPPER_PADDING } from "../../StyledComponents/TextFieldContent/TextFieldContent.css";
 
 const FIELD_WIDTH = 220;
-const MONTH_TITLE_OPTIONS: Intl.DateTimeFormatOptions = { month: "long", year: "numeric" };
 const LOCALE = "en-GB";
-const MONTH_STEP = 1;
 const TODAY: DateValue = { year: 2026, month: 8, day: 10 };
 const MIN_DATE: DateValue = { year: 2026, month: 8, day: 5 };
 const MAX_DATE: DateValue = { year: 2026, month: 8, day: 20 };
@@ -58,8 +54,8 @@ export const DatePickerPage = () => {
         renderContent: (getFlags: Parameters<typeof PageTextFieldContent>[0]["getFlags"]) => (
             <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} />
         ),
-        renderPlaceholder: (getFlags: Parameters<typeof PageTextFieldPlaceholder>[0]["getFlags"]) => (
-            <PageTextFieldPlaceholder getFlags={getFlags}>yyyy-mm-dd</PageTextFieldPlaceholder>
+        renderPlaceholder: (getFlags: Parameters<typeof PageTextFieldPlaceholder>[0]["getFlags"], hint?: string) => (
+            <PageTextFieldPlaceholder getFlags={getFlags}>{hint}</PageTextFieldPlaceholder>
         ),
     });
 
@@ -80,25 +76,7 @@ export const DatePickerPage = () => {
             renderWeekday={(name) => <PageCalendarWeekday>{name}</PageCalendarWeekday>}
             renderPopup={(renderCalendar, monthSignal) => (
                 <PageCalendarFrame>
-                    <PageCalendarHeader>
-                        <Button
-                            getAriaLabel={() => "Previous month"}
-                            renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>◀</PageButtonContent>}
-                            onClick={() => {
-                                monthSignal[1]((prev) => DateValueUtils.addMonths(prev, -MONTH_STEP));
-                            }}
-                        />
-
-                        <div>{DateValueUtils.format(monthSignal[0](), MONTH_TITLE_OPTIONS, LOCALE)}</div>
-
-                        <Button
-                            getAriaLabel={() => "Next month"}
-                            renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>▶</PageButtonContent>}
-                            onClick={() => {
-                                monthSignal[1]((prev) => DateValueUtils.addMonths(prev, MONTH_STEP));
-                            }}
-                        />
-                    </PageCalendarHeader>
+                    <PageCalendarCaption monthSignal={monthSignal} getLocale={() => LOCALE} />
 
                     {renderCalendar()}
                 </PageCalendarFrame>

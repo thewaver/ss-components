@@ -4,6 +4,7 @@ import { createEffect, createSignal, createUniqueId, onCleanup, untrack } from "
 import type { AnchorPlacement } from "../../../Abstracts/Anchor/Anchor.types";
 import type { DateValue } from "../../../Abstracts/DateValue/DateValue.types";
 import { DateValueUtils } from "../../../Abstracts/DateValue/DateValue.utils";
+import { DismissUtils } from "../../../Abstracts/Dismiss/Dismiss.utils";
 import { Popover } from "../../Popover/Popover";
 import { Calendar } from "../Calendar/Calendar";
 import { DateInput } from "../DateInput/DateInput";
@@ -44,8 +45,7 @@ export const DatePicker = (props: DatePickerProps) => {
             const target = e.target as Node | null;
 
             if (!target) return;
-            if (document.getElementById(popupId)?.contains(target)) return;
-            if (getRootRef()?.contains(target)) return;
+            if (DismissUtils.getIsWithinOwnedLayer(target, [document.getElementById(popupId), getRootRef()])) return;
 
             setIsOpen(false);
         };

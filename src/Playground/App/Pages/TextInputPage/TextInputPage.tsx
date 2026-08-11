@@ -3,8 +3,8 @@ import { createMemo, createSignal } from "solid-js";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
 import { TextInput } from "../../../../Lib/Fundamentals/Input/TextInput/TextInput";
-import { PageLabelCaption } from "../../PageComponents/LabelCaption/LabelCaption";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
+import { PageLabelCaption } from "../../StyledComponents/LabelCaption/LabelCaption";
 import { PageTextFieldAdornment } from "../../StyledComponents/TextFieldAdornment/TextFieldAdornment";
 import {
     PageTextFieldContent,

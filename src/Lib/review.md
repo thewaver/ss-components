@@ -284,9 +284,13 @@ doing:
   a control in the trailing slot, so the pattern stayed digits-only and the non-digit slot this bullet
   predicted was never built. What is left is the **formatted number**, which is the one consumer that does
   need the pattern to change — thousands separators mean a group count that grows with the value rather than
-  a fixed run of slots, and that is a different function rather than a longer pattern. `TimeInput` also
-  still does not use the mask at all; its fixed-width ISO segments do not need one, and adopting it would
-  change how typing feels in a field for reasons unrelated to why anyone would.
+  a fixed run of slots, and that is a different function rather than a longer pattern. `TimeInput` adopted
+  the mask on 2026-08-11 and `TextSyncUtils` therefore has its second consumer, so whether it should be
+  exported for a consumer building their own masked field is now a live question rather than a deferred one.
+  **A second consumer of the non-digit slot arrived the same day**: a year before the common era now stores,
+  computes and displays correctly and is written `-000044-08-15`, but `DateInput` cannot type one, because
+  the sign is not a digit and the mask discards everything that is not. So the missing primitive blocks two
+  things rather than one, which is an argument for building it rather than a new requirement on top of it.
 - **No time popup.** A list of times in a `Popover` is a `Select` over generated options; whether that
   belongs inside `TimeInput` as a mode or beside it as a `TimePicker` is the decision, and it should be
   taken with the `openSignal` question below rather than separately. Note the trailing slot is now spoken
@@ -410,7 +414,14 @@ any of those without first deciding these would bake the decision in by accident
 - **The form story is decided and wired.** `Form` and `FormField` ship and every control reads the
   description context; see `conventions.md`. What is still unbuilt is smaller: nothing groups fields into
   sections with their own validity, and `hasSubmitted` is exposed but no control uses it to hold its error
-  back until the first attempt.
+  back until the first attempt. Note that `DateInput` and `TimeInput` now raise `hasError` on their own,
+  from their own text — so the first producer of that flag turned out to be a control rather than the form,
+  and the two will have to agree once `hasSubmitted` starts gating anything.
+- **Dismissal knows about nesting now, but still has no stack.** `DismissUtils.getIsWithinOwnedLayer` walks
+  `aria-controls` so a popup opened from inside another popup no longer reads as outside it; see
+  `conventions.md`. What is still missing is the ordered set of open layers, which is what decides _which_
+  layer a stray press closes when several are open. `ColorInput` still runs its own listener and should move
+  onto the shared one when that is built.
 - **The `Signal` mirror is now `Abstracts/SignalMirror`**, taking a getter and a setter so a consumer
   without a signal is served too; see `conventions.md`. What remains is that no library control accepts
   the getter-plus-setter pair directly — a consumer still wraps it in a mirror to hand a control its
@@ -469,6 +480,15 @@ invisible to a suite that drives the page, and `onMount` handoffs are in the sam
 **Components with no Playground page at all**, so nothing can drive them until one exists:
 `AudioSwitcher` and `RichText`, both commented out of `TAB_CONFIGS` in
 `src/Playground/App/App.tsx`.
+
+**`tabs.spec.ts` pins the left menu's contents by name, so changing what the Playground lists breaks it.**
+It asserts the number of category headers and which entry `Home` and `End` land on — `CellAnimation` and
+`Surface` today. That is not incidental: the left menu is the only real `Tabs` in the app, so it is the
+only thing that can cover a column list with disabled headers, and covering it means naming what is in it.
+The failure mode is worth knowing because it is silent about its real cause: adding a page, reordering the
+categories, or hiding a section makes the `Tabs` **keyboard** spec fail, which reads as a regression in
+`Tabs`. It has already happened once — the spec sat broken against a menu that had gained an `Exotics`
+category and lost its `Composites` one.
 
 **Covered only through a consumer**, which is worth distinguishing from uncovered because it decides
 whether a spec is worth writing: `Popover` through `Select` and `Menu`, `Radio` through
@@ -663,10 +683,11 @@ value the library owns"_.
   a partially-entered state while the first end is picked, and `isInRange` / `isRangeStart` /
   `isRangeEnd` on the flags. Whether that is a second component or a widened value is the decision, and
   it should be made with `DatePicker` in view rather than for `Calendar` alone.
-- **No month or year jump.** Paging is a month at a time, by the consumer's own buttons or by
-  `PageUp`/`PageDown`. Jumping to an arbitrary month or year wants a `Select` inside the consumer's
-  header, which works today, or `Shift+PageUp`/`Shift+PageDown` for a year — the published pattern's
-  binding, deliberately not added because nothing asked for it.
+- **The month and year jump exists, and `Shift+PageUp`/`Shift+PageDown` still does not.** The published
+  pattern binds a year step to shifted page keys; `Calendar` handles the unshifted pair only, and nothing
+  has asked for the other. Note that a keyboard year step is the one part of this a consumer cannot add
+  from outside, since the grid owns its own `keydown` — unlike the caption, which turned out to need no
+  library change at all (see `conventions.md`).
 - **No week numbers and no multi-month view.** Both are extra columns or extra grids around the same
   `DateValueUtils.getMonthGrid`, so neither needs new library machinery; they need a decision about
   whether `Calendar` grows a mode or a consumer composes two of them.

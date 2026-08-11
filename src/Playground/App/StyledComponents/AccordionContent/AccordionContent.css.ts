@@ -14,16 +14,17 @@ export const accordionHeader = style({
     width: "100%",
     borderRadius: themeVars.borderRadius.half,
     padding: themeVars.spacing.full,
-    backgroundImage: `linear-gradient(215deg, ${themeVars.color.surface.light}, ${themeVars.color.surface.dark})`,
+    backgroundImage: `linear-gradient(215deg, ${themeVars.color.surface.dark}, ${themeVars.color.surface.dark})`,
     fontSize: themeVars.fontSize.medium,
     transition: `filter ${themeVars.animation.duration}`,
 
     selectors: {
         [`&.${isHovered}`]: {
-            filter: "brightness(120%)",
+            filter: themeVars.hover.filter,
         },
         [`&.${isDisabled}`]: {
-            filter: "grayscale(1) brightness(60%)",
+            opacity: themeVars.disabled.opacity,
+            filter: themeVars.disabled.filter,
         },
     },
 });
@@ -45,4 +46,5 @@ export const accordionPanel = style({
     gap: themeVars.spacing.full,
     padding: themeVars.spacing.full,
     fontSize: themeVars.fontSize.small,
+    backgroundImage: `linear-gradient(215deg, ${themeVars.color.surface.dark}, ${themeVars.color.surface.dark})`,
 });

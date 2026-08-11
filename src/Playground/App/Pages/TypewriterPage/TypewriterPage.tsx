@@ -4,10 +4,10 @@ import { TextArea } from "../../../../Lib/Fundamentals/Input/TextArea/TextArea";
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
-import { PageNumberField, PageSelectField } from "../../PageComponents/Field/Field";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
+import { PageNumberField, PageSelectField } from "../../StyledComponents/Field/Field";
 import {
     PageTextFieldContent,
     computePageTextFieldTextStyle,

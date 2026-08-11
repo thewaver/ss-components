@@ -16,6 +16,7 @@ export const interactionSizingVariants = styleVariants({
 export const interactionRoot = style({
     display: "flex",
     position: "relative",
+    maxWidth: "100%",
     pointerEvents: "none",
     userSelect: "none",
 

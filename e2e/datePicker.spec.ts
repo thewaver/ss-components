@@ -78,7 +78,10 @@ test.describe("a day-first field", () => {
     test("takes the digit with the separator when the separator is backspaced", async ({ page }) => {
         await typeInto(page, field(LOCALE), "2512");
 
-        expect(await inputValue(page.locator(field(LOCALE)))).toBe("25/12");
+        expect(
+            await inputValue(page.locator(field(LOCALE))),
+            "a full group carries its separator, so the field says a year is wanted next",
+        ).toBe("25/12/");
 
         await page.locator(field(LOCALE)).press("Backspace");
         await page.locator(field(LOCALE)).press("Backspace");
@@ -86,7 +89,7 @@ test.describe("a day-first field", () => {
         expect(
             await inputValue(page.locator(field(LOCALE))),
             "two presses remove two digits, not a digit and a slash",
-        ).toBe("25");
+        ).toBe("25/");
     });
 
     test("accepts a paste in a punctuation it does not use", async ({ page }) => {

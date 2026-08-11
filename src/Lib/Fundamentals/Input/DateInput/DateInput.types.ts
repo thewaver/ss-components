@@ -13,6 +13,7 @@ export type DateInputProps = Omit<
     | "getType"
     | "getInputMode"
     | "getMask"
+    | "getPlaceholderHint"
     | "getIsSpinButton"
     | "getIsAutoSizing"
     | "getMinRows"

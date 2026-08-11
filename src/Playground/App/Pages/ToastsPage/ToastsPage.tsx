@@ -8,10 +8,10 @@ import type {
     ToastsDir,
     ToastsOverflow,
 } from "../../../../Lib/Fundamentals/Toasts/Toasts.types";
-import { PageNumberField, PageSelectField } from "../../PageComponents/Field/Field";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
+import { PageNumberField, PageSelectField } from "../../StyledComponents/Field/Field";
 import { PageToastContent } from "../../StyledComponents/ToastContent/ToastContent";
 import type { ToastAnimation, ToastDefs, ToastKind } from "../../StyledComponents/ToastContent/ToastContent.types";
 

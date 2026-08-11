@@ -1,21 +1,54 @@
-import { createEffect, createSignal, untrack } from "solid-js";
+import { createEffect, createMemo, createSignal, untrack } from "solid-js";
 
+import { TextSyncUtils } from "../../../Abstracts/TextSync/TextSync.utils";
 import type { TimeValue, TimeValueMeridiem, TimeValueUnit } from "../../../Abstracts/TimeValue/TimeValue.types";
 import { TimeValueUtils } from "../../../Abstracts/TimeValue/TimeValue.utils";
 import { TextField } from "../TextField/TextField";
 import type { TimeInputMeridiem, TimeInputProps } from "./TimeInput.types";
 
 const SEGMENT_LENGTH = 2;
-const SEPARATOR_LENGTH = 1;
+const SEPARATOR = ":";
+const SEPARATOR_LENGTH = SEPARATOR.length;
 const SEGMENT_STRIDE = SEGMENT_LENGTH + SEPARATOR_LENGTH;
 const SEGMENT_UNITS: TimeValueUnit[] = ["hour", "minute", "second"];
+const SEGMENT_HINTS: Record<TimeValueUnit, string> = { hour: "hh", minute: "mm", second: "ss" };
 const STEP_KEYS: Record<string, number> = { ArrowUp: 1, ArrowDown: -1 };
 const DEFAULT_MERIDIEM: TimeValueMeridiem = "am";
+
+/** What a segment can hold whatever the others turn out to be. A 12-hour clock counts from one, not zero. */
+const SEGMENT_BOUNDS: Record<TimeValueUnit, { min: number; max: number }> = {
+    hour: { min: 0, max: 23 },
+    minute: { min: 0, max: 59 },
+    second: { min: 0, max: 59 },
+};
+
+const TWELVE_HOUR_BOUNDS = { min: 1, max: 12 };
 
 const getSegmentAt = (caret: number) => {
     const index = Math.min(Math.floor(caret / SEGMENT_STRIDE), SEGMENT_UNITS.length - 1);
 
     return { unit: SEGMENT_UNITS[index], start: index * SEGMENT_STRIDE };
+};
+
+const computeMask = (segmentCount: number) =>
+    Array.from({ length: segmentCount }, () => TextSyncUtils.MASK_DIGIT.repeat(SEGMENT_LENGTH)).join(SEPARATOR);
+
+const computeHint = (segmentCount: number) =>
+    SEGMENT_UNITS.slice(0, segmentCount)
+        .map((unit) => SEGMENT_HINTS[unit])
+        .join(SEPARATOR);
+
+const getHasImpossibleSegment = (digits: string, segmentCount: number, isTwelveHour: boolean) => {
+    const units = SEGMENT_UNITS.slice(0, segmentCount);
+
+    return TextSyncUtils.readGroups(
+        digits,
+        units.map(() => SEGMENT_LENGTH),
+    ).some((value, index) => {
+        const bounds = units[index] === "hour" && isTwelveHour ? TWELVE_HOUR_BOUNDS : SEGMENT_BOUNDS[units[index]];
+
+        return value < bounds.min || value > bounds.max;
+    });
 };
 
 export const TimeInput = (props: TimeInputProps) => {
@@ -51,12 +84,46 @@ export const TimeInput = (props: TimeInputProps) => {
 
     const textSignal = createSignal(untrack(getText));
 
-    const refreshText = () => {
-        textSignal[1](untrack(getText));
+    const [getHasLeft, setHasLeft] = createSignal(false);
+
+    const getSegmentCount = () => (props.getHasSeconds?.() ? SEGMENT_UNITS.length : SEGMENT_UNITS.length - 1);
+
+    const getMask = createMemo(() => computeMask(getSegmentCount()));
+
+    const getDigits = () => TextSyncUtils.getMaskedDigits(textSignal[0]());
+
+    const getExpectedDigits = () => getSegmentCount() * SEGMENT_LENGTH;
+
+    const getExpectedLength = () => getSegmentCount() * SEGMENT_STRIDE - SEPARATOR_LENGTH;
+
+    const getAcceptedValue = (text: string) => {
+        const parsed = parseText(text);
+
+        return parsed && TimeValueUtils.getIsInRange(parsed, props.getMinTime?.(), props.getMaxTime?.())
+            ? parsed
+            : undefined;
     };
 
-    const getExpectedLength = () =>
-        (props.getHasSeconds?.() ? SEGMENT_UNITS.length : SEGMENT_UNITS.length - 1) * SEGMENT_STRIDE - SEPARATOR_LENGTH;
+    /**
+     * The same three moments `DateInput` reports at, for the same reasons: a 25th hour is wrong as soon as
+     * that segment is complete, a time outside the bounds needs all of them, and a half-typed time waits
+     * until the field is left.
+     */
+    const getHasIssue = createMemo(() => {
+        const digits = getDigits();
+
+        if (digits.length === 0) return false;
+        if (getHasImpossibleSegment(digits, getSegmentCount(), getIsTwelveHour())) return true;
+        if (digits.length < getExpectedDigits()) return getHasLeft();
+
+        return getAcceptedValue(textSignal[0]()) === undefined;
+    });
+
+    const refreshText = () => {
+        if (untrack(() => props.valueSignal[0]()) === undefined && untrack(getDigits).length > 0) return;
+
+        textSignal[1](untrack(getText));
+    };
 
     const commit = (next: TimeValue | undefined) => {
         if (
@@ -75,13 +142,7 @@ export const TimeInput = (props: TimeInputProps) => {
 
         if (text.length > 0 && text.length < getExpectedLength()) return;
 
-        const parsed = parseText(text);
-
-        commit(
-            parsed && TimeValueUtils.getIsInRange(parsed, props.getMinTime?.(), props.getMaxTime?.())
-                ? parsed
-                : undefined,
-        );
+        commit(getAcceptedValue(text));
     });
 
     createEffect(() => {
@@ -143,9 +204,18 @@ export const TimeInput = (props: TimeInputProps) => {
             valueSignal={textSignal}
             getElement={() => "input"}
             getInputMode={() => "numeric"}
+            getMask={getMask}
+            getPlaceholderHint={() => computeHint(getSegmentCount())}
+            getHasError={() => (props.getHasError?.() ?? false) || getHasIssue()}
             renderTrailing={props.renderTrailing && ((getFlags) => props.renderTrailing!(getFlags, meridiem))}
+            onInput={() => {
+                setHasLeft(false);
+            }}
             onKeyDown={handleKeyDown}
-            onBlur={refreshText}
+            onBlur={() => {
+                setHasLeft(true);
+                refreshText();
+            }}
         />
     );
 };

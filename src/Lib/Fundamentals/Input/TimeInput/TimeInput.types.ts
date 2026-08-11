@@ -22,6 +22,8 @@ export type TimeInputProps = Omit<
     | "getElement"
     | "getType"
     | "getInputMode"
+    | "getMask"
+    | "getPlaceholderHint"
     | "getIsSpinButton"
     | "getIsAutoSizing"
     | "getMinRows"

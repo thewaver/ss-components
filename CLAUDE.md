@@ -93,6 +93,15 @@ needs the dev server out of the way — and if a port really is taken, say so ra
 
 ## Writing code
 
+**When you find something broken and can fix it, fix it — do not stop to ask.** Stated by the user on
+**2026-08-11**, after two rounds of reporting a date bug and waiting for permission before touching it.
+Two conditions, and they are the whole of it: the fix must not add a package, and it must not break
+something that already works. A defect that meets both is not a decision to surface — surfacing it costs
+a round trip and leaves the code broken in the meantime. Report what was fixed afterwards.
+
+This does not loosen _"Do not bundle a judgment call into a bug fix"_ below; the two are about different
+things. Fix the defect on sight; still raise the taste question separately.
+
 **Do not add code comments.** The codebase carries essentially none and that is deliberate; adding any is
 a deviation, not a neutral default. Never write a `//` note inside a function body or a literal. Reasoning
 that needs recording goes in `conventions.md`, or in the reply. Correcting or deleting a comment that is

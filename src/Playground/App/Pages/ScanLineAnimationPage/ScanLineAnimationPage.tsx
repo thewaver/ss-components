@@ -7,12 +7,6 @@ import { ScanlineAnimation } from "../../../../Lib/Exotics/ScanlineAnimation/Sca
 import type { ScanlineAnimationController } from "../../../../Lib/Exotics/ScanlineAnimation/ScanlineAnimation.types";
 import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
-import {
-    PageFileField,
-    PageGroupedSelectField,
-    PageNumberField,
-    PageSelectField,
-} from "../../PageComponents/Field/Field";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
@@ -21,6 +15,12 @@ import type { StressTestDefs } from "../../PageComponents/StressTest/StressText.
 import { CellAnimationBreakpoints } from "../../Samples/CellAnimationBreakpoints.const";
 import { CellAnimationWeights } from "../../Samples/CellAnimationWeights.const";
 import { ScanlineAnimationKeyframes } from "../../Samples/ScanlineAnimationKeyframes.const";
+import {
+    PageFileField,
+    PageGroupedSelectField,
+    PageNumberField,
+    PageSelectField,
+} from "../../StyledComponents/Field/Field";
 import knight from "../../knight.png";
 import { BrightnessExample } from "./Examples/Brightness";
 import BrightnessExampleRaw from "./Examples/Brightness.tsx?raw";

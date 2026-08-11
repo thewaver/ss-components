@@ -1,6 +1,6 @@
 import type { ParentProps } from "solid-js";
 
-import type { CalendarDayProps } from "./CalendarContent.types";
+import type { CalendarDayProps, CalendarTitleProps } from "./CalendarContent.types";
 
 import * as styles from "./CalendarContent.css";
 
@@ -22,6 +22,12 @@ export const PageCalendarDay = (props: CalendarDayProps) => (
 
 export const PageCalendarWeekday = (props: ParentProps) => (
     <div class={styles.calendarWeekday} aria-hidden>
+        {props.children}
+    </div>
+);
+
+export const PageCalendarTitle = (props: ParentProps<CalendarTitleProps>) => (
+    <div class={styles.calendarTitle} classList={{ [styles.isHovered]: props.getFlags().isHovered }} aria-hidden>
         {props.children}
     </div>
 );

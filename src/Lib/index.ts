@@ -9,6 +9,7 @@ export type * from "./Abstracts/ColorValue/ColorValue.types";
 export * from "./Abstracts/ColorValue/ColorValue.utils";
 export type * from "./Abstracts/DateValue/DateValue.types";
 export * from "./Abstracts/DateValue/DateValue.utils";
+export * from "./Abstracts/Dismiss/Dismiss.utils";
 export * from "./Abstracts/ElementFader/ElementFader";
 export * from "./Abstracts/ElementObserver/ElementObserver";
 export * from "./Abstracts/FPS/FPS.utils";

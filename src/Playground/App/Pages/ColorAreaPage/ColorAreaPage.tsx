@@ -6,7 +6,6 @@ import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { ColorArea } from "../../../../Lib/Fundamentals/Input/ColorArea/ColorArea";
 import { Range } from "../../../../Lib/Fundamentals/Input/Range/Range";
 import { Popover } from "../../../../Lib/Fundamentals/Popover/Popover";
-import { PageColorChannels } from "../../PageComponents/ColorChannels/ColorChannels";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import {
     PageColorAreaContent,
@@ -17,6 +16,7 @@ import {
     PageColorSwatch,
     PageHueSlider,
 } from "../../StyledComponents/ColorAreaContent/ColorAreaContent";
+import { PageColorChannels } from "../../StyledComponents/ColorChannels/ColorChannels";
 
 const AREA_SIZE = 160;
 const HUE_THUMB_SIZE = 18;

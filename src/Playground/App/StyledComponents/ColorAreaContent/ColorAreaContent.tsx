@@ -4,7 +4,7 @@ import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import type { ColorValueHsv } from "../../../../Lib/Abstracts/ColorValue/ColorValue.types";
 import { ColorValueUtils } from "../../../../Lib/Abstracts/ColorValue/ColorValue.utils";
-import { PageColorChannels } from "../../PageComponents/ColorChannels/ColorChannels";
+import { PageColorChannels } from "../../StyledComponents/ColorChannels/ColorChannels";
 import type {
     ColorAreaContentProps,
     ColorFieldTriggerProps,

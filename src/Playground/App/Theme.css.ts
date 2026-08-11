@@ -49,8 +49,8 @@ const DEFAULT_THEME_VALUES = {
             contrast: "rgba(216, 228, 240, 1)",
         },
         surface: {
-            dark: "rgba(32, 28, 24, 0.75)",
-            light: "rgba(64, 56, 48, 0.75)",
+            dark: "rgb(32, 28, 24)",
+            light: "rgb(64, 56, 48)",
             contrast: "rgba(240, 228, 216, 1)",
         },
         tooltip: {

@@ -7,8 +7,8 @@ import { MultiSelect } from "../../../../Lib/Fundamentals/Input/MultiSelect/Mult
 import { Select } from "../../../../Lib/Fundamentals/Input/Select/Select";
 import type { SelectItem, SelectOption } from "../../../../Lib/Fundamentals/Input/Select/Select.types";
 import { SelectUtils } from "../../../../Lib/Fundamentals/Input/Select/Select.utils";
-import { PageLabelCaption } from "../../PageComponents/LabelCaption/LabelCaption";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
+import { PageLabelCaption } from "../../StyledComponents/LabelCaption/LabelCaption";
 import { PagePopoverSurface } from "../../StyledComponents/PopoverSurface/PopoverSurface";
 import { PageSelectContent, computePageSelectTextStyle } from "../../StyledComponents/SelectContent/SelectContent";
 import { PageSelectGroupContent } from "../../StyledComponents/SelectGroupContent/SelectGroupContent";

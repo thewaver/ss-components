@@ -1,8 +1,9 @@
 import { style } from "@vanilla-extract/css";
 
 import { themeVars } from "../../Theme.css";
+import { FIELD_HEIGHT } from "../TextFieldContent/TextFieldContent.css";
 
-const CELL_SIZE = 36;
+const CELL_SIZE = 46;
 
 export const isSelected = style({});
 export const isToday = style({});
@@ -54,11 +55,31 @@ export const calendarWeekday = style({
     opacity: 0.6,
 });
 
+export const calendarTitle = style({
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: FIELD_HEIGHT,
+    paddingInline: themeVars.spacing.full,
+    borderRadius: themeVars.borderRadius.half,
+    color: themeVars.color.surface.contrast,
+    fontSize: themeVars.fontSize.small,
+    fontWeight: "bold",
+    whiteSpace: "nowrap",
+    transition: `color ${themeVars.animation.duration}`,
+
+    selectors: {
+        [`&.${isHovered}`]: {
+            color: themeVars.color.primary.main,
+        },
+    },
+});
+
 export const calendarHeader = style({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: themeVars.spacing.full,
+    gap: themeVars.spacing.half,
     width: "100%",
     paddingBottom: themeVars.spacing.half,
     color: themeVars.color.surface.contrast,

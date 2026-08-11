@@ -38,7 +38,7 @@ export type TextFieldTextStyle = Pick<
 
 export type TextFieldCbs = {
     computeTextStyle?: (getFlags: () => InteractionFlags<TextFieldFlags>) => TextFieldTextStyle;
-    renderPlaceholder?: (getFlags: () => InteractionFlags<TextFieldFlags>) => JSX.Element;
+    renderPlaceholder?: (getFlags: () => InteractionFlags<TextFieldFlags>, hint: string | undefined) => JSX.Element;
     renderLeading?: (getFlags: () => InteractionFlags<TextFieldFlags>) => JSX.Element;
     renderTrailing?: (getFlags: () => InteractionFlags<TextFieldFlags>) => JSX.Element;
     onInput?: (value: string) => void | Promise<void>;
@@ -58,6 +58,7 @@ export type TextFieldState = {
     autoComplete?: JSX.HTMLAutocomplete;
     inputMode?: TextFieldMode;
     mask?: string;
+    placeholderHint?: string;
     min?: number;
     max?: number;
     step?: number;

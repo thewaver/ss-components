@@ -5,9 +5,9 @@ import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
 import { Radio } from "../../../../Lib/Fundamentals/Input/Radio/Radio";
 import { RadioGroup } from "../../../../Lib/Fundamentals/Input/RadioGroup/RadioGroup";
 import { Toggle } from "../../../../Lib/Fundamentals/Input/Toggle/Toggle";
-import { PageLabelCaption } from "../../PageComponents/LabelCaption/LabelCaption";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageCheckboxContent } from "../../StyledComponents/CheckboxContent/CheckboxContent";
+import { PageLabelCaption } from "../../StyledComponents/LabelCaption/LabelCaption";
 import { PageRadioContent } from "../../StyledComponents/RadioContent/RadioContent";
 import { PageToggleContent } from "../../StyledComponents/ToggleContent/ToggleContent";
 

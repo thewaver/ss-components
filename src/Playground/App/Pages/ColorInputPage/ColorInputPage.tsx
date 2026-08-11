@@ -2,10 +2,10 @@ import { createMemo, createSignal } from "solid-js";
 
 import { ColorInput } from "../../../../Lib/Fundamentals/Input/ColorInput/ColorInput";
 import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
-import { PageLabelCaption } from "../../PageComponents/LabelCaption/LabelCaption";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { pageColorPickerSlots } from "../../StyledComponents/ColorAreaContent/ColorAreaContent";
 import { PageColorInputContent } from "../../StyledComponents/ColorInputContent/ColorInputContent";
+import { PageLabelCaption } from "../../StyledComponents/LabelCaption/LabelCaption";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 
 const PALETTE = ["#ff0055", "#00d1b2", "#ffb400", "#7a5cff"];

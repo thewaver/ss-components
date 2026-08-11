@@ -4,10 +4,31 @@ const DAYS_PER_WEEK = 7;
 const MONTHS_PER_YEAR = 12;
 const GRID_WEEKS = 6;
 const MIDDAY_HOUR = 12;
-const ISO_LENGTH = 10;
-const ISO_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+const ANCHOR_YEAR = 2000;
+const ISO_PATTERN = /^(\d{4}|[+-]\d{6})-(\d{2})-(\d{2})$/;
+const ISO_PART_DIGITS = 2;
+const ISO_YEAR_DIGITS = 4;
+const ISO_EXPANDED_YEAR_DIGITS = 6;
+const ISO_MIN_PLAIN_YEAR = 0;
+const ISO_MAX_PLAIN_YEAR = 9999;
 
-const toLocalDate = (value: DateValue) => new Date(value.year, value.month - 1, value.day, MIDDAY_HOUR);
+const buildLocalDate = (year: number, month: number, day: number) => {
+    const date = new Date(ANCHOR_YEAR, 0, 1, MIDDAY_HOUR);
+
+    date.setFullYear(year, month, day);
+
+    return date;
+};
+
+const toLocalDate = (value: DateValue) => buildLocalDate(value.year, value.month - 1, value.day);
+
+const toIsoYear = (year: number) => {
+    if (year >= ISO_MIN_PLAIN_YEAR && year <= ISO_MAX_PLAIN_YEAR) {
+        return `${year}`.padStart(ISO_YEAR_DIGITS, "0");
+    }
+
+    return `${year < 0 ? "-" : "+"}${`${Math.abs(year)}`.padStart(ISO_EXPANDED_YEAR_DIGITS, "0")}`;
+};
 
 export namespace DateValueUtils {
     export const isSame = (a: DateValue | undefined, b: DateValue | undefined) =>
@@ -23,7 +44,7 @@ export namespace DateValueUtils {
 
     export const toDate = (value: DateValue) => toLocalDate(value);
 
-    export const getDaysInMonth = (year: number, month: number) => new Date(year, month, 0).getDate();
+    export const getDaysInMonth = (year: number, month: number) => buildLocalDate(year, month, 0).getDate();
 
     export const addDays = (value: DateValue, days: number): DateValue => {
         const date = toLocalDate(value);
@@ -78,11 +99,9 @@ export namespace DateValueUtils {
     };
 
     export const toIso = (value: DateValue) =>
-        `${`${value.year}`.padStart(4, "0")}-${`${value.month}`.padStart(2, "0")}-${`${value.day}`.padStart(2, "0")}`;
+        `${toIsoYear(value.year)}-${`${value.month}`.padStart(ISO_PART_DIGITS, "0")}-${`${value.day}`.padStart(ISO_PART_DIGITS, "0")}`;
 
     export const fromIso = (text: string): DateValue | undefined => {
-        if (text.length !== ISO_LENGTH) return;
-
         const parts = ISO_PATTERN.exec(text);
 
         if (!parts) return;
@@ -91,6 +110,7 @@ export namespace DateValueUtils {
         const month = Number(parts[2]);
         const day = Number(parts[3]);
 
+        if (parts[1].startsWith("-") && year === 0) return;
         if (month < 1 || month > MONTHS_PER_YEAR) return;
         if (day < 1 || day > getDaysInMonth(year, month)) return;
 

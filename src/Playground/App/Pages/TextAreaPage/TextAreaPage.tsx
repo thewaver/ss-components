@@ -2,8 +2,8 @@ import { createMemo, createSignal } from "solid-js";
 
 import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
 import { TextArea } from "../../../../Lib/Fundamentals/Input/TextArea/TextArea";
-import { PageLabelCaption } from "../../PageComponents/LabelCaption/LabelCaption";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
+import { PageLabelCaption } from "../../StyledComponents/LabelCaption/LabelCaption";
 import {
     PageTextFieldContent,
     computePageTextFieldTextStyle,

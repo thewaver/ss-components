@@ -36,10 +36,6 @@ export const searchContainer = style({
     padding: themeVars.spacing.full,
 });
 
-export const searchInput = style({
-    width: "100%",
-});
-
 export const tabCategory = style({
     padding: themeVars.spacing.full,
     fontSize: themeVars.fontSize.xSmall,

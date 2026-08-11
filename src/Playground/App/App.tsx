@@ -7,7 +7,6 @@ import { FunctionUtils, Size2d, StringUtils } from "@thewaver/ss-utils";
 import { Viewport } from "../../Lib/Exotics/Viewport/Viewport";
 import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
 import type { Tab } from "../../Lib/Fundamentals/Tabs/Tabs.types";
-import { PageTextField } from "./PageComponents/Field/Field";
 import { AccordionPage } from "./Pages/AccordionPage/AccordionPage";
 import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
 import { CalendarPage } from "./Pages/CalendarPage/CalendarPage";
@@ -38,16 +37,19 @@ import { TextInputPage } from "./Pages/TextInputPage/TextInputPage";
 import { ToastsPage } from "./Pages/ToastsPage/ToastsPage";
 import { TogglePage } from "./Pages/TogglePage/TogglePage";
 import { TypewriterPage } from "./Pages/TypewriterPage/TypewriterPage";
+import { PageTextField } from "./StyledComponents/Field/Field";
 
 import * as styles from "./App.css";
 
 type CategoryTabConfig = {
     name: string;
+    hidden?: boolean;
 };
 
 type ComponentTabConfig = {
     name: string;
     component: () => JSX.Element;
+    hidden?: boolean;
 };
 
 type TabConfig = CategoryTabConfig | ComponentTabConfig;
@@ -194,17 +196,15 @@ const TAB_CONFIGS: TabConfig[] = [
         name: "Toggle",
         component: () => <TogglePage />,
     },
-    ...(SHOW_COMPOSITES
-        ? [
-              {
-                  name: "Composites",
-              },
-              {
-                  name: "Surface",
-                  component: () => <SurfacePage />,
-              },
-          ]
-        : []),
+    {
+        name: "Composites",
+        hidden: !SHOW_COMPOSITES,
+    },
+    {
+        name: "Surface",
+        component: () => <SurfacePage />,
+        hidden: !SHOW_COMPOSITES,
+    },
 ];
 
 const TAB_CONFIGS_BY_ROUTE = Object.fromEntries(
@@ -219,12 +219,13 @@ export function AppContent(props: RouteSectionProps) {
         const selectedConfig = getSelectedConfig();
         const searchTerm = getSearchTerm();
 
-        if (!searchTerm) return TAB_CONFIGS;
+        if (!searchTerm) return TAB_CONFIGS.filter((item) => !item.hidden);
         return TAB_CONFIGS.filter(
             (item) =>
-                !isComponentConfig(item) ||
-                item === selectedConfig ||
-                item.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()),
+                !item.hidden &&
+                (!isComponentConfig(item) ||
+                    item === selectedConfig ||
+                    item.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase())),
         );
     });
 
