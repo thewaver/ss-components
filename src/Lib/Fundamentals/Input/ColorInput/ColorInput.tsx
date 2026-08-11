@@ -1,5 +1,5 @@
 import type { Signal } from "solid-js";
-import { createEffect, createMemo, createSignal, createUniqueId, onCleanup, untrack } from "solid-js";
+import { createEffect, createMemo, createSignal, createUniqueId, untrack } from "solid-js";
 
 import type { AnchorPlacement } from "../../../Abstracts/Anchor/Anchor.types";
 import type { ColorValueHsv } from "../../../Abstracts/ColorValue/ColorValue.types";
@@ -51,11 +51,6 @@ const ColorInputField = (props: ColorInputFieldProps) => {
                 if (getIsDisabled()) return;
 
                 props.onToggle();
-            }}
-            onKeyDown={(e) => {
-                if (e.key !== "Escape" || !props.getIsOpen()) return;
-
-                props.onDismiss();
             }}
             onMouseEnter={(e) => {
                 if (getIsDisabled()) return;
@@ -130,26 +125,6 @@ export const ColorInput = (props: ColorInputProps) => {
         void props.onInput?.(value);
     });
 
-    createEffect(() => {
-        if (!getIsOpen()) return;
-
-        const handlePointerDown = (e: PointerEvent) => {
-            const target = e.target as Node | null;
-
-            if (!target) return;
-            if (document.getElementById(popupId)?.contains(target)) return;
-            if (getFieldRef()?.contains(target)) return;
-
-            setIsOpen(false);
-        };
-
-        document.addEventListener("pointerdown", handlePointerDown);
-
-        onCleanup(() => {
-            document.removeEventListener("pointerdown", handlePointerDown);
-        });
-    });
-
     const renderSurface = () => (
         <>
             <ColorArea
@@ -195,7 +170,6 @@ export const ColorInput = (props: ColorInputProps) => {
                         getFlags={getFlags}
                         renderContent={props.renderContent}
                         onToggle={() => setIsOpen((prev) => !prev)}
-                        onDismiss={dismiss}
                         onMouseEnter={props.onMouseEnter}
                         onMouseLeave={props.onMouseLeave}
                     />
@@ -211,11 +185,7 @@ export const ColorInput = (props: ColorInputProps) => {
                 getPlacement={() => props.getPlacement?.() ?? DEFAULT_COLOR_INPUT_PLACEMENT}
                 getOffset={props.getOffset}
                 getTransitionDurationMs={props.getTransitionDurationMs}
-                onKeyDown={(e) => {
-                    if (e.key !== "Escape") return;
-
-                    dismiss();
-                }}
+                onDismiss={(reason) => (reason === "escape" ? dismiss() : setIsOpen(false))}
                 renderContent={(getVisibilityTarget, getTransitionDurationMs) =>
                     props.renderPopup(renderSurface, hsvSignal, getVisibilityTarget, getTransitionDurationMs)
                 }

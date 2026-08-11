@@ -65,7 +65,6 @@ const SelectField = (props: SelectFieldProps) => {
             return props.getActiveOptionId();
         },
         "onKeyDown": props.onKeyDown,
-        "onBlur": props.onBlur,
     };
 
     return (
@@ -264,15 +263,6 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
         const navigable = getNavigableIndexes();
         const isOpen = getIsOpen();
 
-        if (e.key === "Escape") {
-            if (!isOpen) return;
-
-            e.preventDefault();
-            close();
-
-            return;
-        }
-
         if (e.key === "Tab") {
             if (isOpen) close();
 
@@ -394,7 +384,6 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
                         renderContent={(getFieldFlags) => props.renderContent(props.getSelectedOptions, getFieldFlags)}
                         onToggle={() => (getIsOpen() && !getIsFilterable() ? close() : open())}
                         onKeyDown={handleKeyDown}
-                        onBlur={close}
                         onQueryInput={(query) => {
                             open();
                             setHighlightedValue(() => undefined);
@@ -414,6 +403,7 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
                         getHasAnchorMinWidth={() => true}
                         getIsOpen={getIsOpen}
                         getAnchorRef={getFieldRef}
+                        onDismiss={close}
                         onTransitionStatusChange={setHasPopoverSettled}
                         renderContent={(getVisibilityTarget, getTransitionDurationMs, getPlacement) =>
                             props.renderPopup(

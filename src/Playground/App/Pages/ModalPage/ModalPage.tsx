@@ -1,22 +1,32 @@
 import { createMemo, createSignal } from "solid-js";
 
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
+import { Select } from "../../../../Lib/Fundamentals/Input/Select/Select";
+import type { SelectOption } from "../../../../Lib/Fundamentals/Input/Select/Select.types";
 import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import { PageModalScrim } from "../../StyledComponents/ModalOverlay/ModalOverlay";
 import { PageModalHint, PageModalPanel } from "../../StyledComponents/ModalPanel/ModalPanel";
+import { PagePopoverSurface } from "../../StyledComponents/PopoverSurface/PopoverSurface";
+import { PageSelectContent } from "../../StyledComponents/SelectContent/SelectContent";
+import { PageSelectOptionContent } from "../../StyledComponents/SelectOptionContent/SelectOptionContent";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 
 import * as styles from "./ModalPage.css";
 
 const MODAL_TITLE_ID = "modal-page-title";
+const LAYERED_TITLE_ID = "modal-page-layered-title";
 const ALERT_TITLE_ID = "modal-page-alert-title";
 const ALERT_BODY_ID = "modal-page-alert-body";
+
+const COUNTRIES: SelectOption<string>[] = [{ value: "Denmark" }, { value: "Portugal" }, { value: "Sweden" }];
 
 export const ModalPage = () => {
     const modalVisibility = createSignal(false);
     const destructiveVisibility = createSignal(false);
+    const layeredVisibility = createSignal(false);
+    const layeredSignal = createSignal<string | undefined>();
 
     const [getCancelRef, setCancelRef] = createSignal<HTMLElement>();
     const [getOutcome, setOutcome] = createSignal("nothing decided yet");
@@ -151,6 +161,72 @@ export const ModalPage = () => {
                                             }}
                                         />
                                     </div>
+                                </PageModalPanel>
+                            )}
+                        />
+                    </>
+                ),
+            },
+            {
+                name: "A popup inside it",
+                readout: () =>
+                    `open: ${layeredVisibility[0]()} | country: ${layeredSignal[0]() ?? "undefined"} — Escape closes the innermost layer only`,
+                component: () => (
+                    <>
+                        <Button
+                            renderContent={(getFlags) => (
+                                <PageButtonContent getFlags={getFlags}>Open layers</PageButtonContent>
+                            )}
+                            onClick={() => {
+                                layeredVisibility[1](true);
+                            }}
+                        />
+
+                        <Modal
+                            visibilitySignal={layeredVisibility}
+                            getAriaLabelledBy={() => LAYERED_TITLE_ID}
+                            renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
+                                <PageModalScrim
+                                    getVisibilityTarget={getVisibilityTarget}
+                                    getTransitionDurationMs={getTransitionDurationMs}
+                                />
+                            )}
+                            renderContent={(getVisibilityTarget, getTransitionDurationMs) => (
+                                <PageModalPanel
+                                    getVisibilityTarget={getVisibilityTarget}
+                                    getTransitionDurationMs={getTransitionDurationMs}
+                                >
+                                    <div id={LAYERED_TITLE_ID}>Where are you flying from?</div>
+
+                                    <Select
+                                        valueSignal={layeredSignal}
+                                        getOptions={() => COUNTRIES}
+                                        getAriaLabel={() => "Country"}
+                                        renderContent={(getSelectedOption, getFlags) => (
+                                            <PageSelectContent getFlags={getFlags}>
+                                                {getSelectedOption()?.value ?? "Pick one"}
+                                            </PageSelectContent>
+                                        )}
+                                        renderOption={(getOption, getFlags) => (
+                                            <PageSelectOptionContent getFlags={getFlags}>
+                                                {getOption().value}
+                                            </PageSelectOptionContent>
+                                        )}
+                                        renderPopup={(
+                                            renderOptions,
+                                            getPopupVisibilityTarget,
+                                            getPopupTransitionDurationMs,
+                                            getPlacement,
+                                        ) => (
+                                            <PagePopoverSurface
+                                                getVisibilityTarget={getPopupVisibilityTarget}
+                                                getTransitionDurationMs={getPopupTransitionDurationMs}
+                                                getPlacement={getPlacement}
+                                            >
+                                                {renderOptions()}
+                                            </PagePopoverSurface>
+                                        )}
+                                    />
                                 </PageModalPanel>
                             )}
                         />

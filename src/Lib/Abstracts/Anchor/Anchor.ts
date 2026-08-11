@@ -61,22 +61,66 @@ export namespace Anchor {
             };
         });
 
+        /**
+         * The band a placement is allowed to occupy — its own side of the anchor for an `out` placement, the
+         * whole viewport for one that sits over it. Position and size both come from this, which is what stops
+         * a layer with nowhere to go from being pushed back over the thing it belongs to.
+         */
+        const getBands = createMemo(() => {
+            const anchorRect = getAnchorRect();
+            const placement = getPlacement();
+            const screenSize = viewportContext.getSize();
+            const reservedScreenSize = opts.getReservedScreenSize?.();
+            const offset = opts.getOffset?.();
+
+            const kinds = {
+                x: anchorRect ? AnchorUtils.getHBandKind(placement.x) : ("over" as const),
+                y: anchorRect ? AnchorUtils.getVBandKind(placement.y) : ("over" as const),
+            };
+
+            return {
+                kinds,
+                x: AnchorUtils.getBand(
+                    kinds.x,
+                    anchorRect?.x ?? 0,
+                    anchorRect?.width ?? 0,
+                    offset?.x ?? 0,
+                    screenSize.width,
+                    reservedScreenSize?.width ?? 0,
+                ),
+                y: AnchorUtils.getBand(
+                    kinds.y,
+                    anchorRect?.y ?? 0,
+                    anchorRect?.height ?? 0,
+                    offset?.y ?? 0,
+                    screenSize.height,
+                    reservedScreenSize?.height ?? 0,
+                ),
+            };
+        });
+
         const getPosition = createMemo(() => {
             const anchorRect = getAnchorRect();
             const contentSize = getContentSize();
             const placement = getPlacement();
+            const bands = getBands();
 
             if (!anchorRect || !contentSize) return;
 
+            const x =
+                AnchorUtils.getHPlacementShift(placement.x, anchorRect, contentSize) +
+                AnchorUtils.getHPlacementOffset(placement.x, opts.getOffset?.().x ?? 0);
+            const y =
+                AnchorUtils.getVPlacementShift(placement.y, anchorRect, contentSize) +
+                AnchorUtils.getVPlacementOffset(placement.y, opts.getOffset?.().y ?? 0);
+
             return {
-                x:
-                    AnchorUtils.getHPlacementShift(placement.x, anchorRect, contentSize) +
-                    AnchorUtils.getHPlacementOffset(placement.x, opts.getOffset?.().x ?? 0),
-                y:
-                    AnchorUtils.getVPlacementShift(placement.y, anchorRect, contentSize) +
-                    AnchorUtils.getVPlacementOffset(placement.y, opts.getOffset?.().y ?? 0),
+                x: AnchorUtils.clampToBand(x, contentSize.width, bands.x, bands.kinds.x),
+                y: AnchorUtils.clampToBand(y, contentSize.height, bands.y, bands.kinds.y),
             };
         });
+
+        const getZIndex = createMemo(() => (getIsVisible() ? AnchorUtils.getStackingBase(getAnchorRef()) + 1 : 1));
 
         ElementObserver.createViewportRectObserver(getAnchorRef, getIsVisible, { setElementRect: setAnchorRect });
 
@@ -99,6 +143,6 @@ export namespace Anchor {
             contentResizeObserver.observe(contentRef);
         });
 
-        return { getAnchorRect, getPlacement, getPosition, setContentRef };
+        return { getAnchorRect, getPlacement, getPosition, getZIndex, setContentRef };
     };
 }

@@ -121,13 +121,13 @@ for the same reason. Two holes, one rule: if the prop mentions a type parameter 
 
 ### Prop prefixes
 
-| Kind                                          | Prefix                        | Examples                                                                                                                                                                                                          |
-| --------------------------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Reactive data (via `AccessorProps`)           | `get*`                        | `getIsVisible`, `getJoinRadii`, `getHrefs`, `getVisibleCorners`                                                                                                                                                   |
-| Factories / predicates / transforms with args | `compute*`                    | `computePoints`, `computeFillDefs`, `computeStrokeDefs`, `computeIsDisabled`, `computeZIndex`, `computeClassNames`, `computeRootAnimation`, `computeScanlineAnimation`, `computeSVGDefs`, `computeLinearGradient` |
-| Events / lifecycle                            | `on*`                         | `onShow`, `onHide`, `onClick`; **`onMount` for controller handoff** (AudioSwitcher / Typewriter / ScanlineAnimation)                                                                                              |
-| JSX producers                                 | `render*`                     | component `renderContent` / `renderTab`; nested defs use `renderDefsElement`                                                                                                                                      |
-| Two-way state the component also writes       | `*Signal` (plain, unprefixed) | `visibilitySignal`; future `checkedSignal`, `valueSignal`                                                                                                                                                         |
+| Kind                                          | Prefix                        | Examples                                                                                                                                                                                         |
+| --------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Reactive data (via `AccessorProps`)           | `get*`                        | `getIsVisible`, `getJoinRadii`, `getHrefs`, `getVisibleCorners`                                                                                                                                  |
+| Factories / predicates / transforms with args | `compute*`                    | `computePoints`, `computeFillDefs`, `computeStrokeDefs`, `computeIsDisabled`, `computeClassNames`, `computeRootAnimation`, `computeScanlineAnimation`, `computeSVGDefs`, `computeLinearGradient` |
+| Events / lifecycle                            | `on*`                         | `onShow`, `onHide`, `onClick`; **`onMount` for controller handoff** (AudioSwitcher / Typewriter / ScanlineAnimation)                                                                             |
+| JSX producers                                 | `render*`                     | component `renderContent` / `renderTab`; nested defs use `renderDefsElement`                                                                                                                     |
+| Two-way state the component also writes       | `*Signal` (plain, unprefixed) | `visibilitySignal`; future `checkedSignal`, `valueSignal`                                                                                                                                        |
 
 One `compute*` prefix for all factories — reactivity is carried by **argument shape** (`size` vs `getSize`), not by a second prefix.
 
@@ -169,7 +169,6 @@ Mental shortcut: **if calling `fn(x())` would lose a subscription the callee nee
 | `getSize`                                         | `computeFillDefs` / `computeStrokeDefs`             | accessor (optional subscribe) |
 | `getInteractionFlags`                             | sample `computeSVGDefs`                             | accessor                      |
 | `index`                                           | `Tabs.renderTab`, `computeIsDisabled`               | plain                         |
-| `placement`                                       | `computeZIndex`                                     | plain                         |
 | `size`                                            | `computePoints`                                     | plain                         |
 | `timeline` / `index`                              | Scanline `compute*Animation`                        | plain                         |
 
@@ -1410,7 +1409,47 @@ consumer stylesheets written against native disabled do not fail loudly.
 the whole list with every other item at `-1`, `aria-selected` on the right item, the category item
 carrying `aria-disabled="true"` and **no** `disabled` attribute, and a floater positioned at a real
 offset — which is also the proof that the `offsetParent` hop resolves and that `ref` forwards through
-the router's `A`. Interaction is still unverified, per `review.md`.
+the router's `A`.
+
+**The list names itself and states its axis.** Added **2026-08-11**, when `TabsPage` put five tab lists
+on one page and none of them could be told apart. `getAriaLabel` lands on the `role="tablist"` element,
+which is `RadioGroup`'s arrangement for the same problem — a container role the library owns, so only the
+library can name it. `aria-orientation="vertical"` is set whenever `dir` is `column` and left off
+otherwise, because a tab list is horizontal by default and a stacked one that does not say so tells a
+screen reader user to press the wrong arrows. This is not a general rule about `dir`: it is stated here
+because `tablist` has a published default that a column contradicts.
+
+### `TabPanel`: the pairing is written on the record, and read from both ends
+
+Settled **2026-08-11**. A tab has to name the panel it opens and the panel has to name the tab back, and
+the two elements have different owners — the library owns the tab, the consumer owns the panel — so
+neither can complete the link alone.
+
+**Both ids are fields on the record, and neither is generated.** `Tab<T>` gains `id` and `panelId`;
+`Tabs` writes them as the tab's own `id` and its `aria-controls`, and writes nothing when they are
+absent. Generating the tab's id privately is what Radix and React Aria do, and both can only do it
+because their panels are enclosed by their root. Here a panel may be a page the router mounts somewhere
+else entirely — the Playground's left menu is exactly that — so a generated id would have no route to the
+element that needs to quote it.
+
+**`TabPanel` is the other end, and it is a wrapper in the `Label` sense**: `getId` and `getTabId`, turned
+into the panel's own id, `role="tabpanel"` and an `aria-labelledby`. It takes the two ids rather than the
+record, because two strings are all it reads and a record would make every consumer hold one to call it.
+It holds no state, chooses nothing, and does not decide whether it is mounted — the consumer's `Show` or
+the router already does that. `tabindex="0"` is unconditional, matching Radix, because a panel of plain
+prose offers a reader arriving from the tab list nothing else to land on, and testing for focusable
+descendants would mean measuring the consumer's content on every render.
+
+**It carries no class**, so a consumer's flex or grid child would become this element rather than their
+own box. The arrangement to copy is the Playground's: `PageTabPanel` — the painter that was already
+there — holds the `TabPanel` and paints inside it, so the library element is absorbed by the styled
+component instead of appearing at every call site, and layout stays outside both.
+
+**Driven by `tabs.spec.ts` against `TabsPage`, not against the Playground's own left menu.** The menu is
+app furniture — adding a page or renaming a category used to break the keyboard spec and read as a `Tabs`
+regression, which happened once. The page carries a row, a column, links, a consumer link component and
+an all-disabled list, so the entries are named by the spec that drives them and nothing else depends on
+their order.
 
 ### `Anchor`: a placement may fall back within its family and never outside it
 
@@ -3117,6 +3156,62 @@ reason the presets omit `getMask` — they own the format, so two sources for th
 the omission prevents. A hand-built `TextField` or `TextInput` sets neither and its painter is handed
 `undefined`.
 
+### Dismissal is one stack, and `Popover` is the layer
+
+Settled **2026-08-11**, replacing five separate stories: `Select` closed on its field's blur, `Menu` on
+its popup's blur, `DatePicker` and `ColorInput` each ran their own document-wide press listener, and
+`Modal` its own document `keydown`.
+
+**`DismissStack` is a module-level array of open layers with one set of document listeners**, in the
+`LiveAnnouncer` position — it belongs to no component and there is one of it. It is _not_ owned by
+`Viewport`: a consumer with no `Viewport` still needs dismissal, the events it listens for are the
+document's rather than any element's, and nesting a `Viewport` inside a `Viewport` would then need
+cross-authority ordering that a single array does not have.
+
+**A press or a focus move is positional; `Escape` is a stack operation.** Every layer the target sits
+outside of hears about a press or a focus move, which is what closes a whole menu tree at once and what
+`getIsWithinOwnedLayer` keeps from closing a parent when the press was inside a child. `Escape` goes to
+the innermost layer and stops. That last part is the bug this fixed: every control used to handle
+`Escape` locally and let the key travel on, so a popup dismissed inside a `Modal` took the `Modal` with
+it. `modal.spec.ts` drives it, over a `Select` inside the modal on `ModalPage`.
+
+**The reason reaches the consumer, because the right response differs by reason.** `DatePicker` and
+`ColorInput` return focus to their field on `Escape` and do not on a press, since moving focus to a field
+someone has just clicked away from is the wrong answer. A submenu closes only its own level whatever the
+reason; `Tab` still closes the whole menu, from the menu's own key handler, before focus moves.
+
+**`Popover` registers the layer, so its four consumers get dismissal by existing.** Roots are the popup
+element and the anchor. The controls kept `onDismiss` shaped as their own close paths and lost their
+listeners, their `onBlur` plumbing and `Menu`'s `computeIsInsideMenu` walk with them.
+
+**Window blur no longer closes anything.** `focusout` with no `relatedTarget` is ignored, so switching
+apps leaves a popup open where `Select`'s old field blur would have closed it. That matches Radix and it
+is the reason a focus move alone is not enough — the press listener covers a click on dead space.
+
+### A portalled layer's z-index is one above its anchor's
+
+Settled **2026-08-11**, as the tail of the dismissal work: a `Select` opened inside a `Modal` could be
+dismissed by key but not clicked, because `Modal`'s overlay is `100` and `Popover` was a fixed `1`.
+
+**The number comes from the anchor, not from a register of layers.** `AnchorUtils.getStackingBase` walks
+the anchor's ancestors and takes the highest numeric `z-index` on the chain; `Anchor.createPortalPosition`
+publishes that plus one as `getZIndex`, recomputed each time the layer becomes visible. A popup on an
+ordinary page still lands on `1`, which is what it was, and one inside a dialog lands on `101`. A submenu
+anchored to an item inside a popup at `101` lands on `102`, so a chain of layers orders itself without
+anyone counting.
+
+**Why not the stack.** Open order and paint order are not the same question — a `Modal` opened _from_ a
+menu should cover the menu that opened it, and the anchor chain says so while a counter does not. It also
+keeps `DismissStack` a listener rather than something that paints, and leaves a consumer's own stacking
+free of a number the library invented.
+
+**`Tooltip` takes the same number and no longer takes a prop.** `computeZIndex` went with this change: it
+existed so an "in" placement could paint _under_ the button that opened it, and a portalled layer cannot
+do that at all — the `Viewport`'s portal is `z-index: 10` above page content, so everything in it clears
+every anchor. Getting that effect would mean raising the anchor above the portal while its layer is open,
+which is the library writing a `z-index` onto a consumer's element, so the prop was removed rather than
+left as a number nobody could use.
+
 ### A popup opened from inside a popup is not outside it
 
 Settled **2026-08-11**, from a bug the calendar caption exposed: opening the month `Select` inside the
@@ -3422,3 +3517,64 @@ driven in `e2e/`, which is where its behaviour is actually observable.
 **The form wiring is complete.** `Select`, `ColorInput`, `FileInput` and `Range` now read the description
 context alongside `TextField` and `BinarySwitch`, so every control that can sit in a `FormField` points at
 its message without the consumer wiring anything.
+
+### A `Viewport` is a region, and it is terminal for everything inside it
+
+Settled **2026-08-11**, from `ViewportPage`. A viewport fits the size it is designed for into **the space
+it is given**: the root's space is the window, and a nested one's is the box the page puts it in. The app's
+own viewport is not a special kind — it is the one whose region happens to be everything.
+
+**The host is what clips.** Each viewport renders a host box — `overflow: hidden`, filling its container —
+with the scaled design box inside it. Since every layer opened inside a viewport is portalled into _that_
+viewport's own portal, one `overflow: hidden` is the whole of "nothing inside a viewport paints outside
+it": a dropdown from a control in a nested viewport is clipped by that viewport, not by the window. A
+nested one measures its host with a `ResizeObserver`, so the consumer sizes it with ordinary CSS and
+nothing is passed in.
+
+**Scale multiplies through and the rect is carried into window pixels.** A child was handed the innermost
+scale while the screen showed every enclosing scale multiplied, so `getAdjustedBoundingClientRect` — and
+through it every anchored layer — was wrong by the outer factor. `getScale` is now the parent's times its
+own, and `getScaledRect` composes the host's client rect with the local fit through
+`ViewportUtils.composeScaledRect`, which is unit-tested because it is plain arithmetic on plain rects.
+That one is read rather than memoised: the host moves whenever anything above it scrolls, and it is what
+every anchored layer measures against, once per frame.
+
+**The transform stays local.** CSS already composes an ancestor's transform, so each root writes its own
+`translate` and `scale` in its host's coordinates and nothing accumulates twice.
+
+**An earlier attempt had a nested viewport fill its parent instead**, mounted into the parent's content box
+by a portal. It was wrong for the case that matters: a viewport you cannot place is a viewport that cannot
+be the boundary of anything smaller than the window, and the boundary is the whole point.
+
+### The viewport is terminal, and an anchored layer tracks its anchor rather than polling for it
+
+Settled **2026-08-11**, from three defects seen on `ViewportPage`.
+
+**When perfect placement is impossible, the layer is clipped — never shrunk and never moved over the
+anchor.** Three things could give when a layer does not fit: its size, its distance from the anchor, or
+the part of it you can see. The library gives up the last one. `AnchorUtils.getBand` gives an `out`
+placement only the space between the anchor and the edge it faces, and `clampToBand` pins the edge that
+touches the anchor, letting the far edge run past the viewport where the viewport's own `overflow: hidden`
+cuts it. An `in` or centred placement is deliberately over the anchor and gets the whole viewport.
+
+Pinning the other end — `Math.max(band.start, ...)` in both directions, which is the obvious clamp — is
+what makes a list with nowhere to go slide down over the field it belongs to. And capping the layer's
+height to the band, which was tried first, is the same mistake in the other axis: a list that quietly
+becomes a third of itself has answered a question nobody asked. A layer keeps the size its painter chose.
+
+**Scrolling is listened for as well as polled.** `ElementObserver.createViewportRectObserver` measured
+once per animation frame, which leaves a portalled layer a frame behind an anchor being scrolled. It now
+also repositions from a `scroll` listener in the capture phase — the event does not bubble, so capture is
+what hears a scrollable ancestor — and from `resize`. The frame poll stays, because an anchor can also
+move under a CSS animation, which no event reports.
+
+**A portalled layer is placed by `transform`, not by `top` / `left`.** Writing offsets forced layout on
+every frame of a scroll; a translate is composited. Both roots therefore pin to `top: 0; left: 0` — an
+absolutely positioned box with `auto` offsets would otherwise fall at its static position, which for the
+second layer in a portal is not the first layer's.
+
+**A nested viewport is opaque.** `viewportNestedRoot` carries a `z-index` above the parent's own portal
+layer, so nothing behind a nested viewport paints through it and nothing behind it can be pointed at.
+Together with the root's `overflow: hidden` and each viewport portalling into itself, that is the whole
+of "a viewport is a black box": nothing inside it escapes its bounds, and nothing outside it shows
+through. `viewport.spec.ts` drives all three.

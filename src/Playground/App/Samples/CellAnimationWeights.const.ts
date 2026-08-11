@@ -31,7 +31,7 @@ export namespace CellAnimationWeights {
         "rollColumnConvergent",
         "rollRow",
         "rollRowConvergent",
-        "sequenceConverge",
+        "sequenceConvergent",
         "sequenceEvenOdd",
         "sequenceInterleaved",
         "sequenceLinear",
@@ -45,7 +45,7 @@ export namespace CellAnimationWeights {
     export type WeightType = (typeof WEIGHT_TYPES)[number];
 
     export const ORIGIN_FREE_WEIGHT_TYPES = [
-        "sequenceConverge",
+        "sequenceConvergent",
         "sequenceEvenOdd",
         "sequenceInterleaved",
         "sequenceLinear",
@@ -387,7 +387,7 @@ export namespace CellAnimationWeights {
 
         sequenceLinear: (pos, count) => fromOrderedIndex(getFlatIndex(pos, count), count.x * count.y),
 
-        sequenceConverge: (pos, count) => {
+        sequenceConvergent: (pos, count) => {
             const total = count.x * count.y;
             const idx = getFlatIndex(pos, count);
             const progress = total <= 1 ? 0.5 : idx / (total - 1);

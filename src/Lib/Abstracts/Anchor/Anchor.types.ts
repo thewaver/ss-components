@@ -6,3 +6,10 @@ export type AnchorPlacement = {
     x: AnchorHPlacement;
     y: AnchorVPlacement;
 };
+
+export type AnchorBandKind = "before" | "after" | "over";
+
+export type AnchorBand = {
+    start: number;
+    end: number;
+};

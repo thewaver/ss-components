@@ -180,3 +180,51 @@ describe("getSafeVPlacement", () => {
         expect(safeV("bottom-out", { ...ANCHOR, y: 500 }, { width: 0, height: 200 })).toBe("top-out");
     });
 });
+
+describe("getBand", () => {
+    it("gives an out placement only its own side of the anchor", () => {
+        expect(AnchorUtils.getBand("before", 400, 40, 10, 1000, 0), "above the anchor, gap included").toEqual({
+            start: 0,
+            end: 390,
+        });
+        expect(AnchorUtils.getBand("after", 400, 40, 10, 1000, 0), "and below it").toEqual({ start: 450, end: 1000 });
+    });
+
+    it("gives a placement that sits over the anchor the whole viewport", () => {
+        expect(AnchorUtils.getBand("over", 400, 40, 10, 1000, 0)).toEqual({ start: 0, end: 1000 });
+    });
+
+    it("keeps the reserved band clear at both ends", () => {
+        expect(AnchorUtils.getBand("before", 400, 40, 0, 1000, 40)).toEqual({ start: 40, end: 400 });
+        expect(AnchorUtils.getBand("after", 400, 40, 0, 1000, 40)).toEqual({ start: 440, end: 960 });
+    });
+
+    it("collapses rather than inverting when the anchor is past the edge", () => {
+        expect(AnchorUtils.getBand("before", -50, 40, 0, 1000, 0)).toEqual({ start: 0, end: 0 });
+        expect(AnchorUtils.getBand("after", 1200, 40, 0, 1000, 0)).toEqual({ start: 1000, end: 1000 });
+    });
+});
+
+describe("clampToBand", () => {
+    it("leaves a position that already fits", () => {
+        expect(AnchorUtils.clampToBand(100, 30, { start: 0, end: 1000 }, "over")).toBe(100);
+        expect(AnchorUtils.clampToBand(100, 30, { start: 0, end: 1000 }, "after")).toBe(100);
+    });
+
+    it("pulls an overhang back into the band", () => {
+        expect(AnchorUtils.clampToBand(-20, 30, { start: 0, end: 1000 }, "over")).toBe(0);
+        expect(AnchorUtils.clampToBand(990, 30, { start: 0, end: 1000 }, "over")).toBe(970);
+        expect(AnchorUtils.clampToBand(-20, 30, { start: 0, end: 1000 }, "after")).toBe(0);
+    });
+
+    it("keeps the anchor's edge when the content is too big for the band, and runs off the far side", () => {
+        expect(
+            AnchorUtils.clampToBand(0, 300, { start: 0, end: 200 }, "before"),
+            "above the anchor: the bottom stays on it and the top goes past the viewport, where it is cut",
+        ).toBe(-100);
+        expect(
+            AnchorUtils.clampToBand(800, 300, { start: 800, end: 1000 }, "after"),
+            "below it: the top stays on it and the bottom is the end that overruns",
+        ).toBe(800);
+    });
+});

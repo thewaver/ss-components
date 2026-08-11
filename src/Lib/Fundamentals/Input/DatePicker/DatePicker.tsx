@@ -1,10 +1,9 @@
 import type { Signal } from "solid-js";
-import { createEffect, createSignal, createUniqueId, onCleanup, untrack } from "solid-js";
+import { createSignal, createUniqueId, untrack } from "solid-js";
 
 import type { AnchorPlacement } from "../../../Abstracts/Anchor/Anchor.types";
 import type { DateValue } from "../../../Abstracts/DateValue/DateValue.types";
 import { DateValueUtils } from "../../../Abstracts/DateValue/DateValue.utils";
-import { DismissUtils } from "../../../Abstracts/Dismiss/Dismiss.utils";
 import { Popover } from "../../Popover/Popover";
 import { Calendar } from "../Calendar/Calendar";
 import { DateInput } from "../DateInput/DateInput";
@@ -37,25 +36,6 @@ export const DatePicker = (props: DatePickerProps) => {
 
         setIsOpen(true);
     };
-
-    createEffect(() => {
-        if (!getIsOpen()) return;
-
-        const handlePointerDown = (e: PointerEvent) => {
-            const target = e.target as Node | null;
-
-            if (!target) return;
-            if (DismissUtils.getIsWithinOwnedLayer(target, [document.getElementById(popupId), getRootRef()])) return;
-
-            setIsOpen(false);
-        };
-
-        document.addEventListener("pointerdown", handlePointerDown);
-
-        onCleanup(() => {
-            document.removeEventListener("pointerdown", handlePointerDown);
-        });
-    });
 
     const renderCalendar = () => (
         <Calendar
@@ -91,11 +71,7 @@ export const DatePicker = (props: DatePickerProps) => {
                 getOffset={props.getOffset}
                 getTransitionDurationMs={props.getPopupTransitionDurationMs}
                 getHasAutoFocus={() => true}
-                onKeyDown={(e) => {
-                    if (e.key !== "Escape") return;
-
-                    dismiss();
-                }}
+                onDismiss={(reason) => (reason === "escape" ? dismiss() : setIsOpen(false))}
                 renderContent={(getVisibilityTarget, getTransitionDurationMs) =>
                     props.renderPopup(renderCalendar, monthSignal, getVisibilityTarget, getTransitionDurationMs)
                 }

@@ -226,3 +226,58 @@ test.describe("Modal in its alert mode", () => {
         );
     });
 });
+
+/**
+ * A layer opened from inside another one is the case a single dismissal listener per control cannot get
+ * right: every control used to handle `Escape` on its own and let the key travel on, so the modal
+ * listening at the document heard the same press and closed underneath the popup that had just consumed
+ * it.
+ */
+test.describe("A popup inside a modal", () => {
+    const LAYERED = variant("A popup inside it");
+    const LISTBOX = '[role="listbox"]';
+
+    const openBoth = async (page: Page) => {
+        await page.locator(`${LAYERED} button`, { hasText: "Open layers" }).click();
+        await expect(page.locator(DIALOG)).toBeVisible();
+
+        await page.locator(`${DIALOG} [role="combobox"]`).click();
+        await expect(page.locator(LISTBOX)).toBeVisible();
+    };
+
+    test.beforeEach(async ({ page }) => {
+        await page.goto("/modal");
+        await expect(page.locator(`${LAYERED} button`, { hasText: "Open layers" })).toBeVisible();
+    });
+
+    test("Escape closes the innermost layer and leaves the one around it", async ({ page }) => {
+        await openBoth(page);
+
+        await page.keyboard.press("Escape");
+        await expect(page.locator(LISTBOX), "the first press closes the list").toHaveCount(0);
+        await expect(page.locator(DIALOG), "and the modal around it stays open").toHaveCount(1);
+
+        await page.keyboard.press("Escape");
+        await expect(page.locator(DIALOG), "the second press closes the modal").toHaveCount(0);
+    });
+
+    test("pressing inside the modal closes only the list", async ({ page }) => {
+        await openBoth(page);
+
+        await page.locator(`#${"modal-page-layered-title"}`).click();
+        await expect(page.locator(LISTBOX), "a press outside the list dismisses it").toHaveCount(0);
+        await expect(page.locator(DIALOG), "while a press inside the modal is not outside the modal").toHaveCount(1);
+    });
+
+    test("the list paints above the modal it was opened from, so it can be used", async ({ page }) => {
+        await openBoth(page);
+
+        await page.locator(`${LISTBOX} [role="option"]`, { hasText: "Portugal" }).click();
+
+        await expect(page.locator(LISTBOX)).toHaveCount(0);
+        await expect(page.locator(DIALOG), "picking from a list inside a modal does not dismiss the modal").toHaveCount(
+            1,
+        );
+        expect(await readout(page, "A popup inside it")).toContain("country: Portugal");
+    });
+});

@@ -3,13 +3,19 @@ import { Dynamic } from "solid-js/web";
 
 import { NavigationUtils } from "../../Abstracts/Navigation/Navigation.utils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
-import type { TabsDir, TabsItemProps, TabsProps } from "./Tabs.types";
+import type { TabPanelProps, TabsDir, TabsItemProps, TabsProps } from "./Tabs.types";
 
 import * as styles from "./Tabs.css";
 
 const DEFAULT_TABS_TRANSITION_DURATION_MS = 200;
 const DEFAULT_TABS_GAP = 0;
 const DEFAULT_TABS_DIR: TabsDir = "row";
+
+export const TabPanel = (props: TabPanelProps) => (
+    <div id={props.getId()} role="tabpanel" aria-labelledby={props.getTabId()} tabindex={0}>
+        {props.children}
+    </div>
+);
 
 const TabsItem = <T,>(props: TabsItemProps<T>) => {
     const getIsDisabled = () => props.getFlags().isDisabled ?? false;
@@ -26,6 +32,12 @@ const TabsItem = <T,>(props: TabsItemProps<T>) => {
     const commonProps: Omit<JSX.HTMLAttributes<HTMLElement>, "ref"> = {
         "class": styles.tabsItem,
         "role": "tab",
+        get "id"() {
+            return props.getTab().id;
+        },
+        get "aria-controls"() {
+            return props.getTab().panelId;
+        },
         get "aria-disabled"() {
             return getIsDisabled() || undefined;
         },
@@ -170,6 +182,8 @@ export const Tabs = <T,>(props: TabsProps<T>) => {
             class={styles.tabsRoot}
             style={{ "flex-direction": getDir(), "gap": `${getTabGap()}px` }}
             role="tablist"
+            aria-label={props.getAriaLabel?.()}
+            aria-orientation={getDir() === "column" ? "vertical" : undefined}
             onKeyDown={handleKeyDown}
         >
             {props.renderGutter && <div class={styles.tabsGutter}>{props.renderGutter()}</div>}

@@ -3,6 +3,7 @@ import type { JSX } from "solid-js";
 import { Point2d, Size2d } from "@thewaver/ss-utils";
 
 import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
+import type { DismissReason } from "../../Abstracts/Dismiss/DismissStack.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
 
 export type PopoverRole = "listbox" | "menu" | "dialog";
@@ -21,6 +22,7 @@ export type PopoverProps = AccessorProps<{
     anchorRef: HTMLElement | undefined;
     onKeyDown?: (e: KeyboardEvent) => void;
     onBlur?: (e: FocusEvent) => void;
+    onDismiss?: (reason: DismissReason) => void;
     onTransitionStatusChange?: (hasTransitionFinished: boolean) => void;
     renderContent: (
         getVisibilityTarget: () => 0 | 1,

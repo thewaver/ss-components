@@ -65,7 +65,6 @@ export type MenuRenderPopup = (
 
 export type MenuLevelProps<T> = AccessorProps<{
     id: string;
-    rootId: string;
     labelledBy: string;
     isOpen: boolean;
     isSubmenu: boolean;

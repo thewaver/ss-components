@@ -50,7 +50,6 @@ export type SelectFieldProps = AccessorProps<
 > & {
     onToggle: () => void;
     onKeyDown: (e: KeyboardEvent) => void;
-    onBlur: () => void;
     onQueryInput: (query: string) => void;
 };
 

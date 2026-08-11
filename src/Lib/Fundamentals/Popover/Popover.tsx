@@ -3,6 +3,7 @@ import { Portal } from "solid-js/web";
 
 import { Anchor } from "../../Abstracts/Anchor/Anchor";
 import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
+import { DismissStack } from "../../Abstracts/Dismiss/DismissStack";
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { FocusUtils } from "../../Abstracts/Focus/Focus.utils";
 import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
@@ -12,7 +13,6 @@ import * as styles from "./Popover.css";
 
 const DEFAULT_POPOVER_PLACEMENT: AnchorPlacement = { x: "left-in", y: "bottom-out" };
 const DEFAULT_POPOVER_TRANSITION_DURATION_MS = 200;
-const POPOVER_Z_INDEX = 1;
 
 export const Popover = (props: PopoverProps) => {
     const viewportContext = useViewportContext();
@@ -27,7 +27,7 @@ export const Popover = (props: PopoverProps) => {
         getTransitionDurationMs,
     });
 
-    const { getAnchorRect, getPlacement, getPosition, setContentRef } = Anchor.createPortalPosition(
+    const { getAnchorRect, getPlacement, getPosition, getZIndex, setContentRef } = Anchor.createPortalPosition(
         props.getAnchorRef,
         getIsVisible,
         {
@@ -53,6 +53,11 @@ export const Popover = (props: PopoverProps) => {
 
     FocusUtils.autoFocus(getRootRef, getHasFocus, { getInitialRef: getRootRef });
 
+    DismissStack.createLayer(props.getIsOpen, {
+        getRoots: () => [getRootRef(), props.getAnchorRef()],
+        onDismiss: (reason) => props.onDismiss?.(reason),
+    });
+
     createEffect(() => {
         props.onTransitionStatusChange?.(getHasTransitionFinished());
     });
@@ -69,11 +74,10 @@ export const Popover = (props: PopoverProps) => {
                     class={styles.popoverRoot}
                     style={{
                         "visibility": getPosition() ? "visible" : "hidden",
-                        "top": `${getPosition()?.y ?? 0}px`,
-                        "left": `${getPosition()?.x ?? 0}px`,
+                        "transform": `translate(${getPosition()?.x ?? 0}px, ${getPosition()?.y ?? 0}px)`,
                         "min-width": getMinWidth(),
                         "color": getAnchorColor(),
-                        "z-index": POPOVER_Z_INDEX,
+                        "z-index": getZIndex(),
                     }}
                     tabIndex={-1}
                     inert={!props.getIsOpen()}

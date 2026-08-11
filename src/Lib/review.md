@@ -31,6 +31,8 @@ reading.
 14. `Calendar` — five things deliberately not built — _open_
 15. `ColorInput` — four things deliberately not built — _open_
 16. `Accordion` — four things deliberately not built — _open_
+17. `Tabs` — no automatic activation, and a pairing the consumer can still skip — _open_
+18. `Viewport` as a region: what is settled and what is not — _open_
 
 ### Build order
 
@@ -55,10 +57,9 @@ privately inside them.
   whose cost _grows_ with delay: every control built without it grows its own half of error and validation
   plumbing, and each becomes a retrofit. The count of controls carrying a `hasError` with nothing on the
   other end of it is now sixteen.
-- **Dismissal should be settled once, across four consumers.** `Select` and `Menu` close on blur because
-  their popups refuse focus; `ColorInput` and `DatePicker` cannot, so each runs its own outside-pointer
-  listener. Four stories for one behaviour is the argument, and it is the same `openSignal` question items
-  5 and 6 record.
+- **Dismissal is settled; the open state is not.** All five layers dismiss through `DismissStack`, so what
+  is left of this is the `openSignal` question items 5 and 6 record — a consumer still cannot open or close
+  a popup programmatically.
 - **`Table` / data grid stays out of scope**, and specifically must not arrive as a by-product of
   `Tree` or of virtualization.
 
@@ -417,11 +418,10 @@ any of those without first deciding these would bake the decision in by accident
   back until the first attempt. Note that `DateInput` and `TimeInput` now raise `hasError` on their own,
   from their own text — so the first producer of that flag turned out to be a control rather than the form,
   and the two will have to agree once `hasSubmitted` starts gating anything.
-- **Dismissal knows about nesting now, but still has no stack.** `DismissUtils.getIsWithinOwnedLayer` walks
-  `aria-controls` so a popup opened from inside another popup no longer reads as outside it; see
-  `conventions.md`. What is still missing is the ordered set of open layers, which is what decides _which_
-  layer a stray press closes when several are open. `ColorInput` still runs its own listener and should move
-  onto the shared one when that is built.
+- **Dismissal is one stack, and paint order comes from the anchor.** `DismissStack` holds the open layers
+  and `Popover` registers one, so all five controls dismiss through the same mechanism; a portalled layer's
+  z-index is one above the highest on its anchor's ancestor chain, so a popup opened inside a `Modal` paints
+  above it. Both are in `conventions.md`. Nothing here is outstanding.
 - **The `Signal` mirror is now `Abstracts/SignalMirror`**, taking a getter and a setter so a consumer
   without a signal is served too; see `conventions.md`. What remains is that no library control accepts
   the getter-plus-setter pair directly — a consumer still wraps it in a mirror to hand a control its
@@ -481,22 +481,11 @@ invisible to a suite that drives the page, and `onMount` handoffs are in the sam
 `AudioSwitcher` and `RichText`, both commented out of `TAB_CONFIGS` in
 `src/Playground/App/App.tsx`.
 
-**`tabs.spec.ts` pins the left menu's contents by name, so changing what the Playground lists breaks it.**
-It asserts the number of category headers and which entry `Home` and `End` land on — `CellAnimation` and
-`Surface` today. That is not incidental: the left menu is the only real `Tabs` in the app, so it is the
-only thing that can cover a column list with disabled headers, and covering it means naming what is in it.
-The failure mode is worth knowing because it is silent about its real cause: adding a page, reordering the
-categories, or hiding a section makes the `Tabs` **keyboard** spec fail, which reads as a regression in
-`Tabs`. It has already happened once — the spec sat broken against a menu that had gained an `Exotics`
-category and lost its `Composites` one.
-
 **Covered only through a consumer**, which is worth distinguishing from uncovered because it decides
 whether a spec is worth writing: `Popover` through `Select` and `Menu`, `Radio` through
 `radioGroup.spec.ts`, `Checkbox` through `binarySwitch.spec.ts`, `MultiSelect` through
 `select.spec.ts`, `Corners` and `Viewport` through whatever page happens to mount them,
-`InteractionWrapper` through every control. The `Tabs` spec covers its keyboard walk through the
-Playground's left menu and nothing else, so its floater and its `href` / `linkComponent` split are
-still uncovered.
+`InteractionWrapper` through every control.
 
 **Every rAF consumer but `ElementFader` hangs on a frame with no fallback.**
 `ElementObserver.createViewportRectObserver`, and through it `Anchor`, `Tooltip` and `Select`'s
@@ -737,9 +726,9 @@ These are the gaps.
 - **No eyedropper, no swatch presets, no recent colours.** All three are paint plus a value write, so all
   three are the consumer's today; whether presets deserve a `renderPresets` slot depends on whether the
   keyboard order should include them, which is a real question and not a styling one.
-- **The popup's dismissal is per-consumer.** `ColorInput` now runs its own outside-click listener, which
-  means `Select`, `Menu` and it have three different dismissal stories. That is the `openSignal` question
-  items 5 and 6 record, and it should be settled once across all three rather than a fourth time.
+- **Dismissal is shared now, and only the open state is still private.** `ColorInput` dismisses through
+  `DismissStack` like every other layer; see `conventions.md`. What remains is that a consumer cannot open
+  or close the popup themselves, which is the `openSignal` question items 5 and 6 record.
 
 **_Elsewhere._**
 
@@ -814,3 +803,60 @@ auto-height measurement lives"_.
   prop.
 
 ---
+
+## 17. `Tabs` — no automatic activation, and a pairing the consumer can still skip
+
+The decisions behind what exists are in `conventions.md` under _"Controls: `Tabs` as records"_ and
+_"`TabPanel`: the pairing is written on the record"_.
+
+- **Nothing makes a consumer wire the panel.** `id` and `panelId` are optional fields, so a tab list with
+  no pairing at all is still a valid one — which it has to be, since the Playground's left menu switches
+  routes rather than panels. The cost is that the omission is silent: a consumer who paints their own
+  panel box and never reaches for `TabPanel` gets no warning, the way one who nests a `getAriaLabel`
+  inside a `Label` does.
+- **Arrows move focus and never selection, and there is no way to ask for the other behaviour.** A tab is
+  selected by `Enter`, `Space` or a click. The published pattern allows both, and calls the other one
+  automatic activation — arrowing onto a tab selects it, which is what suits a cheap panel and a route
+  that is already loaded. That is a prop this control does not have, and the current behaviour is the
+  right default rather than the only reasonable one.
+
+**_Elsewhere_**, read off the two libraries' own documentation on **2026-08-11**.
+
+- **The panel is part of the component in both, and it is mandatory.** Radix has `Tabs.Root` / `List` /
+  `Trigger` / `Content`, where `Trigger` and `Content` carry the same `value`; React Aria has `Tabs` /
+  `TabList` / `Tab` / `TabPanels` / `TabPanel`, matched on `id`, and a panel per tab is required. Both
+  enclose the panels in the root, which is what lets the ids be generated privately — and what this
+  library cannot do while a panel may be a routed page mounted elsewhere in the tree. Writing the pair of
+  ids on the record is the price of that, and the optional-ness in the first bullet is its tail.
+- **Automatic activation is the default in both**, spelled `activationMode="automatic"` in Radix and
+  `keyboardActivation="automatic"` in React Aria. Manual is the opt-in there and the only mode here,
+  which is the inversion worth knowing before the prop is designed.
+
+---
+
+---
+
+## 18. `Viewport` as a region: what is settled and what is not
+
+A viewport now fits its design size into the box the page gives it, clips everything inside it, and keeps
+its own layers within its own bounds; see `conventions.md`. `ViewportPage` is two 400px squares — a control
+that roams one of them at a scale you can change, and an anchor inside a scrolling area in the other — and
+`viewport.spec.ts` drives both. What is left:
+
+- **A nested viewport needs a sized host, and says nothing when it does not get one.** It measures its own
+  box, so a container with no height gives it a zero-sized region and it renders nothing visible. A warning
+  would be the obvious kindness; whether the library should warn at all is the same question `Label` already
+  answered for itself, and it went the other way.
+- **Its own scale composes, but nothing proves the composition.** The page's scale slider drives a nested
+  viewport's own factor and a spec reads it back, but the outer scale is `1` whenever the window matches the
+  anchor size — which is every machine the Playground has run on — so the multiplication of the two is
+  covered only by `Viewport.utils.test.ts`. Proving it would mean a spec that forces an outer scale and then
+  measures something two levels in.
+- **Toasts inside a nested viewport are unexamined.** They portal like everything else, so they should land
+  in the inner portal — but `Toasts` carries a fixed `z-index: 200` chosen against `Modal`'s `100`, and
+  neither goes through the anchor-relative rule the popups now use.
+- **A fast scroll can still show a frame of drift.** The layer repositions from the `scroll` event and from
+  a frame poll, both on the main thread, while the scroll itself may be composited off it; see
+  `conventions.md`. `viewport.spec.ts` asserts the layer lands exactly on its anchor once the scroll
+  settles, which is what a spec can see. The published fix for the intermediate frames is CSS anchor
+  positioning, which is Chromium-only.

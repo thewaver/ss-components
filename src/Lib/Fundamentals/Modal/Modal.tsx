@@ -1,8 +1,9 @@
-import { Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import { Show, createEffect, createMemo, createSignal } from "solid-js";
 import { Portal } from "solid-js/web";
 
 import { CSSUtils, StringUtils } from "@thewaver/ss-utils";
 
+import { DismissStack } from "../../Abstracts/Dismiss/DismissStack";
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { FocusUtils } from "../../Abstracts/Focus/Focus.utils";
 import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
@@ -46,22 +47,13 @@ export const Modal = (props: ModalProps) => {
         handleDismiss();
     };
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-        if (!getIsVisible()) return;
+    DismissStack.createLayer(getIsVisible, {
+        getRoots: () => [getContainerRef()],
+        onDismiss: (reason) => {
+            if (reason !== "escape") return;
 
-        if (e.key === "Escape") {
             handleDismiss();
-        }
-    };
-
-    createEffect(() => {
-        onCleanup(() => {
-            document.removeEventListener("keydown", handleKeyDown);
-        });
-
-        if (!getIsVisible()) return;
-
-        document.addEventListener("keydown", handleKeyDown);
+        },
     });
 
     createEffect(() => {

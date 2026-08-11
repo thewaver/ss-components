@@ -42,7 +42,6 @@ export type ColorInputFieldProps = AccessorProps<
             popupId: string;
             isOpen: boolean;
             onToggle: () => void;
-            onDismiss: () => void;
         }
 >;
 

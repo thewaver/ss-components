@@ -2,7 +2,6 @@ import { Show, createEffect, createMemo, createSignal, createUniqueId, onCleanup
 import { Portal } from "solid-js/web";
 
 import { Anchor } from "../../Abstracts/Anchor/Anchor";
-import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { FocusUtils } from "../../Abstracts/Focus/Focus.utils";
 import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
@@ -12,7 +11,6 @@ import * as styles from "./Tooltip.css";
 
 const DEFAULT_TOOLTIP_TRANSITION_DURATION_MS = 200;
 const DEFAULT_TOOLTIP_SHOW_ON_FOCUS_DELAY_MS = 500;
-const DEFAULT_TOOLTIP_Z_INDEX_GETTER = (_: AnchorPlacement) => 1;
 const DEFAULT_ARIA_DESCRIBED_BY = "aria-describedby";
 
 export const Tooltip = (props: TooltipProps) => {
@@ -40,13 +38,15 @@ export const Tooltip = (props: TooltipProps) => {
         getTransitionDurationMs,
     });
 
-    const { getPlacement, getPosition, setContentRef } = Anchor.createPortalPosition(props.getAnchorRef, getIsVisible, {
-        getPlacement: props.getPlacement,
-        getOffset: props.getOffset,
-        getReservedScreenSize: props.getReservedScreenSize,
-    });
-
-    const getZIndex = createMemo(() => (props.computeZIndex ?? DEFAULT_TOOLTIP_Z_INDEX_GETTER)(getPlacement()));
+    const { getPlacement, getPosition, getZIndex, setContentRef } = Anchor.createPortalPosition(
+        props.getAnchorRef,
+        getIsVisible,
+        {
+            getPlacement: props.getPlacement,
+            getOffset: props.getOffset,
+            getReservedScreenSize: props.getReservedScreenSize,
+        },
+    );
 
     const handleMouseEnter = () => {
         clearTimeout(focusTimeout);
@@ -142,8 +142,7 @@ export const Tooltip = (props: TooltipProps) => {
                     class={styles.tooltipRoot}
                     style={{
                         "visibility": getPosition() ? "visible" : "hidden",
-                        "top": `${getPosition()?.y ?? 0}px`,
-                        "left": `${getPosition()?.x ?? 0}px`,
+                        "transform": `translate(${getPosition()?.x ?? 0}px, ${getPosition()?.y ?? 0}px)`,
                         "z-index": getZIndex(),
                     }}
                     role="tooltip"

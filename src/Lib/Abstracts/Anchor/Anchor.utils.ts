@@ -1,6 +1,6 @@
 import { Point2d, Rect, Size2d } from "@thewaver/ss-utils";
 
-import type { AnchorHPlacement, AnchorVPlacement } from "./Anchor.types";
+import type { AnchorBand, AnchorBandKind, AnchorHPlacement, AnchorVPlacement } from "./Anchor.types";
 
 export namespace AnchorUtils {
     export const getHPlacementShift = (hPlacement: AnchorHPlacement, anchorRect: Rect, contentSize: Size2d) => {
@@ -85,6 +85,48 @@ export namespace AnchorUtils {
         "center": ["center", "top-in", "bottom-in"],
     };
 
+    /**
+     * The room a placement is allowed to use. An `out` placement may only use the space on its own side of the
+     * anchor, so nothing can be pushed back across the thing it belongs to; an `in` or centred one is
+     * deliberately over the anchor and gets the whole viewport.
+     */
+    export const getBand = (
+        kind: AnchorBandKind,
+        anchorStart: number,
+        anchorSize: number,
+        offset: number,
+        limit: number,
+        reserved: number,
+    ): AnchorBand => {
+        const first = reserved;
+        const last = limit - reserved;
+
+        if (kind === "before") return { start: first, end: Math.max(first, anchorStart - offset) };
+        if (kind === "after") return { start: Math.min(last, anchorStart + anchorSize + offset), end: last };
+
+        return { start: first, end: last };
+    };
+
+    export const getHBandKind = (hPlacement: AnchorHPlacement): AnchorBandKind =>
+        hPlacement === "left-out" ? "before" : hPlacement === "right-out" ? "after" : "over";
+
+    export const getVBandKind = (vPlacement: AnchorVPlacement): AnchorBandKind =>
+        vPlacement === "top-out" ? "before" : vPlacement === "bottom-out" ? "after" : "over";
+
+    /**
+     * Content is kept inside its band — and when it is too big for the band anyway, the edge that stays put is
+     * the one against the anchor. Pinning the other edge instead is what makes a layer with nowhere to go slide
+     * over the thing it belongs to; pinning this one lets it run off the far side, where the viewport cuts it.
+     */
+    export const clampToBand = (start: number, size: number, band: AnchorBand, kind: AnchorBandKind) => {
+        if (kind === "before") return Math.min(start, band.end - size);
+        if (kind === "after") return Math.max(start, band.start);
+
+        return Math.max(band.start, Math.min(start, band.end - size));
+    };
+
+    export const getBandSize = (band: AnchorBand) => Math.max(0, band.end - band.start);
+
     const getOverflow = (start: number, size: number, limit: number, reserved: number) =>
         Math.max(0, reserved - start) + Math.max(0, start + size - (limit - reserved));
 
@@ -134,5 +176,26 @@ export namespace AnchorUtils {
         return V_FAMILIES[vPlacement].reduce((best, candidate) =>
             getCandidateOverflow(candidate) < getCandidateOverflow(best) ? candidate : best,
         );
+    };
+
+    /**
+     * The stacking level a portalled layer has to clear to sit above its anchor. The layer is a child of the
+     * portal rather than of the anchor, so it competes with whatever context the anchor's own ancestors put
+     * it in — a dialog at 100 being the case that matters — and the highest number on that chain is the one
+     * to beat.
+     */
+    export const getStackingBase = (element: HTMLElement | undefined) => {
+        let node: HTMLElement | null = element ?? null;
+        let base = 0;
+
+        while (node) {
+            const zIndex = Number.parseInt(getComputedStyle(node).zIndex, 10);
+
+            if (!Number.isNaN(zIndex)) base = Math.max(base, zIndex);
+
+            node = node.parentElement;
+        }
+
+        return base;
     };
 }

@@ -1,4 +1,4 @@
-import type { Accessor, Component, JSX } from "solid-js";
+import type { Accessor, Component, JSX, ParentProps } from "solid-js";
 
 import type { InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
@@ -12,7 +12,16 @@ export type Tab<T> = {
     value: T;
     href?: string;
     isDisabled?: boolean;
+    id?: string;
+    panelId?: string;
 };
+
+export type TabPanelProps = ParentProps<
+    AccessorProps<{
+        id: string;
+        tabId: string;
+    }>
+>;
 
 export type TabsItemProps<T> = AccessorProps<
     Omit<InteractionControlProps, "id"> & {
@@ -28,6 +37,7 @@ export type TabsProps<T> = AccessorProps<{
     dir?: TabsDir;
     tabGap?: number;
     transitionDurationMs?: number;
+    ariaLabel?: string;
     linkComponent?: Component<TabLinkProps>;
     renderGutter?: () => JSX.Element;
     renderFloater?: () => JSX.Element;

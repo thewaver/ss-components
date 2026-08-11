@@ -32,11 +32,13 @@ import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
 import { SelectPage } from "./Pages/SelectPage/SelectPage";
 import { ShapePage } from "./Pages/ShapePage/ShapePage";
 import { SurfacePage } from "./Pages/SurfacePage/SurfacePage";
+import { TabsPage } from "./Pages/TabsPage/TabsPage";
 import { TextAreaPage } from "./Pages/TextAreaPage/TextAreaPage";
 import { TextInputPage } from "./Pages/TextInputPage/TextInputPage";
 import { ToastsPage } from "./Pages/ToastsPage/ToastsPage";
 import { TogglePage } from "./Pages/TogglePage/TogglePage";
 import { TypewriterPage } from "./Pages/TypewriterPage/TypewriterPage";
+import { ViewportPage } from "./Pages/ViewportPage/ViewportPage";
 import { PageTextField } from "./StyledComponents/Field/Field";
 
 import * as styles from "./App.css";
@@ -90,6 +92,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "TypeWriter",
         component: () => <TypewriterPage />,
+    },
+    {
+        name: "Viewport",
+        component: () => <ViewportPage />,
     },
     {
         name: "Fundamentals",
@@ -179,6 +185,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "Select",
         component: () => <SelectPage />,
+    },
+    {
+        name: "Tabs",
+        component: () => <TabsPage />,
     },
     {
         name: "TextArea",

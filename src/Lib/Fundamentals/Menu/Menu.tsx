@@ -20,15 +20,6 @@ import * as styles from "./Menu.css";
 const DEFAULT_SUBMENU_PLACEMENT: AnchorPlacement = { x: "right-out", y: "top-in" };
 const SUBMENU_OPEN_KEY = "ArrowRight";
 const SUBMENU_CLOSE_KEY = "ArrowLeft";
-const MENU_SELECTOR = "[role='menu']";
-
-const computeIsInsideMenu = (target: EventTarget | null, rootId: string) => {
-    const menu = target instanceof HTMLElement ? target.closest(MENU_SELECTOR) : undefined;
-
-    if (!menu) return false;
-
-    return menu.id === rootId || menu.id.startsWith(`${rootId}-`);
-};
 
 const MenuTrigger = (props: MenuTriggerProps) => {
     const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
@@ -194,13 +185,6 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
         const navigable = getNavigableIndexes();
         const highlightedIndex = getHighlightedIndex();
 
-        if (e.key === "Escape") {
-            e.preventDefault();
-            props.onClose();
-
-            return;
-        }
-
         if (e.key === "Tab") {
             e.preventDefault();
             props.onDismiss();
@@ -282,7 +266,6 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
                                 <Show when={computeHasSubmenu(index)}>
                                     <MenuLevel
                                         getId={() => getSubmenuId(index)}
-                                        getRootId={props.getRootId}
                                         getLabelledBy={() => getItemId(index)}
                                         getItems={() => getItem().items!}
                                         getIsOpen={getIsSubmenuOpen}
@@ -327,12 +310,7 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
             getIsOpen={props.getIsOpen}
             getAnchorRef={props.getAnchorRef}
             onKeyDown={handleKeyDown}
-            onBlur={(e) => {
-                if (computeIsInsideMenu(e.relatedTarget, props.getRootId())) return;
-                if (e.relatedTarget === props.getTriggerRef()) return;
-
-                props.onDismiss();
-            }}
+            onDismiss={() => props.onClose()}
             renderContent={(getVisibilityTarget, getTransitionDurationMs, getPlacement) =>
                 props.renderPopup(
                     renderItems,
@@ -408,7 +386,6 @@ export const Menu = <T,>(props: MenuProps<T>) => {
 
                     <MenuLevel
                         getId={() => menuId}
-                        getRootId={() => menuId}
                         getLabelledBy={getTriggerId}
                         getItems={props.getItems}
                         getIsOpen={getIsOpen}
