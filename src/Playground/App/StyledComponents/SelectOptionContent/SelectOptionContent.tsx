@@ -1,4 +1,5 @@
 import type { ParentProps } from "solid-js";
+import { Show } from "solid-js";
 
 import type { SelectOptionContentProps } from "./SelectOptionContent.types";
 
@@ -14,7 +15,14 @@ export const PageSelectOptionContent = (props: ParentProps<SelectOptionContentPr
             [styles.isDisabled]: props.getFlags().isDisabled,
         }}
     >
-        <div>{props.children}</div>
+        <div class={styles.selectOptionText}>
+            <div>{props.children}</div>
+
+            <Show when={props.getDescription?.()}>
+                {(getDescription) => <div class={styles.selectOptionDescription}>{getDescription()}</div>}
+            </Show>
+        </div>
+
         <div class={styles.selectOptionMark} aria-hidden>
             ✓
         </div>

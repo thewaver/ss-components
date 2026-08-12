@@ -168,6 +168,82 @@ test("a disabled field opens nothing by pointer or by key", async ({ page }) => 
     await expect(page.locator(LISTBOX), "Enter on a reachable disabled field still opens nothing").toHaveCount(0);
 });
 
+/**
+ * A list whose options arrive in batches has no end until the consumer says so. The library marks the
+ * end of what it holds with a one-pixel element and asks for more whenever that element is on screen,
+ * so an empty list asks for its first batch simply by opening — there is no separate first load.
+ *
+ * The waits here are on the readout rather than on a duration: the page's loader resolves after a fixed
+ * delay, and asserting against that delay would make the spec a race.
+ */
+test("a list that is not all there fetches its first batch by opening", async ({ page }) => {
+    expect(await readout(page, "Loaded on demand"), "nothing is fetched before the list is opened").toContain(
+        "0 of 500",
+    );
+
+    await page.locator(field("Loaded on demand")).click();
+    await expect(
+        page.locator(`${variant("Loaded on demand")} [data-readout]`),
+        "opening asks for the first batch",
+    ).toContainText("40 of 500", { timeout: 5000 });
+
+    expect(
+        await activeDescendantText(page, field("Loaded on demand")),
+        "and the highlight lands on the first option that arrived",
+    ).toContain("Route 1");
+});
+
+test("the walk stops at the last option held rather than wrapping round", async ({ page }) => {
+    await page.locator(field("Loaded on demand")).click();
+    await expect(page.locator(`${variant("Loaded on demand")} [data-readout]`)).toContainText("40 of 500", {
+        timeout: 5000,
+    });
+
+    await page.keyboard.press("End");
+    expect(
+        await activeDescendantText(page, field("Loaded on demand")),
+        "End reaches the last option the consumer has handed over",
+    ).toContain("Route 40");
+
+    await page.keyboard.press("ArrowDown");
+    expect(
+        await activeDescendantText(page, field("Loaded on demand")),
+        "and arrowing past it stays put rather than wrapping to the first, because more exist",
+    ).toContain("Route 40");
+
+    await expect(
+        page.locator(`${variant("Loaded on demand")} [data-readout]`),
+        "reaching the end asks for more",
+    ).toContainText("80 of 500", { timeout: 5000 });
+});
+
+/**
+ * The two halves compose without knowing about each other: the query is the consumer's, the batches are the
+ * consumer's, and the library only reports that the end of what it holds is on screen. Typing therefore has
+ * to start a new search rather than narrow what already arrived — which is the whole point of asking a server
+ * to filter — and the list it replaces may be any length, including the length it was last asked at.
+ */
+test("a fetched autocomplete searches again rather than filtering what it holds", async ({ page }) => {
+    const fetched = `${variant("Autocomplete, fetched")} [data-readout]`;
+
+    await expect(page.locator(fetched), "the first batch of the empty query arrives on its own").toContainText(
+        "40 of 500 matches held",
+        { timeout: 5000 },
+    );
+
+    await page.locator(field("Autocomplete, fetched")).focus();
+    await page.keyboard.type("route 12");
+
+    await expect(page.locator(fetched), "typing runs a fresh search and replaces everything held").toContainText(
+        "11 of 11 matches held",
+        { timeout: 5000 },
+    );
+    await expect(
+        page.locator(OPTION),
+        "so the list is the server's answer rather than a subset of the old one",
+    ).toHaveCount(11);
+});
+
 test("an autocomplete field filters through the consumer's matcher", async ({ page }) => {
     expect(
         await tagName(page.locator(field("Autocomplete"))),

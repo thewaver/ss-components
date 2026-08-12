@@ -48,6 +48,11 @@ export const selectFilterField = style({
     },
 });
 
+export const selectEndMarker = style({
+    width: "100%",
+    height: 1,
+});
+
 export const selectOption = style({
     width: "100%",
     cursor: "pointer",

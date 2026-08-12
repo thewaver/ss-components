@@ -67,6 +67,7 @@ export type SelectCompositeProps<T> = Omit<InteractionWrapperProps<SelectFlags>,
         transitionDurationMs?: number;
         padding?: CSSPadding | number;
         isMultiple?: boolean;
+        hasMoreOptions?: boolean;
         computeTextStyle?: (getFlags: () => InteractionFlags<SelectFlags>) => TextFieldTextStyle;
     }> & {
         visibilitySignal?: Signal<boolean>;
@@ -91,6 +92,7 @@ export type SelectCompositeProps<T> = Omit<InteractionWrapperProps<SelectFlags>,
             getFlags: () => InteractionFlags<SelectFlags>,
         ) => JSX.Element;
         onPick: (value: T) => void;
+        onReachEnd?: () => void;
     };
 
 export type SelectPresetProps<T> = Omit<

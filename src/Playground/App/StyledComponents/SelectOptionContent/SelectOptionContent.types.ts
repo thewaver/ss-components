@@ -4,4 +4,5 @@ import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
 export type SelectOptionContentProps = AccessorProps<{
     flags: InteractionFlags<SelectOptionFlags>;
+    description?: string;
 }>;

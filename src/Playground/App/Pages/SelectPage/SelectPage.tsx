@@ -1,13 +1,17 @@
 import type { JSX } from "solid-js";
-import { createMemo, createSignal } from "solid-js";
+import { Show, createEffect, createMemo, createSignal, on } from "solid-js";
 
 import type { AnchorPlacement } from "../../../../Lib/Abstracts/Anchor/Anchor.types";
+import { FPSUtils } from "../../../../Lib/Abstracts/FPS/FPS.utils";
 import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
 import { MultiSelect } from "../../../../Lib/Fundamentals/Input/MultiSelect/MultiSelect";
 import { Select } from "../../../../Lib/Fundamentals/Input/Select/Select";
 import type { SelectItem, SelectOption } from "../../../../Lib/Fundamentals/Input/Select/Select.types";
 import { SelectUtils } from "../../../../Lib/Fundamentals/Input/Select/Select.utils";
+import { PageProp } from "../../PageComponents/Prop/Prop";
+import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
+import { PageCheckField, PageNumberField } from "../../StyledComponents/Field/Field";
 import { PageLabelCaption } from "../../StyledComponents/LabelCaption/LabelCaption";
 import { PagePopoverSurface } from "../../StyledComponents/PopoverSurface/PopoverSurface";
 import { PageSelectContent, computePageSelectTextStyle } from "../../StyledComponents/SelectContent/SelectContent";
@@ -21,6 +25,11 @@ import { FIELD_CHEVRON_WIDTH, FIELD_GAP, FIELD_PADDING } from "../../StyledCompo
 type Airport = {
     code: string;
     city: string;
+};
+
+type Delivery = {
+    name: string;
+    description: string;
 };
 
 const PLACEHOLDER = "Pick one";
@@ -108,22 +117,98 @@ const AIRPORTS: SelectOption<Airport>[] = [
     { value: { code: "TLL", city: "Tallinn" } },
 ];
 
-const renderSelectPopup = (
-    renderOptions: () => JSX.Element,
-    getVisibilityTarget: () => 0 | 1,
-    getTransitionDurationMs: () => number,
-    getPlacement: () => AnchorPlacement,
-) => (
-    <PagePopoverSurface
-        getVisibilityTarget={getVisibilityTarget}
-        getTransitionDurationMs={getTransitionDurationMs}
-        getPlacement={getPlacement}
-    >
-        {renderOptions()}
-    </PagePopoverSurface>
-);
+const DELIVERIES: SelectOption<Delivery>[] = [
+    {
+        value: {
+            name: "Standard",
+            description: "Three to five working days, left with the local post office if nobody answers.",
+        },
+    },
+    {
+        value: { name: "Express", description: "Next working day, before 13:00." },
+    },
+    {
+        value: {
+            name: "Depot pickup",
+            description:
+                "Held at the depot you choose for up to fourteen days. Bring the order number and photo ID, or name someone else at checkout and they can collect it for you instead.",
+        },
+    },
+    {
+        value: {
+            name: "Courier to the door",
+            description: "A two-hour window you pick the evening before, with a call ten minutes ahead.",
+        },
+    },
+];
+
+const MIN_STRESS_COUNT = 0;
+const MAX_STRESS_COUNT = 200000;
+const STRESS_COUNT_STEP = 1000;
+const STARTING_STRESS_COUNT = 10000;
+const STRESS_COUNT_FIELD_WIDTH = 120;
+
+const STRESS_DESCRIPTIONS = [
+    "Next working day, before 13:00.",
+    "Three to five working days, left with the local post office if nobody answers.",
+    "Held at the depot for up to fourteen days. Bring the order number and photo ID, or name someone else at checkout and they can collect it on your behalf instead.",
+];
+
+const createStressDeliveries = (count: number, offset = 0): SelectOption<Delivery>[] =>
+    Array.from({ length: count }, (_, index) => ({
+        value: {
+            name: `Route ${offset + index + 1}`,
+            description: STRESS_DESCRIPTIONS[(offset + index) % STRESS_DESCRIPTIONS.length],
+        },
+    }));
+
+const PAGE_SIZE = 40;
+const PAGED_TOTAL = 500;
+const PAGE_DELAY_MS = 600;
+
+const fetchRoutes = (offset: number) =>
+    new Promise<SelectOption<Delivery>[]>((resolve) => {
+        setTimeout(
+            () => resolve(createStressDeliveries(Math.min(PAGE_SIZE, PAGED_TOTAL - offset), offset)),
+            PAGE_DELAY_MS,
+        );
+    });
+
+const SERVER_ROUTES = createStressDeliveries(PAGED_TOTAL);
+
+const searchRoutes = (query: string, offset: number) =>
+    new Promise<{ items: SelectOption<Delivery>[]; total: number }>((resolve) => {
+        setTimeout(() => {
+            const needle = query.toLocaleLowerCase();
+            const matched = needle
+                ? SERVER_ROUTES.filter((option) => option.value.name.toLocaleLowerCase().includes(needle))
+                : SERVER_ROUTES;
+
+            resolve({ items: matched.slice(offset, offset + PAGE_SIZE), total: matched.length });
+        }, PAGE_DELAY_MS);
+    });
 
 export const SelectPage = () => {
+    const [getIsSkippingOffScreen, setIsSkippingOffScreen] = createSignal(true);
+    const [getStressCount, setStressCount] = createSignal(STARTING_STRESS_COUNT);
+    const [getOpenMs, setOpenMs] = createSignal<number>();
+
+    const renderSelectPopup = (
+        renderOptions: () => JSX.Element,
+        getVisibilityTarget: () => 0 | 1,
+        getTransitionDurationMs: () => number,
+        getPlacement: () => AnchorPlacement,
+    ) => (
+        <PagePopoverSurface
+            getVisibilityTarget={getVisibilityTarget}
+            getTransitionDurationMs={getTransitionDurationMs}
+            getPlacement={getPlacement}
+            getIsSkippingOffScreen={getIsSkippingOffScreen}
+        >
+            {renderOptions()}
+        </PagePopoverSurface>
+    );
+
     const filterQuerySignal = createSignal("");
     const filterSignal = createSignal<Airport | undefined>();
     const groupedSignal = createSignal<string | undefined>();
@@ -135,11 +220,81 @@ export const SelectPage = () => {
     const disabledOptionSignal = createSignal<string | undefined>();
     const reachableOptionSignal = createSignal<string | undefined>();
     const longSignal = createSignal<string | undefined>("13:00");
+    const deliverySignal = createSignal<Delivery | undefined>();
     const recordSignal = createSignal<Airport | undefined>();
     const erroredSignal = createSignal<string | undefined>();
     const disabledSignal = createSignal<string | undefined>("Sweden");
     const reachableSignal = createSignal<string | undefined>("Sweden");
     const labelledSignal = createSignal<string | undefined>();
+    const stressSignal = createSignal<Delivery | undefined>();
+    const stressVisibility = createSignal(false);
+    const pagedSignal = createSignal<Delivery | undefined>();
+
+    const [getPagedRoutes, setPagedRoutes] = createSignal<SelectOption<Delivery>[]>([]);
+    const [getIsFetching, setIsFetching] = createSignal(false);
+
+    const searchQuerySignal = createSignal("");
+    const searchSignal = createSignal<Delivery | undefined>();
+
+    const [getSearchResults, setSearchResults] = createSignal<SelectOption<Delivery>[]>([]);
+    const [getSearchTotal, setSearchTotal] = createSignal(0);
+    const [getIsSearching, setIsSearching] = createSignal(false);
+
+    let searchRequest = 0;
+
+    const runSearch = async (offset: number) => {
+        const request = ++searchRequest;
+
+        setIsSearching(true);
+
+        const page = await searchRoutes(searchQuerySignal[0](), offset);
+
+        if (request !== searchRequest) return;
+
+        setSearchResults((results) => (offset > 0 ? [...results, ...page.items] : page.items));
+        setSearchTotal(page.total);
+        setIsSearching(false);
+    };
+
+    createEffect(
+        on(
+            () => searchQuerySignal[0](),
+            () => {
+                setSearchResults([]);
+                setSearchTotal(0);
+
+                void runSearch(0);
+            },
+        ),
+    );
+
+    const getHasMoreResults = () => getSearchResults().length < getSearchTotal() || getIsSearching();
+
+    const getHasMoreRoutes = () => getPagedRoutes().length < PAGED_TOTAL;
+
+    const fetchNextRoutes = async () => {
+        if (getIsFetching()) return;
+
+        setIsFetching(true);
+
+        const page = await fetchRoutes(getPagedRoutes().length);
+
+        setPagedRoutes((routes) => [...routes, ...page]);
+        setIsFetching(false);
+    };
+
+    const { getFPS } = FPSUtils.createMonitor(() => !stressVisibility[0]());
+
+    const getStressDeliveries = createMemo(() => createStressDeliveries(getStressCount()));
+
+    const measureOpen = (renderOptions: () => JSX.Element) => {
+        const startedAt = performance.now();
+        const options = renderOptions();
+
+        requestAnimationFrame(() => requestAnimationFrame(() => setOpenMs(performance.now() - startedAt)));
+
+        return options;
+    };
 
     const getFilteredAirports = createMemo(() => {
         const query = filterQuerySignal[0]().toLocaleLowerCase();
@@ -285,6 +440,7 @@ export const SelectPage = () => {
                                 getVisibilityTarget={getVisibilityTarget}
                                 getTransitionDurationMs={getTransitionDurationMs}
                                 getPlacement={getPlacement}
+                                getIsSkippingOffScreen={getIsSkippingOffScreen}
                             >
                                 {getFilteredAirports().length ? (
                                     renderOptions()
@@ -293,6 +449,65 @@ export const SelectPage = () => {
                                 )}
                             </PagePopoverSurface>
                         )}
+                    />
+                ),
+            },
+            {
+                name: "Autocomplete, fetched",
+                readout: () =>
+                    `value: ${searchSignal[0]()?.name ?? "undefined"} | query: "${searchQuerySignal[0]()}" — ${getSearchResults().length} of ${getSearchTotal()} matches held${
+                        getIsSearching() ? ", asking the server" : ""
+                    }; typing starts a new search rather than filtering what arrived`,
+                component: () => (
+                    <Select
+                        valueSignal={searchSignal}
+                        querySignal={searchQuerySignal}
+                        getOptions={getSearchResults}
+                        getHasMoreOptions={getHasMoreResults}
+                        getAriaLabel={() => "Route"}
+                        getPadding={() => ({
+                            paddingTop: FIELD_PADDING,
+                            paddingBottom: FIELD_PADDING,
+                            paddingLeft: FIELD_PADDING,
+                            paddingRight: FIELD_PADDING + FIELD_GAP + FIELD_CHEVRON_WIDTH,
+                        })}
+                        computeTextStyle={computePageSelectTextStyle}
+                        renderContent={(getSelectedOption, getFlags) => (
+                            <PageSelectContent getFlags={getFlags}>
+                                {getSelectedOption()?.value.name ?? PLACEHOLDER}
+                            </PageSelectContent>
+                        )}
+                        renderOption={(getOption, getFlags) => (
+                            <PageSelectOptionContent
+                                getFlags={getFlags}
+                                getDescription={() => getOption().value.description}
+                            >
+                                {getOption().value.name}
+                            </PageSelectOptionContent>
+                        )}
+                        renderPopup={(renderOptions, getVisibilityTarget, getTransitionDurationMs, getPlacement) => (
+                            <PagePopoverSurface
+                                getVisibilityTarget={getVisibilityTarget}
+                                getTransitionDurationMs={getTransitionDurationMs}
+                                getPlacement={getPlacement}
+                                getIsSkippingOffScreen={getIsSkippingOffScreen}
+                            >
+                                {renderOptions()}
+
+                                <Show when={getIsSearching()}>
+                                    <div class={popupStyles.popoverSurfaceEmpty}>Searching…</div>
+                                </Show>
+
+                                <Show when={!getIsSearching() && getSearchTotal() < 1}>
+                                    <div class={popupStyles.popoverSurfaceEmpty}>No route matches that</div>
+                                </Show>
+                            </PagePopoverSurface>
+                        )}
+                        onReachEnd={() => {
+                            if (getIsSearching()) return;
+
+                            void runSearch(getSearchResults().length);
+                        }}
                     />
                 ),
             },
@@ -373,6 +588,7 @@ export const SelectPage = () => {
                                 getVisibilityTarget={getVisibilityTarget}
                                 getTransitionDurationMs={getTransitionDurationMs}
                                 getPlacement={getPlacement}
+                                getIsSkippingOffScreen={getIsSkippingOffScreen}
                             >
                                 {getFilteredGroups().length ? (
                                     renderOptions()
@@ -401,6 +617,113 @@ export const SelectPage = () => {
                             <PageSelectOptionContent getFlags={getFlags}>{getOption().value}</PageSelectOptionContent>
                         )}
                         renderPopup={renderSelectPopup}
+                    />
+                ),
+            },
+            {
+                name: "Title and description",
+                readout: () =>
+                    `value: ${deliverySignal[0]()?.name ?? "undefined"} — the descriptions wrap, so no two rows are the same height`,
+                component: () => (
+                    <Select
+                        valueSignal={deliverySignal}
+                        getOptions={() => DELIVERIES}
+                        getAriaLabel={() => "Delivery"}
+                        renderContent={(getSelectedOption, getFlags) => (
+                            <PageSelectContent getFlags={getFlags}>
+                                {getSelectedOption()?.value.name ?? PLACEHOLDER}
+                            </PageSelectContent>
+                        )}
+                        renderOption={(getOption, getFlags) => (
+                            <PageSelectOptionContent
+                                getFlags={getFlags}
+                                getDescription={() => getOption().value.description}
+                            >
+                                {getOption().value.name}
+                            </PageSelectOptionContent>
+                        )}
+                        renderPopup={renderSelectPopup}
+                    />
+                ),
+            },
+            {
+                name: "Stress test",
+                readout: () =>
+                    `${getStressCount().toLocaleString("en-GB")} options — ${
+                        getOpenMs() === undefined
+                            ? "never opened"
+                            : `${Math.round(getOpenMs()!)} ms from click to the first painted frame`
+                    }, ${stressVisibility[0]() ? `${getFPS().current.toFixed(0)} fps while open` : "closed"}`,
+                component: () => (
+                    <Select
+                        valueSignal={stressSignal}
+                        visibilitySignal={stressVisibility}
+                        getOptions={getStressDeliveries}
+                        getAriaLabel={() => "Route"}
+                        renderContent={(getSelectedOption, getFlags) => (
+                            <PageSelectContent getFlags={getFlags}>
+                                {getSelectedOption()?.value.name ?? PLACEHOLDER}
+                            </PageSelectContent>
+                        )}
+                        renderOption={(getOption, getFlags) => (
+                            <PageSelectOptionContent
+                                getFlags={getFlags}
+                                getDescription={() => getOption().value.description}
+                            >
+                                {getOption().value.name}
+                            </PageSelectOptionContent>
+                        )}
+                        renderPopup={(renderOptions, getVisibilityTarget, getTransitionDurationMs, getPlacement) =>
+                            renderSelectPopup(
+                                () => measureOpen(renderOptions),
+                                getVisibilityTarget,
+                                getTransitionDurationMs,
+                                getPlacement,
+                            )
+                        }
+                    />
+                ),
+            },
+            {
+                name: "Loaded on demand",
+                readout: () =>
+                    `${getPagedRoutes().length} of ${PAGED_TOTAL} routes fetched${
+                        getIsFetching() ? ", another batch in flight" : ""
+                    } — reaching the end asks for ${PAGE_SIZE} more, and the arrows stop at the last one held`,
+                component: () => (
+                    <Select
+                        valueSignal={pagedSignal}
+                        getOptions={getPagedRoutes}
+                        getHasMoreOptions={getHasMoreRoutes}
+                        getAriaLabel={() => "Route"}
+                        renderContent={(getSelectedOption, getFlags) => (
+                            <PageSelectContent getFlags={getFlags}>
+                                {getSelectedOption()?.value.name ?? PLACEHOLDER}
+                            </PageSelectContent>
+                        )}
+                        renderOption={(getOption, getFlags) => (
+                            <PageSelectOptionContent
+                                getFlags={getFlags}
+                                getDescription={() => getOption().value.description}
+                            >
+                                {getOption().value.name}
+                            </PageSelectOptionContent>
+                        )}
+                        renderPopup={(renderOptions, getVisibilityTarget, getTransitionDurationMs, getPlacement) => (
+                            <PagePopoverSurface
+                                getVisibilityTarget={getVisibilityTarget}
+                                getTransitionDurationMs={getTransitionDurationMs}
+                                getPlacement={getPlacement}
+                                getIsSkippingOffScreen={getIsSkippingOffScreen}
+                            >
+                                {renderOptions()}
+
+                                <Show when={getIsFetching()}>
+                                    <div class={popupStyles.popoverSurfaceEmpty}>Fetching more routes…</div>
+                                </Show>
+                            </PagePopoverSurface>
+                        )}
+                        onReachEnd={fetchNextRoutes}
                     />
                 ),
             },
@@ -530,5 +853,34 @@ export const SelectPage = () => {
         ];
     });
 
-    return <PageVariants getItems={getVariants} />;
+    return (
+        <>
+            <PagePropsPanel getScope={() => "global"}>
+                <PageProp getLabel={() => "Skip off-screen options"}>
+                    <PageCheckField
+                        getValue={getIsSkippingOffScreen}
+                        getAriaLabel={() => "Skip off-screen options"}
+                        onChange={setIsSkippingOffScreen}
+                    />
+                </PageProp>
+
+                <PageProp getLabel={() => "Stress options"}>
+                    <PageNumberField
+                        getValue={getStressCount}
+                        getMin={() => MIN_STRESS_COUNT}
+                        getMax={() => MAX_STRESS_COUNT}
+                        getStep={() => STRESS_COUNT_STEP}
+                        getWidth={() => STRESS_COUNT_FIELD_WIDTH}
+                        getAriaLabel={() => "Stress options"}
+                        onInput={(count) => {
+                            setStressCount(count);
+                            setOpenMs(undefined);
+                        }}
+                    />
+                </PageProp>
+            </PagePropsPanel>
+
+            <PageVariants getItems={getVariants} />
+        </>
+    );
 };

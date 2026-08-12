@@ -197,19 +197,24 @@ the gaps, each with the reason it is still a gap.
   `<div role="group" aria-label>` so the role cannot end up in consumer markup; the consumer fills the
   header via `renderGroup`. Handing it a `renderOptions` thunk in `renderPopup`'s shape would give it
   the whole box, and is available if something needs it.
-- **Virtualization has to live inside `Select`, and that was not the plan.** Attempted on **2026-08-12** and
-  reverted before anything shipped, because the published design does not fit this component. That design is a flag
-  telling the library to stop scrolling options into view while the **consumer** windows the list — and `Select` runs
-  its keyboard walk over the array it is handed, so a consumer passing only the visible slice confines `Home`, `End`
-  and the arrows to that window. The full list has to stay with the library, which means the library decides which
-  rows to mount.
-  Two consequences follow. The element that scrolls is the **consumer's** paint — the popup surface carries the
-  `max-height` and the `overflow-y` — so `Select` holds no ref to it and a windower inside `Select` would have to
-  find its nearest scrollable ancestor from its own container. And the windowing package becomes a **runtime
-  dependency of the published library** rather than a Playground devDependency, which is a different question from
-  the one already answered.
+- **A complete list held in memory still has no cheap path, and virtualization is still the only one.** The
+  incomplete case shipped instead — `getHasMoreOptions`, `onReachEnd` and a marker at the end; see
+  `conventions.md`. That serves a consumer whose data arrives in batches, and a consumer holding the whole array
+  can slice it themselves, at the price of `End` meaning "the last one loaded". What it does not do is let the
+  library hold 100,000 options and mount a window onto them, which is the only arrangement where `End` still means
+  the end. Attempted on **2026-08-12** and reverted: the published design is a flag telling the library to stop
+  scrolling options into view while the **consumer** windows the list, and `Select` walks the array it is handed,
+  so a consumer passing only the visible slice confines `Home`, `End` and the arrows to that window.
+  Two things would still have to be answered if it is ever taken up. The element that scrolls is the
+  **consumer's** paint, so a windower inside `Select` would have to find its nearest scrollable ancestor from its
+  own container — the marker route sidesteps this by observing against the viewport, but a windower cannot. And a
+  windowing package becomes a **runtime dependency of the published library** rather than a Playground
+  devDependency, which is a different question from the one already answered.
   Unchanged, and still the one thing assuming every option is mounted: each option scrolls _itself_ into view off
   its own `isHighlighted` flag, which a windower has to take over.
+  Also unmeasured: what the Playground's stress variant reports is the cost of **mounting** options, and
+  `content-visibility` on the option paint only ever addressed the cost of **painting** them. The two are
+  separate and only the second has a cheap answer.
 - **Dismissal does not restore the query.** Escape and blur clear it rather than restoring the selected option's
   text, because restoring it would need the per-option string this design does not have. The open state itself is
   no longer private — `visibilitySignal` ships; see `conventions.md`.
@@ -431,7 +436,9 @@ any of those without first deciding these would bake the decision in by accident
   `Abstracts/MaskedField` are all in `conventions.md`, with `DateInput`, `TimeInput` and `AmountInput` over them.
   What is not built is a typed sign or a non-uniform group pattern; see item 7.
 - **Virtualization.** Already recorded as a `Select` loose end in item 5; `Tree` and any grid need the
-  same thing, so it is an `Abstract`, not a per-control feature.
+  same thing, so it is an `Abstract`, not a per-control feature. Note that the on-demand loading that
+  shipped for `Select` is **not** it and does not reduce the need for it — that answers a list which is
+  incomplete, this one answers a list which is complete and large.
 - **The form story is decided and wired.** `Form` and `FormField` ship and every control reads the
   description context; see `conventions.md`. What is still unbuilt is smaller: nothing groups fields into
   sections with their own validity, and `hasSubmitted` is exposed but no control uses it to hold its error

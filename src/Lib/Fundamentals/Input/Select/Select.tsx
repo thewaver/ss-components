@@ -1,8 +1,9 @@
 import type { Accessor, JSX } from "solid-js";
-import { Index, Show, createEffect, createMemo, createSignal, createUniqueId } from "solid-js";
+import { Index, Show, createEffect, createMemo, createSignal, createUniqueId, untrack } from "solid-js";
 
 import { CSSUtils, StringUtils } from "@thewaver/ss-utils";
 
+import { ElementObserver } from "../../../Abstracts/ElementObserver/ElementObserver";
 import { InteractionUtils } from "../../../Abstracts/Interaction/Interaction.utils";
 import { NavigationUtils } from "../../../Abstracts/Navigation/Navigation.utils";
 import { SignalMirror } from "../../../Abstracts/SignalMirror/SignalMirror";
@@ -14,6 +15,7 @@ import { LabelUtils } from "../Label/Label.utils";
 import type {
     SelectCompositeProps,
     SelectFieldProps,
+    SelectItem,
     SelectOption,
     SelectOptionGroup,
     SelectOptionItemProps,
@@ -153,6 +155,7 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
     const listboxId = createUniqueId();
 
     const [getFieldRef, setFieldRef] = createSignal<HTMLElement>();
+    const [getEndMarkerRef, setEndMarkerRef] = createSignal<HTMLElement>();
     const [getIsOpen, setIsOpen] = SignalMirror.createOptional(() => props.visibilitySignal, false);
     const [getHasPopoverSettled, setHasPopoverSettled] = createSignal(true);
     const [getHighlightedValue, setHighlightedValue] = createSignal<T | undefined>();
@@ -162,6 +165,8 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
     const getIsMultiple = createMemo(() => props.getIsMultiple?.() ?? false);
 
     const getIsFilterable = createMemo(() => props.querySignal !== undefined);
+
+    const getHasMoreOptions = createMemo(() => props.getHasMoreOptions?.() ?? false);
 
     const getQuery = createMemo(() => props.querySignal?.[0]() ?? EMPTY_QUERY);
 
@@ -188,6 +193,28 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
     });
 
     const getFlatOptions = createMemo(() => SelectUtils.getFlatOptions(props.getOptions()));
+
+    const getIsAtEnd = ElementObserver.createViewportIntersectionObserver(getEndMarkerRef, getIsOpen);
+
+    let askedForOptions: SelectItem<T>[] | undefined;
+
+    createEffect(() => {
+        if (!getIsAtEnd() || !getHasMoreOptions()) return;
+
+        const options = untrack(props.getOptions);
+
+        if (askedForOptions === options) return;
+
+        askedForOptions = options;
+
+        props.onReachEnd?.();
+    });
+
+    createEffect(() => {
+        if (getIsOpen()) return;
+
+        askedForOptions = undefined;
+    });
 
     const getNavigableIndexes = createMemo(() =>
         getFlatOptions().reduce<number[]>((acc, option, index) => {
@@ -319,6 +346,11 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
 
         if (position === undefined) return;
 
+        const hasWrapped =
+            (position === 0 && from === navigable.length - 1) || (position === navigable.length - 1 && from === 0);
+
+        if (isArrow && hasWrapped && getHasMoreOptions()) return;
+
         const next = isOpen || !isArrow ? navigable[position] : getHighlightedIndex();
 
         if (next === undefined) return;
@@ -355,27 +387,33 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
     );
 
     const renderOptions = () => (
-        <Index each={props.getOptions()}>
-            {(getItem, index) => (
-                <Show
-                    when={SelectUtils.getIsGroup(getItem())}
-                    fallback={renderOptionSlot(
-                        () => getItem() as SelectOption<T>,
-                        () => getItemOffsets()[index],
-                    )}
-                >
-                    <div role="group" aria-label={(getItem() as SelectOptionGroup<T>).label}>
-                        {props.renderGroup?.(() => getItem() as SelectOptionGroup<T>)}
+        <>
+            <Index each={props.getOptions()}>
+                {(getItem, index) => (
+                    <Show
+                        when={SelectUtils.getIsGroup(getItem())}
+                        fallback={renderOptionSlot(
+                            () => getItem() as SelectOption<T>,
+                            () => getItemOffsets()[index],
+                        )}
+                    >
+                        <div role="group" aria-label={(getItem() as SelectOptionGroup<T>).label}>
+                            {props.renderGroup?.(() => getItem() as SelectOptionGroup<T>)}
 
-                        <Index each={(getItem() as SelectOptionGroup<T>).options}>
-                            {(getOption, groupIndex) =>
-                                renderOptionSlot(getOption, () => getItemOffsets()[index] + groupIndex)
-                            }
-                        </Index>
-                    </div>
-                </Show>
-            )}
-        </Index>
+                            <Index each={(getItem() as SelectOptionGroup<T>).options}>
+                                {(getOption, groupIndex) =>
+                                    renderOptionSlot(getOption, () => getItemOffsets()[index] + groupIndex)
+                                }
+                            </Index>
+                        </div>
+                    </Show>
+                )}
+            </Index>
+
+            <Show when={getHasMoreOptions() && props.getOptions()} keyed>
+                {(_items: SelectItem<T>[]) => <div ref={setEndMarkerRef} class={styles.selectEndMarker} aria-hidden />}
+            </Show>
+        </>
     );
 
     return (

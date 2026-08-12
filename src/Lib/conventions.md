@@ -3837,3 +3837,62 @@ does its own work, and the consumer's own signal opens the menu.
 rather than against an element, and `Anchor` positions against a ref only. That needs a virtual anchor — a rect
 standing in for an element — which is a change to `Anchor` rather than to `Menu`, and it is the last piece. See
 `review.md` item 6.
+
+### A list the consumer has not finished handing over: `getHasMoreOptions`, `onReachEnd`, and a marker
+
+Settled **2026-08-12**, after the published virtualization design was tried and reverted (see `review.md`
+item 5). This is the other half of the same problem and it is a different answer, so both are worth stating
+together: **virtualization keeps the whole list and mounts a window onto it; this keeps only what has arrived
+and mounts all of it.**
+
+**`Select` takes `getHasMoreOptions` and `onReachEnd`, and never a batch size.** A batch size would put the
+library in charge of slicing the consumer's data, which is not its to slice, and the floor a batch size wants —
+"at least as many as fit" — is not computable here anyway: the element that scrolls is the **consumer's** popup
+surface, since the `max-height` and the `overflow-y` live in their paint. `Select` holds no ref to it. So the
+library reports an event and reads a flag; the consumer decides what a batch is, where it comes from, and when
+there is no more. An in-memory array sliced by the consumer and a paged HTTP endpoint are then the same
+mechanism rather than two features.
+
+**The end is marked by a one-pixel element and watched with an intersection observer, not measured.** The
+alternative was a `scroll` listener comparing `scrollTop + clientHeight` against `scrollHeight`, and it loses on
+three counts: it needs the scrolling element, which is the consumer's; it needs a "how close counts" threshold,
+which is a constant that is wrong for some row height; and it is silent in the case where the first batch does
+not fill the box, because nothing has scrolled. The marker has none of those — `ElementObserver.createViewportIntersectionObserver`
+observes against the viewport, and an observer computes intersection through every ancestor's overflow clip, so
+it reports the marker hidden without ever being told what is hiding it. "The list is too short to scroll" and
+"you have scrolled to the bottom" become the same condition, which is what makes it converge with no startup path.
+
+**The marker is keyed on the options array, and that is load-bearing.** An intersection observer reports only
+_changes_, so a batch too small to push the marker off screen would deliver no callback and the list would
+stall. Rebuilding the marker whenever the array identity changes forces a fresh observation of fresh geometry;
+`createViewportIntersectionObserver` sets its flag back to `false` on every re-registration for the same reason,
+so the answer is never carried over from an element that no longer exists. Reading the flag synchronously after
+a batch arrives — before the observer has recomputed — is what the earlier attempt did, and it fetched one batch
+more than it needed every time.
+
+**The guard holds the options array itself, not its length, and it is a plain variable rather than a signal.**
+Nothing renders from it. Its job is to stop a marker that leaves and re-enters while a request is in flight from
+asking twice for the same list, and the array's identity is exactly what "the same list" means. Length is not:
+a **filtered** list is replaced rather than appended to, so a new query whose result happens to be as long as the
+last one asked for would be read as already asked and the list would never load. That is reachable the moment
+autocomplete and batches are combined, which is the arrangement the Playground now demonstrates. The guard is
+cleared when the popup closes, so a reopened short list can ask again.
+
+**Filtering and batching compose without either knowing about the other.** The query is the consumer's, the
+batches are the consumer's, and the library only reports that the end of what it holds is on screen. A consumer
+who wants the server to filter runs a new search on a query change and replaces the array; `onReachEnd` then pages
+within that query. Nothing in `Select` needed to learn what a query means to a batch. Note that `Home` and `End`
+are already suppressed on a filterable field so the caret keeps them, so the wrap rule below is the only keyboard
+behaviour that applies to a fetched autocomplete.
+
+**An incomplete list does not wrap, and that is `Select`'s call rather than `NavigationUtils`'s.** The 1D walk
+still answers _which position is next_ and still wraps; `Select` answers _whether to go there_, and refuses when
+the step would carry off either end while more options exist. That is the split recorded under _"The 1D walk is a
+pure function, not a hook"_, and it is why no option was added to `computeNextPosition`: three of its four callers
+are closed rings and would gain a mode they can never use. `Home` and `End` needed no change at all — they resolve
+against the array the library was handed, which is exactly "the first and last held".
+
+**What this does not do is make a complete list cheap.** A consumer holding 100,000 options in memory and slicing
+them gets a list that opens quickly and grows as it is read, at the cost of `End` meaning "the last one loaded".
+For a list that genuinely is all there, that is the library declining to know something it knows. The user took
+that trade on **2026-08-12** for the incomplete case, which is the case this is built for.

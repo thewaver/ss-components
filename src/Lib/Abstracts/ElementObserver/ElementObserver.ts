@@ -34,6 +34,33 @@ export namespace ElementObserver {
         return getHeight;
     };
 
+    export const createViewportIntersectionObserver = (
+        getRef: Accessor<HTMLElement | undefined>,
+        getIsEnabled?: Accessor<boolean>,
+    ) => {
+        const [getIsIntersecting, setIsIntersecting] = createSignal(false);
+
+        createEffect(() => {
+            const ref = getRef();
+
+            setIsIntersecting(false);
+
+            if (!ref || getIsEnabled?.() === false) return;
+
+            const observer = new IntersectionObserver(([entry]) => {
+                setIsIntersecting(entry.isIntersecting);
+            });
+
+            observer.observe(ref);
+
+            onCleanup(() => {
+                observer.disconnect();
+            });
+        });
+
+        return getIsIntersecting;
+    };
+
     export const createViewportRectObserver = <T extends HTMLElement>(
         getRef: Accessor<T | undefined>,
         getIsVisible: Accessor<boolean>,
