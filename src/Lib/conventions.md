@@ -3817,3 +3817,23 @@ already owns the animation.
 **So the boundary is: can a consumer meaningfully read it?** Playing, open, selected, expanded — state, and a
 `*Signal`. Restart, rewind, re-measure — commands, and an `onMount` handle. Two of the four components turned out
 to need both, so the controller shape is not a legacy to be finished off.
+
+### A popup's anchor is also its dismiss root, which is what lets a consumer's own button toggle it
+
+Settled **2026-08-12**, finishing what `visibilitySignal` started. `Menu` takes an optional `getAnchorRef` and
+positions its popup against that element instead of against its own trigger.
+
+**The positioning is the smaller half; the dismissal is the point.** `Popover` already builds its dismiss layer
+roots as `[the popup, the anchor]`, so whatever element is the anchor is inside the layer and a press on it is not
+an outside press. Before this, a consumer's own toggle button was outside: pressing it while the menu was open
+dismissed the menu and the handler then re-opened it, so the button appeared not to close. Making that button the
+anchor fixes it without `DismissStack` learning anything new — the mechanism was already there and the anchor was
+simply always the trigger.
+
+**A split button is now a composition rather than a missing feature.** The arrow half is the anchor, the main half
+does its own work, and the consumer's own signal opens the menu.
+
+**A right-click context menu is still not possible, and the reason is worth stating**: it opens at the pointer
+rather than against an element, and `Anchor` positions against a ref only. That needs a virtual anchor — a rect
+standing in for an element — which is a change to `Anchor` rather than to `Menu`, and it is the last piece. See
+`review.md` item 6.

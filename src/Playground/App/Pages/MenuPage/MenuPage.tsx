@@ -130,16 +130,19 @@ export const MenuPage = () => {
      */
     const drivenVisibility = createSignal(false);
 
+    const [getDrivenAnchor, setDrivenAnchor] = createSignal<HTMLElement>();
+
     const getVariants = createMemo(() => {
         return [
             {
                 name: "Driven from outside",
                 readout: () =>
-                    `${getLastDrivenAction()} — the menu is ${drivenVisibility[0]() ? "open" : "closed"}, and the button beside it is not its trigger`,
+                    `${getLastDrivenAction()} — the menu is ${drivenVisibility[0]() ? "open" : "closed"}, and it is anchored to the toggle rather than to its own trigger`,
                 component: () => (
                     <>
                         <Menu
                             visibilitySignal={drivenVisibility}
+                            getAnchorRef={getDrivenAnchor}
                             getItems={() => ACTIONS}
                             getAriaLabel={() => "Edit actions"}
                             renderContent={(getFlags) => (
@@ -151,22 +154,15 @@ export const MenuPage = () => {
                         />
 
                         <Button
-                            getAriaLabel={() => "Open the menu from outside"}
+                            ref={setDrivenAnchor}
+                            getAriaLabel={() => "Toggle the menu from outside"}
                             renderContent={(getFlags) => (
-                                <PageButtonContent getFlags={getFlags}>Open it</PageButtonContent>
+                                <PageButtonContent getFlags={getFlags}>
+                                    {drivenVisibility[0]() ? "Close it" : "Open it"}
+                                </PageButtonContent>
                             )}
                             onClick={() => {
-                                drivenVisibility[1](true);
-                            }}
-                        />
-
-                        <Button
-                            getAriaLabel={() => "Close the menu from outside"}
-                            renderContent={(getFlags) => (
-                                <PageButtonContent getFlags={getFlags}>Close it</PageButtonContent>
-                            )}
-                            onClick={() => {
-                                drivenVisibility[1](false);
+                                drivenVisibility[1]((prev) => !prev);
                             }}
                         />
                     </>

@@ -197,9 +197,19 @@ the gaps, each with the reason it is still a gap.
   `<div role="group" aria-label>` so the role cannot end up in consumer markup; the consumer fills the
   header via `renderGroup`. Handing it a `renderOptions` thunk in `renderPopup`'s shape would give it
   the whole box, and is available if something needs it.
-- **Virtualization is still possible but nothing uses it.** The record shape was chosen to keep it
-  open. Only one thing now assumes every option is mounted: each option scrolls _itself_ into view off
-  its own `isHighlighted` flag, which a virtualizer would have to replace with its own scroll-to.
+- **Virtualization has to live inside `Select`, and that was not the plan.** Attempted on **2026-08-12** and
+  reverted before anything shipped, because the published design does not fit this component. That design is a flag
+  telling the library to stop scrolling options into view while the **consumer** windows the list — and `Select` runs
+  its keyboard walk over the array it is handed, so a consumer passing only the visible slice confines `Home`, `End`
+  and the arrows to that window. The full list has to stay with the library, which means the library decides which
+  rows to mount.
+  Two consequences follow. The element that scrolls is the **consumer's** paint — the popup surface carries the
+  `max-height` and the `overflow-y` — so `Select` holds no ref to it and a windower inside `Select` would have to
+  find its nearest scrollable ancestor from its own container. And the windowing package becomes a **runtime
+  dependency of the published library** rather than a Playground devDependency, which is a different question from
+  the one already answered.
+  Unchanged, and still the one thing assuming every option is mounted: each option scrolls _itself_ into view off
+  its own `isHighlighted` flag, which a windower has to take over.
 - **Dismissal does not restore the query.** Escape and blur clear it rather than restoring the selected option's
   text, because restoring it would need the per-option string this design does not have. The open state itself is
   no longer private — `visibilitySignal` ships; see `conventions.md`.
@@ -256,14 +266,13 @@ gaps, each with the reason it is still a gap.
 - **There is no typeahead**, for the same reason `Select` has none — it needs a string per item that
   the painter already renders, or a consumer predicate. Unlike `Select` there is no autocomplete to
   offer instead.
-- **The trigger is a button and only a button.** A right-click context menu and a split button are both the same
-  popup on a different opener. Half of what they needed now exists — `Menu` takes a `visibilitySignal`, so a
-  consumer can open it from anywhere; see `conventions.md`. What is missing is the **anchor** and the opener's
-  place in the dismiss layer: a consumer's own button is outside the popup, so pressing it while the menu is open
-  dismisses the menu and then re-opens it, which is why a toggle button appears not to close. `Menu` would have to
-  accept an anchor element and register it as part of the layer, the way its own trigger already is. The published
-  mechanism for exactly this is quoted in item 15's **_Elsewhere_**: Radix's `DismissableLayer` marks a layer during
-  the capture phase when a press _began_ inside it, so an opener that belongs to the layer never dismisses it.
+- **The opener is solved; a right-click menu still needs a point to open at.** `Menu` takes a `visibilitySignal`
+  and a `getAnchorRef`, and because `Popover` already builds its dismiss roots as the popup **plus its anchor**, a
+  consumer's own button becomes part of the layer and a press on it no longer closes the menu before the handler
+  reopens it — so a toggle button toggles, and a split button is a composition. See `conventions.md`. What a
+  **right-click** menu needs is different in kind: it opens at the pointer rather than against an element, and
+  `Anchor` positions against a ref only. That is a virtual anchor — a rect standing in for an element — and it is a
+  change to `Anchor` rather than to `Menu`. Noted by the user on 2026-08-12 as understood but unsolved.
 - **There is no `menuitemcheckbox` or `menuitemradio`.** Those carry state, which is the line this
   control is on the other side of — `MenuFlags` has no selection and items have no `aria-checked`.
   Adding them means deciding whether a stateful menu is this component or a `Select` with menu paint.
@@ -414,9 +423,10 @@ with its own release cycle, which is this item's call arrived at independently.
 Grouped here because each one is shared by several of the controls in items 7 and 8, and because building
 any of those without first deciding these would bake the decision in by accident.
 
-- **Pointer drag capture, and pointer geometry in the flags contract.** Item 2 records that
-  `renderContent`/`renderDecoration` receive state and never events or pointer position. `Range` cannot
-  be built without it, so the opt-in design that item asks for has to be settled first.
+- **Pointer drag capture ships; one-shot pointer geometry does not.** `InteractionUtils.trackDrag` is in
+  `conventions.md` and `Range` and `ColorArea` are both built over it, so nothing is blocked here any more. What is
+  still missing is the origin of a **single activation** — see item 2, which also argues it is not worth building
+  until something asks.
 - **Masking and formatting is built, and the field over it is shared.** `applyMask`, `applyGroupedMask` and
   `Abstracts/MaskedField` are all in `conventions.md`, with `DateInput`, `TimeInput` and `AmountInput` over them.
   What is not built is a typed sign or a non-uniform group pattern; see item 7.

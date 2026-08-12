@@ -252,14 +252,13 @@ test("a disabled trigger opens nothing by pointer or by key", async ({ page }) =
  */
 test.describe("an open state the consumer owns", () => {
     const DRIVEN = variant("Driven from outside");
-    const openButton = `${DRIVEN} button[aria-label="Open the menu from outside"]`;
-    const closeButton = `${DRIVEN} button[aria-label="Close the menu from outside"]`;
+    const toggleButton = `${DRIVEN} button[aria-label="Toggle the menu from outside"]`;
 
     test("a button that is not the trigger opens the menu", async ({ page }) => {
         await expect(page.locator(MENU), "nothing is portalled to begin with").toHaveCount(0);
         expect(await readout(page, "Driven from outside")).toContain("the menu is closed");
 
-        await page.locator(openButton).click();
+        await page.locator(toggleButton).click();
 
         await expect(page.locator(MENU)).toHaveCount(1);
         expect(await readout(page, "Driven from outside"), "and the owner's own variable says so").toContain(
@@ -267,18 +266,23 @@ test.describe("an open state the consumer owns", () => {
         );
     });
 
-    test("a second button closes it again", async ({ page }) => {
-        await page.locator(openButton).click();
+    /**
+     * The button being the menu's **anchor** is what makes this work. `Popover` treats its anchor as a dismiss
+     * root, so a press on it is not "outside" the layer — without that, the outside-press listener closes the menu
+     * and the toggle handler immediately re-opens it, and the button appears not to close.
+     */
+    test("the same button closes it again, because it is the anchor", async ({ page }) => {
+        await page.locator(toggleButton).click();
         await expect(page.locator(MENU)).toHaveCount(1);
 
-        await page.locator(closeButton).click();
+        await page.locator(toggleButton).click();
 
         await expect(page.locator(MENU)).toHaveCount(0);
         expect(await readout(page, "Driven from outside")).toContain("the menu is closed");
     });
 
     test("the menu writes its own dismissal back into the consumer's variable", async ({ page }) => {
-        await page.locator(openButton).click();
+        await page.locator(toggleButton).click();
         await expect(page.locator(MENU)).toHaveCount(1);
 
         await page.keyboard.press("Escape");
@@ -291,7 +295,7 @@ test.describe("an open state the consumer owns", () => {
     });
 
     test("activating an item closes it and reaches the owner too", async ({ page }) => {
-        await page.locator(openButton).click();
+        await page.locator(toggleButton).click();
         await expect(page.locator(MENU)).toHaveCount(1);
 
         await page.locator(ITEM).filter({ hasText: "Copy" }).first().click();

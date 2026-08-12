@@ -413,7 +413,7 @@ export const Menu = <T,>(props: MenuProps<T>) => {
                         getIsOpen={getIsOpen}
                         getIsSubmenu={() => false}
                         getInitialHighlightPosition={getInitialHighlightPosition}
-                        getAnchorRef={getTriggerRef}
+                        getAnchorRef={() => props.getAnchorRef?.() ?? getTriggerRef()}
                         getTriggerRef={getTriggerRef}
                         getPlacement={props.getPlacement}
                         getOffset={props.getOffset}

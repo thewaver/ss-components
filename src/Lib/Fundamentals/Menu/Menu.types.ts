@@ -99,6 +99,12 @@ export type MenuProps<T> = Omit<InteractionWrapperProps<MenuFlags>, "renderContr
         transitionDurationMs?: number;
     }> & {
         visibilitySignal?: Signal<boolean>;
+        /**
+         * The element the popup is positioned against and, because `Popover` makes its anchor a dismiss root, the
+         * element a press on may open the menu without the outside-press listener closing it first. Defaults to the
+         * menu's own trigger.
+         */
+        getAnchorRef?: () => HTMLElement | undefined;
         getItems: Accessor<MenuItem<T>[]>;
         renderContent: (getFlags: () => InteractionFlags<MenuFlags>) => JSX.Element;
         renderItem: MenuRenderItem<T>;
