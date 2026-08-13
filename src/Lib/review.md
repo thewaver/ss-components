@@ -40,6 +40,7 @@ reading.
 16. `Accordion` — four things deliberately not built — _open_
 17. `Tabs` — no automatic activation, and a pairing the consumer can still skip — _open_
 18. `Viewport` as a region: what is settled and what is not — _open_
+19. `Tree` — six things deliberately not built, and one extraction to decide — _open_
 
 ### Build order
 
@@ -54,10 +55,6 @@ privately inside them.
 1. **Nothing in the date and time family is blocked any more.** The mask covers fixed patterns and growing
    groups, `MaskedField` holds the shared field, and `AmountInput` is the third consumer that proved the seam;
    see `conventions.md`. What is left in item 7 is composition and range work, none of it waiting on a primitive.
-2. **`Tree` is no longer blocked either.** `computeNextCell` ships, `Select`'s tree-flattening model is the
-   other half, and `Abstracts/Virtualizer` — the piece this was waiting on — ships with `Select` over it; see
-   `conventions.md`. What `Tree` would still have to answer is its own, not a primitive's: a windowed tree has
-   to window a flattened, partly-collapsed list whose length changes as branches open.
 
 **Out of the cost ordering, deliberately:**
 
@@ -259,9 +256,9 @@ gaps, each with the reason it is still a gap.
 - **There are no groups and no separators.** `SelectItem<T>`'s discriminated record would carry them
   unchanged, but a second copy of `getFlatOptions` plus `getItemOffsets` would come with it — and that
   is the duplication `NavigationUtils` deliberately did _not_ absorb, since it walks positions and has
-  no opinion about what produced them. Flattening a tree into a navigable list is the next thing worth
-  extracting, and copying it first would make that harder rather than easier. A consumer that needs
-  sections today paints them into `renderPopup` around a flat list.
+  no opinion about what produced them. Flattening a nested list into a navigable one is now written twice —
+  `SelectUtils.getFlatOptions` and `TreeUtils.getVisibleRows` — and whether the two become one is item 19.
+  A consumer that needs sections today paints them into `renderPopup` around a flat list.
 - **`Tab` closes the menu and returns focus to the trigger rather than moving past it.** APG says move
   to the next element after the trigger. The menu is portalled to the end of the document, so letting
   `Tab` through lands focus wherever the portal sits, which is worse than not moving. The cost is one
@@ -368,7 +365,7 @@ doing:
 `Fundamentals/Input` covers `TextInput`, `TextArea`, `NumberInput`, `AmountInput`, `Checkbox`, `Toggle`, `Radio`,
 `RadioGroup`, `Select`, `MultiSelect`, `FileInput`, `ColorInput`, `Label`, `Calendar`, `DateInput`,
 `DatePicker` and `TimeInput`; `Fundamentals` adds `Accordion`, `Button`, `Tabs`, `Tooltip`, `Popover`, `Menu`, `Modal`,
-`Drawer`, `Progress`, `Range` and `Toasts`.
+`Drawer`, `Progress`, `Range`, `Toasts` and `Tree`.
 Beyond item 7, this is what is missing, ordered by how much of it is a new architectural problem rather
 than by how much markup it is.
 
@@ -377,10 +374,6 @@ is the trap: every control on every page and in every props panel is now a libra
 Playground has nothing left to say about what the library lacks.
 
 ### Structure
-
-**`Tree`.** `role="tree"`, expand/collapse, and a keyboard model where arrows do two different things
-by axis. The model transfers directly from `Select`'s option groups: render a tree, walk a flat list,
-derive the flat list from the tree.
 
 **`Table` / data grid is out of scope for now** — sorting, selection, column sizing, sticky headers and
 virtualization together are a project rather than a component, and it should not be started as a
@@ -870,6 +863,74 @@ that roams one of them at a scale you can change, and an anchor inside a scrolli
   `conventions.md`. `viewport.spec.ts` asserts the layer lands exactly on its anchor once the scroll
   settles, which is what a spec can see. The published fix for the intermediate frames is CSS anchor
   positioning, which is Chromium-only.
+
+---
+
+## 19. `Tree` — six things deliberately not built, and one extraction to decide
+
+The decisions behind what exists are in `conventions.md` under _"Controls: `Tree`, and the group box that
+could not be a child"_. These are the gaps, each with the reason it is still one.
+
+- **There is no typeahead**, for the third time and for the same reason as `Select` and `Menu`: it needs a
+  string per node that the painter already renders, or a consumer predicate. A tree is the place the absence
+  is felt most, because a deep tree is exactly where nobody wants to arrow.
+- **A branch whose children have not arrived yet cannot be spelled.** A branch is a node with at least one
+  child, so an empty list reads as a leaf and there is nothing that shows a closed, openable, not-yet-fetched
+  folder. Two things would be needed and only the first is obvious: a way to say "this has children" without
+  having them, and somewhere to paint "loading" — which would have to be inside the `role="group"` box the
+  library owns and the consumer cannot reach.
+- **The marker cannot own the toggle.** One press both selects a node and opens it, because the branch
+  marker is drawn inside `renderNode` and the component cannot tell a press on it from a press on the label.
+  A consumer who wants the published desktop behaviour — the chevron opens, the label selects — has no route
+  to it. Giving them one means either a second render slot the library positions, or a flag saying where the
+  press landed, and neither has been argued.
+- **One selected value, and no checkboxes.** `valueSignal` is `Signal<T | undefined>`, so there is no
+  `aria-multiselectable`, no `Shift`-extended range, and no tri-state parent following its children. That
+  last one is the same `CheckedState` that item 5 says `Select`'s group header wants, which is now two
+  controls asking for the same type.
+- **Not windowed**, and it is the boundary a grouped `Select` already hit: a window opening halfway down a
+  subtree has to draw a `role="group"` whose start is above the window and whose end is below it. The flat
+  walking order the windower needs is already computed and already carries each row's index, so what is
+  missing is the markup rather than the arithmetic.
+- **The focus rescue on an outside collapse is not driven by anything.** A branch that collapses while a row
+  inside it holds focus hands focus back to the branch, rather than letting the browser drop it on the
+  document body. Every route the Playground can produce — a click, `ArrowLeft` — moves focus to the branch
+  first anyway, so the guard only fires when a **consumer** collapses from their own code, and nothing on the
+  page does that. Same shape as `ImageSwitcher`'s `onLoad` in item 10: correct, cheap, and invisible to a
+  suite that drives the page.
+
+**The extraction, which is a decision rather than a gap.** Flattening a nested list into a navigable one now
+exists twice: `SelectUtils.getFlatOptions`, which flattens one level of groups and needs `getItemOffsets`
+beside it to hand each slot a flat index, and `TreeUtils.getVisibleRows`, which flattens any number of levels
+and writes the index onto the row. The second is the general case of the first. Merging them means `Select`
+adopting `TreeRow` — a change to a shipped control's internals in order to delete a two-line function — so it
+was deliberately not done under `Tree`'s justification. The question is whether the shared thing is worth
+having before a third consumer asks.
+
+**_Elsewhere_**, read off the published documentation on **2026-08-13**.
+
+- **Typeahead is in the pattern itself, not just in the libraries.** The published tree pattern lists it as a
+  keyboard requirement — type a character, focus moves to the next node whose name starts with it. Ark UI has
+  it on by **default** behind a `typeahead` prop; React Aria drives it off the same `textValue` its lists use.
+  So of the three controls here that skip it, this is the one where skipping it departs from the spec rather
+  than from a convention.
+- **Lazy branches are a named feature with a completion callback.** Ark UI takes `loadChildren` plus
+  `onLoadChildrenComplete`; React Aria has a `TreeLoadMoreItem` element and a `renderEmptyState` for the
+  spinner. Both answer the second half this item calls hard — where "loading" is painted — by making it an
+  element the consumer supplies, which is the shape the group box here would have to grow.
+- **Multi-select and checkboxes are one feature, and both libraries ship it.** `selectionMode="multiple"` in
+  each, with Ark UI adding `NodeCheckbox` and a `checkedValue` list carrying `indeterminate`. So the tri-state
+  parent is not an extra: it is what a multi-select tree is expected to include.
+- **A windowed tree is done by handing the visible list out.** Ark UI virtualizes through `getVisibleNodes()`
+  plus a `scrollToIndexFn`, which is precisely `getVisibleRows` and `scrollToRow` — the same two pieces this
+  library already has, arranged so the consumer owns the window. React Aria's tree documents no virtualization
+  at all. Worth knowing before the group-box boundary above is treated as the only way in.
+- **The indent guide is a part in one of them.** Ark UI ships `BranchIndentGuide` alongside `BranchControl`,
+  `BranchIndicator` and `BranchText`, so the depth line a consumer draws here from the `depth` flag is
+  something at least one library thought worth owning.
+- **Drag and drop is React Aria's, and nobody else's.** It arrives through the same `useDragAndDrop` hook its
+  lists use rather than as anything tree-specific. Nothing here has asked for it, and it is recorded so the
+  omission is not re-derived as an oversight.
 
 ---
 

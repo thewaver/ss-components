@@ -4071,3 +4071,78 @@ same root: this library is a guest inside somebody else's popup.**
 first painted frame with every option mounted, against 71 ms with a window of four. Frame rate while open was
 never the problem and is unchanged. The remaining cost at open is linear but has no DOM in it — building the
 records, flattening them, finding the navigable ones — and that is the floor a windower cannot lower.
+
+### Controls: `Tree`, and the group box that could not be a child
+
+Settled **2026-08-13**. `Tree` is `role="tree"` with expand and collapse, one selected value, and a keyboard
+where the two axes mean different things. Most of it is `Select`'s model applied a second time; the parts
+that are not are here.
+
+**A node is one record with optional children, and a branch is a node that has at least one.**
+`TreeNode<T>` carries `value`, `children`, and the same `isDisabled` / `isReachableWhenDisabled` /
+`tooltipDefs` trio every other item record carries, so nothing about disabling or explaining a node is
+new. `TreeUtils.getIsBranch` is `(node.children?.length ?? 0) > 0`, which is `Menu`'s test for a submenu
+character for character. The cost is that a branch whose children have not been fetched yet cannot be
+spelled — an empty list reads as a leaf — and that is recorded in `review.md` rather than solved, because
+the fix is a second field whose only job is to contradict the first.
+
+**Render from the nesting, walk the flat order.** `TreeUtils.getVisibleRows` takes the nodes and a
+predicate and returns a rendering tree with the collapsed branches already taken out; `getFlatRows`
+collapses that into the walking order. It is the same split as `SelectUtils.getFlatOptions` and it exists
+for the same reason: the arrows, the edge keys and the roving tab stop all index into the flat list and
+never learn that nesting happened. Each row carries its own flat `index`, so the two views agree without
+anything having to be kept in step.
+
+**The `role="group"` box is a sibling of the branch's row, not its child, and that is forced rather than
+preferred.** The published markup puts the group inside the `treeitem` it belongs to. Here every row is an
+`InteractionWrapper`, and that listens for `mouseenter`, `mousedown` and `keydown` on the element it was
+handed — all three of which reach an ancestor. A row nested inside another row would therefore report its
+ancestor as hovered while the pointer was over the child, and as pressed while the child was being clicked.
+Fixing that would mean teaching `wrapElement` that a descendant's hover is not its own, which is false for
+every other control in the library, where the descendants are the painter's own markup.
+
+So the groups nest but the rows do not. Depth still computes correctly from the markup — one group per
+level — and `aria-level`, `aria-posinset` and `aria-setsize` are written on every row as well, which is
+what the published pattern asks for whenever the DOM is not the whole hierarchy. The one thing given up is
+the formal ownership of a group by the `treeitem` above it. `aria-owns` would restore it on paper and was
+rejected for the reason already recorded under the presentational wrapper: it states a relationship the
+markup no longer shows, and rots the moment either side moves.
+
+**A roving tab stop, not `aria-activedescendant`, because there is no second element to put it on.**
+`Select` can name its highlighted option from the combobox because the combobox is a separate, always-present
+element that keeps the real focus. A tree has only its rows, so the focused row is the focused element and
+the tab order has to be roving — which is `Tabs`' arrangement, down to the roving position falling back to
+the selection and then to the first navigable row.
+
+**Focus moves by id rather than through a ref array, because a tree's indexes move under it.** `Tabs` and
+`Accordion` both keep an array of element refs indexed by position, which works because their lists are
+flat and fixed. Expanding a branch renumbers every row below it while the elements themselves stay put, and
+a `ref` callback does not run again to say so — so an array keyed by index would silently point at the wrong
+rows. Each row instead carries `${treeId}-node-${index}` as its id, and moving focus is a
+`getElementById`. The same id is what tells the key handler which row is focused, which is how a click and
+an arrow key end up on the same footing.
+
+**One press both selects and toggles, because the library paints no twisty.** A consumer draws the branch
+marker inside `renderNode`, so the component cannot tell a press on the marker from a press on the label —
+and if a press did not toggle, a mouse user could not open a branch at all. `Enter` and `Space` do exactly
+what a click does, which is the parity every other control here keeps. A consumer who wants "the chevron
+opens, the label selects" has no route to it; see `review.md`.
+
+**A disabled node is not a disabled subtree.** The arrows skip it and nothing selects or opens it, but its
+children stay navigable if it was already open. A disabled branch is a statement about that node, and a
+consumer who means the whole subtree disables the nodes in it.
+
+**A collapsed branch's children are not built**, which is the opposite of `Accordion`, and the reason is
+that nothing needs measuring: an accordion panel animates to a height it can only learn by building the
+content, while a tree's rows just appear. So the natural default here is the one `Accordion` cannot afford.
+
+**Not windowed, and it is the same boundary a grouped `Select` hits.** A window opening halfway down a
+subtree would have to draw a `role="group"` whose start is above the window and whose end is below it. The
+flat walking order is exactly what a windower wants and the row records already carry it, so the missing
+half is the markup rather than the arithmetic.
+
+**The walk wraps, as every other list in this library does.** The published tree pattern stops at the ends
+instead. Wrapping is what `Select`, `Menu`, `Tabs` and `RadioGroup` all do through
+`NavigationUtils.computeNextPosition`, and a tree that stopped would be the one list here that behaves
+differently — so consistency inside the library won over the published behaviour, and the choice is
+recorded here rather than being discoverable only by pressing `ArrowUp` on the first row.

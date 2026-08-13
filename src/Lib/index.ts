@@ -147,5 +147,8 @@ export type * from "./Fundamentals/Toasts/Toasts.types";
 export * from "./Fundamentals/Toasts/Toasts.utils";
 export * from "./Fundamentals/Tooltip/Tooltip";
 export type * from "./Fundamentals/Tooltip/Tooltip.types";
+export * from "./Fundamentals/Tree/Tree";
+export type * from "./Fundamentals/Tree/Tree.types";
+export * from "./Fundamentals/Tree/Tree.utils";
 
 export type * from "./Utils/typeUtils";

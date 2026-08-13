@@ -38,6 +38,7 @@ import { TextAreaPage } from "./Pages/TextAreaPage/TextAreaPage";
 import { TextInputPage } from "./Pages/TextInputPage/TextInputPage";
 import { ToastsPage } from "./Pages/ToastsPage/ToastsPage";
 import { TogglePage } from "./Pages/TogglePage/TogglePage";
+import { TreePage } from "./Pages/TreePage/TreePage";
 import { TypewriterPage } from "./Pages/TypewriterPage/TypewriterPage";
 import { ViewportPage } from "./Pages/ViewportPage/ViewportPage";
 import { PageTextField } from "./StyledComponents/Field/Field";
@@ -210,6 +211,10 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "Toggle",
         component: () => <TogglePage />,
+    },
+    {
+        name: "Tree",
+        component: () => <TreePage />,
     },
     {
         name: "Composites",
