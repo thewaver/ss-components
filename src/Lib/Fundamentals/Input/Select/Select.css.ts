@@ -51,6 +51,19 @@ export const selectFilterField = style({
 export const selectEndMarker = style({
     width: "100%",
     height: 1,
+    marginTop: -1,
+});
+
+export const selectSizer = style({
+    position: "relative",
+    width: "100%",
+});
+
+export const selectSizerRow = style({
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
 });
 
 export const selectOption = style({

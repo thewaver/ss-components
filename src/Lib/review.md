@@ -54,8 +54,10 @@ privately inside them.
 1. **Nothing in the date and time family is blocked any more.** The mask covers fixed patterns and growing
    groups, `MaskedField` holds the shared field, and `AmountInput` is the third consumer that proved the seam;
    see `conventions.md`. What is left in item 7 is composition and range work, none of it waiting on a primitive.
-2. **`Tree`** — `computeNextCell` ships, and `Select`'s tree-flattening model is the other half. Wants
-   virtualization, which is also `Select`'s loose end in item 5, so that `Abstract` belongs here.
+2. **`Tree` is no longer blocked either.** `computeNextCell` ships, `Select`'s tree-flattening model is the
+   other half, and `Abstracts/Virtualizer` — the piece this was waiting on — ships with `Select` over it; see
+   `conventions.md`. What `Tree` would still have to answer is its own, not a primitive's: a windowed tree has
+   to window a flattened, partly-collapsed list whose length changes as branches open.
 
 **Out of the cost ordering, deliberately:**
 
@@ -197,24 +199,20 @@ the gaps, each with the reason it is still a gap.
   `<div role="group" aria-label>` so the role cannot end up in consumer markup; the consumer fills the
   header via `renderGroup`. Handing it a `renderOptions` thunk in `renderPopup`'s shape would give it
   the whole box, and is available if something needs it.
-- **A complete list held in memory still has no cheap path, and virtualization is still the only one.** The
-  incomplete case shipped instead — `getHasMoreOptions`, `onReachEnd` and a marker at the end; see
-  `conventions.md`. That serves a consumer whose data arrives in batches, and a consumer holding the whole array
-  can slice it themselves, at the price of `End` meaning "the last one loaded". What it does not do is let the
-  library hold 100,000 options and mount a window onto them, which is the only arrangement where `End` still means
-  the end. Attempted on **2026-08-12** and reverted: the published design is a flag telling the library to stop
-  scrolling options into view while the **consumer** windows the list, and `Select` walks the array it is handed,
-  so a consumer passing only the visible slice confines `Home`, `End` and the arrows to that window.
-  Two things would still have to be answered if it is ever taken up. The element that scrolls is the
-  **consumer's** paint, so a windower inside `Select` would have to find its nearest scrollable ancestor from its
-  own container — the marker route sidesteps this by observing against the viewport, but a windower cannot. And a
-  windowing package becomes a **runtime dependency of the published library** rather than a Playground
-  devDependency, which is a different question from the one already answered.
-  Unchanged, and still the one thing assuming every option is mounted: each option scrolls _itself_ into view off
-  its own `isHighlighted` flag, which a windower has to take over.
-  Also unmeasured: what the Playground's stress variant reports is the cost of **mounting** options, and
-  `content-visibility` on the option paint only ever addressed the cost of **painting** them. The two are
-  separate and only the second has a cheap answer.
+- **A windowed list is not grouped, and a grouped list is not windowed.** `computeEstimatedOptionHeight` ships
+  and the complete-list case is answered; see `conventions.md`. What it does not cover is a list that has both
+  groups and enough options to need windowing: passing an estimate for a grouped list mounts everything instead.
+  A group's box wraps its options, so a window opening halfway down one has to draw a box for a group whose
+  header is above the window and whose end is below it, and decide whether to repeat that header as the reader
+  scrolls past. Neither answer has been argued, and no consumer has asked.
+- **A windowed row's slot is up to a pixel taller than the row inside it.** Measured sizes are rounded to whole
+  pixels while the rows are not whole pixels tall, so consecutive rows sit with a hairline between them. It does
+  not accumulate — every row's position comes from the same rounded sizes the total does — and it is invisible
+  against a paint with no per-row border or background. A consumer who gives their options a background will see
+  it.
+- **What the stress variant reports is the cost of mounting options**, which is a separate cost from painting
+  them. Windowing removed the mounting cost for lists that opt in; nothing addresses the painting half, and the
+  cheap answer to it was `content-visibility` on the option paint, which is gone — see `conventions.md`.
 - **Dismissal does not restore the query.** Escape and blur clear it rather than restoring the selected option's
   text, because restoring it would need the per-option string this design does not have. The open state itself is
   no longer private — `visibilitySignal` ships; see `conventions.md`.
@@ -435,16 +433,14 @@ any of those without first deciding these would bake the decision in by accident
 - **Masking and formatting is built, and the field over it is shared.** `applyMask`, `applyGroupedMask` and
   `Abstracts/MaskedField` are all in `conventions.md`, with `DateInput`, `TimeInput` and `AmountInput` over them.
   What is not built is a typed sign or a non-uniform group pattern; see item 7.
-- **Virtualization.** Already recorded as a `Select` loose end in item 5; `Tree` and any grid need the
-  same thing, so it is an `Abstract`, not a per-control feature. Note that the on-demand loading that
-  shipped for `Select` is **not** it and does not reduce the need for it — that answers a list which is
-  incomplete, this one answers a list which is complete and large.
+- **Virtualization is built.** `Abstracts/Virtualizer` wraps `@tanstack/solid-virtual` and `Select` is the
+  first consumer; see `conventions.md`. It was made an `Abstract` rather than a `Select` feature because
+  `Tree` and any grid want the same thing. Note that the on-demand loading that shipped for `Select` is
+  **not** it and did not reduce the need for it — that answers a list which is incomplete, this one answers
+  a list which is complete and large, and the two compose.
 - **The form story is decided and wired.** `Form` and `FormField` ship and every control reads the
-  description context; see `conventions.md`. What is still unbuilt is smaller: nothing groups fields into
-  sections with their own validity, and `hasSubmitted` is exposed but no control uses it to hold its error
-  back until the first attempt. Note that `DateInput` and `TimeInput` now raise `hasError` on their own,
-  from their own text — so the first producer of that flag turned out to be a control rather than the form,
-  and the two will have to agree once `hasSubmitted` starts gating anything.
+  description context; see `conventions.md`, which also records which errors wait for a submit and which
+  do not. What is still unbuilt is smaller: nothing groups fields into sections with their own validity.
 - **Dismissal is one stack, and paint order comes from the anchor.** `DismissStack` holds the open layers
   and `Popover` registers one, so all five controls dismiss through the same mechanism; a portalled layer's
   z-index is one above the highest on its anchor's ancestor chain, so a popup opened inside a `Modal` paints

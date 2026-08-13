@@ -66,6 +66,33 @@ So `Abstracts/DateValue` wraps `@internationalized/date` from inside `src/Lib`, 
 declared here. Pure formatting or numeric helpers that grow out of this work are candidates for `ss-utils`;
 anything holding an import of the date package is not.
 
+### Look in `ss-utils` before writing anything general-purpose
+
+Asked for by the user on **2026-08-13**. `ss-utils` is a dependency of this repo, written by the same person,
+and it already holds a lot. Re-implementing something it exports is the easiest waste to commit and the
+hardest to notice afterwards, because the duplicate works.
+
+**The trigger is the shape of the code, not the name of the file.** `.utils.ts` is where a util ends up, not
+where it starts — most of them start as three lines inside a component, which is exactly why "I am not
+writing a utility right now" is the wrong test. The real test is: **could this function be given a name and
+a couple of arguments and then make sense with nothing around it?** If yes, it is general-purpose, whatever
+file it currently lives in. Comparing two arrays by an id on each element is the example the user gave —
+that one is not in `ss-utils`, and it is still the shape being described.
+
+Things that read as small enough to just write are the ones this is aimed at: clamping, rounding to a step,
+comparing two rects, spreading a padding, kebab-casing a key, picking a random element, deduplicating,
+formatting a number. Several of those _are_ already there — `MathUtils`, `RectUtils`, `CSSUtils`,
+`StringUtils`, `RandomUtils`, `PolygonUtils`, `ShapeUtils`, `BitwiseUtils`, `FunctionUtils`, `DOMUtils`,
+`SVGUtils`, `IOUtils`, `KeyframesUtils`, plus `Point2d`, `Vec2d`, `Vec4d`, `Rect`, `Bounds`, `Size2d`, `Dir`
+and `Count` as value types with their own helpers.
+
+**How to check, in order.** Read the namespace list above and pick the one the thing would belong to; look at
+that namespace's own file under `node_modules/@thewaver/ss-utils/dist`, which is small enough to read whole;
+grep the export list for the noun rather than the verb — the package names things after what they operate on.
+Only then write it. If it is genuinely absent but would still make sense with nothing around it, it is a
+candidate to go _to_ `ss-utils` rather than to live here — see the section above for which side of the line
+it falls on.
+
 ### House style
 
 `const DEFAULT_X = …` at module scope, `createMemo` for derived props with a default, one blank line
@@ -167,7 +194,32 @@ Use it only where the component genuinely needs to write. One-way data stays `ge
 The cost, accepted: the owner has to _have_ a signal. Visibility derived from a memo, a store
 field or a route param has no setter to hand over, and would need a signal kept in sync.
 
-### Accessor vs plain callback args
+### Asking for a state a thing is already in does nothing
+
+Settled **2026-08-13**, as a rule for the whole library rather than for one control. **Open an open thing,
+close a closed one, play what is playing, stop what is stopped, show what is shown, highlight what is
+highlighted — every one of them is a no-op.** Nothing fires, nothing is notified, nothing is re-read.
+
+**The reason is that a state request is a statement about where things should end up, not an instruction to
+perform a transition.** A caller who says "open" is saying "be open"; if it already is, there is nothing to
+do and any work done anyway is work the caller did not ask for. That work is invisible at the call site and
+turns up as a side effect somewhere else — the `Menu` case that produced this rule had a trigger re-open an
+already-open menu, and the only thing that actually happened was the highlight jumping back to the first item.
+
+**The guard belongs in the transition, not at the call sites.** One `if` inside `open` is a property of the
+component; the same `if` written at four call sites is a thing the fifth caller will not know about. This is
+the same argument as _"Anything that has to happen because the popup is open belongs to the state, not to one
+of the ways in"_ under `DatePicker` — a transition that refuses to repeat itself and an effect that hangs off
+the state are the two halves of one idea.
+
+**Notifying the consumer counts as work.** Re-selecting the tab that is already selected must not call
+`onSelectionChange` again; the callback is how a consumer learns the value _changed_, and calling it when
+nothing changed makes every consumer write the comparison the library declined to.
+
+**Three things are outside this rule and are not violations of it.** A **toggle** is a request to invert,
+so it always acts. An **explicit restart** — `Typewriter`'s is the one that exists — is a command rather than
+a state, and asking to restart something already running is exactly when it means something. And a
+**multi-select pick** of a selected value deselects it, which is a change and not a repeat.
 
 Ask: **who needs to track this value, and when?**
 
@@ -1924,6 +1976,28 @@ now lives in the level rather than in `Menu`, so the trigger states an intent �
 — which the level reads only as the fallback for a highlight nothing has set yet. It is not written into
 the level's state, so the first arrow press walks from it and overwrites it exactly as before.
 
+**A trigger swallows its own keys while its menu is open, rather than opening it again.** Added
+**2026-08-13**. A menu is drawn and highlighted before it takes keyboard focus — the layer takes focus only
+once it has been positioned, and its position waits on a `ResizeObserver` callback that arrives in a later
+task. In that window the keyboard is still pointed at the trigger, so an `Enter` meant for the highlighted
+item reached the trigger's own handler, which read it the only way it knows: open the menu. Opening an open
+menu reset the highlight to the first item, so the keystroke did not go missing — it silently moved the
+highlight, and the reader's _next_ `Enter` then ran the wrong item. Refusing the four opening keys while the
+state says open turns that into a keystroke ignored, which is the tolerable failure.
+
+**The default is prevented before the open state is consulted, and the order is load-bearing.** All four of
+those keys activate a `<button>` natively, so returning early without preventing the default lets the browser
+synthesise a click on the trigger — which toggles the menu shut. Guarding first and preventing second would
+trade a wrong highlight for a menu that closes under the reader.
+
+**What this does not do is make that early keystroke work**, and the window it arrives in is still there.
+Closing it means giving a layer focus as soon as it is open rather than once positioned; the cheap version of
+that — reading the content size once on mount instead of waiting for the observer — was tried on 2026-08-13
+and reverted. Positioned a frame earlier, the menu lands under the pointer that just clicked the trigger and
+`onMouseEnter` takes the highlight, so six menu specs failed on a highlight one item further down than they
+asked for. That makes it a question about whether the pointer or the keyboard owns the highlight at open,
+which is a decision nobody has taken.
+
 **The submenu's placement defaults to `right-out` / `top-in`; its offset is left at zero and belongs to
 the consumer.** A submenu anchors to its parent item, and an item sits inside whatever padding and
 border the painter's surface has, so a submenu flush against its anchor overlaps the surface it came
@@ -3386,6 +3460,15 @@ is what gives Enter-to-submit and the reset behaviour for free; `noValidate` is 
 own bubble would compete with the messages the consumer is already drawing. `hasSubmitted` is exposed
 because "show the errors only after the first attempt" is the one piece of form state that is not a field's.
 
+**A control does not hold its own error back until submit, and `hasSubmitted` is not for the errors it
+raises.** Stated by the user on **2026-08-13**. The split is by _who can answer the question_, not by when
+the reader would rather hear it. A format, range or mask error is answerable from the field's own text the
+moment it is typed — the control already knows, so hiding what it knows until a submit is a control keeping
+a secret from its reader. `hasSubmitted` exists for the other kind: an answer only a server has, such as
+whether credentials are accepted or a name is already taken, which cannot exist before something is sent.
+That is why `DateInput` and `TimeInput` raising `hasError` from their own text is not a conflict with the
+form's flag but the other half of the same rule — nothing has to be reconciled between them.
+
 **`Button` gained `getType`.** A submit button has to be a `<button type="submit">`, and the leaf hardcoded
 `"button"` — so before this the form story could not have a submit button that was also a `Button`. It
 defaults to `"button"`, so nothing changed for existing call sites.
@@ -3862,6 +3945,33 @@ observes against the viewport, and an observer computes intersection through eve
 it reports the marker hidden without ever being told what is hiding it. "The list is too short to scroll" and
 "you have scrolled to the bottom" become the same condition, which is what makes it converge with no startup path.
 
+**The marker overlaps the last option rather than following it, and the keyboard is the reason.** A negative
+top margin equal to its own height puts it on the last pixel _of_ the list instead of the first pixel _after_
+it, so it costs no layout. It shipped on **2026-08-12** as a plain trailing element and that does not work for
+anyone not using a mouse: an option scrolls itself into view with `block: "nearest"`, which stops the moment
+that option is fully visible and never goes further, so a marker beyond the last option is exactly the thing
+`End` and the last `ArrowDown` can never reveal — the highlight lands on the last option held and no batch is
+ever asked for. Overlapping it makes "the last option is on screen" and "the marker is on screen" the same
+fact, which is the condition the observer was always meant to be reporting, and the mouse path is unchanged
+because scrolling to the bottom still crosses it.
+
+The reason this was not caught by the suite is worth keeping too: at a scale of exactly 1 the marker's top
+edge lands on the scroll box's bottom edge to the pixel, and Chrome reports that zero-area contact as an
+intersection, so the batch arrives and the spec passes. The Playground is scaled by `Viewport` and is almost
+never at a scale of 1, and at any other scale the contact misses by a fraction. **A behaviour that depends on
+two edges being equal is not a behaviour**, so the spec now asserts the overlap itself rather than the batch
+that follows from it.
+
+**The Playground does not skip painting off-screen options, and the reason is that it moves the list under the
+reader.** The option paint carried `content-visibility: auto` with an estimated row height behind a panel
+switch, which lets the browser skip laying out and painting rows nobody can see. The estimate is a single
+number and the rows are not one height — a title alone is short, a title with a wrapped description is not —
+so the moment a jump to the end forces the skipped rows to be laid out for real, every height above the
+highlight is corrected at once and the scroll offset no longer points where it did. `End` then leaves the
+highlighted option below the visible box, having scrolled to where that option used to be. The user removed
+the switch on **2026-08-13** for that reason. What it bought was the cost of _painting_ options, which is a
+different cost from _mounting_ them and the smaller of the two; `review.md` item 5 holds what is left of that.
+
 **The marker is keyed on the options array, and that is load-bearing.** An intersection observer reports only
 _changes_, so a batch too small to push the marker off screen would deliver no callback and the list would
 stall. Rebuilding the marker whenever the array identity changes forces a fresh observation of fresh geometry;
@@ -3896,3 +4006,68 @@ against the array the library was handed, which is exactly "the first and last h
 them gets a list that opens quickly and grows as it is read, at the cost of `End` meaning "the last one loaded".
 For a list that genuinely is all there, that is the library declining to know something it knows. The user took
 that trade on **2026-08-12** for the incomplete case, which is the case this is built for.
+
+### A list too long to mount: `computeEstimatedOptionHeight` and `Abstracts/Virtualizer`
+
+Settled **2026-08-13**, on the second attempt. This is the answer for the complete list the section above
+declines: **on-demand loading answers a list that has not all arrived; this answers a list that has all
+arrived and is too long to build.** They compose, and neither knows about the other.
+
+**Passing an estimated height is what turns it on, and a list short enough not to need it should not pass
+one.** The user's rule: under a couple of hundred options there is nothing to win, and the cost is real —
+a windowed list is placed from measurements that arrive late, so it accepts imprecision to buy back time
+that was never being spent. There is no boolean and no automatic threshold, because a threshold would be
+the library guessing at a row height it has never seen.
+
+**The estimate belongs to the consumer because the height is a consequence of `renderOption`.** The library
+paints no option and therefore cannot know how tall one is. It is per index rather than one number, so rows
+that come in two known shapes can be answered separately. It is consulted only for rows nobody can see —
+every row on screen is measured for real — so what it actually buys is an honest scrollbar before anything
+has been scrolled. TanStack's advice is to estimate the **largest** plausible row so the guess errs one way
+and the list only ever settles upward; that is the note this repo would otherwise have learned by shipping it.
+
+**`@tanstack/solid-virtual` is a runtime dependency, and it is marked external rather than bundled.** The
+first attempt on 2026-08-12 took a package out again; this one keeps it, on the user's call that a dependency
+is acceptable for exactly this kind of functionality, the same call `colorthief` already carries. External
+rather than bundled follows `colorthief` too: a package that is both inlined into `dist` and declared in
+`dependencies` makes a consumer install a copy they never load. Note that `@internationalized/date` is still
+bundled while being declared, which is the older half of that inconsistency and has not been argued.
+
+**The windower lives inside `Select`, and that is the whole difference from the attempt that failed.** The
+2026-08-12 design had the **consumer** window the list and hand over only the visible slice, so `Select`
+walked the slice: `Home`, `End` and the arrows were confined to whatever happened to be mounted. Holding the
+whole array and mounting a window onto it leaves `getFlatOptions`, the navigable set and the whole keyboard
+model untouched — only what is in the document changes. Nothing about the keyboard needed rewriting.
+
+**A grouped list is not windowed, and that is a boundary rather than a preference.** A group's box wraps the
+options inside it, so a window opening halfway down one would have to draw a box for a group whose header is
+above the window and whose end is below it, and repeat the header as the reader scrolls. Passing an estimate
+for a list that contains a group mounts everything, silently and correctly.
+
+**Four things had to be answered that the package's own documentation does not cover, all of them from the
+same root: this library is a guest inside somebody else's popup.**
+
+- **Solid runs a `ref` while the element is still being built.** The measurer identifies a row by reading an
+  index attribute off the node it is handed, and at `ref` time the attribute is not on it and the node is not
+  in the document — so measuring from the `ref` reads an unnamed, unlaid-out element and silently keeps the
+  estimate. Rows then tile on the estimate rather than on their real heights, and a row taller than its slot
+  paints over the one below. The index is written onto the element and the measurement deferred to mount.
+  React's adapter never meets this because React runs refs after commit; nothing warns about it.
+- **The rows' container does not start where the scrolling starts.** Row offsets are measured from the top of
+  the container the library owns, a scroll position from the top of whatever is scrolling, and between them
+  sits however much border and padding the consumer put on their popup. Unset, every scroll target lands short
+  by that inset, which reads as an arrow key stopping one option before the one it highlighted. `scrollMargin`
+  is the package's own answer; the offset has to be worked out in layout space rather than off the raw client
+  rects, because `Viewport` scales the page.
+- **A highlighted row must be mounted whether or not it is in view.** `aria-activedescendant` names an element
+  by id, and scrolling to a row is not the same instant as mounting it, so the name refers to nothing until
+  the window catches up. The row carrying the highlight is pinned into the range.
+- **An option can no longer scroll itself into view**, because until the window reaches it there is nothing to
+  scroll. The move belongs to whatever owns the window, and it hangs off the highlight as an effect rather
+  than off the key handler, so a highlight arriving any other way — a pick in a multi-select, a list opening
+  onto a selection — is carried the same way.
+
+**What it is worth, measured on the Playground's stress card at 10,000 options**: 792 ms from click to the
+first painted frame with every option mounted, against 71 ms with a window of four. Frame rate while open was
+never the problem and is unchanged. The remaining cost at open is linear but has no DOM in it — building the
+records, flattening them, finding the navigable ones — and that is the floor a windower cannot lower.

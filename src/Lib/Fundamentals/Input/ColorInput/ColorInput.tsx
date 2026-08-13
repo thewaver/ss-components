@@ -94,6 +94,8 @@ export const ColorInput = (props: ColorInputProps) => {
     };
 
     const dismiss = () => {
+        if (!getIsOpen()) return;
+
         setIsOpen(false);
         getFieldRef()?.focus();
     };

@@ -35,6 +35,8 @@ export * from "./Abstracts/SignalMirror/SignalMirror";
 export * from "./Abstracts/TextSync/TextSync";
 export type * from "./Abstracts/TimeValue/TimeValue.types";
 export * from "./Abstracts/TimeValue/TimeValue.utils";
+export * from "./Abstracts/Virtualizer/Virtualizer";
+export type * from "./Abstracts/Virtualizer/Virtualizer.types";
 
 export * from "./Exotics/CellAnimation/CellAnimation";
 export type * from "./Exotics/CellAnimation/CellAnimation.types";

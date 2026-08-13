@@ -337,8 +337,13 @@ export const Menu = <T,>(props: MenuProps<T>) => {
 
     const getTriggerId = createMemo(() => props.getId?.() ?? fallbackTriggerId);
 
+    /**
+     * Opening an open menu does nothing at all, rather than restating where the highlight should start. The
+     * position is only ever the fallback for a highlight nothing has set yet, so writing it into a menu the
+     * reader is already walking throws away where they had got to.
+     */
     const open = (position: MenuHighlightPosition) => {
-        if (getIsDisabled()) return;
+        if (getIsDisabled() || getIsOpen()) return;
 
         setInitialHighlightPosition(position);
         setIsOpen(true);
@@ -369,20 +374,21 @@ export const Menu = <T,>(props: MenuProps<T>) => {
         setInitialHighlightPosition("first");
     });
 
+    /**
+     * The default is prevented for all four keys whether or not anything comes of them, and that is the whole
+     * of it: each of them activates a `<button>` natively, so leaving the default alone lets the browser
+     * synthesise a click on the trigger, which toggles the menu shut. Refusing to open an open menu is `open`'s
+     * own business rather than this handler's — a key arriving while the menu already has the keyboard has
+     * nothing left to open, and it is swallowed here rather than acted on.
+     */
     const handleTriggerKeyDown = (e: KeyboardEvent) => {
         if (getIsDisabled()) return;
 
-        if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
-            e.preventDefault();
-            open("first");
+        if (e.key !== "Enter" && e.key !== " " && e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
 
-            return;
-        }
+        e.preventDefault();
 
-        if (e.key === "ArrowUp") {
-            e.preventDefault();
-            open("last");
-        }
+        open(e.key === "ArrowUp" ? "last" : "first");
     };
 
     return (

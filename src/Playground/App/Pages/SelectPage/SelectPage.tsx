@@ -11,7 +11,7 @@ import { SelectUtils } from "../../../../Lib/Fundamentals/Input/Select/Select.ut
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
-import { PageCheckField, PageNumberField } from "../../StyledComponents/Field/Field";
+import { PageNumberField } from "../../StyledComponents/Field/Field";
 import { PageLabelCaption } from "../../StyledComponents/LabelCaption/LabelCaption";
 import { PagePopoverSurface } from "../../StyledComponents/PopoverSurface/PopoverSurface";
 import { PageSelectContent, computePageSelectTextStyle } from "../../StyledComponents/SelectContent/SelectContent";
@@ -21,6 +21,7 @@ import { PageTooltipContent } from "../../StyledComponents/TooltipContent/Toolti
 
 import * as popupStyles from "../../StyledComponents/PopoverSurface/PopoverSurface.css";
 import { FIELD_CHEVRON_WIDTH, FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/SelectContent/SelectContent.css";
+import * as styles from "./SelectPage.css";
 
 type Airport = {
     code: string;
@@ -147,6 +148,7 @@ const MAX_STRESS_COUNT = 200000;
 const STRESS_COUNT_STEP = 1000;
 const STARTING_STRESS_COUNT = 10000;
 const STRESS_COUNT_FIELD_WIDTH = 120;
+const STRESS_OPTION_HEIGHT = 100;
 
 const STRESS_DESCRIPTIONS = [
     "Next working day, before 13:00.",
@@ -189,7 +191,6 @@ const searchRoutes = (query: string, offset: number) =>
     });
 
 export const SelectPage = () => {
-    const [getIsSkippingOffScreen, setIsSkippingOffScreen] = createSignal(true);
     const [getStressCount, setStressCount] = createSignal(STARTING_STRESS_COUNT);
     const [getOpenMs, setOpenMs] = createSignal<number>();
 
@@ -203,7 +204,6 @@ export const SelectPage = () => {
             getVisibilityTarget={getVisibilityTarget}
             getTransitionDurationMs={getTransitionDurationMs}
             getPlacement={getPlacement}
-            getIsSkippingOffScreen={getIsSkippingOffScreen}
         >
             {renderOptions()}
         </PagePopoverSurface>
@@ -368,6 +368,76 @@ export const SelectPage = () => {
                 ),
             },
             {
+                name: "Record values",
+                readout: () => `value: ${recordSignal[0]()?.code ?? "undefined"}`,
+                component: () => (
+                    <Select
+                        valueSignal={recordSignal}
+                        getOptions={() => AIRPORTS}
+                        getAriaLabel={() => "Airport"}
+                        renderContent={(getSelectedOption, getFlags) => (
+                            <PageSelectContent getFlags={getFlags}>
+                                {getSelectedOption() ? getSelectedOption()!.value.city : PLACEHOLDER}
+                            </PageSelectContent>
+                        )}
+                        renderOption={(getOption, getFlags) => (
+                            <PageSelectOptionContent getFlags={getFlags}>
+                                {getOption().value.city} ({getOption().value.code})
+                            </PageSelectOptionContent>
+                        )}
+                        renderPopup={renderSelectPopup}
+                    />
+                ),
+            },
+            {
+                name: "Title and description",
+                readout: () =>
+                    `value: ${deliverySignal[0]()?.name ?? "undefined"} — the descriptions wrap, so no two rows are the same height`,
+                component: () => (
+                    <Select
+                        valueSignal={deliverySignal}
+                        getOptions={() => DELIVERIES}
+                        getAriaLabel={() => "Delivery"}
+                        renderContent={(getSelectedOption, getFlags) => (
+                            <PageSelectContent getFlags={getFlags}>
+                                {getSelectedOption()?.value.name ?? PLACEHOLDER}
+                            </PageSelectContent>
+                        )}
+                        renderOption={(getOption, getFlags) => (
+                            <PageSelectOptionContent
+                                getFlags={getFlags}
+                                getDescription={() => getOption().value.description}
+                            >
+                                {getOption().value.name}
+                            </PageSelectOptionContent>
+                        )}
+                        renderPopup={renderSelectPopup}
+                    />
+                ),
+            },
+            {
+                name: "Option groups",
+                readout: () =>
+                    `value: ${groupedSignal[0]() ?? "undefined"} — arrows cross group boundaries and skip Finland`,
+                component: () => (
+                    <Select
+                        valueSignal={groupedSignal}
+                        getOptions={() => GROUPED_COUNTRIES}
+                        getAriaLabel={() => "Country"}
+                        renderContent={(getSelectedOption, getFlags) => (
+                            <PageSelectContent getFlags={getFlags}>
+                                {getSelectedOption()?.value ?? PLACEHOLDER}
+                            </PageSelectContent>
+                        )}
+                        renderGroup={(getGroup) => <PageSelectGroupContent>{getGroup().label}</PageSelectGroupContent>}
+                        renderOption={(getOption, getFlags) => (
+                            <PageSelectOptionContent getFlags={getFlags}>{getOption().value}</PageSelectOptionContent>
+                        )}
+                        renderPopup={renderSelectPopup}
+                    />
+                ),
+            },
+            {
                 name: "Disabled options",
                 readout: () => `value: ${disabledOptionSignal[0]() ?? "undefined"} — arrows skip Denmark and Finland`,
                 component: () => (
@@ -409,6 +479,126 @@ export const SelectPage = () => {
                 ),
             },
             {
+                name: "Scrolling list",
+                readout: () => `value: ${longSignal[0]() ?? "undefined"} — Home and End reach both ends`,
+                component: () => (
+                    <Select
+                        valueSignal={longSignal}
+                        getOptions={() => HOURS}
+                        getAriaLabel={() => "Departure hour"}
+                        renderContent={(getSelectedOption, getFlags) => (
+                            <PageSelectContent getFlags={getFlags}>
+                                {getSelectedOption()?.value ?? PLACEHOLDER}
+                            </PageSelectContent>
+                        )}
+                        renderOption={(getOption, getFlags) => (
+                            <PageSelectOptionContent getFlags={getFlags}>{getOption().value}</PageSelectOptionContent>
+                        )}
+                        renderPopup={renderSelectPopup}
+                    />
+                ),
+            },
+            {
+                name: "Virtualized",
+                readout: () =>
+                    `${getStressCount().toLocaleString("en-GB")} options — ${
+                        getOpenMs() === undefined
+                            ? "never opened"
+                            : `${Math.round(getOpenMs()!)} ms from click to the first painted frame`
+                    }, ${stressVisibility[0]() ? `${getFPS().current.toFixed(0)} fps while open` : "closed"}`,
+                component: () => (
+                    <div class={styles.column}>
+                        <Select
+                            valueSignal={stressSignal}
+                            visibilitySignal={stressVisibility}
+                            getOptions={getStressDeliveries}
+                            getAriaLabel={() => "Route"}
+                            computeEstimatedOptionHeight={() => STRESS_OPTION_HEIGHT}
+                            renderContent={(getSelectedOption, getFlags) => (
+                                <PageSelectContent getFlags={getFlags}>
+                                    {getSelectedOption()?.value.name ?? PLACEHOLDER}
+                                </PageSelectContent>
+                            )}
+                            renderOption={(getOption, getFlags) => (
+                                <PageSelectOptionContent
+                                    getFlags={getFlags}
+                                    getDescription={() => getOption().value.description}
+                                >
+                                    {getOption().value.name}
+                                </PageSelectOptionContent>
+                            )}
+                            renderPopup={(renderOptions, getVisibilityTarget, getTransitionDurationMs, getPlacement) =>
+                                renderSelectPopup(
+                                    () => measureOpen(renderOptions),
+                                    getVisibilityTarget,
+                                    getTransitionDurationMs,
+                                    getPlacement,
+                                )
+                            }
+                        />
+
+                        <PagePropsPanel getScope={() => "local"}>
+                            <PageProp getLabel={() => "Option count"}>
+                                <PageNumberField
+                                    getValue={getStressCount}
+                                    getMin={() => MIN_STRESS_COUNT}
+                                    getMax={() => MAX_STRESS_COUNT}
+                                    getStep={() => STRESS_COUNT_STEP}
+                                    getWidth={() => STRESS_COUNT_FIELD_WIDTH}
+                                    getAriaLabel={() => "Option count"}
+                                    onInput={(count) => {
+                                        setStressCount(count);
+                                        setOpenMs(undefined);
+                                    }}
+                                />
+                            </PageProp>
+                        </PagePropsPanel>
+                    </div>
+                ),
+            },
+            {
+                name: "Loaded on demand",
+                readout: () =>
+                    `${getPagedRoutes().length} of ${PAGED_TOTAL} routes fetched${
+                        getIsFetching() ? ", another batch in flight" : ""
+                    } — reaching the end asks for ${PAGE_SIZE} more, and the arrows stop at the last one held`,
+                component: () => (
+                    <Select
+                        valueSignal={pagedSignal}
+                        getOptions={getPagedRoutes}
+                        getHasMoreOptions={getHasMoreRoutes}
+                        getAriaLabel={() => "Route"}
+                        renderContent={(getSelectedOption, getFlags) => (
+                            <PageSelectContent getFlags={getFlags}>
+                                {getSelectedOption()?.value.name ?? PLACEHOLDER}
+                            </PageSelectContent>
+                        )}
+                        renderOption={(getOption, getFlags) => (
+                            <PageSelectOptionContent
+                                getFlags={getFlags}
+                                getDescription={() => getOption().value.description}
+                            >
+                                {getOption().value.name}
+                            </PageSelectOptionContent>
+                        )}
+                        renderPopup={(renderOptions, getVisibilityTarget, getTransitionDurationMs, getPlacement) => (
+                            <PagePopoverSurface
+                                getVisibilityTarget={getVisibilityTarget}
+                                getTransitionDurationMs={getTransitionDurationMs}
+                                getPlacement={getPlacement}
+                            >
+                                {renderOptions()}
+
+                                <Show when={getIsFetching()}>
+                                    <div class={popupStyles.popoverSurfaceEmpty}>Fetching more routes…</div>
+                                </Show>
+                            </PagePopoverSurface>
+                        )}
+                        onReachEnd={fetchNextRoutes}
+                    />
+                ),
+            },
+            {
                 name: "Autocomplete",
                 readout: () =>
                     `value: ${filterSignal[0]()?.code ?? "undefined"} | query: "${filterQuerySignal[0]()}" — ${getFilteredAirports().length} of ${AIRPORTS.length} shown; the page matches on city or code, which only it knows about`,
@@ -440,7 +630,6 @@ export const SelectPage = () => {
                                 getVisibilityTarget={getVisibilityTarget}
                                 getTransitionDurationMs={getTransitionDurationMs}
                                 getPlacement={getPlacement}
-                                getIsSkippingOffScreen={getIsSkippingOffScreen}
                             >
                                 {getFilteredAirports().length ? (
                                     renderOptions()
@@ -453,7 +642,7 @@ export const SelectPage = () => {
                 ),
             },
             {
-                name: "Autocomplete, fetched",
+                name: "Autocomplete, loaded on demand",
                 readout: () =>
                     `value: ${searchSignal[0]()?.name ?? "undefined"} | query: "${searchQuerySignal[0]()}" — ${getSearchResults().length} of ${getSearchTotal()} matches held${
                         getIsSearching() ? ", asking the server" : ""
@@ -490,7 +679,6 @@ export const SelectPage = () => {
                                 getVisibilityTarget={getVisibilityTarget}
                                 getTransitionDurationMs={getTransitionDurationMs}
                                 getPlacement={getPlacement}
-                                getIsSkippingOffScreen={getIsSkippingOffScreen}
                             >
                                 {renderOptions()}
 
@@ -508,28 +696,6 @@ export const SelectPage = () => {
 
                             void runSearch(getSearchResults().length);
                         }}
-                    />
-                ),
-            },
-            {
-                name: "Option groups",
-                readout: () =>
-                    `value: ${groupedSignal[0]() ?? "undefined"} — arrows cross group boundaries and skip Finland`,
-                component: () => (
-                    <Select
-                        valueSignal={groupedSignal}
-                        getOptions={() => GROUPED_COUNTRIES}
-                        getAriaLabel={() => "Country"}
-                        renderContent={(getSelectedOption, getFlags) => (
-                            <PageSelectContent getFlags={getFlags}>
-                                {getSelectedOption()?.value ?? PLACEHOLDER}
-                            </PageSelectContent>
-                        )}
-                        renderGroup={(getGroup) => <PageSelectGroupContent>{getGroup().label}</PageSelectGroupContent>}
-                        renderOption={(getOption, getFlags) => (
-                            <PageSelectOptionContent getFlags={getFlags}>{getOption().value}</PageSelectOptionContent>
-                        )}
-                        renderPopup={renderSelectPopup}
                     />
                 ),
             },
@@ -558,7 +724,7 @@ export const SelectPage = () => {
                 ),
             },
             {
-                name: "Multi-select, grouped, filterable",
+                name: "Multi-select, grouped, autocomplete",
                 readout: () =>
                     `values: [${everythingSignal[0]().join(", ")}] | query: "${everythingQuerySignal[0]()}" — the page drops groups it has emptied`,
                 component: () => (
@@ -588,7 +754,6 @@ export const SelectPage = () => {
                                 getVisibilityTarget={getVisibilityTarget}
                                 getTransitionDurationMs={getTransitionDurationMs}
                                 getPlacement={getPlacement}
-                                getIsSkippingOffScreen={getIsSkippingOffScreen}
                             >
                                 {getFilteredGroups().length ? (
                                     renderOptions()
@@ -597,155 +762,6 @@ export const SelectPage = () => {
                                 )}
                             </PagePopoverSurface>
                         )}
-                    />
-                ),
-            },
-            {
-                name: "Scrolling list",
-                readout: () => `value: ${longSignal[0]() ?? "undefined"} — Home and End reach both ends`,
-                component: () => (
-                    <Select
-                        valueSignal={longSignal}
-                        getOptions={() => HOURS}
-                        getAriaLabel={() => "Departure hour"}
-                        renderContent={(getSelectedOption, getFlags) => (
-                            <PageSelectContent getFlags={getFlags}>
-                                {getSelectedOption()?.value ?? PLACEHOLDER}
-                            </PageSelectContent>
-                        )}
-                        renderOption={(getOption, getFlags) => (
-                            <PageSelectOptionContent getFlags={getFlags}>{getOption().value}</PageSelectOptionContent>
-                        )}
-                        renderPopup={renderSelectPopup}
-                    />
-                ),
-            },
-            {
-                name: "Title and description",
-                readout: () =>
-                    `value: ${deliverySignal[0]()?.name ?? "undefined"} — the descriptions wrap, so no two rows are the same height`,
-                component: () => (
-                    <Select
-                        valueSignal={deliverySignal}
-                        getOptions={() => DELIVERIES}
-                        getAriaLabel={() => "Delivery"}
-                        renderContent={(getSelectedOption, getFlags) => (
-                            <PageSelectContent getFlags={getFlags}>
-                                {getSelectedOption()?.value.name ?? PLACEHOLDER}
-                            </PageSelectContent>
-                        )}
-                        renderOption={(getOption, getFlags) => (
-                            <PageSelectOptionContent
-                                getFlags={getFlags}
-                                getDescription={() => getOption().value.description}
-                            >
-                                {getOption().value.name}
-                            </PageSelectOptionContent>
-                        )}
-                        renderPopup={renderSelectPopup}
-                    />
-                ),
-            },
-            {
-                name: "Stress test",
-                readout: () =>
-                    `${getStressCount().toLocaleString("en-GB")} options — ${
-                        getOpenMs() === undefined
-                            ? "never opened"
-                            : `${Math.round(getOpenMs()!)} ms from click to the first painted frame`
-                    }, ${stressVisibility[0]() ? `${getFPS().current.toFixed(0)} fps while open` : "closed"}`,
-                component: () => (
-                    <Select
-                        valueSignal={stressSignal}
-                        visibilitySignal={stressVisibility}
-                        getOptions={getStressDeliveries}
-                        getAriaLabel={() => "Route"}
-                        renderContent={(getSelectedOption, getFlags) => (
-                            <PageSelectContent getFlags={getFlags}>
-                                {getSelectedOption()?.value.name ?? PLACEHOLDER}
-                            </PageSelectContent>
-                        )}
-                        renderOption={(getOption, getFlags) => (
-                            <PageSelectOptionContent
-                                getFlags={getFlags}
-                                getDescription={() => getOption().value.description}
-                            >
-                                {getOption().value.name}
-                            </PageSelectOptionContent>
-                        )}
-                        renderPopup={(renderOptions, getVisibilityTarget, getTransitionDurationMs, getPlacement) =>
-                            renderSelectPopup(
-                                () => measureOpen(renderOptions),
-                                getVisibilityTarget,
-                                getTransitionDurationMs,
-                                getPlacement,
-                            )
-                        }
-                    />
-                ),
-            },
-            {
-                name: "Loaded on demand",
-                readout: () =>
-                    `${getPagedRoutes().length} of ${PAGED_TOTAL} routes fetched${
-                        getIsFetching() ? ", another batch in flight" : ""
-                    } — reaching the end asks for ${PAGE_SIZE} more, and the arrows stop at the last one held`,
-                component: () => (
-                    <Select
-                        valueSignal={pagedSignal}
-                        getOptions={getPagedRoutes}
-                        getHasMoreOptions={getHasMoreRoutes}
-                        getAriaLabel={() => "Route"}
-                        renderContent={(getSelectedOption, getFlags) => (
-                            <PageSelectContent getFlags={getFlags}>
-                                {getSelectedOption()?.value.name ?? PLACEHOLDER}
-                            </PageSelectContent>
-                        )}
-                        renderOption={(getOption, getFlags) => (
-                            <PageSelectOptionContent
-                                getFlags={getFlags}
-                                getDescription={() => getOption().value.description}
-                            >
-                                {getOption().value.name}
-                            </PageSelectOptionContent>
-                        )}
-                        renderPopup={(renderOptions, getVisibilityTarget, getTransitionDurationMs, getPlacement) => (
-                            <PagePopoverSurface
-                                getVisibilityTarget={getVisibilityTarget}
-                                getTransitionDurationMs={getTransitionDurationMs}
-                                getPlacement={getPlacement}
-                                getIsSkippingOffScreen={getIsSkippingOffScreen}
-                            >
-                                {renderOptions()}
-
-                                <Show when={getIsFetching()}>
-                                    <div class={popupStyles.popoverSurfaceEmpty}>Fetching more routes…</div>
-                                </Show>
-                            </PagePopoverSurface>
-                        )}
-                        onReachEnd={fetchNextRoutes}
-                    />
-                ),
-            },
-            {
-                name: "Record values",
-                readout: () => `value: ${recordSignal[0]()?.code ?? "undefined"}`,
-                component: () => (
-                    <Select
-                        valueSignal={recordSignal}
-                        getOptions={() => AIRPORTS}
-                        getAriaLabel={() => "Airport"}
-                        renderContent={(getSelectedOption, getFlags) => (
-                            <PageSelectContent getFlags={getFlags}>
-                                {getSelectedOption() ? getSelectedOption()!.value.city : PLACEHOLDER}
-                            </PageSelectContent>
-                        )}
-                        renderOption={(getOption, getFlags) => (
-                            <PageSelectOptionContent getFlags={getFlags}>
-                                {getOption().value.city} ({getOption().value.code})
-                            </PageSelectOptionContent>
-                        )}
-                        renderPopup={renderSelectPopup}
                     />
                 ),
             },
@@ -853,34 +869,5 @@ export const SelectPage = () => {
         ];
     });
 
-    return (
-        <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Skip off-screen options"}>
-                    <PageCheckField
-                        getValue={getIsSkippingOffScreen}
-                        getAriaLabel={() => "Skip off-screen options"}
-                        onChange={setIsSkippingOffScreen}
-                    />
-                </PageProp>
-
-                <PageProp getLabel={() => "Stress options"}>
-                    <PageNumberField
-                        getValue={getStressCount}
-                        getMin={() => MIN_STRESS_COUNT}
-                        getMax={() => MAX_STRESS_COUNT}
-                        getStep={() => STRESS_COUNT_STEP}
-                        getWidth={() => STRESS_COUNT_FIELD_WIDTH}
-                        getAriaLabel={() => "Stress options"}
-                        onInput={(count) => {
-                            setStressCount(count);
-                            setOpenMs(undefined);
-                        }}
-                    />
-                </PageProp>
-            </PagePropsPanel>
-
-            <PageVariants getItems={getVariants} />
-        </>
-    );
+    return <PageVariants getItems={getVariants} />;
 };

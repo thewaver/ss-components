@@ -106,16 +106,6 @@ export const Toasts = <T,>(props: ToastsProps<T>) => {
 
     const getStackAlignment = createMemo(() => ToastsUtils.computeStackAlignment(getAlignment(), getDir()));
 
-    /**
-     * A hidden tab holds every countdown, for the reason hovering does: a duration is time the reader had to
-     * see the notification, and a background tab gives them none of it. Without this a burst raised while the
-     * tab is not being looked at has expired by the time it is, so the reader arrives to an empty region and
-     * never learns anything happened.
-     *
-     * The signal is `document.hidden` rather than window focus, and that is the narrower of the two on
-     * purpose: a visible tab in an unfocused window is still a tab someone can read, so clicking another
-     * application should not freeze the stack indefinitely.
-     */
     const getIsPaused = createMemo(() => getIsHovered() || getHasFocusWithin() || getIsPageHidden());
 
     createEffect(() => {
@@ -140,7 +130,11 @@ export const Toasts = <T,>(props: ToastsProps<T>) => {
     });
 
     const dismiss = (id: string) => {
-        props.toastsSignal[1]((prev) => prev.filter((toast) => toast.id !== id));
+        props.toastsSignal[1]((prev) => {
+            const next = prev.filter((toast) => toast.id !== id);
+
+            return next.length === prev.length ? prev : next;
+        });
     };
 
     const handleExitEnd = (id: string) => {

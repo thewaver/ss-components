@@ -32,6 +32,13 @@ asks that concepts be explained plainly "for the sake of safe communication". Le
 happens, as a sequence — "the user presses Escape, the modal hides, the parent variable still says open,
 so clicking the button to reopen does nothing". Introduce a term only after describing the thing it names.
 
+**A fault is a numbered walkthrough, not a paragraph about the cause.** Asked for on **2026-08-13**. Write
+the sequence when it goes right, one numbered step per thing that happens; then the same sequence with the
+fault, written out in full rather than referred back to; then a closing line naming which step is the actual
+defect and why the rest is tolerable. Steps are what a person does and sees, not what the code does — the
+mechanism comes after the walkthrough, if at all. Repeating the whole sequence is the point: "as above but
+step 3 does not happen" makes them hold two versions in their head at once.
+
 They will use terminology they feel only semi-confident about. Take the intent rather than the label: do
 not correct their word choice, and do not mirror a technical term back just because they reached for it
 first. Their wording can be loose; the reply still has to be plain.
@@ -55,6 +62,9 @@ prose answers in a row were called too verbose. One heading per option, then bul
 one line each, then the question. No paragraphs around it, no preamble, no recommendation dressed as
 narrative — the trade-offs stand side by side so they can be compared by eye. If an option is a non-starter
 it still gets listed with the reason as its con, rather than argued away in a sentence above the list.
+
+**Every option carries an ID in its heading** — `1`, `2`, `3` or `A`, `B`, `C`. Asked for on **2026-08-13**.
+It gives them a one-character answer, which is what makes the list usable when they are replying by voice.
 
 The reasoning that would have gone into those paragraphs goes into `review.md` or `conventions.md`, which is
 where length is wanted.

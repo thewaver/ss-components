@@ -1,9 +1,6 @@
 import { style } from "@vanilla-extract/css";
 
 import { themeVars } from "../../Theme.css";
-import { isSkippingOffScreen } from "../PopoverSurface/PopoverSurface.css";
-
-const OPTION_INTRINSIC_HEIGHT = 40;
 
 export const isHovered = style({});
 export const isHighlighted = style({});
@@ -23,10 +20,6 @@ export const selectOptionContent = style({
     transition: `background-color ${themeVars.animation.duration}, opacity ${themeVars.animation.duration}`,
 
     selectors: {
-        [`.${isSkippingOffScreen} &`]: {
-            contentVisibility: "auto",
-            containIntrinsicSize: `auto ${OPTION_INTRINSIC_HEIGHT}px`,
-        },
         [`&.${isHighlighted}`]: {
             backgroundColor: `rgb(from ${themeVars.color.surface.contrast} r g b / 10%)`,
         },

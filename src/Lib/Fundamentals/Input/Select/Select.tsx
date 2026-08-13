@@ -1,5 +1,5 @@
 import type { Accessor, JSX } from "solid-js";
-import { Index, Show, createEffect, createMemo, createSignal, createUniqueId, untrack } from "solid-js";
+import { For, Index, Show, createEffect, createMemo, createSignal, createUniqueId, untrack } from "solid-js";
 
 import { CSSUtils, StringUtils } from "@thewaver/ss-utils";
 
@@ -8,6 +8,7 @@ import { InteractionUtils } from "../../../Abstracts/Interaction/Interaction.uti
 import { NavigationUtils } from "../../../Abstracts/Navigation/Navigation.utils";
 import { SignalMirror } from "../../../Abstracts/SignalMirror/SignalMirror";
 import { TextSync } from "../../../Abstracts/TextSync/TextSync";
+import { Virtualizer } from "../../../Abstracts/Virtualizer/Virtualizer";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { Popover } from "../../Popover/Popover";
 import { FormFieldUtils } from "../FormField/FormField.utils";
@@ -124,7 +125,7 @@ const SelectOptionItem = (props: SelectOptionItemProps) => {
     const getIsDisabled = () => props.getFlags().isDisabled ?? false;
 
     createEffect(() => {
-        if (!props.getFlags().isHighlighted) return;
+        if (!props.getFlags().isHighlighted || !props.getIsSelfScrolling()) return;
 
         getElementRef()?.scrollIntoView({ block: "nearest" });
     });
@@ -156,6 +157,7 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
 
     const [getFieldRef, setFieldRef] = createSignal<HTMLElement>();
     const [getEndMarkerRef, setEndMarkerRef] = createSignal<HTMLElement>();
+    const [getSizerRef, setSizerRef] = createSignal<HTMLElement>();
     const [getIsOpen, setIsOpen] = SignalMirror.createOptional(() => props.visibilitySignal, false);
     const [getHasPopoverSettled, setHasPopoverSettled] = createSignal(true);
     const [getHighlightedValue, setHighlightedValue] = createSignal<T | undefined>();
@@ -193,6 +195,15 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
     });
 
     const getFlatOptions = createMemo(() => SelectUtils.getFlatOptions(props.getOptions()));
+
+    /**
+     * A grouped list is not windowed, and that is a boundary rather than a preference: a group's box wraps
+     * the options inside it, so a window that opens halfway down one has to draw a box for a group whose
+     * header is above the window and whose end is below it. The flat case is the one an estimate can answer.
+     */
+    const getIsVirtualized = createMemo(
+        () => props.computeEstimatedOptionHeight !== undefined && !props.getOptions().some(SelectUtils.getIsGroup),
+    );
 
     const getIsAtEnd = ElementObserver.createViewportIntersectionObserver(getEndMarkerRef, getIsOpen);
 
@@ -245,6 +256,16 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
         if (!getIsFiltering() && selectedIndex !== undefined) return selectedIndex;
 
         return navigable[0];
+    });
+
+    const rowWindow = Virtualizer.createRowWindow(getSizerRef, () => getFlatOptions().length, {
+        getIsEnabled: () => getIsVirtualized() && getIsOpen(),
+        computeEstimatedSize: (index) => props.computeEstimatedOptionHeight?.(index) ?? 0,
+        getPinnedRows: () => {
+            const highlightedIndex = getHighlightedIndex();
+
+            return highlightedIndex === undefined ? EMPTY_SELECTION : [highlightedIndex];
+        },
     });
 
     const getActiveOptionId = createMemo(() => {
@@ -303,6 +324,22 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
         if (getIsOpen() || !getHasPopoverSettled() || getQuery() === EMPTY_QUERY) return;
 
         props.querySignal?.[1](EMPTY_QUERY);
+    });
+
+    /**
+     * A windowed option cannot scroll itself into view, because until the window reaches it there is nothing
+     * to scroll. The move belongs to the thing that owns the window, and it is written as an effect on the
+     * highlight rather than a call inside the key handler so that a highlight arriving any other way — a pick
+     * in a multi-select, a list that has just opened onto a selection — is carried the same way.
+     */
+    createEffect(() => {
+        if (!rowWindow.getIsLive()) return;
+
+        const highlightedIndex = getHighlightedIndex();
+
+        if (highlightedIndex === undefined) return;
+
+        rowWindow.scrollToRow(highlightedIndex);
     });
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -378,6 +415,7 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
                 <SelectOptionItem
                     ref={setElementRef}
                     getId={() => `${listboxId}-option-${getFlatIndex()}`}
+                    getIsSelfScrolling={() => !getIsVirtualized()}
                     getFlags={getFlags}
                     renderContent={(getOptionFlags) => props.renderOption(getOption, getOptionFlags)}
                     onSelect={() => pickValue(getOption().value)}
@@ -386,29 +424,54 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
         />
     );
 
+    const renderMountedOptions = () => (
+        <Index each={props.getOptions()}>
+            {(getItem, index) => (
+                <Show
+                    when={SelectUtils.getIsGroup(getItem())}
+                    fallback={renderOptionSlot(
+                        () => getItem() as SelectOption<T>,
+                        () => getItemOffsets()[index],
+                    )}
+                >
+                    <div role="group" aria-label={(getItem() as SelectOptionGroup<T>).label}>
+                        {props.renderGroup?.(() => getItem() as SelectOptionGroup<T>)}
+
+                        <Index each={(getItem() as SelectOptionGroup<T>).options}>
+                            {(getOption, groupIndex) =>
+                                renderOptionSlot(getOption, () => getItemOffsets()[index] + groupIndex)
+                            }
+                        </Index>
+                    </div>
+                </Show>
+            )}
+        </Index>
+    );
+
+    const renderWindowedOptions = () => (
+        <div ref={setSizerRef} class={styles.selectSizer} style={{ height: `${rowWindow.getTotalSize()}px` }}>
+            <For each={rowWindow.getRows()}>
+                {(row) => (
+                    <div
+                        class={styles.selectSizerRow}
+                        style={{ transform: `translateY(${rowWindow.getRowStart(row)}px)` }}
+                        ref={(element) => rowWindow.measureRow(element, row.index)}
+                    >
+                        {renderOptionSlot(
+                            () => getFlatOptions()[row.index],
+                            () => row.index,
+                        )}
+                    </div>
+                )}
+            </For>
+        </div>
+    );
+
     const renderOptions = () => (
         <>
-            <Index each={props.getOptions()}>
-                {(getItem, index) => (
-                    <Show
-                        when={SelectUtils.getIsGroup(getItem())}
-                        fallback={renderOptionSlot(
-                            () => getItem() as SelectOption<T>,
-                            () => getItemOffsets()[index],
-                        )}
-                    >
-                        <div role="group" aria-label={(getItem() as SelectOptionGroup<T>).label}>
-                            {props.renderGroup?.(() => getItem() as SelectOptionGroup<T>)}
-
-                            <Index each={(getItem() as SelectOptionGroup<T>).options}>
-                                {(getOption, groupIndex) =>
-                                    renderOptionSlot(getOption, () => getItemOffsets()[index] + groupIndex)
-                                }
-                            </Index>
-                        </div>
-                    </Show>
-                )}
-            </Index>
+            <Show when={getIsVirtualized()} fallback={renderMountedOptions()}>
+                {renderWindowedOptions()}
+            </Show>
 
             <Show when={getHasMoreOptions() && props.getOptions()} keyed>
                 {(_items: SelectItem<T>[]) => <div ref={setEndMarkerRef} class={styles.selectEndMarker} aria-hidden />}
@@ -500,6 +563,8 @@ export const Select = <T,>(props: SelectProps<T>) => {
                 props.renderContent(() => getSelectedOptions()[0], getFlags)
             }
             onPick={(value) => {
+                if (value === props.valueSignal[0]()) return;
+
                 props.valueSignal[1](() => value);
 
                 void props.onSelectionChange?.(value);

@@ -26,6 +26,8 @@ export const DatePicker = (props: DatePickerProps) => {
     );
 
     const dismiss = () => {
+        if (!getIsOpen()) return;
+
         setIsOpen(false);
         getRootRef()?.querySelector("input")?.focus();
     };

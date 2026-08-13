@@ -9,7 +9,6 @@ export const POPOVER_SURFACE_INSET = SURFACE_PADDING + SURFACE_BORDER;
 
 export const isVisible = style({});
 export const isFlipped = style({});
-export const isSkippingOffScreen = style({});
 
 export const popoverSurfaceEmpty = style({
     padding: themeVars.spacing.full,

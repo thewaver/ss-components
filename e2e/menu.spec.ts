@@ -95,6 +95,10 @@ test("Escape closes and hands focus back, and ArrowUp reopens onto the last item
     );
 
     await page.keyboard.press("ArrowUp");
+    await expect(
+        page.locator(MENU),
+        "which reopens it and takes focus back, the same two-step as the first open",
+    ).toBeFocused();
     expect(await activeDescendantText(page, MENU), "ArrowUp on a closed trigger opens onto the last item").toBe(
         "DeleteDel",
     );

@@ -211,7 +211,11 @@ export const Tabs = <T,>(props: TabsProps<T>) => {
                                 getIsSelected={() => index === getSelectedIndex()}
                                 linkComponent={props.linkComponent}
                                 renderContent={(getItemFlags) => props.renderTab(getTab, getItemFlags)}
-                                onSelect={(value) => props.onSelectionChange?.(value)}
+                                onSelect={(value) => {
+                                    if (value === props.getSelectedValue()) return;
+
+                                    props.onSelectionChange?.(value);
+                                }}
                             />
                         )}
                     />

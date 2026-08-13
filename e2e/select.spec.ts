@@ -218,23 +218,114 @@ test("the walk stops at the last option held rather than wrapping round", async 
 });
 
 /**
+ * The keyboard is what makes the marker's placement matter. An option scrolls itself into view with
+ * `block: "nearest"`, which by definition stops the moment that option is fully visible and never a pixel
+ * further — so a marker laid out _after_ the last option is the one thing `End` can never reveal, and the
+ * list would stall for anyone not using a mouse.
+ *
+ * The whole of the fix is that the marker overlaps the last option instead of following it, and that is
+ * what is asserted here rather than the batch that arrives: the batch already arrives at a scale of 1,
+ * where the marker's top edge lands exactly on the scroll box's bottom edge and Chrome counts the
+ * zero-area contact as an intersection. The Playground almost never renders at a scale of 1, and at any
+ * other scale the same contact misses by a fraction of a pixel. Comparing the two boxes against each
+ * other rather than against a number is what keeps this readable at every scale.
+ */
+test("the end marker sits inside the last option rather than past it", async ({ page }) => {
+    await page.locator(field("Loaded on demand")).click();
+    await expect(page.locator(`${variant("Loaded on demand")} [data-readout]`)).toContainText("40 of 500", {
+        timeout: 5000,
+    });
+
+    const boxes = await page.evaluate(() => {
+        const options = [...document.querySelectorAll('[role="listbox"] [role="option"]')];
+        const slot = options[options.length - 1].parentElement!;
+        const marker = slot.nextElementSibling!;
+
+        return { slot: slot.getBoundingClientRect(), marker: marker.getBoundingClientRect() };
+    });
+
+    expect(boxes.marker.bottom, "the marker ends where the last option ends").toBeCloseTo(boxes.slot.bottom, 1);
+    expect(boxes.marker.top, "and starts above that, so showing the option shows the marker too").toBeLessThan(
+        boxes.slot.bottom,
+    );
+});
+
+/**
+ * A list given an estimated option height mounts a window onto its options rather than all of them, so the
+ * count in the document and the count the consumer handed over stop being the same number. That is the whole
+ * of the feature and it is what the first assertion checks.
+ *
+ * The rest is what windowing can get wrong and a screenshot cannot show. Rows are taken out of normal flow
+ * and placed at offsets the library computes, so they can be told to sit where they do not fit and paint over
+ * each other; and the highlight is no longer able to scroll itself into view, because until the window reaches
+ * a row there is nothing to scroll — `End` walking to the last of ten thousand and landing where it can be
+ * seen is the proof that the move was taken over rather than lost.
+ */
+test("a list given an estimated height mounts a window rather than every option", async ({ page }) => {
+    const stress = "Virtualized";
+
+    await page.locator(field(stress)).click();
+    await expect(page.locator(OPTION).first()).toBeVisible();
+
+    expect(await readout(page, stress), "the consumer still holds every option").toContain("10,000 options");
+    expect(
+        await page.locator(OPTION).count(),
+        "while the document holds only the handful that fit the box",
+    ).toBeLessThan(50);
+
+    await page.keyboard.press("End");
+    await expect(
+        page.locator(field(stress)),
+        "End reaches the last of them even though it was never mounted",
+    ).toHaveAttribute("aria-activedescendant", /.+/);
+    expect(await activeDescendantText(page, field(stress)), "and it is the last one").toContain("Route 10000");
+
+    const geometry = await page.evaluate(() => {
+        const rows = [...document.querySelectorAll('[role="listbox"] [role="option"]')].map((option) =>
+            option.getBoundingClientRect(),
+        );
+        const id = document.querySelector("[aria-activedescendant]")?.getAttribute("aria-activedescendant");
+        const active = document.getElementById(id ?? "")!.getBoundingClientRect();
+        const host = [...document.querySelectorAll('[role="listbox"] *')].find(
+            (element) => element.scrollHeight > element.clientHeight + 1,
+        )!;
+        const hostRect = host.getBoundingClientRect();
+        const scale = hostRect.height / (host as HTMLElement).offsetHeight;
+
+        return {
+            overlaps: rows.slice(1).filter((row, index) => row.top < rows[index].bottom - 1).length,
+            activeTop: active.top,
+            activeBottom: active.bottom,
+            viewTop: hostRect.top + host.clientTop * scale,
+            viewBottom: hostRect.top + (host.clientTop + host.clientHeight) * scale,
+        };
+    });
+
+    expect(geometry.overlaps, "no row is placed over the one above it").toBe(0);
+    expect(geometry.activeTop, "and the highlighted row sits inside the visible box").toBeGreaterThanOrEqual(
+        geometry.viewTop - 1,
+    );
+    expect(geometry.activeBottom).toBeLessThanOrEqual(geometry.viewBottom + 1);
+});
+
+/**
  * The two halves compose without knowing about each other: the query is the consumer's, the batches are the
  * consumer's, and the library only reports that the end of what it holds is on screen. Typing therefore has
  * to start a new search rather than narrow what already arrived — which is the whole point of asking a server
  * to filter — and the list it replaces may be any length, including the length it was last asked at.
  */
-test("a fetched autocomplete searches again rather than filtering what it holds", async ({ page }) => {
-    const fetched = `${variant("Autocomplete, fetched")} [data-readout]`;
+test("an autocomplete loaded on demand searches again rather than filtering what it holds", async ({ page }) => {
+    const searched = `${variant("Autocomplete, loaded on demand")} [data-readout]`;
 
-    await expect(page.locator(fetched), "the first batch of the empty query arrives on its own").toContainText(
+    await expect(page.locator(searched), "the first batch of the empty query arrives on its own").toContainText(
         "40 of 500 matches held",
         { timeout: 5000 },
     );
 
-    await page.locator(field("Autocomplete, fetched")).focus();
+    await page.locator(field("Autocomplete, loaded on demand")).focus();
     await page.keyboard.type("route 12");
 
-    await expect(page.locator(fetched), "typing runs a fresh search and replaces everything held").toContainText(
+    await expect(page.locator(searched), "typing runs a fresh search and replaces everything held").toContainText(
         "11 of 11 matches held",
         { timeout: 5000 },
     );

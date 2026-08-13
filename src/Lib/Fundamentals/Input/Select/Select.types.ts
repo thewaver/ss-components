@@ -53,7 +53,11 @@ export type SelectFieldProps = AccessorProps<
     onQueryInput: (query: string) => void;
 };
 
-export type SelectOptionItemProps = AccessorProps<InteractionControlProps<SelectOptionFlags>> & {
+export type SelectOptionItemProps = AccessorProps<
+    InteractionControlProps<SelectOptionFlags> & {
+        isSelfScrolling: boolean;
+    }
+> & {
     onSelect: () => void;
 };
 
@@ -75,6 +79,14 @@ export type SelectCompositeProps<T> = Omit<InteractionWrapperProps<SelectFlags>,
         getSelectedOptions: Accessor<SelectOption<T>[]>;
         querySignal?: Signal<string>;
         computeIsSelected: (value: T) => boolean;
+        /**
+         * The likely height of the option at an index, in pixels. Passing it mounts only the options that fit
+         * the popup rather than all of them; leaving it out mounts them all, which is what a list short enough
+         * not to need the trade should do. The number is the consumer's because the height is a consequence of
+         * `renderOption`, which the library never sees — and the estimate is only consulted for options nobody
+         * can see, since every option on screen is measured for real.
+         */
+        computeEstimatedOptionHeight?: (index: number) => number;
         renderContent: (
             getSelectedOptions: Accessor<SelectOption<T>[]>,
             getFlags: () => InteractionFlags<SelectFlags>,

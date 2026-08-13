@@ -10,7 +10,6 @@ export const PagePopoverSurface = (props: ParentProps<PopoverSurfaceProps>) => (
         classList={{
             [styles.isVisible]: props.getVisibilityTarget() === 1,
             [styles.isFlipped]: props.getPlacement().y === "top-out",
-            [styles.isSkippingOffScreen]: props.getIsSkippingOffScreen?.() ?? false,
         }}
         style={{
             transition: `opacity ${props.getTransitionDurationMs()}ms, transform ${props.getTransitionDurationMs()}ms`,
