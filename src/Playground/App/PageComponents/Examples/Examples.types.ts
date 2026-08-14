@@ -4,7 +4,8 @@ import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
 export type ExampleDefs = {
     name: string;
-    src: string;
+    path?: string;
+    sampleKeys?: () => string[];
     readout?: () => string;
     component: () => JSX.Element;
 };

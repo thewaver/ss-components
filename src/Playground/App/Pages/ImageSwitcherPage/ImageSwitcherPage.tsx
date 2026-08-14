@@ -1,7 +1,6 @@
 import { createMemo, createSignal } from "solid-js";
 
 import type { ImageSwitcherProps } from "../../../../Lib/Fundamentals/ImageSwitcher/ImageSwitcher.types";
-import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
@@ -10,7 +9,6 @@ import { PageNumberField, PageSelectField } from "../../StyledComponents/Field/F
 import knight_date from "../../knight_date.webp";
 import knight_profile from "../../knight_profile.webp";
 import { DefaultExample } from "./Examples/Default";
-import DefaultExampleRaw from "./Examples/Default.tsx?raw";
 
 import { MEASURE_BOX_PADDING } from "../../PageComponents/MeasureBox/MeasureBox.css";
 import * as styles from "./ImageSwitcherPage.css";
@@ -33,7 +31,7 @@ const MIN_DURATION_MS = 0;
 const MAX_DURATION_MS = 5000;
 const DURATION_STEP_MS = 50;
 
-const DEFAULT_SOURCE = highlighter.codeToHtml(DefaultExampleRaw, getDefaultHighlighterConfig());
+const DEFAULT_EXAMPLE_PATH = "/src/Playground/App/Pages/ImageSwitcherPage/Examples/Default.tsx";
 
 const DefaultExampleWrapper = (props: ImageSwitcherProps) => {
     return (
@@ -70,7 +68,7 @@ export const ImageSwitcherPage = () => {
                 name: "Default",
                 readout: () => `loads: ${getLoadCount()} | last loaded: ${getLoadedName()}`,
                 component: () => <DefaultExampleWrapper {...commonProps} />,
-                src: DEFAULT_SOURCE,
+                path: DEFAULT_EXAMPLE_PATH,
             },
         ];
     });

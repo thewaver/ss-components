@@ -3,7 +3,6 @@ import { createStore } from "solid-js/store";
 
 import type { Point2d } from "@thewaver/ss-utils";
 
-import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
@@ -25,7 +24,6 @@ import {
 import knight_profile from "../../knight_profile.webp";
 import type { CellAnimationExampleProps } from "./CellAnimationPage.types";
 import { DefaultExample } from "./Examples/Default";
-import DefaultExampleRaw from "./Examples/Default.tsx?raw";
 
 import { MEASURE_BOX_PADDING } from "../../PageComponents/MeasureBox/MeasureBox.css";
 import * as styles from "./CellAnimationPage.css";
@@ -60,7 +58,7 @@ const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
     },
 ];
 
-const DEFAULT_SOURCE = highlighter.codeToHtml(DefaultExampleRaw, getDefaultHighlighterConfig());
+const DEFAULT_EXAMPLE_PATH = "/src/Playground/App/Pages/CellAnimationPage/Examples/Default.tsx";
 
 const MIN_CELL_COUNT = 1;
 const MAX_CELL_COUNT = 40;
@@ -137,12 +135,6 @@ const StressTestWrapper = (props: CellAnimationExampleProps) => {
 };
 
 export const CellAnimationPage = () => {
-    /**
-     * One signal shared by every animation on the page itself, which is what replaced collecting a controller per
-     * mount. The stress test suspends them all while its modal is up by writing one variable, and nothing has to
-     * still be mounted for that to work. The items inside the modal are the ones being measured, so they run off
-     * their own signal instead of this one.
-     */
     const playback = createSignal(true);
 
     const [getSrc, setSrc] = createSignal(knight_profile);
@@ -161,8 +153,6 @@ export const CellAnimationPage = () => {
         smoothness: 0.25,
     });
 
-    const getOrigin = createMemo(() => CellAnimationOrigins.computeOrigin(getOriginType(), cellCount));
-
     const handleFile = (file: File) => {
         setSrc(URL.createObjectURL(file));
     };
@@ -170,11 +160,11 @@ export const CellAnimationPage = () => {
     const getExamples = createMemo(() => {
         const commonProps: CellAnimationExampleProps = {
             playbackSignal: playback,
-            computeCellWeights: (count) =>
-                CellAnimationWeights.computeCellWeights(getWeightType(), count, getOrigin(), weightOpts),
             getSrc,
             getCellCount: () => cellCount,
-            getOrigin,
+            getOriginType,
+            getWeightType,
+            getWeightOpts: () => weightOpts,
             getBreakpointOpts: () => breakpointOpts,
             getAnimationType,
             getAnimationDurationMs,
@@ -185,12 +175,12 @@ export const CellAnimationPage = () => {
             {
                 name: "Default",
                 component: () => <DefaultExampleWrapper {...commonProps} />,
-                src: DEFAULT_SOURCE,
+                path: DEFAULT_EXAMPLE_PATH,
+                sampleKeys: () => [getAnimationType(), getWeightType()],
             },
             {
                 name: "Stress Test",
                 component: () => <StressTestWrapper {...commonProps} />,
-                src: "",
             },
         ];
     });

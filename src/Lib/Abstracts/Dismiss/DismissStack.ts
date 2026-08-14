@@ -8,12 +8,6 @@ const layers: DismissLayerDefs[] = [];
 const getIsOutside = (layer: DismissLayerDefs, target: Node | null) =>
     !DismissUtils.getIsWithinOwnedLayer(target, layer.getRoots());
 
-/**
- * A press or a focus move is positional, so every layer the target sits outside of hears about it — a press
- * inside a popup opened from another popup is inside both, which `getIsWithinOwnedLayer` already resolves.
- * `Escape` is a stack operation instead: it closes the innermost layer and stops, which is what keeps a
- * `Select` dismissed inside a `Modal` from taking the `Modal` with it.
- */
 const dismissOutside = (target: Node | null, reason: "press" | "focus") => {
     if (!target) return;
 

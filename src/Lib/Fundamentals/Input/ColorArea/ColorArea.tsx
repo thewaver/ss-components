@@ -42,12 +42,6 @@ const ColorAreaElement = (props: ColorAreaElementProps) => {
         props.setIsDragging(getIsDragging());
     });
 
-    /**
-     * The single writer for an axis input, in `BinarySwitch`'s shape and for its reason: the browser moves a
-     * range before it reports, so an owner that refuses or clamps the write would otherwise leave the
-     * element holding a position the state never accepted. It has to run on the refused path too, which is
-     * why `onInput` gates the write rather than returning.
-     */
     const syncAxis = (element: HTMLInputElement, axis: ColorAreaAxis) => {
         const value = `${getAxisRatio(props.getHsv(), axis)}`;
 

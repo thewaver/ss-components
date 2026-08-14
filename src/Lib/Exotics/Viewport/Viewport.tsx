@@ -29,11 +29,6 @@ export const Viewport = (props: ParentProps<ViewportProps>) => {
         setWindowSize(getWindowInnerSize());
     }, 10);
 
-    /**
-     * The root fits the window; a nested one fits the box the page gave it, which is why that box is measured
-     * rather than assumed. A viewport is a region wherever it is written, and the app's own is only special in
-     * that its region is the whole window.
-     */
     const getAvailableSize = createMemo(() => (parentContext ? getHostSize() : getWindowSize()));
 
     const getSizeData = createMemo(() => {
@@ -47,10 +42,6 @@ export const Viewport = (props: ParentProps<ViewportProps>) => {
 
     const getScale = createMemo(() => (parentContext?.getScale() ?? 1) * getSizeData().scale);
 
-    /**
-     * Read rather than memoised: the host box moves whenever anything above it scrolls, and this is what every
-     * anchored layer inside measures against, once per frame.
-     */
     const getScaledRect = () => {
         const rect = getSizeData().scaleRect;
         const host = getHostRef();
@@ -89,11 +80,6 @@ export const Viewport = (props: ParentProps<ViewportProps>) => {
         });
     });
 
-    /**
-     * The host is what clips, and every layer opened inside a viewport is portalled into that viewport's own
-     * portal — so `overflow: hidden` here is the whole of "nothing inside a viewport paints outside it", for a
-     * popup as much as for the content that anchored it.
-     */
     return (
         <div ref={setHostRef} class={parentContext ? styles.viewportNestedHost : styles.viewportRootHost}>
             <div

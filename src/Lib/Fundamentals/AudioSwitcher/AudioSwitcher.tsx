@@ -103,11 +103,6 @@ export const AudioSwitcher = (props: AudioSwitcherProps) => {
 
     const [getIsPlaying] = SignalMirror.createOptional(() => props.playbackSignal, false);
 
-    /**
-     * Play and pause are the same state read twice, so they arrive as one signal and the fades follow it. What
-     * the old controller's booleans reported — "there was nothing to do" — is not something a consumer can act
-     * on, and the guards that produced them are still here, now protecting the effect instead.
-     */
     createEffect(() => {
         const active = getActiveElement();
 

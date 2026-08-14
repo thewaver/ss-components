@@ -70,11 +70,6 @@ export const Calendar = (props: CalendarProps) => {
 
     const getGrid = createMemo(() => DateValueUtils.getMonthGrid(getMonth(), getWeekStartsOn()));
 
-    /**
-     * Nobody writes the era they are living in, so a label says "10 August 2026" and not "10 August 2026 AD",
-     * while a date in any earlier era names it. The calendar reports its eras in chronological order, so the
-     * current one is the last — which holds for the five Japanese eras as much as for BC and AD.
-     */
     const getCurrentEraId = createMemo(() => {
         const eras = DateValueUtils.getEras(getMonth(), props.getLocale?.());
 
@@ -152,16 +147,6 @@ export const Calendar = (props: CalendarProps) => {
         setHighlighted(() => value);
     });
 
-    /**
-     * Paging swaps all 42 cells and nothing else changes, so a screen reader user who pages hears nothing at
-     * all until they move the focus. The month title is the consumer's own markup — `Calendar` renders no
-     * header — so the announcement cannot come from reading it; it is formatted here from the month itself,
-     * through the same `Intl` path the day labels already use, and spoken through a region that belongs to no
-     * component. Politely, because paging is something the reader just did rather than news.
-     *
-     * The previous month arrives as the effect's own argument, so the first run has nothing to compare against
-     * and announces nothing — a calendar must not talk about itself as it mounts.
-     */
     createEffect<DateValue | undefined>((previous) => {
         const month = getMonth();
 

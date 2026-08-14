@@ -18,18 +18,6 @@ export namespace InteractionUtils {
     export const computeIsReachable = (isDisabled: boolean, isReachableWhenDisabled: boolean, hasTooltip: boolean) =>
         isDisabled && isReachableWhenDisabled && hasTooltip;
 
-    /**
-     * `wrapElement` acts on the one element `InteractionWrapper` was handed, so a leaf that renders several
-     * focusable elements — a two-thumb `Range`, a `ColorArea`'s two axis sliders — leaves the rest of them
-     * with a native `tabIndex` of 0 and no focus refusal, tab-reachable while the control is disabled. This
-     * gives those the disabled half of the same treatment.
-     *
-     * Reachability deliberately does not enter into it. A control that is reachable while disabled is
-     * focusable so that its tooltip can be read, and the tooltip is anchored on the wrapper's single
-     * element — one target reveals it, so the extra elements leave the tab order whenever the control is
-     * disabled, reachable or not. That also keeps this from re-exposing reachability to a leaf, which the
-     * wrapper split deliberately stopped.
-     */
     export const wrapExtraControls = (
         getRefs: () => Array<HTMLElement | undefined>,
         getIsDisabled: () => boolean,

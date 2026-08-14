@@ -38,11 +38,6 @@ export type TextFieldTextStyle = Pick<
 >;
 
 export type TextFieldCbs = {
-    /**
-     * Rewrites an edit and says where the caret belongs afterwards. A pattern mask and a grouped number are both
-     * this function with a different body, which is why the field takes the transform rather than a pattern
-     * string: a grouped number has as many separators as its value needs and no pattern to state.
-     */
     computeMaskedText?: (previous: string, next: string, caret: number) => TextSyncMaskResult;
     computeTextStyle?: (getFlags: () => InteractionFlags<TextFieldFlags>) => TextFieldTextStyle;
     renderPlaceholder?: (getFlags: () => InteractionFlags<TextFieldFlags>, hint: string | undefined) => JSX.Element;

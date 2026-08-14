@@ -25,7 +25,6 @@ export const codeBoxRoot = style({
 
 export const codeBoxContent = style({
     padding: `calc(${themeVars.spacing.double} - ${themeVars.spacing.half})`,
-    maxHeight: 800,
     fontFamily: "monospace",
     whiteSpace: "pre",
     overflowX: "auto",

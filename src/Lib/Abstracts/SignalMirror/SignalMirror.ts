@@ -40,13 +40,6 @@ export namespace SignalMirror {
         return inner;
     };
 
-    /**
-     * The signal a component owns unless it was handed one.
-     *
-     * This is what lets a popup's open state be private by default and shared when a consumer asks, without the
-     * component growing two code paths for it. The prop is read through on every access rather than once at
-     * setup, so a consumer may hand one over later or take it away, and the fallback keeps whatever state it had.
-     */
     export const createOptional = <T>(getSignal: () => Signal<T> | undefined, initial: T): Signal<T> => {
         const fallback = createSignal<T>(initial);
         const pick = () => getSignal() ?? fallback;

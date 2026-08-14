@@ -5,9 +5,9 @@ import { CSSUtils } from "@thewaver/ss-utils";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
 import { PageModalOverlay } from "../../StyledComponents/ModalOverlay/ModalOverlay";
-import { PageModalHint } from "../../StyledComponents/ModalPanel/ModalPanel";
+import { PageModalPanel } from "../../StyledComponents/ModalPanel/ModalPanel";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
-import { PageCodeBox } from "../CodeBox/CodeBox";
+import { PageSourceView } from "../SourceView/SourceView";
 import type { ExamplesProps } from "./Examples.types";
 
 import * as styles from "./Examples.css";
@@ -25,7 +25,7 @@ export const PageExamples = (props: ExamplesProps) => {
                         <div class={styles.exampleContainer} data-example={example.name}>
                             <div class={styles.exampleTitle}>
                                 {`${example.name}:`}
-                                {example.src && (
+                                {example.path && (
                                     <Button
                                         getTooltipDefs={() => ({
                                             getPlacement: () => ({ x: "center", y: "top-out" }),
@@ -71,13 +71,16 @@ export const PageExamples = (props: ExamplesProps) => {
                     />
                 )}
                 renderContent={(getVisibilityTarget, getTransitionDurationMs) => (
-                    <div
-                        class={getVisibilityTarget() === 1 ? styles.sourceModalOn : styles.sourceModalOff}
-                        style={{ transition: `transform ${getTransitionDurationMs()}ms` }}
+                    <PageModalPanel
+                        getVisibilityTarget={getVisibilityTarget}
+                        getTransitionDurationMs={getTransitionDurationMs}
+                        getPadding={() => "0"}
                     >
-                        <PageCodeBox getSource={() => props.getItems()[getActiveIndex()].src} />
-                        <PageModalHint>{"tap anywhere to close"}</PageModalHint>
-                    </div>
+                        <PageSourceView
+                            getPath={() => props.getItems()[getActiveIndex()].path!}
+                            getSampleKeys={() => props.getItems()[getActiveIndex()].sampleKeys?.() ?? []}
+                        />
+                    </PageModalPanel>
                 )}
             />
         </>

@@ -43,12 +43,6 @@ export namespace TextSync {
             syncElement(element);
         });
 
-        /**
-         * A mask owns the caret, which is why it lives here rather than in a transforming setter. The owner's
-         * setter runs after the text has already been written, so it can refuse or correct a value — but it
-         * cannot move a caret it never saw, and a caret left where the keystroke put it lands before the
-         * separator the mask just inserted.
-         */
         const reportMaskedValue = (
             element: TextSyncElement,
             computeMaskedText: (previous: string, next: string, caret: number) => TextSyncMaskResult,

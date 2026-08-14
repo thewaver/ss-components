@@ -59,6 +59,8 @@ export namespace SVGDefsSamples {
             repeat2_1,
             repeat3_3,
         } as const satisfies Record<string, IterationConfig>;
+
+        export type SampleKey = keyof typeof SAMPLE_CONFIGS;
     }
 
     export namespace Pattern {
@@ -74,6 +76,8 @@ export namespace SVGDefsSamples {
             whirl_2,
             whirlCurved_2,
         } as const satisfies Record<string, PatternConfig>;
+
+        export type SampleKey = keyof typeof SAMPLE_CONFIGS;
     }
 
     export namespace Gradient {
@@ -116,5 +120,7 @@ export namespace SVGDefsSamples {
             sweep_diag_1v1,
             sweep_diag_async_4,
         } as const satisfies Record<string, GradientConfig>;
+
+        export type SampleKey = keyof typeof SAMPLE_CONFIGS;
     }
 }

@@ -37,11 +37,6 @@ export const PageCalendarCaption = (props: PageCalendarCaptionProps) => {
         Array.from({ length: DateValueUtils.getMonthsInYear(getMonth()) }, (_, index) => index + 1),
     );
 
-    /**
-     * The era is named only when it is not the calendar's current one, which is why a Gregorian caption reads
-     * "August 2026" rather than "August 2026 AD" while a date before the common era says so. Nobody writes the
-     * era they are living in, and the rule holds for the Japanese calendar too — Reiwa is implied, Shōwa is not.
-     */
     const getTitle = () => {
         const month = getMonth();
         const eras = DateValueUtils.getEras(month, props.getLocale?.());

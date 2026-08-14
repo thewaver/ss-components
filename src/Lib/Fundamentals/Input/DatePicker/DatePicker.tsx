@@ -36,11 +36,6 @@ export const DatePicker = (props: DatePickerProps) => {
         setIsOpen(true);
     };
 
-    /**
-     * The calendar moves to the value's own month from an effect rather than from `open`, so that a consumer
-     * opening the popup through `visibilitySignal` lands on the same month the trigger would have shown. Anything
-     * that has to happen because the popup is open belongs to the state, not to one of the ways in.
-     */
     createEffect(() => {
         if (!getIsOpen()) return;
 

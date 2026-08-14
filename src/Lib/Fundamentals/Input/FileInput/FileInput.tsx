@@ -17,12 +17,6 @@ const FileInputElement = (props: FileInputElementProps) => {
 
     const getIsDisabled = () => props.getFlags().isDisabled ?? false;
 
-    /**
-     * A `FileList` cannot be constructed, so the only state the DOM can be pushed back into is the
-     * empty one — which is the state that matters. An owner that rejects a pick and writes `[]` back
-     * would otherwise leave the input holding the file, and re-picking the same file then fires no
-     * `change` event at all, so the user cannot retry the thing they were just told to fix.
-     */
     const syncElement = (element: HTMLInputElement) => {
         if (props.getFiles().length) return;
 

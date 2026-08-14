@@ -13,11 +13,6 @@ export namespace ViewportUtils {
         )!;
     };
 
-    /**
-     * A nested viewport's own rect is measured in its parent's coordinates, while everything that reads it
-     * back — an anchor's client rect, a pointer position — is in window pixels. Carrying it out means
-     * scaling it by the parent's accumulated scale and offsetting it by where the parent itself landed.
-     */
     export const composeScaledRect = (rect: Rect, parentRect: Rect, parentScale: number): Rect => ({
         x: parentRect.x + rect.x * parentScale,
         y: parentRect.y + rect.y * parentScale,

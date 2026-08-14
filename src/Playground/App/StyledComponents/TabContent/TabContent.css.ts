@@ -32,7 +32,6 @@ export const rowTab = style([
         marginBlockEnd: themeVars.spacing.half,
         fontSize: themeVars.fontSize.xSmall,
         fontWeight: "bold",
-        textTransform: "uppercase",
     },
 ]);
 

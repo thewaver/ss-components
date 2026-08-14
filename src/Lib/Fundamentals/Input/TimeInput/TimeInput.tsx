@@ -17,7 +17,6 @@ const SEGMENT_HINTS: Record<TimeValueUnit, string> = { hour: "hh", minute: "mm",
 const STEP_KEYS: Record<string, number> = { ArrowUp: 1, ArrowDown: -1 };
 const DEFAULT_MERIDIEM: TimeValueMeridiem = "am";
 
-/** What a segment can hold whatever the others turn out to be. A 12-hour clock counts from one, not zero. */
 const SEGMENT_BOUNDS: Record<TimeValueUnit, { min: number; max: number }> = {
     hour: { min: 0, max: 23 },
     minute: { min: 0, max: 59 },
@@ -56,12 +55,6 @@ const getHasImpossibleSegment = (digits: string, segmentCount: number, isTwelveH
 export const TimeInput = (props: TimeInputProps) => {
     const getIsTwelveHour = () => props.getIsTwelveHour?.() ?? false;
 
-    /**
-     * The meridiem is state rather than a reading of the value, and only because of the empty field: with no
-     * value there is no hour to read it off, and a consumer who picks "pm" before typing anything has to have
-     * that remembered. Whenever a value does exist it wins — the effect below pushes it back — so the two can
-     * never disagree about a time that is actually held.
-     */
     const [getMeridiem, setMeridiem] = createSignal<TimeValueMeridiem>(
         untrack(() => {
             const value = props.valueSignal[0]();

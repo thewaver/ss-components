@@ -19,7 +19,7 @@ export const getDefaultHighlighterConfig = (lang: "ts" | "tsx" | "css" | "json" 
     transformers: [
         {
             pre(node) {
-                delete node.properties.style; // removes background-color
+                delete node.properties.style;
             },
         },
     ],

@@ -94,12 +94,6 @@ export namespace ElementObserver {
             updateSize();
         });
 
-        /**
-         * Scrolling is the one move that has to land in the same frame it happens, so it is listened for as
-         * well as polled: a `scroll` listener in the capture phase hears every scrollable ancestor — the event
-         * does not bubble — and repositions before that frame paints, where the poll alone would show the
-         * layer a frame behind whatever it is anchored to.
-         */
         createEffect(() => {
             onCleanup(() => {
                 document.removeEventListener("scroll", updateSize, true);

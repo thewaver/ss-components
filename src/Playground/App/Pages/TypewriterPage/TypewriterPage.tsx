@@ -2,7 +2,6 @@ import { createMemo, createSignal } from "solid-js";
 
 import { TextArea } from "../../../../Lib/Fundamentals/Input/TextArea/TextArea";
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
-import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
@@ -14,9 +13,7 @@ import {
 } from "../../StyledComponents/TextFieldContent/TextFieldContent";
 import { PageTextFieldPlaceholder } from "../../StyledComponents/TextFieldPlaceholder/TextFieldPlaceholder";
 import { ComplexExample } from "./Examples/Complex";
-import ComplexExampleRaw from "./Examples/Complex.tsx?raw";
 import { CustomExample } from "./Examples/Custom";
-import CustomExampleRaw from "./Examples/Custom.tsx?raw";
 import type { TypewriterExampleProps } from "./TypewriterPage.types";
 
 import { FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/TextFieldContent/TextFieldContent.css";
@@ -38,8 +35,7 @@ const STARTING_WIDTH = 240;
 const MIN_CONTAINER_WIDTH = 40;
 const MAX_CONTAINER_WIDTH = 560;
 const CONTAINER_WIDTH_STEP = 4;
-const COMPLEX_SOURCE = highlighter.codeToHtml(ComplexExampleRaw, getDefaultHighlighterConfig());
-const CUSTOM_SOURCE = highlighter.codeToHtml(CustomExampleRaw, getDefaultHighlighterConfig());
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/TypewriterPage/Examples";
 
 type ExampleWrapperProps = TypewriterExampleProps &
     AccessorProps<{
@@ -103,12 +99,12 @@ export const TypewriterPage = () => {
             {
                 name: "Complex",
                 component: () => <ComplexExampleWrapper {...commonProps} />,
-                src: COMPLEX_SOURCE,
+                path: `${EXAMPLES_ROOT}/Complex.tsx`,
             },
             {
                 name: "Custom",
                 component: () => <CustomExampleWrapper {...commonProps} />,
-                src: CUSTOM_SOURCE,
+                path: `${EXAMPLES_ROOT}/Custom.tsx`,
             },
         ];
     });

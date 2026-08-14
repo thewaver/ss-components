@@ -123,11 +123,6 @@ export const MenuPage = () => {
     const [getLastLayerAction, setLastLayerAction] = createSignal(NOTHING_RUN);
     const [getLastDrivenAction, setLastDrivenAction] = createSignal(NOTHING_RUN);
 
-    /**
-     * The consumer's own variable for the menu's open state, which is what `visibilitySignal` buys: the button
-     * beside the menu is not the menu's trigger and knows nothing about it, and the readout can say whether the
-     * popup is open — neither of which is possible while the state is private.
-     */
     const drivenVisibility = createSignal(false);
 
     const [getDrivenAnchor, setDrivenAnchor] = createSignal<HTMLElement>();

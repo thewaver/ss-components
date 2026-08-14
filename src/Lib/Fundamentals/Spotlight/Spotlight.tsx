@@ -21,12 +21,6 @@ const DEFAULT_SPOTLIGHT_POPUP_OFFSET = { x: 0, y: 8 };
 
 const MODIFIER_KEYS = new Set(["Shift", "Control", "Alt", "Meta", "CapsLock", "NumLock", "ScrollLock", "AltGraph"]);
 
-/**
- * The base the three presets share. It is not exported: `SpotlightHint`, `SpotlightPrompt` and
- * `SpotlightGuide` differ in what they let the page do while they are open, and that is not something a
- * consumer should be able to change under a running spotlight — a mode that cannot move at runtime has no
- * business being a runtime prop.
- */
 export const Spotlight = (props: SpotlightProps) => {
     const viewportContext = useViewportContext();
 
@@ -74,11 +68,6 @@ export const Spotlight = (props: SpotlightProps) => {
         props.visibilitySignal[1](false);
     };
 
-    /**
-     * Escape stays live in every mode, including the one whose whole promise is that you cannot do anything
-     * else. WCAG 2.1.2 is Level A and allows trapping focus only while the user has a standard way out, so
-     * the honest description of `SpotlightPrompt` is "click it, or press Escape" — this is the "or".
-     */
     const handleKeyDown = (e: KeyboardEvent) => {
         if (!getIsVisible()) return;
 
@@ -104,12 +93,6 @@ export const Spotlight = (props: SpotlightProps) => {
         document.addEventListener("keydown", handleKeyDown);
     });
 
-    /**
-     * `prompt` keeps the highlighted element as the only reachable thing, and it cannot use `inert` to do it:
-     * `inert` is inherited and cannot be lifted off a descendant, so there is no "seal the page, except this
-     * one control". Pulling focus back on `focusin` is what is left, and it catches `Tab`, `Shift+Tab` and a
-     * programmatic focus alike.
-     */
     createEffect(() => {
         const element = props.getElementRef();
 
@@ -131,14 +114,6 @@ export const Spotlight = (props: SpotlightProps) => {
         });
     });
 
-    /**
-     * `guide` seals the page instead, and one attribute does all three jobs — hit testing, tab order and the
-     * accessibility tree. There is no single root to put it on: the content a `Viewport` wraps is not one node,
-     * and `Portal` nests its own container inside the mount, so the page is two levels above what this
-     * component holds. So the walk climbs from the portal to the body and seals everything off the path,
-     * which is the same shape with a `Viewport` and without one. Elements already `inert` are left alone, or
-     * the cleanup would hand back something that was never ours.
-     */
     createEffect(() => {
         const portal = getPortalRef();
 
@@ -168,14 +143,6 @@ export const Spotlight = (props: SpotlightProps) => {
         });
     });
 
-    /**
-     * Focus waits for the placement rather than for the mount, and then latches. The popup is
-     * `visibility: hidden` until `Anchor` has measured it, and a hidden element takes no focus, so
-     * autofocusing on mount silently does nothing and leaves a sealed page with focus on the body. Latching is
-     * the other half: the position changes on every step, and an autofocus that followed it would throw focus
-     * back to the first control each time — so pressing `Next` would land the reader on `Skip all` with the
-     * next press, which is the worst possible place to send them.
-     */
     const [getHasPlaced, setHasPlaced] = createSignal(false);
 
     createEffect(() => {

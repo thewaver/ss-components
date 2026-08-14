@@ -29,12 +29,6 @@ export namespace Anchor {
             equals: Rect.isSame,
         });
 
-        /**
-         * A layer usually anchors to an element and the rect is measured from it, but a caller that already
-         * holds a rect can hand it over instead — a spotlight positions against the padded hole it cut rather
-         * than against the element inside it, and a context menu would anchor to the point that was pressed.
-         * The rest of the placement maths never learns the difference, because it only ever saw a rect.
-         */
         const getAnchorRect = createMemo(() => opts.getAnchorRect?.() ?? getObservedRect());
 
         const getPlacement = createMemo((): AnchorPlacement => {
@@ -70,11 +64,6 @@ export namespace Anchor {
             };
         });
 
-        /**
-         * The band a placement is allowed to occupy — its own side of the anchor for an `out` placement, the
-         * whole viewport for one that sits over it. Position and size both come from this, which is what stops
-         * a layer with nowhere to go from being pushed back over the thing it belongs to.
-         */
         const getBands = createMemo(() => {
             const anchorRect = getAnchorRect();
             const placement = getPlacement();

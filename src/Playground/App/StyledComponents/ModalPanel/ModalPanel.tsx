@@ -7,7 +7,7 @@ import * as styles from "./ModalPanel.css";
 export const PageModalPanel = (props: ParentProps<ModalPanelProps>) => (
     <div
         class={props.getVisibilityTarget() === 1 ? styles.modalPanelOn : styles.modalPanelOff}
-        style={{ transition: `transform ${props.getTransitionDurationMs()}ms` }}
+        style={{ transition: `transform ${props.getTransitionDurationMs()}ms`, padding: props.getPadding?.() }}
     >
         {props.children}
     </div>

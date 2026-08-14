@@ -18,6 +18,8 @@ import {
 import { PageNumberField } from "../Field/Field";
 import type { PageColorChannelsProps } from "./ColorChannels.types";
 
+import { FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/TextFieldContent/TextFieldContent.css";
+
 const SPACES: Color.ValueSpace[] = ["rgba", "hsla", "hexa"];
 const RGB_CHANNELS = ["r", "g", "b"] as const;
 const HSL_CHANNELS = ["s", "l"] as const;
@@ -169,6 +171,8 @@ export const PageColorChannels = (props: PageColorChannelsProps) => {
                         <TextInput
                             valueSignal={hexSignal}
                             getAriaLabel={() => "Hex with alpha"}
+                            getPadding={() => FIELD_PADDING}
+                            getGap={() => FIELD_GAP}
                             computeTextStyle={computePageTextFieldTextStyle}
                             renderContent={(getFlags) => (
                                 <PageTextFieldContent getFlags={getFlags} getWidth={() => HEX_FIELD_WIDTH} />

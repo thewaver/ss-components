@@ -2,12 +2,8 @@ import type { ShapeConst, Size2d } from "@thewaver/ss-utils";
 
 import type { ShapeProps } from "../../../../Lib/Exotics/Shape/Shape.types";
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
-import type {
-    GradientConfig,
-    IterationConfig,
-    PatternConfig,
-    SVGDefsColors,
-} from "../../Samples/SVGDefs/SVGDefs.types";
+import type { SVGDefsSamples } from "../../Samples/SVGDefs/SVGDefs.const";
+import type { SVGDefsColors } from "../../Samples/SVGDefs/SVGDefs.types";
 
 export type ShapeExampleProps = Pick<ShapeProps, "getLameExponents" | "getJoinRadii"> &
     AccessorProps<{
@@ -17,9 +13,9 @@ export type ShapeExampleProps = Pick<ShapeProps, "getLameExponents" | "getJoinRa
         animationDurationMs: number;
         colors: SVGDefsColors;
         shapeKind: ShapeConst.DefaultShape;
-        strokeConfig: GradientConfig;
-        fillConfig: PatternConfig;
-        iterationConfig: IterationConfig;
+        strokeConfigKey: SVGDefsSamples.Gradient.SampleKey;
+        fillConfigKey: SVGDefsSamples.Pattern.SampleKey;
+        iterationConfigKey: SVGDefsSamples.Iteration.SampleKey;
         cellSize: Size2d;
         edgeThicknesses: number[];
     }>;

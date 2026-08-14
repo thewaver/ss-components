@@ -86,19 +86,6 @@ export const Tree = <T,>(props: TreeProps<T>) => {
     let lastFocusedValue: T | undefined;
     let lastExpanded: T[] = [];
 
-    /**
-     * A row that unmounts while it holds focus leaves focus on the document body, which sends a keyboard
-     * reader to the top of the page rather than to the node that has just closed. The tree's own routes into
-     * `collapse` cannot produce that — `ArrowLeft` and a click both act on the branch, which is already the
-     * focused element and stays mounted — so the only way in is a **consumer** writing `expandedSignal`
-     * themselves, which never passes through `collapse` at all. Hence a guard over the visible rows rather
-     * than one inside the collapsing function.
-     *
-     * All three conditions are load-bearing. Without a remembered row a tree nobody has touched would steal
-     * focus the moment a consumer collapsed anything; without the row having left the visible set an
-     * unrelated collapse elsewhere in the tree would do the same; and without focus actually sitting on the
-     * body this would fight whatever the consumer moved focus to on purpose.
-     */
     createEffect(() => {
         const expanded = props.expandedSignal[0]();
         const collapsed = lastExpanded.filter((value) => !expanded.includes(value));
@@ -257,13 +244,6 @@ export const Tree = <T,>(props: TreeProps<T>) => {
         focusRow(navigable[position]);
     };
 
-    /**
-     * The rows are rendered from the nesting while everything else works off the flat order, which is the
-     * arrangement `Select` already uses for its groups. The `role="group"` box is a sibling of the branch's
-     * own row rather than its child: `InteractionWrapper` listens for hover and press on the element it was
-     * handed, and a row nested inside another row would report its ancestor as hovered and pressed too. Each
-     * level of grouping still nests, so the depth a reader is told is the depth the markup shows.
-     */
     const renderRows = (getLevelRows: Accessor<TreeRow<T>[]>): JSX.Element => (
         <Index each={getLevelRows()}>
             {(getRow) => (

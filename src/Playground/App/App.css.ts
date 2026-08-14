@@ -82,6 +82,18 @@ export const tabPage = style({
     overflowY: "auto",
 });
 
+export const tabPageHeader = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: themeVars.spacing.full,
+});
+
 export const tabPageTitle = style({
     fontSize: themeVars.fontSize.large,
+});
+
+export const tabPageDescription = style({
+    fontSize: themeVars.fontSize.small,
+    maxWidth: 960,
+    opacity: 0.75,
 });

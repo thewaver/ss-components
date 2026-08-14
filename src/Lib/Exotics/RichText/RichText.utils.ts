@@ -16,7 +16,6 @@ export namespace RichTextUtils {
             const isClosing = tagRaw.startsWith("[/");
             const tag = tagRaw.replace(/\[\/?|\]/g, "");
 
-            // Push text before tag
             if (index > lastIndex) {
                 stack[stack.length - 1].children.push({
                     type: "text",
@@ -25,7 +24,6 @@ export namespace RichTextUtils {
             }
 
             if (isClosing) {
-                // Gracefully skip unmatched closing tag
                 let found = false;
 
                 for (let i = stack.length - 1; i >= 1; i--) {
@@ -52,7 +50,6 @@ export namespace RichTextUtils {
                 }
 
                 if (!found) {
-                    // Treat unmatched closing tag as text
                     stack[stack.length - 1].children.push({ type: "text", content: tagRaw });
                 }
             } else {
@@ -62,7 +59,6 @@ export namespace RichTextUtils {
             lastIndex = index + tagRaw.length;
         }
 
-        // Push remaining text
         if (lastIndex < input.length) {
             stack[stack.length - 1].children.push({
                 type: "text",
@@ -70,7 +66,6 @@ export namespace RichTextUtils {
             });
         }
 
-        // Unwind unclosed tags — treat as literal
         while (stack.length > 1) {
             const unclosed = stack.pop()!;
             stack[stack.length - 1].children.push({

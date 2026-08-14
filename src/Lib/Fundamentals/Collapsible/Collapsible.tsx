@@ -57,12 +57,6 @@ export const Collapsible = (props: CollapsibleProps) => {
 
     const getSizing = createMemo(() => props.getSizing?.() ?? DEFAULT_COLLAPSIBLE_SIZING);
 
-    /**
-     * CSS cannot transition to `auto`, so opening a panel means measuring the content and animating to a pixel
-     * value. The measured box is the unconstrained inner div rather than the panel itself, because measuring
-     * the box being animated would mean releasing and restoring its height on every pass — and it would fight
-     * the transition it is feeding.
-     */
     const getContentHeight = ElementObserver.createBorderBoxHeightObserver(getContentRef);
 
     const { getTransitionTarget } = ElementFader.createFader(getIsExpanded, { getTransitionDurationMs });

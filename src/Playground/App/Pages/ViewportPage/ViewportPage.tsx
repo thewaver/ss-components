@@ -80,7 +80,6 @@ export const ViewportPage = () => {
     const [getRoamingValue, setRoamingValue] = createSignal<string | undefined>();
     const [getScrolledValue, setScrolledValue] = createSignal<string | undefined>();
 
-    /** The element is a fixed square, so asking for a bigger scale is asking for a smaller design to fill it. */
     const getStageSize = createMemo(() => {
         const side = Math.round((styles.HOST_SIZE * PERCENT) / getScalePercent());
 

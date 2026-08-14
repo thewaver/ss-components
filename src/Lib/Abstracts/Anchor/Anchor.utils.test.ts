@@ -43,11 +43,6 @@ describe("getVPlacementShift", () => {
     });
 });
 
-/**
- * The sign is the whole content of these two: a positive offset has to push the content further from
- * the anchor whichever side it is on, so the same number means "left" on one placement and "right" on
- * its mirror. A centred placement has no edge to be pushed away from.
- */
 describe("placement offsets", () => {
     it("pushes an out placement away from the anchor", () => {
         expect(AnchorUtils.getHPlacementOffset("right-out", 8)).toBe(8);
@@ -69,10 +64,6 @@ describe("placement offsets", () => {
     });
 });
 
-/**
- * These are the ones a browser spec cannot reach without building a Playground page per case: the
- * flip and the clamp only happen at a screen edge, and every input is a rectangle.
- */
 describe("getSafeHPlacement", () => {
     const safeH = (placement: Parameters<typeof AnchorUtils.getSafeHPlacement>[0], anchor: Rect, reserved?: Size2d) =>
         AnchorUtils.getSafeHPlacement(placement, anchor, WIDE_CONTENT, SCREEN, undefined, reserved);

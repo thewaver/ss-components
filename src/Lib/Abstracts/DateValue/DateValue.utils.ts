@@ -46,38 +46,13 @@ const monthNameCache = new Map<string, string[]>();
 
 const getCalendarOf = (id: DateValueCalendarId) => createCalendar(id);
 
-/**
- * The instant handed to `Intl`, taken at **midday** rather than at the start of the day.
- *
- * A `CalendarDate` becomes an instant at local midnight, and midnight is the one moment that does not survive
- * the trip: a daylight-saving change can put it on the previous day, and a pre-standard-time zone offset is not
- * even a whole number of minutes. That cost an era its name — Meiji begins on 1868-09-08, and midnight on that
- * day formatted as **Keiō**, the era before it. Midday is twelve hours clear of every such slip.
- */
 const toIntlDate = (value: DateValue) => new Date(value.toDate(getLocalTimeZone()).getTime() + MIDDAY_MS);
 
 const fromAstronomicalYear = (year: number, month: number, day: number) =>
     year > 0 ? new CalendarDate(year, month, day) : new CalendarDate("BC", 1 - year, month, day);
 
-/**
- * The first day of an era, built through the era-form constructor rather than searched for.
- *
- * Searching was the first implementation and it was quietly wrong: it bisected over the ISO year and converted
- * each candidate into the target calendar, but converting a date the target calendar cannot hold does not fail —
- * it clamps. Asking the Japanese calendar about the year -5000 returns a **Reiwa** date, so the search settled on
- * nonsense and every era but the last was named after the wrong one. `new CalendarDate(calendar, era, 1, 1, 1)`
- * asks the package the question directly and is exact: Meiji 1 is 1868-09-08, Minguo 1 is 1912-01-01.
- */
 const getEraStart = (id: DateValueCalendarId, era: string) => new CalendarDate(getCalendarOf(id), era, 1, 1, 1);
 
-/**
- * A date to *name* an era by, which is deliberately not its first day.
- *
- * The package and ICU do not agree on where a Japanese era begins — the package puts Meiji 1 at 1868-09-08 and
- * ICU switches on the proclamation date some weeks later — so formatting an era's own first day reports the era
- * **before** it, and Meiji came out named "Keiō". Year 2 is a full year clear of the boundary, and it works
- * whichever way the era counts: forward for Meiji, backward for BC, where year 2 is earlier rather than later.
- */
 const getEraSample = (id: DateValueCalendarId, era: string) => getEraStart(id, era).set({ year: 2 });
 
 export namespace DateValueUtils {

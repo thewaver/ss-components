@@ -121,17 +121,23 @@ a round trip and leaves the code broken in the meantime. Report what was fixed a
 This does not loosen _"Do not bundle a judgment call into a bug fix"_ below; the two are about different
 things. Fix the defect on sight; still raise the taste question separately.
 
-**Do not add code comments.** The codebase carries essentially none and that is deliberate; adding any is
-a deviation, not a neutral default. Never write a `//` note inside a function body or a literal. Reasoning
-that needs recording goes in `conventions.md`, or in the reply. Correcting or deleting a comment that is
-already there is fine — that is editing what exists, not adding. If a change seems to need an inline
-comment to be understandable, that is a signal the code should be clearer instead.
+**`src/Lib` and `src/Playground` carry no comments of any kind, and none may be added.** Not a `//` note
+inside a function body, not a `/** */` block above a declaration, not on a component and not on a utility.
+This has been asked for repeatedly and in several wordings; the count reached 108 blocks anyway, every one
+of them written by Claude rather than by the user, and they were all deleted on **2026-08-14**. There is
+therefore no precedent left to copy: a comment appearing in either tree is new and is a defect. Reasoning
+that needs recording goes in `conventions.md` — _"method X does Y rather than Z, because…"_ is exactly what
+that file is for — or in the reply. If a change seems to need an inline comment to be understood, that is a
+signal the code should be clearer instead.
 
-**`/** */` blocks above declarations stay, but are not added unprompted in `src/Lib` or `src/Playground`.**
-Where one already sits above a function or an exported declaration it is wanted: keep it, and update it
-when the thing it describes changes. Do not attach a new one to a declaration that has none unless asked
-for it. **`e2e/` is the exception** — explanatory blocks are welcome there, and the existing specs carry
-them, so a new spec should read like its neighbours.
+**`ss-utils` is the opposite, and confusing the two is the mistake to avoid.** There, every exported
+function is documented so that a consumer can read what it takes, what it returns and what it guarantees
+without opening the body — read that repo's code before writing in it. Here, a component's contract is its
+props type and a utility's is its signature, and neither is annotated. **Utilities in this repo may one day
+get an `ss-utils`-style pass; until the user says so, they are stripped like everything else.**
+
+**`e2e/` is the only exception in this repo** — explanatory blocks are welcome there, and the existing specs
+carry them, so a new spec should read like its neighbours.
 
 **Read a neighbouring component before writing a new one.** House style is tight and consistent, and
 `conventions.md` records the parts of it that were argued rather than assumed. Copy the neighbour's shape

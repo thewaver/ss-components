@@ -4445,6 +4445,167 @@ namespace of the same name, because a `namespace` does not merge across ES modul
 would import one identifier twice. Plain exported type names are what the rest of the repo already uses — see
 _"House style"_ — and the namespace stays on the value side only.
 
+### Controls: `Scroller`, and why it renders no button of its own
+
+Settled with the user on **2026-08-14**. A strip too wide for its box, paged by a previous and a next button
+rather than by a scrollbar. The user asked for it as a `Carousel`; the name was corrected before anything was
+built, because **a carousel is a different pattern with an accessibility contract this does not implement** —
+one slide at a time, wrapping, `aria-roledescription` of `carousel` and `slide`, and a pause control the
+moment it rotates by itself. Naming a component after what it resembles is the same trap already recorded
+for the segmented control that looks like `Tabs` and is not. The real carousel is `review.md` item 8.
+
+**The track holds arbitrary children, and that is the user's call.** It renders nothing and types nothing:
+the consumer's markup goes in as `children` and comes out untouched. The alternative — a list of records, the
+shape `Tabs` takes — was rejected because the first consumer is a `Tabs`, which would then have been rendered
+twice over, and because everything the component needs it can measure. Focus centring works by watching for
+focus reaching **any** descendant, whatever that descendant is. Paging lands on item boundaries by reading
+the track's own child elements, and where there is only one child — which is exactly the `Tabs` case — the
+same rule degrades to a full page with no special case, because there is no boundary inside the page to
+prefer.
+
+**It never claims the arrow keys.** A `Tabs` inside it already walks its tabs with them, and two owners of
+one key is a bug found later rather than sooner. The component listens; it never moves focus itself.
+
+**A focused child is revealed, not centred, and the pointer counts the same as the keyboard.** Settled with
+the user after the first attempt centred on keyboard focus alone: an item already fully in view does not move
+the strip at all, and one cut off by an edge scrolls by the least that shows it whole. Centring was the
+original idea and is worse in both directions — it drags a half-clicked item out from under the cursor, and
+it moves the strip even when nothing needed moving. Distinguishing pointer from keyboard was my patch for the
+first of those and it bought a second behaviour to remember; revealing rather than centring removes the cause
+instead, so one rule covers both. What it gives up is the look-ahead a centred item has on either side of it:
+a child revealed at an edge sits flush against it, with nothing of the next one showing.
+
+**It renders no `<button>`, which is the `NumberInput` shape rather than the `Tabs` one.** `renderButton` is
+called once per button with which step it is and with a `ScrollerStepper` — `getIsAtStart`, `getIsAtEnd`,
+`stepToPrevious`, `stepToNext` — exactly as `NumberInput` hands its steppers to `renderTrailing`. So the
+consumer composes with `Button` and inherits naming, the focus ring, tooltips and the disabled treatment,
+and the library owns only what nobody else can know: how far a step goes and whether there is anywhere left
+to go. `getButtonPlacement` is `split`, `start` or `end`, since "together" cannot be placed without saying
+which side.
+
+**`getPadding` exists because a scroll container clips a focus ring, and only the consumer knows how big the
+ring is.** A ring is drawn outside the element's border box, and a scrolling box clips at its own edges, so a
+focused child at either end of the strip loses part of its ring — and so does every child at the top and
+bottom, because a horizontal scroller clips the cross axis too. The library paints no ring and cannot guess
+its width, so the number is the consumer's; the Playground's is one exported constant, `FOCUS_RING_WIDTH`,
+used both by the `:focus-visible` rule that draws the ring and by every `Scroller` that has to leave room
+for it.
+
+Three things follow from that one number, and all three are needed — leaving any one out clips a ring
+somewhere. The track takes it as `padding-block` and `padding-inline-start`. **The end side cannot be
+padding**, because a scroll container's end-side padding is still not interoperable — Firefox does not count
+`padding-right` as scrollable space — so the component renders one element of its own after the consumer's
+children, sized to the same number. And **the reveal leaves that room free**: a child is scrolled to sit the
+padding's width clear of the edge rather than flush against it, so the space is there for the ring rather
+than merely existing further along the track.
+
+**`overflow-y: clip` with `overflow-clip-margin` is the purpose-built answer and cannot be used here.** Read
+on MDN on **2026-08-14**: when either axis is neither `visible` nor `clip`, a `clip` on the other axis
+computes to `hidden`. The horizontal axis has to scroll, so the vertical `clip` would become `hidden` and
+`overflow-clip-margin` would be ignored. Recorded so it is not re-proposed.
+
+**The buttons leave when there is nothing to scroll; the track never does.** Asked for by the user on
+**2026-08-14** as "just return the contents when there is nothing to scroll", and the smaller version is what
+shipped, because the track is the only thing the component can measure. Whether there is anything to scroll
+is `scrollWidth > clientWidth` **on the track**; unmount it and the children lay out in a box the component
+does not own, so it can neither tell that they have started to overflow nor put itself back. A track with
+nothing overflowing is also indistinguishable from a plain flex row — the scrollbar is hidden, nothing is
+clipped, nothing is interactive — so the only thing anyone could see was two dead buttons and the gap they
+sat in, and those are what go.
+
+**Removing them widens the track, and that is deliberate hysteresis rather than a loop.** With the buttons
+present the content has the track's width to fit in; without them it has that plus their width and the gaps.
+So content between those two widths settles wherever it currently is and stays there, instead of flickering
+between the two states on every resize frame. The first measurement happens with no buttons rendered, so a
+strip only ever gains them by genuinely exceeding its full width.
+
+**The track hides its scrollbar and keeps its scrolling.** Wheel and touch still work — taking them away
+would make the buttons the only route, which is worse than the scrollbar it replaced. `scroll-behavior` is
+smooth in CSS rather than per call, so `prefers-reduced-motion` turns it off without the component asking.
+
+**Horizontal only.** The axis is one variable rather than a redesign, but nothing has asked for a column and
+`SlideButton`'s precedent is to build the axis that exists. Recorded in `review.md` rather than guessed at.
+
+### The source view, as built, and the four calls the mechanism forced
+
+Built **2026-08-14** against the two entries above. Everything here follows from them; where a rule had to be
+derived rather than read off, it is marked as such.
+
+**An example declares its own file, as a path from the repository root.** `ExampleDefs.src` — a string of
+already-highlighted HTML built at module scope — is now `path`, and the highlighting happens when the modal
+opens. The `?raw` imports and the `highlighter.codeToHtml` calls are gone from all six pages that had them.
+The path is a plain literal rather than anything derived: `import.meta.glob` keys are root-relative, so
+`/src/Playground/App/Pages/ShapePage/Examples/Default.tsx` is the same string the resolver will look up, and a
+typo produces an empty tab rather than a wrong one.
+
+**The current sample is declared too, as a key qualified by its sub-registry.** `sampleKeys` returns
+`["Gradient/sweep_diag_1v1", "Pattern/plain", "Iteration/constant"]`, and the resolver looks each one up
+under whichever `Samples/<Registry>/Samples/` folder the example's imports reached. The qualifier is not
+decoration: _"Keys collide across registries"_ above records that `plain` exists in both `Pattern` and
+`Gradient`, and the sub-registry name is exactly what disambiguates them in the code as well.
+
+**Derived: a registry's own sample files are reached by key and never by import-following.** The two settled
+rules pull opposite ways here — tabs follow imports transitively through `Samples`, and a tab is not every
+file in a folder — and `SVGDefs.const.ts` imports all fifty of its samples, so following it produces the
+sixty-tab outcome the second rule exists to prevent. The resolver therefore skips any specifier landing
+inside a `<Registry>/Samples/` folder. Nothing is lost: those files are exactly what the key mechanism
+resolves, which is what _"two mechanisms that never have to know about each other"_ already described.
+
+**Derived: a tab is a name, not a file, so `.const`, `.utils`, `.types` and `.css` collapse into one.** The
+settled rule says the imported file plus its `.css.ts` and `.types.ts` siblings. Applied literally to
+`SVGDefs.const.ts` it produces a tab called `SVGDefs.const` whose types sibling would have to be
+`SVGDefs.const.types.ts`, and a second tab called `SVGDefs` for the types file the const imports — two tabs
+for one folder, which is the opposite of what a folder view is for. The stem is therefore the file name with
+`.const`, `.utils`, `.types` or `.css` removed, so one `SVGDefs` tab carries the const, the types and the
+utils. **What is displayed is still only what the settled rule allows**: a file appears either because it was
+imported or because it is the stem's `.types.ts` or `.css.ts`. A `.utils.ts` nobody imported does not appear.
+
+**A sibling is displayed but never traversed.** A stylesheet reached only through another stylesheet is not
+followed, which is the mechanism `Theme.css` was already meant to be kept out by.
+
+**`Theme.css` is excluded by name as well, and it is the only file that is.** Settled with the user on
+**2026-08-14**, after the mechanism gave `Card` a `Theme` tab honestly: the example does import the theme by
+name, so following imports puts it there. The user's reason for excluding it anyway is the one that
+generalises — **the theme holds no logic that helps build the component**, it is a palette, and a tab of
+colour tokens teaches a reader nothing about the example they opened. The exclusion is a single path
+constant rather than a pattern, so it stays a named exception rather than the start of a filter list.
+
+**Forced: `?raw` cannot read a `.css.ts`, so the Playground's Vite config carries a nine-line plugin.** The
+vanilla-extract plugin claims every `*.css.ts` by file name and discards the query, so a stylesheet requested
+as text comes back compiled and with no default export — `codeToHtml` then receives `undefined` and the modal
+renders nothing at all. `?source` resolves to an id no other plugin recognises (a null-byte prefix and a
+`.source` extension) and is read off disk by the plugin itself. This is the only part of the feature that
+lives outside `src`.
+
+**An example is given the key rather than the resolved sample, and three pages changed to do it.** `Shape`
+passed `getStrokeConfig`, `getFillConfig` and `getIterationConfig` already looked up; `CellAnimation` passed
+a `computeCellWeights` closure and a resolved origin; `ScanlineAnimation` passed a `computeCellWeights`
+closure. All three now pass keys, and the example does the lookup in its own body — which is the point, since
+that line is what the reader came to see. `CellAnimation`'s stress test gains a correctness fix on the way:
+the origin is now computed from the cell count actually in force rather than from the page's.
+
+**The code box's height cap is a per-call-site parameter.** A standalone box keeps its 800; the source view
+passes 500, because a tab shows a list of section headers above the open one and the modal has to hold both.
+Neither number moved.
+
+**The scroll container is the modal, edge to edge, and the padding lives inside it.** Asked for by the user on
+**2026-08-14**, so that the scrollbar sits against the modal's edge rather than floating twenty pixels inside
+it. `PageModalPanel` therefore takes a `getPadding` that overrides its own, defaulting to what it always had —
+the parameter-with-per-call-site-defaults rule, since the stress test and the modal page still want the
+padding. The source modal passes zero, and the source view is the panel's only child. The "tap outside to
+close" hint went with it: the panel is now one thing rather than two, and Escape and an overlay click were
+never spelled out on any other modal either.
+
+**The padding then belongs to the scroller's children rather than to the scroller, and the reason is the
+sticky strip.** A tab strip inset by the container's padding leaves a band either side of it, and code
+scrolling upward passes through those bands in plain view. A strip that spans the whole scrollport and pads
+itself covers everything that goes under it. Its `z-index` also has to beat the code box's inset border,
+which otherwise wins by sitting later in the document at the same level.
+
+**A page's description lives on its tab config.** The title under which a page renders comes from
+`TAB_CONFIGS` in `App.tsx`, so the sentence under it does too — one place, one entry per page, and a page
+without a component keeps neither.
+
 ### Controls: `Spotlight`, and three presets because a mode cannot move at runtime
 
 Settled with the user on **2026-08-14**, renaming `ElementHighlight` on the way. A spotlight cuts a hole in an

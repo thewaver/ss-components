@@ -42,8 +42,9 @@ reading.
 18. `Viewport` as a region: what is settled and what is not — _open_
 19. `Tree` — five things deliberately not built, and one extraction to decide — _open_
 20. `SlideButton` — five things deliberately not built — _open_
-21. Planned: the Playground's source view, in three remaining phases — _in progress_
+21. Planned: the same source view on `Variants` — _planned_
 22. `Spotlight` — three things deliberately not built — _open_
+23. `Scroller` — five things deliberately not built — _open_
 
 ### Build order
 
@@ -370,8 +371,8 @@ doing:
 
 `Fundamentals/Input` covers `TextInput`, `TextArea`, `NumberInput`, `CurrencyInput`, `Checkbox`, `Toggle`, `Radio`,
 `RadioGroup`, `Select`, `MultiSelect`, `FileInput`, `ColorInput`, `Label`, `Calendar`, `DateInput`,
-`DatePicker` and `TimeInput`; `Fundamentals` adds `Accordion`, `Button`, `SlideButton`, `Tabs`, `Tooltip`, `Popover`,
-`Menu`, `Modal`, `Drawer`, `Progress`, `Range`, `Toasts` and `Tree`.
+`DatePicker` and `TimeInput`; `Fundamentals` adds `Accordion`, `Button`, `SlideButton`, `Scroller`, `Tabs`,
+`Tooltip`, `Popover`, `Menu`, `Modal`, `Drawer`, `Progress`, `Range`, `Toasts` and `Tree`.
 Beyond item 7, this is what is missing, ordered by how much of it is a new architectural problem rather
 than by how much markup it is.
 
@@ -379,14 +380,30 @@ than by how much markup it is.
 is the trap: every control on every page and in every props panel is now a library control, so the
 Playground has nothing left to say about what the library lacks.
 
+### Asked for by the user on **2026-08-14**
+
+**`Carousel` — the actual slide rotator, for later.** Distinct from `Scroller` and not a variant of it. A
+carousel shows one slide or one page of slides at a time rather than as many as fit, wraps around, usually
+offers a picker for jumping to a slide, and often rotates on its own. That last part is what makes it a
+component rather than paint: WCAG **2.2.2 Pause, Stop, Hide** applies to anything that moves automatically,
+runs for more than five seconds and sits alongside other content, so an auto-rotating carousel must ship a
+pause control and must stop on hover and on focus. Its semantics are its own too — the APG's Carousel (Slide
+Rotator) pattern uses `aria-roledescription` of `carousel` on the region and `slide` on each item, with a
+live region while it rotates. None of that is in `Scroller`, which is the whole reason they were separated.
+
+**`Paginator` — the page-range control.** Asked for in the same breath, and it **replaces the "compositions"
+line below**, which had already recorded that the composition claim was weakest for this one: the visible
+page range, where the gaps fall, and how many pages sit either side of the current one is arithmetic, and
+arithmetic is the library's half of the contract rather than the consumer's.
+
 ### Structure
 
 **`Table` / data grid is out of scope for now** — sorting, selection, column sizing, sticky headers and
 virtualization together are a project rather than a component, and it should not be started as a
 by-product of anything else.
 
-**`Pagination`, `Breadcrumbs` and a segmented control are compositions** — of `Button`, of `Tabs`, and
-of `RadioGroup` with button-shaped painters — and should stay that way until something proves otherwise.
+**`Breadcrumbs` and a segmented control are compositions** — of `Tabs` and of `RadioGroup` with
+button-shaped painters — and should stay that way until something proves otherwise.
 A segmented control is worth naming explicitly because it looks like `Tabs` and is not: `Tabs` is
 navigation with `role="tablist"`, while a segmented control carries a **value**, which is `RadioGroup`
 with different paint.
@@ -1009,28 +1026,22 @@ gaps, each with the reason it is still one.
 
 ---
 
-## 21. Planned: the Playground's source view, in three remaining phases
+## 21. Planned: the same source view on `Variants`
 
-The decisions are settled and are in `conventions.md` under _"The Playground: an example's source is a folder
-view"_ and _"Playground samples: one file per key"_. The `Samples/` split those decisions needed is done — a
-folder per samples component and 140 sample files across the three registries big enough to warrant it. What
-is left is the source view itself, in three separately committable phases.
+The source view itself is built and is described in `conventions.md` under _"The Playground: an example's
+source is a folder view"_ and _"The source view, as built"_. What is left is putting the same button next to
+a variant, and it is a second project rather than a step: variants are written inline inside each page's
+`getVariants`, so giving them a source view means extracting roughly 150 of them into their own files across
+about 30 pages.
 
-**1 — The tabbed source view itself.** Loading raw source on demand rather than at module scope, resolving an
-example's own imports into folder tabs, resolving the current sample key to its file by name, and the
-`Accordion` per tab. Also the change that gives an example the key rather than the resolved config, so its
-source stops having a hole where the interesting decision was made. The page-scaffolding flag lands here.
+It is also the phase that makes the `StyledComponents` half of the tab rule pay. Examples import almost no
+styled components, so the transitive rule that follows imports through `StyledComponents` is currently
+exercised by nothing — variants are made of them, and every one of those tabs would be new ground.
 
-**2 — The same button on `Variants`.** This is the phase that is a second project rather than a step:
-variants are written inline inside each page's `getVariants`, so giving them a source view means extracting
-roughly 150 of them into their own files across about 30 pages. It is also the phase that makes the
-`StyledComponents` half of the tab rule pay, since examples import no styled components today and variants are
-made of them.
-
-**3 — A description under each page's title.** One or two sentences saying what the control is and any quirk
-worth knowing, distinct from the title and not documentation. Small, and independent of the other three.
-
----
+**What has to be decided before the extraction starts** is where a variant's file lives and what it is given.
+An example is a component taking props from the page; a variant is a fragment of JSX closing over the page's
+own signals, so a straight extraction turns every closed-over signal into a prop and thirty pages grow a
+props type each. That is the whole of the work, and none of it has been argued.
 
 ---
 
@@ -1054,6 +1065,36 @@ because a mode cannot move at runtime"_. These are the gaps, each with the reaso
   the `focusin` guard stops the tab order, but a virtual cursor still reads everything behind. The only escape
   is portalling the highlighted element into the overlay for the duration, which is far more invasive than the
   mode is worth. Recorded as a limit of the mechanism rather than an oversight.
+
+---
+
+## 23. `Scroller` — five things deliberately not built
+
+The decisions behind what exists are in `conventions.md` under _"Controls: `Scroller`, and why it renders no
+button of its own"_. These are the gaps, each with the reason it is still one.
+
+- **Horizontal only.** The whole component is one axis of arithmetic — `scrollLeft`, `clientWidth`,
+  `offsetLeft` — and a vertical twin is those three swapped plus a direction prop, which is `Accordion`'s
+  recorded position on its own axis question. Nothing has asked for a column, and the Playground's own left
+  menu, which is the obvious candidate, scrolls natively today and nobody has complained.
+- **The step is a page, and there is no way to ask for less.** Paging lands on the last item boundary inside
+  the next page, so the step is "as much as fits" rather than a tuned fraction. A consumer wanting a lingering
+  item of overlap for context has nothing to set. It is not a prop because the overlap would be a measured
+  value with no consumer behind it, and the rule about tuned numbers says those are the user's to set.
+- **Nothing reports the scroll position outward.** There is no signal for how far along the strip is, so a
+  consumer wanting page dots, a progress bar or a "3 of 12" readout beside it has no route to the number.
+  `SignalMirror.createOptional` is the shape it would take, exactly as the popups' open state does, and it is
+  the same gap `SlideButton` records about its progress.
+- **A second press landing mid-scroll moves less than a page.** The step is measured from where the track is
+  at the moment the button is pressed, and the scroll that follows is smooth, so pressing quickly five times
+  does not advance five pages. It is self-correcting — every press still moves forward and the end is still
+  reachable — and every implementation built on `scroll-behavior: smooth` behaves this way. Holding the
+  intended target and stepping from that instead is the fix if it ever matters; nothing has asked.
+- **The buttons are the consumer's, so their keyboard story is too.** The component renders no button, which
+  means it cannot guarantee one is reachable, named, or in the tab order — a consumer who paints them as bare
+  divs gets a control no keyboard can reach. The library's answer is that the scrolling itself is still
+  operable, because focus moving through the strip drags the track along, so the function survives even when
+  the buttons do not. Recorded because it is a real consequence of the ownership line rather than an oversight.
 
 ---
 

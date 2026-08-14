@@ -1,10 +1,7 @@
 import { createMemo, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 
-import type { Point2d } from "@thewaver/ss-utils";
-
 import { ScanlineAnimation } from "../../../../Lib/Exotics/ScanlineAnimation/ScanlineAnimation";
-import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
@@ -22,19 +19,12 @@ import {
 } from "../../StyledComponents/Field/Field";
 import knight from "../../knight.webp";
 import { BrightnessExample } from "./Examples/Brightness";
-import BrightnessExampleRaw from "./Examples/Brightness.tsx?raw";
 import { GlitchExample } from "./Examples/Glitch";
-import GlitchExampleRaw from "./Examples/Glitch.tsx?raw";
 import { GrayscaleExample } from "./Examples/Grayscale";
-import GrayscaleExampleRaw from "./Examples/Grayscale.tsx?raw";
 import { HueExample } from "./Examples/Hue";
-import HueExampleRaw from "./Examples/Hue.tsx?raw";
 import { SnakeExample } from "./Examples/Snake";
-import SnakeExampleRaw from "./Examples/Snake.tsx?raw";
 import { SplitExample } from "./Examples/Split";
-import SplitExampleRaw from "./Examples/Split.tsx?raw";
 import { SurgeExample } from "./Examples/Surge";
-import SurgeExampleRaw from "./Examples/Surge.tsx?raw";
 import type { ScanlineAnimationExampleProps } from "./ScanlineAnimationPage.types";
 
 import { MEASURE_BOX_PADDING } from "../../PageComponents/MeasureBox/MeasureBox.css";
@@ -64,7 +54,6 @@ const MAX_DURATION_MS = 5000;
 const DURATION_STEP_MS = 100;
 const MIN_ITERATION_DELAY_MS = 0;
 const STRESS_LINE_COUNT = 120;
-const SCANLINE_ORIGIN: Point2d = { x: 0, y: 0 };
 const STRESS_ITEMS: (StressTestDefs & { size: number; kind: "transform" | "filter" })[] = (
     ["transform", "filter"] as const
 )
@@ -117,13 +106,8 @@ const groupOptions = <T extends string>(keys: readonly T[]) => {
 
 const GROUPPED_WEIGHTS = groupOptions(CellAnimationWeights.ORIGIN_FREE_WEIGHT_TYPES);
 
-const GLITCH_SOURCE = highlighter.codeToHtml(GlitchExampleRaw, getDefaultHighlighterConfig());
-const SURGE_SOURCE = highlighter.codeToHtml(SurgeExampleRaw, getDefaultHighlighterConfig());
-const SNAKE_SOURCE = highlighter.codeToHtml(SnakeExampleRaw, getDefaultHighlighterConfig());
-const SPLIT_SOURCE = highlighter.codeToHtml(SplitExampleRaw, getDefaultHighlighterConfig());
-const BRIGHTNESS_SOURCE = highlighter.codeToHtml(BrightnessExampleRaw, getDefaultHighlighterConfig());
-const GRAYSCALE_SOURCE = highlighter.codeToHtml(GrayscaleExampleRaw, getDefaultHighlighterConfig());
-const HUE_SOURCE = highlighter.codeToHtml(HueExampleRaw, getDefaultHighlighterConfig());
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/ScanLineAnimationPage/Examples";
+const WEIGHT_ORIGIN = { x: 0, y: 0 };
 
 const StressTestWrapper = (props: ScanlineAnimationExampleProps) => {
     const modalPlayback = createSignal(true);
@@ -169,6 +153,9 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps) => {
                                 playbackSignal={modalPlayback}
                                 getLineCount={() => STRESS_LINE_COUNT}
                                 getAnimationIterationDelayMs={() => 0}
+                                computeCellWeights={(count) =>
+                                    CellAnimationWeights.computeCellWeights(props.getWeightType(), count, WEIGHT_ORIGIN)
+                                }
                                 computeScanlineAnimation={(defs, timeline) =>
                                     foo(
                                         CellAnimationBreakpoints.computeBreakpoints(defs.weight, undefined),
@@ -472,12 +459,6 @@ const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 };
 
 export const ScanlineAnimationPage = () => {
-    /**
-     * One signal shared by every animation on the page itself, which is what replaced collecting a controller per
-     * mount. The stress test suspends them all while its modal is up by writing one variable, and nothing has to
-     * still be mounted for that to work. The items inside the modal are the ones being measured, so they run off
-     * their own signal instead of this one.
-     */
     const playback = createSignal(true);
 
     const [getSrc, setSrc] = createSignal(knight);
@@ -493,10 +474,9 @@ export const ScanlineAnimationPage = () => {
     const getExamples = createMemo(() => {
         const commonProps: ScanlineAnimationExampleProps = {
             playbackSignal: playback,
-            computeCellWeights: (count) =>
-                CellAnimationWeights.computeCellWeights(getWeightType(), count, SCANLINE_ORIGIN),
             getSrc,
             getLineCount,
+            getWeightType,
             getAnimationDurationMs,
             getAnimationIterationDelayMs,
         };
@@ -505,42 +485,48 @@ export const ScanlineAnimationPage = () => {
             {
                 name: "Glitch",
                 component: () => <GlitchExampleWrapper {...commonProps} />,
-                src: GLITCH_SOURCE,
+                path: `${EXAMPLES_ROOT}/Glitch.tsx`,
+                sampleKeys: () => [getWeightType()],
             },
             {
                 name: "Surge",
                 component: () => <SurgeExampleWrapper {...commonProps} />,
-                src: SURGE_SOURCE,
+                path: `${EXAMPLES_ROOT}/Surge.tsx`,
+                sampleKeys: () => [getWeightType()],
             },
             {
                 name: "Snake",
                 component: () => <SnakeExampleWrapper {...commonProps} />,
-                src: SNAKE_SOURCE,
+                path: `${EXAMPLES_ROOT}/Snake.tsx`,
+                sampleKeys: () => [getWeightType()],
             },
             {
                 name: "Split",
                 component: () => <SplitExampleWrapper {...commonProps} />,
-                src: SPLIT_SOURCE,
+                path: `${EXAMPLES_ROOT}/Split.tsx`,
+                sampleKeys: () => [getWeightType()],
             },
             {
                 name: "Brightness",
                 component: () => <BrightnessExampleWrapper {...commonProps} />,
-                src: BRIGHTNESS_SOURCE,
+                path: `${EXAMPLES_ROOT}/Brightness.tsx`,
+                sampleKeys: () => [getWeightType()],
             },
             {
                 name: "Grayscale",
                 component: () => <GrayscaleExampleWrapper {...commonProps} />,
-                src: GRAYSCALE_SOURCE,
+                path: `${EXAMPLES_ROOT}/Grayscale.tsx`,
+                sampleKeys: () => [getWeightType()],
             },
             {
                 name: "Hue",
                 component: () => <HueExampleWrapper {...commonProps} />,
-                src: HUE_SOURCE,
+                path: `${EXAMPLES_ROOT}/Hue.tsx`,
+                sampleKeys: () => [getWeightType()],
             },
             {
                 name: "Stress Test",
                 component: () => <StressTestWrapper {...commonProps} />,
-                src: "",
             },
         ];
     });

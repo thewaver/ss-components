@@ -31,10 +31,6 @@ describe("CellAnimationWeightsConst", () => {
         expect(CellAnimationWeights.computeCellWeights("lineRow", { x: 0, y: 0 }, { x: 0, y: 0 })).toEqual([]);
     });
 
-    /**
-     * `Point2dUtils.getFarthestBound` reports `0` on a single-cell grid, and every distance-based
-     * weight divides by it. The local floor of 1 is what keeps that finite.
-     */
     it("stays finite on a single-cell grid, where the farthest bound is zero", () => {
         const weights = CellAnimationWeights.computeCellWeights("circularDefault", { x: 1, y: 1 }, { x: 0, y: 0 });
 
@@ -103,11 +99,6 @@ describe("CellAnimationWeightsConst", () => {
         ).toBe(weights.length);
     });
 
-    /**
-     * A centred origin on an even count sits on a half-integer, and every distance from it does too.
-     * `MathUtils.isEven` truncates before testing, so those distances still alternate; the earlier
-     * `dist.y % 2 === 0` was false for all of them and collapsed the pattern. See `review.md` #5.
-     */
     it("still alternates on an even count with a centred origin, where a raw modulo would not", () => {
         const alternating = CellAnimationWeights.computeCellWeights(
             "lineRowAlternate",
@@ -127,12 +118,6 @@ describe("CellAnimationWeightsConst", () => {
         expect(Math.max(...convergent)).toBe(0.929);
     });
 
-    /**
-     * `spiralSingle` used to reach 1.008 here: a half-integer origin gives half-integer distances, and the
-     * spiral formula is built for whole ones, so its result dips below the 1 the mapping subtracts from.
-     * The clamp keeps it in range; what it does not do is separate the two cells that now share the
-     * extreme, because doing that would change measured weights across all three spiral variants.
-     */
     it("keeps spiralSingle inside 0..1 on a half-integer origin", () => {
         const weights = CellAnimationWeights.computeCellWeights(
             "spiralSingle",

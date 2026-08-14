@@ -29,6 +29,7 @@ import { RadioPage } from "./Pages/RadioPage/RadioPage";
 import { RangePage } from "./Pages/RangePage/RangePage";
 import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
 import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
+import { ScrollerPage } from "./Pages/ScrollerPage/ScrollerPage";
 import { SelectPage } from "./Pages/SelectPage/SelectPage";
 import { ShapePage } from "./Pages/ShapePage/ShapePage";
 import { SlideButtonPage } from "./Pages/SlideButtonPage/SlideButtonPage";
@@ -53,6 +54,7 @@ type CategoryTabConfig = {
 
 type ComponentTabConfig = {
     name: string;
+    description: string;
     component: () => JSX.Element;
     hidden?: boolean;
 };
@@ -72,6 +74,8 @@ const TAB_CONFIGS: TabConfig[] = [
     },
     {
         name: "CellAnimation",
+        description:
+            "Cuts an image into a grid and animates the cells on a stagger, where a cell's turn comes from a weight rather than from its index. The animations, weights and origins on this page are Playground samples — the component itself only asks for a function from timeline to result.",
         component: () => <CellAnimationPage />,
     },
     /*
@@ -82,22 +86,32 @@ const TAB_CONFIGS: TabConfig[] = [
     */
     {
         name: "ScanlineAnimation",
+        description:
+            "The same staggering applied to horizontal lines instead of a grid, so an image can be swept, split or glitched a row at a time. The seven examples differ only in the function they hand it.",
         component: () => <ScanlineAnimationPage />,
     },
     {
         name: "ScreenWiper",
+        description:
+            "Covers and uncovers the screen with a tessellation of staggered cells. Each cell is one div clipped by CSS rather than an SVG shape, because several hundred independent transforms composite far better than one viewport-sized SVG.",
         component: () => <ScreenWiperPage />,
     },
     {
         name: "Shape",
+        description:
+            "Draws a border and a fill around arbitrary children, from a point list rather than a CSS box. It only reaches for SVG when the paint needs it and stays a plain div when it does not.",
         component: () => <ShapePage />,
     },
     {
         name: "TypeWriter",
+        description:
+            "Reveals text one character at a time without flattening it first, so a bold run or a nested element still animates in place.",
         component: () => <TypewriterPage />,
     },
     {
         name: "Viewport",
+        description:
+            "Scales everything inside it to one design size. It is terminal: anything measured, anchored or portalled within it works in the viewport's coordinates rather than the window's.",
         component: () => <ViewportPage />,
     },
     {
@@ -111,114 +125,176 @@ const TAB_CONFIGS: TabConfig[] = [
     */
     {
         name: "Accordion",
+        description:
+            "A set of disclosure sections, each a heading that opens a region. A collapsed panel stays built and measured, which is what lets it animate to its own height rather than to a guess.",
         component: () => <AccordionPage />,
     },
     {
         name: "Button",
+        description:
+            "The plain button, plus the two things it owns that a native one does not: a name that wins over whatever the painter draws, and a pointer report a repeating control can hold.",
         component: () => <ButtonPage />,
     },
     {
         name: "Calendar",
+        description:
+            "A month grid over a date value that carries its own calendar system, so first day, last day and era are asked of the value rather than assumed to be Gregorian.",
         component: () => <CalendarPage />,
     },
     {
         name: "Checkbox",
+        description:
+            "One of three presets over a shared binary switch. It is the only one with a third state — indeterminate is a value here, not a styling trick.",
         component: () => <CheckboxPage />,
     },
     {
         name: "ColorArea",
+        description:
+            "The saturation and brightness surface that replaces the operating system's colour dialog. It holds hue, saturation and value rather than hex, because eight bits per channel cannot carry hue at black — re-reading hex every frame would drift and then stick.",
         component: () => <ColorAreaPage />,
     },
     {
         name: "ColorInput",
+        description:
+            "A colour field where the browser owns the picker itself. The component owns the trigger and the value, and nothing about what the dialog looks like.",
         component: () => <ColorInputPage />,
     },
     {
         name: "CurrencyInput",
+        description:
+            "A money field, and deliberately not a number field with grouping switched on: the currency decides the symbol, which side it sits on and how many decimals there are, so the mask follows from the locale.",
         component: () => <CurrencyInputPage />,
     },
     {
         name: "DatePicker",
+        description:
+            "A masked date field with a calendar in a popup. Only digits are typed — separators appear as you go, and the caret is computed rather than preserved.",
         component: () => <DatePickerPage />,
     },
     {
         name: "Drawer",
+        description:
+            "A modal that arrives from an edge. It is a preset rather than a mode, because a panel cannot become a centred dialog while it is open.",
         component: () => <DrawerPage />,
     },
     {
         name: "FileInput",
+        description:
+            "A file field where the operating system owns the dialog. The component owns what activates it and what comes back.",
         component: () => <FileInputPage />,
     },
     {
         name: "Form",
+        description:
+            "Association and announcement, and nothing else. The library generates the ids and wires a control to its message; whether a value is valid is the consumer's to decide and to report.",
         component: () => <FormPage />,
     },
     {
         name: "ImageSwitcher",
+        description:
+            "Cross-fades between image sources, loading the next one out of sight first so a slow or missing file never leaves a hole where the old picture was.",
         component: () => <ImageSwitcherPage />,
     },
     {
         name: "Label",
+        description:
+            "A caption that wraps its control rather than pointing at it by id, so nothing has to be kept unique or in sync. It paints nothing at all, cursor included.",
         component: () => <LabelPage />,
     },
     {
         name: "Menu",
+        description:
+            "A popup list of commands, with a popup per submenu level rather than one list that redraws. Focus moves between the levels, and a dismissal closes them from the innermost out.",
         component: () => <MenuPage />,
     },
     {
         name: "Modal",
+        description:
+            "A dialog that traps focus, joins one dismissal stack, and hands the overlay to the consumer to paint. Escape always closes it, and that is a conformance requirement rather than a courtesy.",
         component: () => <ModalPage />,
     },
     {
         name: "NumberInput",
+        description:
+            "A number field with steppers that repeat while held, and the first field to take a codec — the thing that turns typed characters into a value and back.",
         component: () => <NumberInputPage />,
     },
     {
         name: "Progress",
+        description:
+            "The one Fundamental with no interaction in it: state in, paint out. The painter is handed a ratio as well as the raw value, so clamping is never repeated at the call site.",
         component: () => <ProgressPage />,
     },
     {
         name: "Radio",
+        description:
+            "The third preset over the shared binary switch, and the one whose group rather than whose item owns which is chosen.",
         component: () => <RadioPage />,
     },
     {
         name: "Range",
+        description:
+            "A slider with one or two thumbs, on either axis. The drag arrives as a ratio along the track rather than as pixels.",
         component: () => <RangePage />,
     },
     {
+        name: "Scroller",
+        description:
+            "A strip too wide for its box, paged by a previous and a next button instead of a scrollbar. It holds whatever it is given without rendering or typing it, it never claims the arrow keys — whatever is inside may already own them — and when a child is focused it scrolls just far enough to show that child whole.",
+        component: () => <ScrollerPage />,
+    },
+    {
         name: "Select",
+        description:
+            "A list of options in a popup over one value or several. Filtering is the consumer's — autocomplete narrows what is shown, and the component never decides what counts as a match.",
         component: () => <SelectPage />,
     },
     {
         name: "SlideButton",
+        description:
+            "A confirmation you drag rather than press. Holding it is the single-pointer route the standard asks for, so the gesture is never the only way through.",
         component: () => <SlideButtonPage />,
     },
     {
         name: "Spotlight",
+        description:
+            "Cuts a hole in an overlay around one element. Three presets rather than one mode prop, because a hint, a prompt and a guide can never become one another while open.",
         component: () => <SpotlightPage />,
     },
     {
         name: "Tabs",
+        description:
+            "A tab list built from records rather than from children, so the same list can be buttons, anchors, or a consumer's own link component. The panel is optional, and pairing it is the consumer's to wire.",
         component: () => <TabsPage />,
     },
     {
         name: "TextArea",
+        description:
+            "The multi-line preset over the shared text field, including auto-sizing that follows its own content between a minimum and a maximum number of rows.",
         component: () => <TextAreaPage />,
     },
     {
         name: "TextInput",
+        description:
+            "The single-line preset over the shared text field. The input itself is a blank slate laid over the painter, so the focus ring lands exactly around what was painted.",
         component: () => <TextInputPage />,
     },
     {
         name: "Toasts",
+        description:
+            "A queue the consumer owns. The component shows what is in it and reports when one is finished; nothing is added or dropped behind the consumer's back.",
         component: () => <ToastsPage />,
     },
     {
         name: "Toggle",
+        description:
+            "A preset over the shared binary switch. What separates it from a checkbox is what it announces and when the change takes effect, not what it stores.",
         component: () => <TogglePage />,
     },
     {
         name: "Tree",
+        description:
+            "A disclosure tree with one keyboard walk over the rows that are actually visible. A node's children sit in a group box beside the node rather than inside it, which is what the role requires.",
         component: () => <TreePage />,
     },
     {
@@ -227,6 +303,8 @@ const TAB_CONFIGS: TabConfig[] = [
     },
     {
         name: "Surface",
+        description:
+            "A box that takes the SVG path only when its fill or stroke needs one, and stays a plain div with inline radii when it does not.",
         component: () => <SurfacePage />,
         hidden: !SHOW_COMPOSITES,
     },
@@ -253,6 +331,12 @@ export function AppContent(props: RouteSectionProps) {
                     item.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase())),
         );
     });
+
+    const getSelectedDescription = () => {
+        const config = getSelectedConfig();
+
+        return config && isComponentConfig(config) ? config.description : undefined;
+    };
 
     const getTabs = createMemo((): Tab<TabConfig>[] =>
         getVisibleConfigs().map((config) => ({
@@ -300,7 +384,14 @@ export function AppContent(props: RouteSectionProps) {
             </div>
 
             <div class={styles.tabPage}>
-                {getSelectedConfig() && <div class={styles.tabPageTitle}>{getSelectedConfig()!.name}</div>}
+                {getSelectedConfig() && (
+                    <div class={styles.tabPageHeader}>
+                        <div class={styles.tabPageTitle}>{getSelectedConfig()!.name}</div>
+                        {getSelectedDescription() && (
+                            <div class={styles.tabPageDescription}>{getSelectedDescription()}</div>
+                        )}
+                    </div>
+                )}
                 {props.children}
             </div>
         </div>

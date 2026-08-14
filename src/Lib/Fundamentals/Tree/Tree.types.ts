@@ -19,12 +19,6 @@ export type TreeNode<T> = {
     tooltipDefs?: InteractionTooltipDefs<TreeNodeFlags>;
 };
 
-/**
- * What is on screen once the collapsed branches are taken out: `rows` are the visible children, so the
- * record is a rendering tree, while `index` is the position of the same row in the flat walking order.
- * `depth` and `position` are zero-based; `aria-level` and `aria-posinset` are one-based, so the two are
- * not interchangeable.
- */
 export type TreeRow<T> = {
     node: TreeNode<T>;
     index: number;

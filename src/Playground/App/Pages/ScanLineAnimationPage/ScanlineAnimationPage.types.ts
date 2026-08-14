@@ -1,14 +1,13 @@
 import type { Signal } from "solid-js";
 
-import type { Point2d } from "@thewaver/ss-utils";
-
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
+import type { CellAnimationWeights } from "../../Samples/CellAnimationWeights/CellAnimationWeights.const";
 
 export type ScanlineAnimationExampleProps = AccessorProps<{
     src: string;
     lineCount: number;
+    weightType: CellAnimationWeights.OriginFreeWeightType;
     animationDurationMs: number;
     animationIterationDelayMs: number;
-    computeCellWeights: (count: Point2d) => number[][];
     playbackSignal: Signal<boolean>;
 }>;

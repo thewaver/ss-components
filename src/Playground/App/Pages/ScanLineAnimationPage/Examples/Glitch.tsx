@@ -3,7 +3,10 @@ import { createEffect, createMemo, createSignal } from "solid-js";
 import { ScanlineAnimation } from "../../../../../Lib/Exotics/ScanlineAnimation/ScanlineAnimation";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import { CellAnimationBreakpoints } from "../../../Samples/CellAnimationBreakpoints/CellAnimationBreakpoints.const";
+import { CellAnimationWeights } from "../../../Samples/CellAnimationWeights/CellAnimationWeights.const";
 import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.types";
+
+const WEIGHT_ORIGIN = { x: 0, y: 0 };
 
 const getGlitchBreakpointGroups = (count: number, start: number, end: number) => {
     const result: CellAnimationBreakpoints.BreakpointTupleTriple[] = [];
@@ -40,7 +43,7 @@ type Props = ScanlineAnimationExampleProps &
         keyframeOpts: { count: number; shiftPercent: number; chunkyness: number };
     }>;
 
-export const GlitchExample = ({ getKeyframeOpts, ...otherProps }: Props) => {
+export const GlitchExample = ({ getKeyframeOpts, getWeightType, ...otherProps }: Props) => {
     const getBreakpointGroups = createMemo(() => {
         const count = getKeyframeOpts().count;
         const shift = Math.min(0.25, count * 0.05);
@@ -66,6 +69,9 @@ export const GlitchExample = ({ getKeyframeOpts, ...otherProps }: Props) => {
     return (
         <ScanlineAnimation
             {...otherProps}
+            computeCellWeights={(count) =>
+                CellAnimationWeights.computeCellWeights(getWeightType(), count, WEIGHT_ORIGIN)
+            }
             computeRootAnimation={(timeline) => {
                 const breakpointGroups = getBreakpointGroups();
 

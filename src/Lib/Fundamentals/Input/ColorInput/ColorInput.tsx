@@ -25,10 +25,6 @@ const OPAQUE = 1;
 
 const toHexValue = (hsva: Color.HSVA) => (hsva.a < OPAQUE ? Color.HSVA.toHexa(hsva) : Color.HSV.toHex(hsva));
 
-/**
- * The consumer's value is a plain string, so it may not be a colour at all — and the comparison has to
- * survive that rather than refuse it, which is why the fallback is a text match rather than a rejection.
- */
 const getIsSameValue = (a: string, b: string) =>
     Color.Hexa.isHexa(a) && Color.Hexa.isHexa(b) ? Color.Hexa.getIsSameHexa(a, b) : a === b;
 

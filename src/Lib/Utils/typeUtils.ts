@@ -2,14 +2,6 @@ import type { Accessor, Signal } from "solid-js";
 
 type NonNullish<T> = T extends undefined | null ? never : T;
 
-/**
- * Skip (leave plain) only when the prop is:
- * - already an accessor / callback (functions — natively reactive or never reactive)
- * - a symbol (never reactive)
- * - a signal tuple (two-way state the component both reads and writes)
- *
- * Everything else is accessorized to `getX`.
- */
 type IsSkippable<T> = NonNullish<T> extends ((...args: any) => any) | symbol | Signal<any> ? true : false;
 
 type IsOptional<T, K extends keyof T> = {} extends Pick<T, K> ? true : false;

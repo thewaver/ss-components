@@ -59,12 +59,6 @@ const MESSAGES: Record<ToastKind, string> = {
     error: "Upload failed — the file was larger than 25 MB.",
 };
 
-/**
- * Declared at module scope through `createRoot`, which is the whole of what an out-of-tree queue takes:
- * anything in the application can raise a notification, and nothing that raises one has to still be
- * mounted for it to show. In a real application the `Toasts` region sits at the app root rather than on
- * a page, so navigating away would not take the region with it.
- */
 const toastQueue = createRoot(() => createSignal<Toast<ToastDefs>[]>([]));
 
 const raiseToast = (kind: ToastKind, durationMs: number) => {

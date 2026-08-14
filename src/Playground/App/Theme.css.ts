@@ -113,8 +113,10 @@ globalStyle(":focus", {
     outline: "0 none",
 });
 
+export const FOCUS_RING_WIDTH = 2;
+
 globalStyle(":focus-visible", {
-    outline: `2px solid ${themeVars.color.outline.main}`,
+    outline: `${FOCUS_RING_WIDTH}px solid ${themeVars.color.outline.main}`,
 });
 
 globalStyle(":disabled, [aria-disabled='true']", {

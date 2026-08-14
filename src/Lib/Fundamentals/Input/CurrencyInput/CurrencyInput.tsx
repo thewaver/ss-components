@@ -34,11 +34,6 @@ export const CurrencyInput = (props: CurrencyInputProps) => {
         return (min !== undefined && parsed < min) || (max !== undefined && parsed > max) ? undefined : parsed;
     };
 
-    /**
-     * There is no such thing as a half-typed amount — every digit run is a value — so the field reports no digit
-     * count and the shared field never withholds a commit waiting for more. What it still reports is a value
-     * outside the bounds, which is knowable the moment it is typed rather than on blur.
-     */
     const field = MaskedField.createField<number>({
         getValue: () => props.valueSignal[0](),
         setValue: (next) => props.valueSignal[1](next),

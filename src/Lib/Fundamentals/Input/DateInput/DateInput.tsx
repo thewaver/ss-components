@@ -29,12 +29,6 @@ const PART_HINTS: Record<DateInputPart, string> = {
     day: "dd",
 };
 
-/**
- * A format states the order of the parts and the separator, and the mask is derived from both rather than
- * given alongside them. A consumer handed an arbitrary mask string would leave the component guessing which
- * of its slots were the month, and a spelling the parse does not agree with is a field that silently reads a
- * date wrong — so the order is the prop and the pattern is a consequence of it.
- */
 const FORMATS: Record<DateInputFormat, { parts: DateInputPart[]; separator: string }> = {
     "iso": { parts: ["year", "month", "day"], separator: "-" },
     "day-month-year": { parts: ["day", "month", "year"], separator: "/" },
@@ -53,12 +47,6 @@ const computeHint = (format: DateInputFormat) => {
     return parts.map((part) => PART_HINTS[part]).join(separator);
 };
 
-/**
- * What a part can hold whatever the other two turn out to be, which is what lets a finished part be refused
- * before the rest of the date exists. Every ceiling is asked of the calendar rather than assumed: a Coptic
- * year has thirteen months, and the day's ceiling is the longest month of the year in question — a shorter
- * month is a disagreement between parts and stays `fromParts`' to catch once all three are known.
- */
 const computeBounds = (anchor: DateValue) => {
     const monthCount = DateValueUtils.getMonthsInYear(anchor);
     const dayCeiling = Array.from({ length: monthCount }, (_, month) =>
@@ -105,11 +93,6 @@ export const DateInput = (props: DateInputProps) => {
 
     const getMask = createMemo(() => computeMask(getFormat()));
 
-    /**
-     * The field types in one calendar, and a value handed to it in another is converted rather than refused —
-     * so a consumer may hold Gregorian and show a Hebrew field over it. The anchor is what every bound and
-     * every era list is asked of; with no value there is nothing to read them off, so today stands in.
-     */
     const getFieldValue = () => {
         const value = props.valueSignal[0]();
 
@@ -124,17 +107,6 @@ export const DateInput = (props: DateInputProps) => {
 
     const getEraOptions = createMemo(() => DateValueUtils.getEras(getAnchor(), props.getLocale?.()));
 
-    /**
-     * The era is state **only** for the empty field: with no value there is no year to read an era off, and a
-     * consumer who picks one before typing anything has to have that remembered. Whenever a value exists it is
-     * the era, and `fromDigits` reads it there rather than here.
-     *
-     * That is not a tidiness point. Reading this signal while a value was held made the two fight: moving the
-     * era commits a new date, the new date re-spells the text, and the text-to-value effect then re-derived a
-     * date from the same digits and *this* signal — which had not caught up yet — committing the old era
-     * straight back. Duplicated state plus two effects is a loop, and the fix is for only one of them to be the
-     * source. The default is the calendar's own last era, which is the current one wherever there is a choice.
-     */
     const [getEra, setEra] = createSignal<string>(
         untrack(() => {
             const value = getFieldValue();

@@ -6,7 +6,6 @@ const ViewportContext = createContext<ViewportContextType>();
 
 export const ViewportContextProvider = ViewportContext.Provider;
 
-/** The enclosing viewport if there is one, so a `Viewport` can tell whether it is nested. */
 export const useParentViewportContext = () => useContext(ViewportContext);
 
 const getWindowRect = () =>
@@ -17,7 +16,6 @@ const getWindowRect = () =>
         height: window.innerHeight,
     });
 
-// do not export hook for now
 const useViewportWithFallback = (): ViewportContextType => {
     const [getViewportFallbackRect, setViewportFallbackRect] = createSignal<DOMRect>(getWindowRect());
 

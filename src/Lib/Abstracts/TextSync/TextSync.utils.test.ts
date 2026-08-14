@@ -6,7 +6,6 @@ import { TextSyncUtils } from "./TextSync.utils";
 const DATE = "##/##/####";
 const ISO = "####-##-##";
 
-/** What the element would hold after a keystroke: the previous text with something typed into it. */
 const type = (previous: string, char: string, caret = previous.length) => ({
     next: `${previous.slice(0, caret)}${char}${previous.slice(caret)}`,
     caret: caret + char.length,
@@ -138,11 +137,6 @@ describe("formatWithMask", () => {
     });
 });
 
-/**
- * The grouped mask is the same digits-only contract anchored at the other end: the group count grows with the
- * value, so what survives an edit is how many digits _follow_ the caret rather than how many precede it. These
- * drive the caret explicitly, because that arithmetic is the whole of what is new here.
- */
 const MONEY: TextSyncGroupDefs = { groupSize: 3, groupSeparator: ",", decimalSeparator: ".", decimals: 2 };
 const PLAIN: TextSyncGroupDefs = { groupSize: 3, groupSeparator: " ", decimalSeparator: ".", decimals: 0 };
 

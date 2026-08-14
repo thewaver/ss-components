@@ -29,10 +29,6 @@ export namespace SVGPatternDefsUtils {
         );
     };
 
-    /**
-     * - rows advance at 1H
-     * - cols advance at 1W
-     */
     export const computeGridPattern = (
         id: string,
         cellCountIn: { rows: number; cols: number },
@@ -62,12 +58,6 @@ export namespace SVGPatternDefsUtils {
         );
     };
 
-    /**
-     * - rows advance at 0.5H
-     * - cols advance at 1W
-     * - rows have a -0.5H offset
-     * - even rows have a -0.5W offset
-     */
     export const computeDiagonalPattern = (
         id: string,
         cellCountIn: { rows: number; cols: number },
@@ -107,11 +97,6 @@ export namespace SVGPatternDefsUtils {
         );
     };
 
-    /**
-     * - rows advance at 1H
-     * - cols advance at 1W
-     * - even rows have a -0.5W offset
-     */
     export const computeHalfShiftPattern = (
         id: string,
         cellCountIn: { rows: number; cols: number },
@@ -148,11 +133,6 @@ export namespace SVGPatternDefsUtils {
         );
     };
 
-    /**
-     * - rows advance at 1H
-     * - cols advance at 1W
-     * - even cols have a -0.5H offset
-     */
     export const computeHalfDropPattern = (
         id: string,
         cellCountIn: { rows: number; cols: number },
@@ -189,10 +169,6 @@ export namespace SVGPatternDefsUtils {
         );
     };
 
-    /**
-     * - rows advance at 1H
-     * - cols advance at 0.5W
-     */
     export const computeTrianglePattern = (
         id: string,
         cellCountIn: { rows: number; cols: number },
@@ -229,12 +205,6 @@ export namespace SVGPatternDefsUtils {
         );
     };
 
-    /**
-     * - rows advance at 0.75H
-     * - cols advance at 1W
-     * - rows have a -0.75H offset
-     * - even rows have a -0.5W offset
-     */
     export const computeHexPointyTopPattern = (
         id: string,
         cellCountIn: { rows: number; cols: number },
@@ -274,12 +244,6 @@ export namespace SVGPatternDefsUtils {
         );
     };
 
-    /**
-     * - rows advance at 1H
-     * - cols advance at 0.75W
-     * - cols have a -0.75W offset
-     * - even cols have a -0.5H offset
-     */
     export const computeHexFlatTopPattern = (
         id: string,
         cellCountIn: { rows: number; cols: number },

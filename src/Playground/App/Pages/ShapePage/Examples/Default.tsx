@@ -4,6 +4,7 @@ import { ShapeConst, ShapeUtils } from "@thewaver/ss-utils";
 
 import { InteractionUtils } from "../../../../../Lib/Abstracts/Interaction/Interaction.utils";
 import { Shape } from "../../../../../Lib/Exotics/Shape/Shape";
+import { SVGDefsSamples } from "../../../Samples/SVGDefs/SVGDefs.const";
 import type { ShapeExampleProps } from "../ShapePage.types";
 
 import * as styles from "../ShapePage.css";
@@ -12,9 +13,9 @@ export const DefaultExample = ({
     getShouldClipChildren,
     getShouldPadChildren,
     getShapeKind,
-    getStrokeConfig,
-    getFillConfig,
-    getIterationConfig,
+    getStrokeConfigKey,
+    getFillConfigKey,
+    getIterationConfigKey,
     getCellSize,
     getAnimationDurationMs,
     getColors,
@@ -27,6 +28,10 @@ export const DefaultExample = ({
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
 
     const { getFlags } = InteractionUtils.wrapElement(getRootRef, () => false, { applyButtonSemantics: true });
+
+    const getStrokeConfig = () => SVGDefsSamples.Gradient.SAMPLE_CONFIGS[getStrokeConfigKey()];
+    const getFillConfig = () => SVGDefsSamples.Pattern.SAMPLE_CONFIGS[getFillConfigKey()];
+    const getIterationConfig = () => SVGDefsSamples.Iteration.SAMPLE_CONFIGS[getIterationConfigKey()];
 
     return (
         <Shape

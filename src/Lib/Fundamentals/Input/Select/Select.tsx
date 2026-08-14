@@ -196,11 +196,6 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
 
     const getFlatOptions = createMemo(() => SelectUtils.getFlatOptions(props.getOptions()));
 
-    /**
-     * A grouped list is not windowed, and that is a boundary rather than a preference: a group's box wraps
-     * the options inside it, so a window that opens halfway down one has to draw a box for a group whose
-     * header is above the window and whose end is below it. The flat case is the one an estimate can answer.
-     */
     const getIsVirtualized = createMemo(
         () => props.computeEstimatedOptionHeight !== undefined && !props.getOptions().some(SelectUtils.getIsGroup),
     );
@@ -281,11 +276,6 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
 
         setIsOpen(true);
     };
-    /**
-     * A disabled control cannot be opened, whoever asks. `open` already refuses, but a consumer writing `true`
-     * into `visibilitySignal` bypasses it — so the invariant is enforced against the state instead, and the
-     * component writes `false` back the way `Modal` writes its own dismissal back.
-     */
     createEffect(() => {
         if (!getIsOpen() || !getIsDisabled()) return;
 
@@ -296,12 +286,6 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
         setIsOpen(false);
     };
 
-    /**
-     * The highlight is cleared from an effect rather than from `close`, so that a consumer writing `false` into
-     * `visibilitySignal` leaves the list in the same state a click outside would. Every side effect of closing has
-     * to hang off the state rather than off the path that changed it, or an externally closed popup keeps a
-     * highlight the reader can no longer see.
-     */
     createEffect(() => {
         if (getIsOpen()) return;
 
@@ -326,12 +310,6 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
         props.querySignal?.[1](EMPTY_QUERY);
     });
 
-    /**
-     * A windowed option cannot scroll itself into view, because until the window reaches it there is nothing
-     * to scroll. The move belongs to the thing that owns the window, and it is written as an effect on the
-     * highlight rather than a call inside the key handler so that a highlight arriving any other way — a pick
-     * in a multi-select, a list that has just opened onto a selection — is carried the same way.
-     */
     createEffect(() => {
         if (!rowWindow.getIsLive()) return;
 

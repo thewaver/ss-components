@@ -26,7 +26,6 @@ export const useColorExtractor = (props?: ColorExtractorContextType) => {
         onCleanup(() => {
             img.onload = null;
             img.onerror = null;
-            // cancels the download if it hasn't finished
             img.src = "";
             isMounted = false;
         });

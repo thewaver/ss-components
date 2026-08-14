@@ -5,7 +5,6 @@ import { ShapeConst } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { Shape } from "../../../../Lib/Exotics/Shape/Shape";
-import { getDefaultHighlighterConfig, highlighter } from "../../../shiki";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
@@ -21,7 +20,6 @@ import {
     PageSelectField,
 } from "../../StyledComponents/Field/Field";
 import { DefaultExample } from "./Examples/Default";
-import DefaultExampleRaw from "./Examples/Default.tsx?raw";
 import type { ShapeExampleProps } from "./ShapePage.types";
 
 import * as styles from "./ShapePage.css";
@@ -70,10 +68,6 @@ const MIN_DURATION_MS = 1000;
 const MAX_DURATION_MS = 5000;
 const DURATION_STEP_MS = 100;
 
-/**
- * With individual corners off, every corner takes the value that was just typed — which is what makes
- * the six fields read as one control rather than six that happen to agree.
- */
 const spreadCornerValue = (previous: number[], index: number, value: number, hasIndividualCorners: boolean) => {
     if (!hasIndividualCorners) return previous.map(() => value);
 
@@ -111,15 +105,15 @@ const STARTING_COLORS: SVGDefsColors = {
     secondary: "#00FFFF",
     tertiary: "#FF00FF",
 };
-const DEFAULT_SOURCE = highlighter.codeToHtml(DefaultExampleRaw, getDefaultHighlighterConfig());
+const DEFAULT_EXAMPLE_PATH = "/src/Playground/App/Pages/ShapePage/Examples/Default.tsx";
 
 const StressTestWrapper = ({
     getShouldClipChildren,
     getShouldPadChildren,
     getShapeKind,
-    getStrokeConfig,
-    getFillConfig,
-    getIterationConfig,
+    getStrokeConfigKey,
+    getFillConfigKey,
+    getIterationConfigKey,
     getCellSize,
     getAnimationDurationMs,
     getColors,
@@ -128,6 +122,10 @@ const StressTestWrapper = ({
     ...otherProps
 }: ShapeExampleProps) => {
     const id = createUniqueId();
+
+    const getStrokeConfig = () => SVGDefsSamples.Gradient.SAMPLE_CONFIGS[getStrokeConfigKey()];
+    const getFillConfig = () => SVGDefsSamples.Pattern.SAMPLE_CONFIGS[getFillConfigKey()];
+    const getIterationConfig = () => SVGDefsSamples.Iteration.SAMPLE_CONFIGS[getIterationConfigKey()];
 
     return (
         <StressTest
@@ -206,12 +204,9 @@ export const ShapePage = () => {
     const [getEdgeThicknesses, setEdgeThicknesses] = createSignal<number[]>([4, 4, 4, 4, 4, 4]);
     const [getJoinRadii, setJoinRadii] = createSignal<number[]>([40, 40, 40, 40, 40, 40]);
     const [getLameExponents, setLameExponents] = createSignal<number[]>([1, 1, 1, 1, 1, 1]);
-    const [getStrokeConfigKey, setStrokeConfigKey] =
-        createSignal<keyof typeof SVGDefsSamples.Gradient.SAMPLE_CONFIGS>("sweep_diag_1v1");
-    const [getFillConfigKey, setFillConfigKey] =
-        createSignal<keyof typeof SVGDefsSamples.Pattern.SAMPLE_CONFIGS>("plain");
-    const [getIterationConfigKey, setIterationConfigKey] =
-        createSignal<keyof typeof SVGDefsSamples.Iteration.SAMPLE_CONFIGS>("constant");
+    const [getStrokeConfigKey, setStrokeConfigKey] = createSignal<SVGDefsSamples.Gradient.SampleKey>("sweep_diag_1v1");
+    const [getFillConfigKey, setFillConfigKey] = createSignal<SVGDefsSamples.Pattern.SampleKey>("plain");
+    const [getIterationConfigKey, setIterationConfigKey] = createSignal<SVGDefsSamples.Iteration.SampleKey>("constant");
     const [getCellSize, setCellSize] = createSignal(40);
     const [colors, setColors] = createStore(STARTING_COLORS);
 
@@ -239,9 +234,9 @@ export const ShapePage = () => {
             getAnimationDurationMs,
             getColors: () => colors,
             getShapeKind,
-            getStrokeConfig: () => SVGDefsSamples.Gradient.SAMPLE_CONFIGS[getStrokeConfigKey()],
-            getFillConfig: () => SVGDefsSamples.Pattern.SAMPLE_CONFIGS[getFillConfigKey()],
-            getIterationConfig: () => SVGDefsSamples.Iteration.SAMPLE_CONFIGS[getIterationConfigKey()],
+            getStrokeConfigKey,
+            getFillConfigKey,
+            getIterationConfigKey,
             getCellSize: () => ({ width: getCellSize(), height: getCellSize() }),
             getEdgeThicknesses: () => getEdgeThicknesses().slice(0, getShapePointCount()),
             getJoinRadii: () => getJoinRadii().slice(0, getShapePointCount()),
@@ -252,12 +247,16 @@ export const ShapePage = () => {
             {
                 name: "Default",
                 component: () => <DefaultExampleWrapper {...commonProps} />,
-                src: DEFAULT_SOURCE,
+                path: DEFAULT_EXAMPLE_PATH,
+                sampleKeys: () => [
+                    `Gradient/${getStrokeConfigKey()}`,
+                    `Pattern/${getFillConfigKey()}`,
+                    `Iteration/${getIterationConfigKey()}`,
+                ],
             },
             {
                 name: "Stress Test",
                 component: () => <StressTestWrapper {...commonProps} />,
-                src: "",
             },
         ];
     });

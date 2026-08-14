@@ -53,11 +53,6 @@ describe("parseContent", () => {
         expect(RichTextUtils.parseContent("[b]a[i]b")).toEqual([text("[b]a[i]b")]);
     });
 
-    /**
-     * The regex matches a tag case-insensitively but the stack compares tag names exactly, so `[B]` and
-     * `[/b]` do not pair. Worth pinning because the mismatch is silent — the content survives as text
-     * rather than erroring.
-     */
     it("matches tags case-sensitively despite finding them case-insensitively", () => {
         expect(RichTextUtils.parseContent("[B]x[/b]")).toEqual([text("[B]x[/b]")]);
     });

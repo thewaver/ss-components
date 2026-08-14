@@ -48,11 +48,6 @@ export const CalendarPage = () => {
     const rangedValue = createSignal<DateValue | undefined>();
     const weekdaysValue = createSignal<DateValue | undefined>();
 
-    /**
-     * One month signal per variant, each rebuilt when the calendar system changes. The knob has to reach every
-     * displayed calendar rather than one of them, and a month is a value in a particular system — so switching
-     * from Gregorian to Hebrew is not a prop the grid re-reads, it is the same instant re-expressed.
-     */
     const makeMonthSignal = (): Signal<DateValue> => {
         const signal = createSignal<DateValue>(DateValueUtils.getStartOfMonth(TODAY));
 

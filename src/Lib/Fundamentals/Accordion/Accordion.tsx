@@ -11,22 +11,9 @@ const DEFAULT_ACCORDION_HEADING_LEVEL = 3;
 const DEFAULT_ACCORDION_GAP = 0;
 const DEFAULT_ACCORDION_SIZING: AccordionSizing = "fill";
 
-/**
- * A section is a `Collapsible` plus the two things that make it part of a set rather than a disclosure on its
- * own: a heading level, because an accordion's trigger really does label a section of the page, and a
- * `region` named by that trigger, because a reader arriving in the panel needs to know which one they are in.
- * Both are the accordion's to state — see `conventions.md` — and everything else about opening, measuring and
- * animating belongs to the `Collapsible` underneath.
- */
 const AccordionSection = <T,>(props: AccordionSectionProps<T>) => {
     const headerId = createUniqueId();
 
-    /**
-     * A section has no boolean of its own — the accordion owns a set and each section reads its own membership
-     * out of it — while `Collapsible` takes the whole signal, because a disclosure on its own genuinely does
-     * own one. `SignalMirror` is the bridge that already exists for exactly this: it writes outward only when
-     * the value actually differs, so "the difference is the toggle" holds and the set stays the single source.
-     */
     const expandedSignal = SignalMirror.createValueMirror(props.getIsExpanded, () => props.onToggle());
 
     return (

@@ -131,6 +131,8 @@ export * from "./Fundamentals/Popover/Popover";
 export type * from "./Fundamentals/Popover/Popover.types";
 export * from "./Fundamentals/Progress/Progress";
 export type * from "./Fundamentals/Progress/Progress.types";
+export * from "./Fundamentals/Scroller/Scroller";
+export type * from "./Fundamentals/Scroller/Scroller.types";
 export * from "./Fundamentals/SlideButton/SlideButton";
 export type * from "./Fundamentals/SlideButton/SlideButton.types";
 export * from "./Fundamentals/SlideButton/SlideButton.utils";

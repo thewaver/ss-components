@@ -6,11 +6,6 @@ import type { InteractionFlags } from "../../../Abstracts/Interaction/Interactio
 import type { AccessorProps } from "../../../Utils/typeUtils";
 import type { TextFieldFlags, TextFieldProps } from "../TextField/TextField.types";
 
-/**
- * The half of the day, handed to the painter so it can draw whatever control it likes for it — the actions
- * stay out of the flags, exactly as `NumberInputStepper` does. `set` and `toggle` both move the value when
- * there is one, so a painter never converts an hour itself.
- */
 export type TimeInputMeridiem = {
     getValue: () => TimeValueMeridiem;
     set: (meridiem: TimeValueMeridiem) => void;

@@ -337,22 +337,12 @@ export const Menu = <T,>(props: MenuProps<T>) => {
 
     const getTriggerId = createMemo(() => props.getId?.() ?? fallbackTriggerId);
 
-    /**
-     * Opening an open menu does nothing at all, rather than restating where the highlight should start. The
-     * position is only ever the fallback for a highlight nothing has set yet, so writing it into a menu the
-     * reader is already walking throws away where they had got to.
-     */
     const open = (position: MenuHighlightPosition) => {
         if (getIsDisabled() || getIsOpen()) return;
 
         setInitialHighlightPosition(position);
         setIsOpen(true);
     };
-    /**
-     * A disabled control cannot be opened, whoever asks. `open` already refuses, but a consumer writing `true`
-     * into `visibilitySignal` bypasses it — so the invariant is enforced against the state instead, and the
-     * component writes `false` back the way `Modal` writes its own dismissal back.
-     */
     createEffect(() => {
         if (!getIsOpen() || !getIsDisabled()) return;
 
@@ -363,24 +353,12 @@ export const Menu = <T,>(props: MenuProps<T>) => {
         setIsOpen(false);
     };
 
-    /**
-     * Closing resets where the next open will put the highlight, so a consumer opening the menu through
-     * `visibilitySignal` gets the first item rather than inheriting `last` from whoever pressed ArrowUp before
-     * them. An external open cannot state a position, so the position has to be right by default.
-     */
     createEffect(() => {
         if (getIsOpen()) return;
 
         setInitialHighlightPosition("first");
     });
 
-    /**
-     * The default is prevented for all four keys whether or not anything comes of them, and that is the whole
-     * of it: each of them activates a `<button>` natively, so leaving the default alone lets the browser
-     * synthesise a click on the trigger, which toggles the menu shut. Refusing to open an open menu is `open`'s
-     * own business rather than this handler's — a key arriving while the menu already has the keyboard has
-     * nothing left to open, and it is swallowed here rather than acted on.
-     */
     const handleTriggerKeyDown = (e: KeyboardEvent) => {
         if (getIsDisabled()) return;
 

@@ -26,17 +26,6 @@ export const exampleContainer = style({
     padding: themeVars.spacing.double,
 });
 
-const sourceModal = style({
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: themeVars.spacing.double,
-});
-
-export const sourceModalOn = style([sourceModal, { transform: "scale(1)" }]);
-
-export const sourceModalOff = style([sourceModal, { transform: "scale(0)" }]);
-
 export const exampleReadout = style({
     fontFamily: "monospace",
     fontSize: themeVars.fontSize.xSmall,
