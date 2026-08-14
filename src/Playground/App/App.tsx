@@ -10,6 +10,7 @@ import type { Tab } from "../../Lib/Fundamentals/Tabs/Tabs.types";
 import { AccordionPage } from "./Pages/AccordionPage/AccordionPage";
 import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
 import { CalendarPage } from "./Pages/CalendarPage/CalendarPage";
+import { CarouselPage } from "./Pages/CarouselPage/CarouselPage";
 import { CellAnimationPage } from "./Pages/CellAnimationPage/CellAnimationPage";
 import { CheckboxPage } from "./Pages/CheckboxPage/CheckboxPage";
 import { ColorAreaPage } from "./Pages/ColorAreaPage/ColorAreaPage";
@@ -24,6 +25,7 @@ import { LabelPage } from "./Pages/LabelPage/LabelPage";
 import { MenuPage } from "./Pages/MenuPage/MenuPage";
 import { ModalPage } from "./Pages/ModalPage/ModalPage";
 import { NumberInputPage } from "./Pages/NumberInputPage/NumberInputPage";
+import { PaginatorPage } from "./Pages/PaginatorPage/PaginatorPage";
 import { ProgressPage } from "./Pages/ProgressPage/ProgressPage";
 import { RadioPage } from "./Pages/RadioPage/RadioPage";
 import { RangePage } from "./Pages/RangePage/RangePage";
@@ -144,6 +146,12 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
                 component: () => <CalendarPage />,
             },
             {
+                name: "Carousel",
+                description:
+                    "One slide at a time, wrapping at both ends, and the only component here that moves without being asked. That is what makes the stop control and the holds a conformance requirement rather than a nicety: it pauses under the pointer, while anything inside it holds focus, and while the tab is in the background.",
+                component: () => <CarouselPage />,
+            },
+            {
                 name: "Checkbox",
                 description:
                     "One of three presets over a shared binary switch. It is the only one with a third state — indeterminate is a value here, not a styling trick.",
@@ -220,6 +228,12 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
                 description:
                     "A number field with steppers that repeat while held, and the first field to take a codec — the thing that turns typed characters into a value and back.",
                 component: () => <NumberInputPage />,
+            },
+            {
+                name: "Paginator",
+                description:
+                    "A page-range control, and the arithmetic is the point: which page numbers are worth showing, where the gaps fall, and which pages each gap stands for. The consumer knows the address shape, so it computes an href from a page rather than authoring the list.",
+                component: () => <PaginatorPage />,
             },
             {
                 name: "Progress",

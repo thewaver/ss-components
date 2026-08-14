@@ -45,6 +45,8 @@ reading.
 21. Planned: the same source view on `Variants` — _planned_
 22. `Spotlight` — three things deliberately not built — _open_
 23. `Scroller` — five things deliberately not built — _open_
+24. `Paginator` — four things deliberately not built — _open_
+25. `Carousel` — five things deliberately not built — _open_
 
 ### Build order
 
@@ -371,30 +373,15 @@ doing:
 
 `Fundamentals/Input` covers `TextInput`, `TextArea`, `NumberInput`, `CurrencyInput`, `Checkbox`, `Toggle`, `Radio`,
 `RadioGroup`, `Select`, `MultiSelect`, `FileInput`, `ColorInput`, `Label`, `Calendar`, `DateInput`,
-`DatePicker` and `TimeInput`; `Fundamentals` adds `Accordion`, `Button`, `SlideButton`, `Scroller`, `Tabs`,
-`Tooltip`, `Popover`, `Menu`, `Modal`, `Drawer`, `Progress`, `Range`, `Toasts` and `Tree`.
+`DatePicker` and `TimeInput`; `Fundamentals` adds `Accordion`, `Button`, `Carousel`, `SlideButton`,
+`Scroller`, `Paginator`, `Tabs`, `Tooltip`, `Popover`, `Menu`, `Modal`, `Drawer`, `Progress`, `Range`,
+`Toasts` and `Tree`.
 Beyond item 7, this is what is missing, ordered by how much of it is a new architectural problem rather
 than by how much markup it is.
 
 **This list cannot be inferred from the Playground**, and reading it as the evidence for what is missing
 is the trap: every control on every page and in every props panel is now a library control, so the
 Playground has nothing left to say about what the library lacks.
-
-### Asked for by the user on **2026-08-14**
-
-**`Carousel` — the actual slide rotator, for later.** Distinct from `Scroller` and not a variant of it. A
-carousel shows one slide or one page of slides at a time rather than as many as fit, wraps around, usually
-offers a picker for jumping to a slide, and often rotates on its own. That last part is what makes it a
-component rather than paint: WCAG **2.2.2 Pause, Stop, Hide** applies to anything that moves automatically,
-runs for more than five seconds and sits alongside other content, so an auto-rotating carousel must ship a
-pause control and must stop on hover and on focus. Its semantics are its own too — the APG's Carousel (Slide
-Rotator) pattern uses `aria-roledescription` of `carousel` on the region and `slide` on each item, with a
-live region while it rotates. None of that is in `Scroller`, which is the whole reason they were separated.
-
-**`Paginator` — the page-range control.** Asked for in the same breath, and it **replaces the "compositions"
-line below**, which had already recorded that the composition claim was weakest for this one: the visible
-page range, where the gaps fall, and how many pages sit either side of the current one is arithmetic, and
-arithmetic is the library's half of the contract rather than the consumer's.
 
 ### Structure
 
@@ -428,8 +415,9 @@ with its own release cycle, which is this item's call arrived at independently.
 - **Breadcrumbs is owned by at least one of them:** React Aria ships `Breadcrumbs`.
 - **Pagination is owned because it is arithmetic, not paint.** Ark UI's takes `page`, `pageSize`,
   `count`, `siblingCount` and `boundaryCount`, computes the visible page range and where the gaps fall,
-  and switches between buttons and links with a `type` prop. That is more than a composition of
-  `Button`, and it is the one entry in this item's "compositions" list where the claim is weakest.
+  and switches between buttons and links with a `type` prop. That is more than a composition of `Button`,
+  which is the argument this item lost — `Paginator` is built, and where it departs from that shape is in
+  `conventions.md`.
 - **One of the four "pure paint" components turns out to have behaviour.** Radix ships `Avatar`, and the
   image is the reason: `Avatar.Image` plus `Avatar.Fallback` with a `delayMs`, so the fallback does not
   flash while a cached image loads. That is a load state machine, and it is the argument
@@ -1095,6 +1083,59 @@ button of its own"_. These are the gaps, each with the reason it is still one.
   divs gets a control no keyboard can reach. The library's answer is that the scrolling itself is still
   operable, because focus moving through the strip drags the track along, so the function survives even when
   the buttons do not. Recorded because it is a real consequence of the ownership line rather than an oversight.
+
+---
+
+## 24. `Paginator` — four things deliberately not built
+
+The decisions behind what exists are in `conventions.md` under _"Controls: `Paginator`, where the arithmetic
+is the component"_. These are the gaps, each with the reason it is still one.
+
+- **It counts pages, not items.** Ark UI takes `count` and `pageSize` and divides; this takes `pageCount` and
+  leaves the division to the consumer. The arithmetic is one line, but the two spellings disagree about what
+  happens when items do not divide evenly, and about whether a zero-item list has no pages or one empty one.
+  Those are the consumer's answers, and taking `pageCount` is what stops the library from picking for them.
+- **Nothing hands back the slice bounds.** A consumer showing "showing 21 to 40 of 383" computes it
+  themselves, and it is the same arithmetic the point above declined to own. Worth revisiting together with
+  it, since either both belong here or neither does.
+- **There is no page field to type into.** A paginator over hundreds of pages wants "go to page ▢" beside the
+  numbers, and nothing composes one — the consumer builds it from a `NumberInput` and their own page signal.
+  Probably right; recorded because it is the first thing a large page count makes you want.
+- **The whole row is in the tab order, and there is no way to ask for one stop.** Every page and every step is
+  its own tab stop, which is the accordion's rule and is defended in `conventions.md`. A paginator with a wide
+  window and both end jumps is fifteen tab stops in a row, which is a lot to walk past to reach the content it
+  pages. Nothing has asked, and the alternative — a roving order over a list of independent destinations —
+  contradicts the reasoning rather than extending it.
+
+---
+
+## 25. `Carousel` — five things deliberately not built
+
+The decisions behind what exists are in `conventions.md` under _"Controls: `Carousel`, and the first component
+that acts without being asked"_. These are the gaps, each with the reason it is still one.
+
+- **One slide at a time; a page of several is not built.** The description this came from allowed either, and
+  one slide is the reading with a published pattern behind it. A page of several needs the arithmetic to start
+  asking how many fit, which is `Scroller`'s question and the boundary the two were separated along. Building
+  it would also make the picker ambiguous — a dot per slide or a dot per page — and that is a design question
+  rather than a missing line.
+- **No swipe.** `InteractionUtils.trackDrag` exists and `Range` and `ColorArea` are both over it, so the
+  machinery is there. What is missing is the decision about what a drag means when it is released halfway:
+  a threshold in pixels, in fractions of the viewport, or in velocity. All three are tuned numbers, which the
+  rule in `CLAUDE.md` says are the user's to set rather than a value to invent here.
+- **The keyboard is whatever the controls are.** There is no arrow-key handling on the region, so a carousel
+  rendered with no `renderControls` has no keyboard route at all. The published pattern puts the arrows on the
+  buttons rather than on the region, so this matches it — but a consumer who skips the controls gets a control
+  a keyboard cannot move, which is worth knowing before it is called a bug.
+- **The track always slides; a fade is not expressible.** The library owns the transform, so a consumer cannot
+  make one slide dissolve into the next. `ImageSwitcher` is the component that already does that for a single
+  image, and the two would be one only if the motion became the consumer's — which would mean handing out a
+  visibility target per slide, the way `Tabs`' floater now does. That is a real design, not an oversight, and
+  nothing has asked for it.
+- **Every slide is built, always.** All of them are in the document from the first render, `inert` and hidden
+  when away. This is `Accordion`'s trade rather than `Tree`'s, and here it is forced rather than chosen: the
+  track has to be as wide as the slides to translate across them. A carousel of a hundred expensive slides
+  builds all hundred, and windowing it is the same boundary `Select` and `Tree` already record.
 
 ---
 

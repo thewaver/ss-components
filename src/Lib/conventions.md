@@ -4556,6 +4556,61 @@ namespace of the same name, because a `namespace` does not merge across ES modul
 would import one identifier twice. Plain exported type names are what the rest of the repo already uses — see
 _"House style"_ — and the namespace stays on the value side only.
 
+### Controls: `Paginator`, where the arithmetic is the component
+
+Built **2026-08-14**, at the user's request, from the `review.md` entry that had already argued it out of
+the "compositions" list. The claim there was that the visible page range, where the gaps fall and how many
+pages sit either side of the current one is arithmetic, and arithmetic is the library's half of the
+contract. Everything below follows from taking that seriously.
+
+**`PaginatorUtils.getEntries` is a pure function with its own unit tests, and the component is a thin
+wrapper over it.** Same split as `TreeUtils.getVisibleRows` and `SelectUtils.getFlatOptions`: the thing
+worth being sure about is a list in, a list out, and it is checked without a browser. Sixteen cases cover
+both ends, both knobs, a page beyond the end, and no pages at all.
+
+**A gap carries the pages it stands for, rather than being a bare ellipsis.** `{ kind: "gap", from, to }`
+against Ark UI's `{ type: "ellipsis" }`. The library has computed those numbers on its way to deciding a
+gap belongs there, so throwing them away and handing back "some pages" makes the consumer's painter unable
+to say anything true — a tooltip reading "pages 5 to 19" is free here and impossible there.
+
+**A gap that would hide one page is spelled as that page.** Replacing `4` with `…` saves no room and
+costs a destination. This is arithmetic rather than paint, so it belongs in the function rather than in a
+consumer's rendering of it.
+
+**The window is exactly `2 × siblings + 1` wide, and the boundaries do not reserve a slot for an ellipsis
+that would hide nothing.** MUI's version keeps a slot free next to each boundary, which is why its list at
+page 1 is a page longer than the same call here. The narrower rule was chosen because the wasted slot is
+only ever visible as an ellipsis standing between page 1 and page 2 — an ellipsis for nothing.
+
+**The gap is `aria-hidden`.** It is not a control, and the pages behind it cannot be reached by naming
+them, so announcing "pages 5 to 19" between two page numbers tells a screen reader user about something
+they cannot act on. Ark UI hides its ellipsis for the same reason.
+
+**`computeHref` is a function, where `Tab<T>` has an `href` field, and the difference is who authors the
+list.** A consumer writes their own tabs, so a field is reachable; here the library generates the entries,
+so a field would have nowhere to come from. The consumer knows the address shape and the library knows the
+page numbers, and a function from one to the other is the only join that respects both.
+
+**The page is one-way — `getPage` plus `onPageChange` — following `Tabs` rather than `Select`.** The rule
+in _"Signal tuples for two-way state"_ is to take the pair only where the component genuinely writes, and
+its recorded exception is a value derived from a route with no setter to hand over. A page number is that
+value more often than not, and pages that are links make it certain. A consumer who does hold a signal
+spends two props on it rather than one, which is the cheaper direction to adapt.
+
+**Every item is its own tab stop, with no roving.** This is `Accordion`'s position rather than `Tabs`'s,
+and the distinction is the one already recorded: a tab list is one control with several states, while a
+paginator is a row of independent destinations. `aria-current="page"` marks the one you are on.
+
+**A step with nowhere to go is `aria-disabled` and carries no `href`.** The target is computed first and
+the control is disabled when it equals the current page, so "previous on page one" needs no special case —
+it falls out of the arithmetic. Dropping the address as well as disabling it matters only for the link
+form, where an anchor would otherwise still be followable by every route that is not a click.
+
+**The painted number is `aria-hidden` and the name comes from `computePageLabel`.** Exactly `Calendar`'s
+day cells: a painter drawing a bare digit gives a screen reader "7" with no idea what of. The default
+names are English, and the compute hook is the escape from that rather than a locale the library pretends
+to know.
+
 ### Controls: `Scroller`, and why it renders no button of its own
 
 Settled with the user on **2026-08-14**. A strip too wide for its box, paged by a previous and a next button
@@ -4636,6 +4691,62 @@ smooth in CSS rather than per call, so `prefers-reduced-motion` turns it off wit
 
 **Horizontal only.** The axis is one variable rather than a redesign, but nothing has asked for a column and
 `SlideButton`'s precedent is to build the axis that exists. Recorded in `review.md` rather than guessed at.
+
+### Controls: `Carousel`, and the first component that acts without being asked
+
+Built **2026-08-14**, alongside `Paginator`, from the description `review.md` had been carrying since the
+`Scroller` naming argument. It shows one slide at a time, wraps at both ends, and can rotate on its own.
+
+**One slide at a time, and a page of several slides is not built.** The description this came from allowed
+either. One slide is the reading with a published pattern behind it, and a page of several is `Scroller`'s
+territory the moment the arithmetic starts asking how many fit — which is the boundary the two components
+were separated along in the first place. Recorded in `review.md` as a gap rather than left implicit.
+
+**Wrapping is the difference that makes it a different component.** `Scroller` stops at each end and
+disables the step that has nowhere to go; `Carousel` comes round, so neither step is ever the dead one.
+That single line is why a shared implementation with a `wraps` flag was not attempted: the two disagree
+about what the ends mean, and everything else they appear to share — a track, a step pair — they hold for
+different reasons.
+
+**The rotation is the reason this is a component rather than paint, and the holds are conformance.** WCAG
+2.2.2 applies to anything that moves by itself for more than five seconds beside other content: it must be
+stoppable, and the published pattern adds that it must not move under the pointer or while it holds focus.
+So the holds are not a courtesy that could be dropped for a tighter API. `getIsHeld` is
+`hovered || focus within || page hidden`, which is `Toasts`' expression character for character and for the
+same reason — a thing on a timer beside a person reading it. The explicit stop is separate from the holds
+and outranks them: a stopped carousel stays stopped when the pointer leaves.
+
+**The consumer arranges the controls; the library still owns every button.** `renderControls` receives a
+`CarouselControls` object whose `renderStep`, `renderPick` and `renderRotationControl` **return elements**
+rather than taking callbacks, so a consumer writes the bar — order, wrapper, position — while each control
+is still a real `<button>` with a real name, built by the library. This is deliberately not `Scroller`'s
+arrangement, where the consumer renders the button itself and `review.md` records the consequence: a
+library that renders no button cannot promise one is reachable or named. Here the two halves are split
+along the line that actually matters — the library owns what the control _is_, the consumer owns where it
+_sits_ and what it looks like. A consumer who passes no `renderControls` gets a carousel with no controls
+at all, which is the right answer for one driven from elsewhere on the page through its `indexSignal`.
+
+**Slides are plain values, not records.** Every other collection here takes records — `Tab<T>`,
+`TreeNode<T>`, `Toast<T>` — because each has per-item capabilities the library acts on. A slide has none:
+its position is arithmetic, not a field, and nothing about it is the library's business. The records
+convention was written against **parallel arrays** indexed at each other, which a single list of values is
+not.
+
+**The index is a two-way signal, and this is the clearest case in the library for it.** _"Signal tuples for
+two-way state"_ says use the pair only where the component genuinely writes. A rotating carousel writes its
+own index on a timer with nobody having asked, which no consumer callback can be expected to mirror back.
+`SignalMirror.createOptional` keeps it private until a consumer wants it, the same as a popup's open state.
+
+**The announcement goes through `LiveAnnouncer` rather than a live region on the track.** The published
+pattern makes the slide container a live region, which works when the slides that are away are removed
+from the page. Here they stay — the track translates, so they have to — and a live region over content
+that never changes announces nothing. The shared announcer is already the answer this library reached for
+the same problem in `Calendar`'s month change. It announces only when the carousel is **not** rotating,
+because narrating a slide every few seconds is the noise WCAG 2.2.2 exists to prevent.
+
+**The slides that are away are `inert` as well as `aria-hidden`.** `Collapsible` already uses `inert` for
+a closed panel, and the reason is the same: a control scrolled off the side is still in the tab order
+without it, so a keyboard user would tab into a slide nobody can see and drag the track after them.
 
 ### The source view, as built, and the four calls the mechanism forced
 
