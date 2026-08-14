@@ -40,7 +40,7 @@ export type TabsProps<T> = AccessorProps<{
     ariaLabel?: string;
     linkComponent?: Component<TabLinkProps>;
     renderGutter?: () => JSX.Element;
-    renderFloater?: () => JSX.Element;
+    renderFloater?: (getVisibilityTarget: () => 0 | 1, getTransitionDurationMs: () => number) => JSX.Element;
 }> & {
     getTabs: Accessor<Tab<T>[]>;
     getSelectedValue: Accessor<T | undefined>;

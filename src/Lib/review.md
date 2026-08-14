@@ -841,10 +841,10 @@ The decisions behind what exists are in `conventions.md` under _"Controls: `Tabs
 _"`TabPanel`: the pairing is written on the record"_.
 
 - **Nothing makes a consumer wire the panel.** `id` and `panelId` are optional fields, so a tab list with
-  no pairing at all is still a valid one — which it has to be, since the Playground's left menu switches
-  routes rather than panels. The cost is that the omission is silent: a consumer who paints their own
-  panel box and never reaches for `TabPanel` gets no warning, the way one who nests a `getAriaLabel`
-  inside a `Label` does.
+  no pairing at all is still a valid one. The cost is that the omission is silent: a consumer who paints
+  their own panel box and never reaches for `TabPanel` gets no warning, the way one who nests a
+  `getAriaLabel` inside a `Label` does. The Playground's own left menu was that consumer for four months
+  and nothing said so; it is wired now, which removes the example rather than the gap.
 - **Arrows move focus and never selection, and there is no way to ask for the other behaviour.** A tab is
   selected by `Enter`, `Space` or a click. The published pattern allows both, and calls the other one
   automatic activation — arrowing onto a tab selects it, which is what suits a cheap panel and a route

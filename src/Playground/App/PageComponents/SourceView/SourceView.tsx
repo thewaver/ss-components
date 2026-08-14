@@ -92,7 +92,13 @@ export const PageSourceView = (props: SourceViewProps) => {
                             getSelectedValue={getSelectedGroup}
                             onSelectionChange={selectGroup}
                             renderGutter={() => <PageTabGutter getDir={() => "row"} />}
-                            renderFloater={() => <PageTabFloater getDir={() => "row"} />}
+                            renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
+                                <PageTabFloater
+                                    getDir={() => "row"}
+                                    getVisibilityTarget={getVisibilityTarget}
+                                    getTransitionDurationMs={getTransitionDurationMs}
+                                />
+                            )}
                             renderTab={(getTab, getFlags) => (
                                 <PageTabContent
                                     getFlags={getFlags}

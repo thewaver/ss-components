@@ -36,19 +36,19 @@ export const searchContainer = style({
     padding: themeVars.spacing.full,
 });
 
-export const tabCategory = style({
+export const menuSection = style({
+    display: "flex",
+    flexDirection: "column",
+});
+
+export const menuCategory = style({
+    margin: 0,
     padding: themeVars.spacing.full,
     fontSize: themeVars.fontSize.xSmall,
     fontWeight: "bold",
     textAlign: "start",
     textTransform: "uppercase",
     opacity: 0.5,
-
-    selectors: {
-        "[aria-disabled='true'] &": {
-            cursor: "default",
-        },
-    },
 });
 
 export const tabItem = style({
@@ -71,15 +71,28 @@ export const tabFloater = style({
     backgroundImage: `linear-gradient(to right, ${themeVars.color.primary.main} 5px, hsl(from ${themeVars.color.surface.light} h s calc(l * 1.5)) 5px, transparent)`,
     width: "100%",
     height: "100%",
+    opacity: 0,
+    transition: "opacity",
+
+    selectors: {
+        [`&.${isVisible}`]: {
+            opacity: 1,
+        },
+    },
 });
 
 export const tabPage = style({
     display: "flex",
     flexDirection: "column",
     height: "100%",
-    gap: themeVars.spacing.quad,
     padding: themeVars.spacing.quad,
     overflowY: "auto",
+});
+
+export const tabPanelBody = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: themeVars.spacing.quad,
 });
 
 export const tabPageHeader = style({

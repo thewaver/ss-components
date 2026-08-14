@@ -1,5 +1,6 @@
 import type { Accessor, JSX } from "solid-js";
 import { Index, Show, createEffect, createMemo, createSignal, createUniqueId } from "solid-js";
+import { Dynamic } from "solid-js/web";
 
 import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
 import { NavigationUtils } from "../../Abstracts/Navigation/Navigation.utils";
@@ -14,26 +15,60 @@ const EXPAND_SIBLINGS_KEY = "*";
 const TreeNodeItem = (props: TreeNodeItemProps) => {
     const getIsDisabled = () => props.getFlags().isDisabled ?? false;
 
-    return (
-        <div
-            id={props.getId?.()}
-            ref={(element) => props.ref?.(element)}
-            class={styles.treeNode}
-            role="treeitem"
-            aria-disabled={getIsDisabled() || undefined}
-            aria-selected={props.getFlags().isSelected}
-            aria-expanded={props.getFlags().isBranch ? props.getFlags().isExpanded : undefined}
-            aria-level={props.getLevel()}
-            aria-posinset={props.getPosition()}
-            aria-setsize={props.getSetSize()}
-            onClick={() => {
-                if (getIsDisabled()) return;
+    const handleClick = (e: MouseEvent) => {
+        if (getIsDisabled()) {
+            e.preventDefault();
+            return;
+        }
 
-                props.onActivate();
-            }}
+        props.onActivate();
+    };
+
+    const commonProps: Omit<JSX.HTMLAttributes<HTMLElement>, "ref"> = {
+        "class": styles.treeNode,
+        "role": "treeitem",
+        get "id"() {
+            return props.getId?.();
+        },
+        get "aria-disabled"() {
+            return getIsDisabled() || undefined;
+        },
+        get "aria-selected"() {
+            return props.getFlags().isSelected;
+        },
+        get "aria-expanded"() {
+            return props.getFlags().isBranch ? props.getFlags().isExpanded : undefined;
+        },
+        get "aria-level"() {
+            return props.getLevel();
+        },
+        get "aria-posinset"() {
+            return props.getPosition();
+        },
+        get "aria-setsize"() {
+            return props.getSetSize();
+        },
+    };
+
+    return (
+        <Show
+            when={props.getHref()}
+            fallback={
+                <div ref={(element) => props.ref?.(element)} {...commonProps} onClick={handleClick}>
+                    {props.renderContent(props.getFlags)}
+                </div>
+            }
         >
-            {props.renderContent(props.getFlags)}
-        </div>
+            <Dynamic
+                component={props.linkComponent ?? "a"}
+                ref={(element: HTMLElement) => props.ref?.(element)}
+                href={props.getHref()!}
+                {...commonProps}
+                onClick={handleClick}
+            >
+                {props.renderContent(props.getFlags)}
+            </Dynamic>
+        </Show>
     );
 };
 
@@ -182,6 +217,16 @@ export const Tree = <T,>(props: TreeProps<T>) => {
         if (!current) return;
 
         if (e.key === "Enter" || e.key === " ") {
+            if (current.node.href) {
+                if (e.key === "Enter") return;
+
+                e.preventDefault();
+
+                document.getElementById(getRowId(current))?.click();
+
+                return;
+            }
+
             e.preventDefault();
 
             activate(current);
@@ -264,10 +309,12 @@ export const Tree = <T,>(props: TreeProps<T>) => {
                             <TreeNodeItem
                                 ref={setElementRef}
                                 getId={() => getRowId(getRow())}
+                                getHref={() => getRow().node.href}
                                 getLevel={() => getRow().depth + 1}
                                 getPosition={() => getRow().position + 1}
                                 getSetSize={() => getRow().setSize}
                                 getFlags={getFlags}
+                                linkComponent={props.linkComponent}
                                 renderContent={(getNodeFlags) => props.renderNode(() => getRow().node, getNodeFlags)}
                                 onActivate={() => activate(getRow())}
                             />

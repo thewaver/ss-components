@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { activeText, inlineStyle, readout, tabIndex, tagName, variant } from "./helpers";
+import { activeText, computedStyle, inlineStyle, readout, tabIndex, tagName, variant } from "./helpers";
 
 /**
  * The page carries one tab list per variant, so every locator is scoped to its own variant box. Each
@@ -11,6 +11,7 @@ const ROW = variant("A row of tabs");
 const COLUMN = variant("A column of tabs");
 const LINKS = variant("Tabs that are links");
 const LINK_COMPONENT = variant("Links through a component");
+const CLEARABLE = variant("A selection that can be cleared");
 const DISABLED = variant("Every tab disabled");
 
 const list = (scope: string) => `${scope} [role="tablist"]`;
@@ -148,6 +149,60 @@ test("the floater follows the selected tab, over a gutter that spans the list", 
     await page.locator(tab(ROW)).nth(3).click();
 
     await expect.poll(() => inlineStyle(box, "left"), { timeout: FLOATER_TIMEOUT_MS }).not.toBe(before);
+});
+
+/**
+ * Losing the selection is not the same as losing the floater: the painter is handed a target of `0` and
+ * has to be given the time it was promised to reach it, so the element stays in the document while the
+ * transition runs and goes only once it has. That variant sets a deliberately long duration, which is
+ * what makes the middle of it observable rather than a race.
+ *
+ * The class the painter toggles is hashed by the stylesheet compiler, so the state is read off the
+ * computed transform instead — `SHOWN_TRANSFORM` is `scaleX(1)`, and anything else means the painter is
+ * on its way out. An element that vanished the moment the selection went would fail the first
+ * assertion by not being there to measure; one that never left would fail the second.
+ *
+ * The last assertion is about where it returns rather than whether it does. The position the marker
+ * animates out at has to survive the exit and must not survive past it: a list that kept it would bring
+ * the marker back where it left and slide it across to the new tab, over the same long duration, which
+ * is watchable and wrong. Both boxes are measured the same way, so the viewport's scale divides out and
+ * the tolerance only has to absorb the box's own padding.
+ */
+const SHOWN_TRANSFORM = "matrix(1, 0, 0, 1, 0, 0)";
+const RETURN_TOLERANCE_PX = 4;
+
+test("the floater plays itself out before it goes, and back in when a selection returns", async ({ page }) => {
+    const painted = page.locator(floater(CLEARABLE));
+
+    await expect(painted, "a list with a selection paints one").toHaveCount(1);
+    await expect.poll(() => computedStyle(painted, "transform"), { timeout: FLOATER_TIMEOUT_MS }).toBe(SHOWN_TRANSFORM);
+
+    await page.locator(`${CLEARABLE} button:not([role="tab"])`).click();
+
+    await expect
+        .poll(() => computedStyle(painted, "transform"), {
+            message: "clearing the selection aims the painter at hidden while it is still in the document",
+        })
+        .not.toBe(SHOWN_TRANSFORM);
+
+    await expect(painted, "and it leaves once the transition it was promised has run").toHaveCount(0, {
+        timeout: FLOATER_TIMEOUT_MS,
+    });
+
+    await page.locator(tab(CLEARABLE)).nth(2).click();
+
+    await expect(painted, "selecting again brings it back").toHaveCount(1);
+
+    const returned = (await painted.locator("..").boundingBox())!;
+    const third = (await page.locator(tab(CLEARABLE)).nth(2).boundingBox())!;
+
+    expect(
+        Math.abs(returned.x - third.x),
+        "and it comes back at the tab that was chosen, rather than at the one it left and sliding across",
+    ).toBeLessThan(RETURN_TOLERANCE_PX);
+
+    await expect.poll(() => computedStyle(painted, "transform")).toBe(SHOWN_TRANSFORM);
+    expect(await readout(page, "A selection that can be cleared")).toContain("selected: Three");
 });
 
 test("an href makes the tab an anchor, and a link component replaces the element", async ({ page }) => {

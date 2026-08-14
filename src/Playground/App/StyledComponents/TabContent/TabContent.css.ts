@@ -5,6 +5,7 @@ import { themeVars } from "../../Theme.css";
 export const isSelected = style({});
 export const isHovered = style({});
 export const isDisabled = style({});
+export const isVisible = style({});
 
 const tabBase = style({
     whiteSpace: "nowrap",
@@ -51,12 +52,28 @@ export const rowTabGutter = style({
 
 export const rowTabFloater = style({
     borderBlockEnd: `2px solid ${themeVars.color.primary.main}`,
+    transform: "scaleX(0)",
+    transition: "transform",
+
+    selectors: {
+        [`&.${isVisible}`]: {
+            transform: "scaleX(1)",
+        },
+    },
 });
 
 export const columnTabFloater = style({
     backgroundImage: `linear-gradient(to right, ${themeVars.color.primary.main} 3px, rgb(from ${themeVars.color.surface.contrast} r g b / 10%) 3px, transparent)`,
     width: "100%",
     height: "100%",
+    opacity: 0,
+    transition: "opacity",
+
+    selectors: {
+        [`&.${isVisible}`]: {
+            opacity: 1,
+        },
+    },
 });
 
 export const tabPanel = style({

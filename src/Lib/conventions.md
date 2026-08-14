@@ -1538,15 +1538,17 @@ reactive, so it can be made to work; it is left out here because `Tabs` has no u
 untested API is worse than absent API. `Select` will want it, and this is the thing to solve there.
 
 **A consumer selecting on `:disabled` breaks when a control stops lying about it.** The Playground's
-`tabCategory` reset the cursor through `:disabled &` and silently stopped applying; it is now
-`[aria-disabled='true'] &`. Worth stating because it is the visible tail of the mechanism decision —
-consumer stylesheets written against native disabled do not fail loudly.
+`tabCategory` reset the cursor through `:disabled &` and silently stopped applying; it became
+`[aria-disabled='true'] &`, and then the category stopped being a tab at all — see _"The left menu is
+one tab list per category"_ below. Worth keeping because it is the visible tail of the mechanism
+decision: consumer stylesheets written against native disabled do not fail loudly.
 
 **Verified by headless dump**, per the invocation below: `role="tablist"`, one `tabindex="0"` across
-the whole list with every other item at `-1`, `aria-selected` on the right item, the category item
-carrying `aria-disabled="true"` and **no** `disabled` attribute, and a floater positioned at a real
-offset — which is also the proof that the `offsetParent` hop resolves and that `ref` forwards through
-the router's `A`.
+the whole list with every other item at `-1`, `aria-selected` on the right item, and a floater
+positioned at a real offset — which is also the proof that the `offsetParent` hop resolves and that
+`ref` forwards through the router's `A`. The same dump then carried a category item at
+`aria-disabled="true"` with **no** `disabled` attribute; that item no longer exists, and the
+disabled-tab half of the proof now lives on `TabsPage` instead.
 
 **The list names itself and states its axis.** Added **2026-08-11**, when `TabsPage` put five tab lists
 on one page and none of them could be told apart. `getAriaLabel` lands on the `role="tablist"` element,
@@ -1587,6 +1589,82 @@ app furniture — adding a page or renaming a category used to break the keyboar
 regression, which happened once. The page carries a row, a column, links, a consumer link component and
 an all-disabled list, so the entries are named by the spec that drives them and nothing else depends on
 their order.
+
+### The left menu is one tab list per category
+
+Settled **2026-08-14**, on the user's call between three options. The menu used to be a single
+`role="tablist"` holding every entry, with `Exotics`, `Fundamentals` and `Composites` sitting inside it
+as tabs marked disabled. A tab list may own tabs and nothing else, and those three were never
+destinations: nothing selects them, nothing routes to them, and the only reason they were tabs at all is
+that one flat array was the easiest way to lay the menu out. They are now `<h2>` elements outside the
+lists, and each category gets its own `Tabs` named by `getAriaLabel` with the same text.
+
+**The cost is one tab stop per category rather than one for the whole menu**, and it was accepted rather
+than overlooked: arrow keys now walk within a category and `Tab` crosses between them. The rejected
+alternative was to drop the category names from the markup entirely, which keeps one stop and one walk
+but tells a screen reader user nothing about the grouping the sighted user can see.
+
+**The pairing that `Tab<T>`'s `id` and `panelId` exist for is now wired here too.** Each component
+config derives both from its own name, and the routed page is wrapped in `TabPanel` — so the menu
+stopped being the standing example of a tab list that names a panel nobody wrote. The bullet in
+`review.md` that this fixes is about the library, not the menu: nothing still forces a consumer to do
+it, and the menu went four months without.
+
+**A category whose entries are all filtered out disappears, heading and all.** The old menu kept every
+category header regardless of the query, which was a sensible thing for a flat list to do and is not one
+here — an empty heading over an empty list is furniture with nothing under it. The rule that survived
+untouched is the one the `Select` autocomplete argument actually rests on: the currently selected entry
+stays visible even when it does not match.
+
+**`Tabs` stopped orphaning its floater as part of this.** With one list the marker could never be
+stranded; with several, the list that used to hold the selection kept drawing its own after the
+selection moved elsewhere, because the effect that positions it returned early on "no selected item"
+instead of acting on it. The first fix cleared the stored bounds, which was superseded a day later by
+the fader below — the bounds are what the exit animation needs to draw, so erasing them is exactly the
+wrong moment to do it.
+
+### The floater appears and disappears through `ElementFader`, like every other library element that comes and goes
+
+Settled **2026-08-14**, at the user's request, immediately after the menu split made a floater that
+comes and goes the normal case rather than a curiosity. A tab list with no selection has no marker to
+draw, and until now that was a hard cut: the element was in the document on one frame and gone on the
+next, with no way for a consumer to fade, shrink or slide it.
+
+**`renderFloater` now takes the same pair every appearing element's painter takes** — a visibility
+target of `0` or `1` and the transition duration — which is `Tooltip`, `Popover`, `Modal`, `Toasts` and
+`Spotlight`'s signature, in that order, transition pair first. The painter decides what the two states
+look like; the library still decides only when the element is in the document. Nothing here is new
+machinery: `ElementFader.createFader` is driven by "is there a selected tab whose position we have
+measured", and the element is mounted for as long as the fader says it is visible **or** still
+transitioning.
+
+**The duration is `getTransitionDurationMs`, the knob the floater already had**, rather than a second
+one beside it. It governs how long the marker takes to slide between tabs, and a list that slides in
+300ms and fades in 80ms would be describing two different animations to the same eye. A consumer who
+genuinely wants them apart can still do it — the painter is theirs, and a CSS `transition` inside it
+overrides what the duration argument suggests.
+
+**The stored bounds outlive the selection and die with the element, and both halves of that are load
+bearing.** They are the last place the marker was, which is precisely where the exit has to be drawn, so
+clearing them when the selection goes would unmount the element on the spot with nothing left to play
+out. But keeping them past the exit is the other error, and it is the one that shipped first: a list
+that still holds a position is a list whose next entrance starts there, so the marker returned where it
+had left and slid across to the newly chosen tab — over the same deliberately long duration, which made
+it plainly visible. The bounds are therefore cleared by a second effect that watches the fader and fires
+once the element is genuinely gone. What re-fills them is the positioning effect, which already re-runs
+on a selection change, so an entrance cannot happen before a fresh measurement exists: the render is
+gated on having bounds at all.
+
+The tail of the `tabs.spec.ts` case is written against this specifically, and it has to measure the
+rendered box rather than wait for the entrance to settle — a slide and an entrance take the same
+duration, so anything that polls until the painter reaches its shown state has already let the slide
+finish and will pass either way. Checked by putting the fault back and watching the assertion fail by
+106 pixels.
+
+**`TabsPage` grew a variant whose selection can be cleared**, because none of the existing five can lose
+theirs and the behaviour is therefore invisible on a page where every list is always on something. It
+sets a longer duration than the others on purpose: the middle of a 200ms transition is neither
+watchable by eye nor readable by a spec without a race.
 
 ### `Anchor`: a placement may fall back within its family and never outside it
 
@@ -1760,11 +1838,11 @@ Settled **2026-08-06**, step 8 of the brief, built directly after the rest. The 
 `Select` owns a default matcher with a `computeIsMatch` escape hatch or owns only the query string.
 
 **The consumer filters, and the precedent that decided it is the Playground's own left menu.** `Tabs`
-has no filtering API at all: `AppContent` owns the search box, owns the query, and derives `getTabs`
-from a filtered list. The rules it wrote are the argument — it keeps every category header regardless
-of the query, and **keeps the currently selected item even when it does not match**. Neither is
-expressible by a library matcher over an unknown `T`, and the second one silently breaks a select whose
-default matcher would filter the selected option away. The `Select` page makes the same point from the
+has no filtering API at all: `AppContent` owns the search box, owns the query, and derives each list's
+tabs from a filtered list. The rules it wrote are the argument — it decides for itself what a category
+whose every entry was filtered out should do, and it **keeps the currently selected item even when it
+does not match**. Neither is expressible by a library matcher over an unknown `T`, and the second one
+silently breaks a select whose default matcher would filter the selected option away. The `Select` page makes the same point from the
 other end: it matches an airport on **either its city or its IATA code**, two fields the library cannot
 know exist. Ownership follows knowledge — the consumer knows what its `T` means, so it does the
 matching.
@@ -2114,8 +2192,9 @@ position is next_, the control answers _whether to go there_.
 
 **`Tabs` got its first spec out of this**, since it was the one consumer whose keyboard had no
 coverage at all — `conventions.md` had recorded it as verified by markup dump only, which does not
-reach a walk. The Playground's own left menu is a real `Tabs` (column, disabled category headers,
-`href` on every entry), so the spec drives that rather than adding a page.
+reach a walk. That spec drove the Playground's own left menu at first, because the menu was a real
+`Tabs`; it moved to `TabsPage` for the reason recorded under _"`TabPanel`: the pairing is written on
+the record"_, and the menu has since become several lists rather than one.
 
 `computeNextCell` for two axes belongs in the same file when `Calendar` arrives. That is the return
 on choosing a pure function: it grows by gaining a sibling rather than by gaining a mode.
@@ -4242,6 +4321,38 @@ instead. Wrapping is what `Select`, `Menu`, `Tabs` and `RadioGroup` all do throu
 `NavigationUtils.computeNextPosition`, and a tree that stopped would be the one list here that behaves
 differently — so consistency inside the library won over the published behaviour, and the choice is
 recorded here rather than being discoverable only by pressing `ArrowUp` on the first row.
+
+### `Tree` nodes can be links, on `Tab<T>`'s terms
+
+Added **2026-08-14**, at the user's request, after the left menu was weighed as a tree and the missing
+piece turned out to be this one. A hierarchical menu is the obvious use for a tree and the rows were
+`div`s: a consumer could route from `onSelectionChange`, but the entries would not have been links —
+no middle-click, no open-in-new-tab, no copy-link-address, no destination in the status bar. None of
+that is reachable from a click handler, and a navigation tree that cannot do it is not a navigation
+tree.
+
+**`href` is a field on the node and it chooses the element**, exactly as `Tab<T>`'s does. A row with one
+renders an `<a role="treeitem">` through `Dynamic`, a row without one stays a `div`, and both take the
+same `commonProps` object of getters so the ARIA cannot drift between the branches. `TreeProps` also
+takes a `linkComponent`, for a router's own link element, for the reason `Tabs` takes one: an `<a>`
+reloads the application.
+
+**`TreeLinkProps` is declared in `Tree.types.ts` rather than imported from `Tabs.types.ts`.** The two are
+the same shape today. They are two components' public prop types, and importing one control's type into
+another's surface would mean a consumer of `Tree` reading `Tabs`' documentation to learn what they may
+pass — and would make a future divergence a breaking change for the wrong component.
+
+**Keyboard: a link row hands its activation to the element.** `Enter` on the row is left alone, because
+an anchor fires its own click from `Enter`, and that click already runs the row's activation — so
+selecting, toggling and navigating all happen through the one path, and calling `preventDefault` on it
+would have selected the row while silently refusing to go anywhere. `Space` is the case an anchor does
+not answer: the row cancels the page scroll and clicks the element itself, so the two keys stay
+interchangeable. This is the same parity rule as _"One press both selects and toggles"_ above, held
+across a change of element.
+
+**A disabled link row cancels the navigation rather than just skipping the callback.** The click handler
+calls `preventDefault` before returning, which is `TabsItem`'s arrangement and is not optional here: on
+a `div` an early return is enough, while an anchor would have followed its `href` regardless.
 
 ### Controls: `SlideButton`, and why the gesture is the only thing it owns
 

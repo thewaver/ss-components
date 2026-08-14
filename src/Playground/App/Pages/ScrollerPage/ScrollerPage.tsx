@@ -130,7 +130,13 @@ export const ScrollerPage = () => {
                                 getSelectedValue={getSelectedMonth}
                                 onSelectionChange={setSelectedMonth}
                                 renderGutter={() => <PageTabGutter getDir={() => "row"} />}
-                                renderFloater={() => <PageTabFloater getDir={() => "row"} />}
+                                renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
+                                    <PageTabFloater
+                                        getDir={() => "row"}
+                                        getVisibilityTarget={getVisibilityTarget}
+                                        getTransitionDurationMs={getTransitionDurationMs}
+                                    />
+                                )}
                                 renderTab={(getTab, getFlags) => (
                                     <PageTabContent
                                         getFlags={getFlags}

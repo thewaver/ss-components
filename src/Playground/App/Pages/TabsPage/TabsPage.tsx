@@ -1,8 +1,11 @@
 import { createMemo, createSignal } from "solid-js";
 
+import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Tabs } from "../../../../Lib/Fundamentals/Tabs/Tabs";
 import type { Tab, TabLinkProps } from "../../../../Lib/Fundamentals/Tabs/Tabs.types";
+import { PageControlColumn } from "../../PageComponents/ControlRow/ControlRow";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
+import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import {
     PageTabContent,
     PageTabFloater,
@@ -43,6 +46,8 @@ const LINK_TABS: Tab<string>[] = [
     { value: "Blog", href: "#tabs-blog" },
 ];
 
+const CLEARABLE_TABS: Tab<string>[] = [{ value: "One" }, { value: "Two" }, { value: "Three" }];
+
 const DISABLED_TABS: Tab<string>[] = [
     { value: "Draft", isDisabled: true },
     { value: "Review", isDisabled: true },
@@ -61,6 +66,7 @@ const PANEL_BODIES: Record<string, string> = {
 };
 
 const ROW_TAB_GAP = 10;
+const CLEARABLE_TRANSITION_DURATION_MS = 600;
 
 const PageTabLink = (props: TabLinkProps) => <a {...props} data-link-component />;
 
@@ -70,6 +76,7 @@ export const TabsPage = () => {
     const [getLinkValue, setLinkValue] = createSignal("Docs");
     const [getCustomLinkValue, setCustomLinkValue] = createSignal("Docs");
     const [getDisabledValue, setDisabledValue] = createSignal("Draft");
+    const [getClearableValue, setClearableValue] = createSignal<string | undefined>("One");
 
     const getVariants = createMemo(() => {
         return [
@@ -86,7 +93,13 @@ export const TabsPage = () => {
                             getSelectedValue={getRowValue}
                             onSelectionChange={setRowValue}
                             renderGutter={() => <PageTabGutter getDir={() => "row"} />}
-                            renderFloater={() => <PageTabFloater getDir={() => "row"} />}
+                            renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
+                                <PageTabFloater
+                                    getDir={() => "row"}
+                                    getVisibilityTarget={getVisibilityTarget}
+                                    getTransitionDurationMs={getTransitionDurationMs}
+                                />
+                            )}
                             renderTab={(getTab, getFlags) => (
                                 <PageTabContent
                                     getFlags={getFlags}
@@ -118,7 +131,13 @@ export const TabsPage = () => {
                             getTabs={() => COLUMN_TABS}
                             getSelectedValue={getColumnValue}
                             onSelectionChange={setColumnValue}
-                            renderFloater={() => <PageTabFloater getDir={() => "column"} />}
+                            renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
+                                <PageTabFloater
+                                    getDir={() => "column"}
+                                    getVisibilityTarget={getVisibilityTarget}
+                                    getTransitionDurationMs={getTransitionDurationMs}
+                                />
+                            )}
                             renderTab={(getTab, getFlags) => (
                                 <PageTabContent
                                     getFlags={getFlags}
@@ -153,7 +172,13 @@ export const TabsPage = () => {
                         getSelectedValue={getLinkValue}
                         onSelectionChange={setLinkValue}
                         renderGutter={() => <PageTabGutter getDir={() => "row"} />}
-                        renderFloater={() => <PageTabFloater getDir={() => "row"} />}
+                        renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
+                            <PageTabFloater
+                                getDir={() => "row"}
+                                getVisibilityTarget={getVisibilityTarget}
+                                getTransitionDurationMs={getTransitionDurationMs}
+                            />
+                        )}
                         renderTab={(getTab, getFlags) => (
                             <PageTabContent
                                 getFlags={getFlags}
@@ -180,7 +205,13 @@ export const TabsPage = () => {
                         onSelectionChange={setCustomLinkValue}
                         linkComponent={PageTabLink}
                         renderGutter={() => <PageTabGutter getDir={() => "row"} />}
-                        renderFloater={() => <PageTabFloater getDir={() => "row"} />}
+                        renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
+                            <PageTabFloater
+                                getDir={() => "row"}
+                                getVisibilityTarget={getVisibilityTarget}
+                                getTransitionDurationMs={getTransitionDurationMs}
+                            />
+                        )}
                         renderTab={(getTab, getFlags) => (
                             <PageTabContent
                                 getFlags={getFlags}
@@ -191,6 +222,49 @@ export const TabsPage = () => {
                             </PageTabContent>
                         )}
                     />
+                ),
+            },
+            {
+                name: "A selection that can be cleared",
+                readout: () =>
+                    `selected: ${getClearableValue() ?? "nothing"} — the floater plays itself out over ${CLEARABLE_TRANSITION_DURATION_MS}ms when the selection goes, and plays itself back in when one returns`,
+                component: () => (
+                    <PageControlColumn>
+                        <Tabs
+                            getDir={() => "row"}
+                            getTabGap={() => ROW_TAB_GAP}
+                            getAriaLabel={() => "Clearable views"}
+                            getTransitionDurationMs={() => CLEARABLE_TRANSITION_DURATION_MS}
+                            getTabs={() => CLEARABLE_TABS}
+                            getSelectedValue={getClearableValue}
+                            onSelectionChange={setClearableValue}
+                            renderGutter={() => <PageTabGutter getDir={() => "row"} />}
+                            renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
+                                <PageTabFloater
+                                    getDir={() => "row"}
+                                    getVisibilityTarget={getVisibilityTarget}
+                                    getTransitionDurationMs={getTransitionDurationMs}
+                                />
+                            )}
+                            renderTab={(getTab, getFlags) => (
+                                <PageTabContent
+                                    getFlags={getFlags}
+                                    getDir={() => "row"}
+                                    getIsSelected={() => getTab().value === getClearableValue()}
+                                >
+                                    {getTab().value}
+                                </PageTabContent>
+                            )}
+                        />
+
+                        <Button
+                            getAriaLabel={() => "Clear the selection"}
+                            renderContent={(getFlags) => (
+                                <PageButtonContent getFlags={getFlags}>Clear</PageButtonContent>
+                            )}
+                            onClick={async () => setClearableValue(undefined)}
+                        />
+                    </PageControlColumn>
                 ),
             },
             {
@@ -205,7 +279,13 @@ export const TabsPage = () => {
                         getSelectedValue={getDisabledValue}
                         onSelectionChange={setDisabledValue}
                         renderGutter={() => <PageTabGutter getDir={() => "row"} />}
-                        renderFloater={() => <PageTabFloater getDir={() => "row"} />}
+                        renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
+                            <PageTabFloater
+                                getDir={() => "row"}
+                                getVisibilityTarget={getVisibilityTarget}
+                                getTransitionDurationMs={getTransitionDurationMs}
+                            />
+                        )}
                         renderTab={(getTab, getFlags) => (
                             <PageTabContent
                                 getFlags={getFlags}

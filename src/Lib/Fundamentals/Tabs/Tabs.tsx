@@ -1,6 +1,7 @@
 import { Index, type JSX, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
+import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { NavigationUtils } from "../../Abstracts/Navigation/Navigation.utils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import type { TabPanelProps, TabsDir, TabsItemProps, TabsProps } from "./Tabs.types";
@@ -108,6 +109,16 @@ export const Tabs = <T,>(props: TabsProps<T>) => {
         }, []),
     );
 
+    const getIsFloaterShown = createMemo(() => getSelectedIndex() >= 0 && getFloaterBounds() !== undefined);
+
+    const floaterFader = ElementFader.createFader(getIsFloaterShown, { getTransitionDurationMs });
+
+    createEffect(() => {
+        if (floaterFader.getIsVisible()) return;
+
+        setFloaterBounds(undefined);
+    });
+
     const getRovingIndex = createMemo(() => {
         const navigable = getNavigableIndexes();
         const tabs = props.getTabs();
@@ -187,12 +198,12 @@ export const Tabs = <T,>(props: TabsProps<T>) => {
             onKeyDown={handleKeyDown}
         >
             {props.renderGutter && <div class={styles.tabsGutter}>{props.renderGutter()}</div>}
-            {props.renderFloater && getFloaterBounds() && (
+            {props.renderFloater && floaterFader.getIsVisible() && getFloaterBounds() && (
                 <div
                     class={styles.tabsFloater}
                     style={{ ...getFloaterBounds(), "transition-duration": `${getTransitionDurationMs()}ms` }}
                 >
-                    {props.renderFloater()}
+                    {props.renderFloater(floaterFader.getTransitionTarget, getTransitionDurationMs)}
                 </div>
             )}
 

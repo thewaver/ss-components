@@ -2,7 +2,7 @@ import { createMemo, createSignal } from "solid-js";
 
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Tree } from "../../../../Lib/Fundamentals/Tree/Tree";
-import type { TreeNode } from "../../../../Lib/Fundamentals/Tree/Tree.types";
+import type { TreeLinkProps, TreeNode } from "../../../../Lib/Fundamentals/Tree/Tree.types";
 import { PageControlColumn } from "../../PageComponents/ControlRow/ControlRow";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
@@ -81,6 +81,21 @@ const FILES_WITH_REACHABLE: TreeNode<string>[] = [
     { value: "package.json" },
 ];
 
+const DOCS: TreeNode<string>[] = [
+    {
+        value: "Guides",
+        children: [
+            { value: "Installing", href: "#tree-installing" },
+            { value: "Theming", href: "#tree-theming" },
+        ],
+    },
+    {
+        value: "Reference",
+        children: [{ value: "Props", href: "#tree-props" }],
+    },
+    { value: "Changelog", href: "#tree-changelog" },
+];
+
 const ASSETS: TreeNode<Asset>[] = [
     {
         value: { name: "Sprites", kind: "folder" },
@@ -95,6 +110,8 @@ const ASSETS: TreeNode<Asset>[] = [
     },
     { value: { name: "credits.txt", kind: "text" } },
 ];
+
+const PageTreeLink = (props: TreeLinkProps) => <a {...props} data-link-component />;
 
 export const TreePage = () => {
     const defaultSignal = createSignal<string | undefined>();
@@ -111,6 +128,12 @@ export const TreePage = () => {
 
     const outsideSignal = createSignal<string | undefined>();
     const outsideExpandedSignal = createSignal<string[]>(["src", "Lib"]);
+
+    const linkSignal = createSignal<string | undefined>();
+    const linkExpandedSignal = createSignal<string[]>(["Guides"]);
+
+    const customLinkSignal = createSignal<string | undefined>();
+    const customLinkExpandedSignal = createSignal<string[]>(["Guides"]);
 
     const recordSignal = createSignal<Asset | undefined>();
     const recordExpandedSignal = createSignal<Asset[]>([]);
@@ -210,6 +233,39 @@ export const TreePage = () => {
                             }}
                         />
                     </PageControlColumn>
+                ),
+            },
+            {
+                name: "Nodes that are links",
+                readout: () =>
+                    `value: ${linkSignal[0]() ?? "undefined"} — every leaf carries an href, so each one is an anchor and the branches stay plain`,
+                component: () => (
+                    <Tree
+                        getNodes={() => DOCS}
+                        valueSignal={linkSignal}
+                        expandedSignal={linkExpandedSignal}
+                        getAriaLabel={() => "Documentation"}
+                        renderNode={(getNode, getFlags) => (
+                            <PageTreeNodeContent getFlags={getFlags}>{getNode().value}</PageTreeNodeContent>
+                        )}
+                    />
+                ),
+            },
+            {
+                name: "Links through a component",
+                readout: () =>
+                    `value: ${customLinkSignal[0]() ?? "undefined"} — the same nodes rendered by a consumer's own link component`,
+                component: () => (
+                    <Tree
+                        getNodes={() => DOCS}
+                        valueSignal={customLinkSignal}
+                        expandedSignal={customLinkExpandedSignal}
+                        getAriaLabel={() => "Routed documentation"}
+                        linkComponent={PageTreeLink}
+                        renderNode={(getNode, getFlags) => (
+                            <PageTreeNodeContent getFlags={getFlags}>{getNode().value}</PageTreeNodeContent>
+                        )}
+                    />
                 ),
             },
             {

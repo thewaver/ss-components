@@ -1,4 +1,4 @@
-import type { Accessor, JSX, Signal } from "solid-js";
+import type { Accessor, Component, JSX, Signal } from "solid-js";
 
 import type { InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
 import type { AccessorProps } from "../../Utils/typeUtils";
@@ -11,8 +11,11 @@ export type TreeNodeFlags = {
     depth: number;
 };
 
+export type TreeLinkProps = JSX.AnchorHTMLAttributes<HTMLAnchorElement> & { href: string };
+
 export type TreeNode<T> = {
     value: T;
+    href?: string;
     children?: TreeNode<T>[];
     isDisabled?: boolean;
     isReachableWhenDisabled?: boolean;
@@ -34,6 +37,8 @@ export type TreeNodeItemProps = AccessorProps<
         level: number;
         position: number;
         setSize: number;
+        href: string | undefined;
+        linkComponent?: Component<TreeLinkProps>;
     }
 > & {
     onActivate: () => void;
@@ -41,6 +46,7 @@ export type TreeNodeItemProps = AccessorProps<
 
 export type TreeProps<T> = AccessorProps<{
     ariaLabel?: string;
+    linkComponent?: Component<TreeLinkProps>;
 }> & {
     getNodes: Accessor<TreeNode<T>[]>;
     valueSignal: Signal<T | undefined>;
