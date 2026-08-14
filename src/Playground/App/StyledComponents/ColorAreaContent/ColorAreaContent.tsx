@@ -1,9 +1,8 @@
 import type { JSX, ParentProps, Signal } from "solid-js";
 
+import { Color } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
-import type { ColorValueHsv } from "../../../../Lib/Abstracts/ColorValue/ColorValue.types";
-import { ColorValueUtils } from "../../../../Lib/Abstracts/ColorValue/ColorValue.utils";
 import { PageColorChannels } from "../../StyledComponents/ColorChannels/ColorChannels";
 import type {
     ColorAreaContentProps,
@@ -103,9 +102,9 @@ export const pageColorPickerSlots = {
         <PageColorAreaContent getFlags={getFlags} getSize={() => AREA_SIZE} />
     ),
     renderHue: (getFlags: Parameters<typeof PageHueSlider>[0]["getFlags"]) => <PageHueSlider getFlags={getFlags} />,
-    renderPopup: (renderSurface: () => JSX.Element, hsvSignal: Signal<ColorValueHsv>) => (
+    renderPopup: (renderSurface: () => JSX.Element, hsvSignal: Signal<Color.HSVA>) => (
         <PageColorPickerPopup>
-            <PageColorPreview getValue={() => ColorValueUtils.toCssColor(hsvSignal[0]())} />
+            <PageColorPreview getValue={() => Color.RGBA.toCss(Color.HSVA.toRgba(hsvSignal[0]()))} />
 
             {renderSurface()}
 

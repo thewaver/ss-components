@@ -1,20 +1,30 @@
-import { createSignal } from "solid-js";
+import { createEffect, createMemo, createSignal } from "solid-js";
 
 import { ScanlineAnimation } from "../../../../../Lib/Exotics/ScanlineAnimation/ScanlineAnimation";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
-import { CellAnimationBreakpoints } from "../../../Samples/CellAnimationBreakpoints.const";
+import { CellAnimationBreakpoints } from "../../../Samples/CellAnimationBreakpoints/CellAnimationBreakpoints.const";
 import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.types";
 
-const BREAKPOINT_GROUPS = [
-    [0.35, 0.4, 0.45],
-    [0.45, 0.5, 0.55],
-    [0.55, 0.6, 0.65],
-] as CellAnimationBreakpoints.BreakpointTupleTriple[];
+const getGlitchBreakpointGroups = (count: number, start: number, end: number) => {
+    const result: CellAnimationBreakpoints.BreakpointTupleTriple[] = [];
+    const range = end - start;
+    const segmentWidth = range / count;
 
-const getRandomShifts = (lineCount: number, shiftPercent: number, chunkyness: number) => {
+    for (let i = 0; i < count; i++) {
+        const segmentStart = start + i * segmentWidth;
+        const segmentMid = segmentStart + segmentWidth / 2;
+        const segmentEnd = segmentStart + segmentWidth;
+
+        result.push([Number(segmentStart.toFixed(3)), Number(segmentMid.toFixed(3)), Number(segmentEnd.toFixed(3))]);
+    }
+
+    return result;
+};
+
+const getRandomShifts = (breakpointGroupCount: number, lineCount: number, shiftPercent: number, chunkyness: number) => {
     let lastShift: number | undefined;
 
-    return Array.from({ length: BREAKPOINT_GROUPS.length }, () =>
+    return Array.from({ length: breakpointGroupCount }, () =>
         Array.from({ length: lineCount }, () => {
             if (lastShift === undefined || Math.random() > chunkyness) {
                 lastShift = Math.random() * shiftPercent * 2 - shiftPercent;
@@ -27,41 +37,67 @@ const getRandomShifts = (lineCount: number, shiftPercent: number, chunkyness: nu
 
 type Props = ScanlineAnimationExampleProps &
     AccessorProps<{
-        keyframeOpts: { shiftPercent: number; chunkyness: number };
+        keyframeOpts: { count: number; shiftPercent: number; chunkyness: number };
     }>;
 
 export const GlitchExample = ({ getKeyframeOpts, ...otherProps }: Props) => {
-    const [getShifts, setShifts] = createSignal(
-        getRandomShifts(otherProps.getLineCount(), getKeyframeOpts().shiftPercent, getKeyframeOpts().chunkyness),
-    );
+    const getBreakpointGroups = createMemo(() => {
+        const count = getKeyframeOpts().count;
+        const shift = Math.min(0.25, count * 0.05);
+
+        return getGlitchBreakpointGroups(count, 0.5 - shift, 0.5 + shift);
+    });
+
+    const generateShifts = () => {
+        return getRandomShifts(
+            getBreakpointGroups().length,
+            otherProps.getLineCount(),
+            getKeyframeOpts().shiftPercent,
+            getKeyframeOpts().chunkyness,
+        );
+    };
+
+    const [getShifts, setShifts] = createSignal(generateShifts());
+
+    createEffect(() => {
+        setShifts(generateShifts());
+    });
 
     return (
         <ScanlineAnimation
             {...otherProps}
             computeRootAnimation={(timeline) => {
-                for (let g = 0; g < BREAKPOINT_GROUPS.length; g++) {
-                    if (timeline >= BREAKPOINT_GROUPS[g][0] && timeline <= BREAKPOINT_GROUPS[g][2])
+                const breakpointGroups = getBreakpointGroups();
+
+                for (let g = 0; g < breakpointGroups.length; g++) {
+                    const [start, , end] = breakpointGroups[g];
+
+                    if (timeline >= start && timeline <= end) {
                         return { brightness: 125 };
+                    }
                 }
 
                 return { brightness: 100 };
             }}
             computeScanlineAnimation={(defs, timeline) => {
-                for (let g = 0; g < BREAKPOINT_GROUPS.length; g++) {
-                    if (timeline >= BREAKPOINT_GROUPS[g][0] && timeline <= BREAKPOINT_GROUPS[g][2])
-                        return { translateX: getShifts()[g][defs.pos.y] };
+                const breakpointGroups = getBreakpointGroups();
+                const shifts = getShifts();
+
+                for (let g = 0; g < breakpointGroups.length; g++) {
+                    const [start, , end] = breakpointGroups[g];
+
+                    if (timeline >= start && timeline <= end) {
+                        const shiftGroup = shifts[g];
+                        const shiftVal = shiftGroup ? (shiftGroup[defs.pos.y] ?? 0) : 0;
+
+                        return { translateX: shiftVal };
+                    }
                 }
 
                 return { translateX: 0 };
             }}
             onIterationEnd={() => {
-                setShifts(
-                    getRandomShifts(
-                        otherProps.getLineCount(),
-                        getKeyframeOpts().shiftPercent,
-                        getKeyframeOpts().chunkyness,
-                    ),
-                );
+                setShifts(generateShifts());
             }}
         />
     );

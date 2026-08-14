@@ -8,6 +8,13 @@ export const controlRow = style({
     gap: themeVars.spacing.double,
 });
 
+export const controlColumn = style({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: themeVars.spacing.full,
+});
+
 export const controlRowLabel = style({
     opacity: 0.5,
     fontSize: themeVars.fontSize.xSmall,

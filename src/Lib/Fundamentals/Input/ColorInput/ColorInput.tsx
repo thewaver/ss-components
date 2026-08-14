@@ -1,9 +1,9 @@
 import type { Signal } from "solid-js";
 import { createEffect, createMemo, createSignal, createUniqueId, untrack } from "solid-js";
 
+import { Color } from "@thewaver/ss-utils";
+
 import type { AnchorPlacement } from "../../../Abstracts/Anchor/Anchor.types";
-import type { ColorValueHsv } from "../../../Abstracts/ColorValue/ColorValue.types";
-import { ColorValueUtils } from "../../../Abstracts/ColorValue/ColorValue.utils";
 import { SignalMirror } from "../../../Abstracts/SignalMirror/SignalMirror";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { Popover } from "../../Popover/Popover";
@@ -18,16 +18,19 @@ import * as styles from "./ColorInput.css";
 const DEFAULT_COLOR_INPUT_PLACEMENT: AnchorPlacement = { x: "left-in", y: "bottom-out" };
 const DEFAULT_COLOR_INPUT_AREA_LABEL = "Saturation and brightness";
 const DEFAULT_COLOR_INPUT_HUE_LABEL = "Hue";
-const STARTING_COLOR: ColorValueHsv = { h: 0, s: 0, v: 0, a: 1 };
+const STARTING_COLOR: Color.HSVA = { h: 0, s: 0, v: 0, a: 1 };
 const HUE_MAX = 360;
 const HUE_STEP = 1;
 const OPAQUE = 1;
 
-const toHexValue = (hsv: ColorValueHsv) => {
-    const rgba = ColorValueUtils.hsvToRgba(hsv);
+const toHexValue = (hsva: Color.HSVA) => (hsva.a < OPAQUE ? Color.HSVA.toHexa(hsva) : Color.HSV.toHex(hsva));
 
-    return rgba.a < OPAQUE ? ColorValueUtils.toHexa(rgba) : ColorValueUtils.toHex(rgba);
-};
+/**
+ * The consumer's value is a plain string, so it may not be a colour at all — and the comparison has to
+ * survive that rather than refuse it, which is why the fallback is a text match rather than a rejection.
+ */
+const getIsSameValue = (a: string, b: string) =>
+    Color.Hexa.isHexa(a) && Color.Hexa.isHexa(b) ? Color.Hexa.getIsSameHexa(a, b) : a === b;
 
 const ColorInputField = (props: ColorInputFieldProps) => {
     const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
@@ -74,13 +77,13 @@ export const ColorInput = (props: ColorInputProps) => {
 
     const [getFieldRef, setFieldRef] = createSignal<HTMLElement>();
     const [getIsOpen, setIsOpen] = SignalMirror.createOptional(() => props.visibilitySignal, false);
-    const [getHsv, setHsv] = createSignal<ColorValueHsv>(
-        ColorValueUtils.fromHexa(props.valueSignal[0]())
-            ? ColorValueUtils.rgbaToHsv(ColorValueUtils.fromHexa(props.valueSignal[0]())!)
-            : STARTING_COLOR,
+    const startingValue = props.valueSignal[0]();
+
+    const [getHsv, setHsv] = createSignal<Color.HSVA>(
+        Color.Hexa.isHexa(startingValue) ? Color.Hexa.toHsva(startingValue) : STARTING_COLOR,
     );
 
-    const hsvSignal: Signal<ColorValueHsv> = [getHsv, setHsv];
+    const hsvSignal: Signal<Color.HSVA> = [getHsv, setHsv];
     const hueSignal: Signal<number> = [() => getHsv().h, (hue) => setHueValue(hue)];
 
     const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
@@ -104,24 +107,22 @@ export const ColorInput = (props: ColorInputProps) => {
         const value = props.valueSignal[0]();
 
         if (
-            ColorValueUtils.getIsSameHex(
+            getIsSameValue(
                 value,
                 untrack(() => toHexValue(getHsv())),
             )
         )
             return;
 
-        const rgba = ColorValueUtils.fromHexa(value);
+        if (!Color.Hexa.isHexa(value)) return;
 
-        if (!rgba) return;
-
-        setHsv(() => ColorValueUtils.rgbaToHsv(rgba));
+        setHsv(() => Color.Hexa.toHsva(value));
     });
 
     createEffect(() => {
         const value = toHexValue(getHsv());
 
-        if (ColorValueUtils.getIsSameHex(untrack(props.valueSignal[0]), value)) return;
+        if (getIsSameValue(untrack(props.valueSignal[0]), value)) return;
 
         props.valueSignal[1](value);
 

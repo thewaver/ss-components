@@ -1,6 +1,7 @@
 import { For, createRenderEffect, createSignal } from "solid-js";
 
-import type { ColorValueHsv } from "../../../Abstracts/ColorValue/ColorValue.types";
+import { Color, MathUtils } from "@thewaver/ss-utils";
+
 import { InteractionUtils } from "../../../Abstracts/Interaction/Interaction.utils";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { LabelUtils } from "../Label/Label.utils";
@@ -19,7 +20,7 @@ const RATIO_MIN = 0;
 const RATIO_MAX = 1;
 const PERCENT = 100;
 
-const getAxisRatio = (hsv: ColorValueHsv, axis: ColorAreaAxis) => (axis === "saturation" ? hsv.s : hsv.v);
+const getAxisRatio = (hsv: Color.HSVA, axis: ColorAreaAxis) => (axis === "saturation" ? hsv.s : hsv.v);
 
 const ColorAreaElement = (props: ColorAreaElementProps) => {
     const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
@@ -126,7 +127,7 @@ export const ColorArea = (props: ColorAreaProps) => {
     const [getIsDragging, setIsDragging] = createSignal(false);
 
     const setAxis = (axis: ColorAreaAxis, ratio: number) => {
-        const clamped = Math.min(Math.max(ratio, RATIO_MIN), RATIO_MAX);
+        const clamped = MathUtils.clamp01(ratio);
         const hsv = props.hsvSignal[0]();
         const next = axis === "saturation" ? { ...hsv, s: clamped } : { ...hsv, v: clamped };
 

@@ -10,10 +10,11 @@ import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { StressTest } from "../../PageComponents/StressTest/StressTest";
 import type { StressTestDefs } from "../../PageComponents/StressTest/StressText.types";
-import { CellAnimationKeyframes } from "../../Samples/CellAnimation.const";
-import { CellAnimationBreakpoints } from "../../Samples/CellAnimationBreakpoints.const";
-import { CellAnimationOrigins } from "../../Samples/CellAnimationOrigins.const";
-import { CellAnimationWeights } from "../../Samples/CellAnimationWeights.const";
+import { CellAnimationBreakpoints } from "../../Samples/CellAnimationBreakpoints/CellAnimationBreakpoints.const";
+import { CellAnimationKeyframes } from "../../Samples/CellAnimationKeyframes/CellAnimationKeyframes.const";
+import { CellAnimationOrigins } from "../../Samples/CellAnimationOrigins/CellAnimationOrigins.const";
+import { CellAnimationWeights } from "../../Samples/CellAnimationWeights/CellAnimationWeights.const";
+import type { WeightOpts } from "../../Samples/CellAnimationWeights/CellAnimationWeights.types";
 import {
     PageCheckField,
     PageFileField,
@@ -144,7 +145,7 @@ export const CellAnimationPage = () => {
     const [getAnimationDurationMs, setAnimationDurationMs] = createSignal(2000);
     const [getAnimationIterationDelayMs, setAnimationIterationDelayMs] = createSignal(1000);
     const [cellCount, setCellCount] = createStore<Point2d>({ ...STRESS_CELL_COUNT });
-    const [weightOpts, setWeightOpts] = createStore<CellAnimationWeights.WeightOpts>({
+    const [weightOpts, setWeightOpts] = createStore<WeightOpts>({
         shouldMakeUnique: false,
         shouldNormalize: false,
     });

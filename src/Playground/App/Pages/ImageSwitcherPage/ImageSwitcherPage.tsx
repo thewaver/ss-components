@@ -46,18 +46,29 @@ const DefaultExampleWrapper = (props: ImageSwitcherProps) => {
 export const ImageSwitcherPage = () => {
     const [getSourceType, setSourceType] = createSignal<SourceType>("profile");
     const [getTransitionDurationMs, setTransitionDurationMs] = createSignal(STARTING_DURATION_MS);
+    const [getLoadCount, setLoadCount] = createSignal(0);
+    const [getLoadedName, setLoadedName] = createSignal("none");
 
     const getSrc = () => SOURCE_URLS[getSourceType()];
+
+    const onLoad = (e: Event) => {
+        const loaded = (e.target as HTMLImageElement).src;
+
+        setLoadCount((prev) => prev + 1);
+        setLoadedName(loaded.slice(loaded.lastIndexOf("/") + 1));
+    };
 
     const getExamples = createMemo(() => {
         const commonProps: ImageSwitcherProps = {
             getSrc,
             getTransitionDurationMs,
+            onLoad,
         };
 
         return [
             {
                 name: "Default",
+                readout: () => `loads: ${getLoadCount()} | last loaded: ${getLoadedName()}`,
                 component: () => <DefaultExampleWrapper {...commonProps} />,
                 src: DEFAULT_SOURCE,
             },

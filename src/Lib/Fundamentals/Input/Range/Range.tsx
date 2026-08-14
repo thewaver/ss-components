@@ -1,5 +1,6 @@
 import { Index, createMemo, createRenderEffect, createSignal } from "solid-js";
 
+import { MathUtils } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { InteractionUtils } from "../../../Abstracts/Interaction/Interaction.utils";
@@ -41,7 +42,7 @@ const RangeElement = (props: RangeElementProps) => {
         const span = isVertical ? rect.height : rect.width;
         const offset = isVertical ? rect.bottom - e.clientY : e.clientX - rect.left;
         const travel = Math.max(span - props.getThumbSize(), MIN_TRACK_TRAVEL_PX);
-        const ratio = Math.min(Math.max((offset - props.getThumbSize() * 0.5) / travel, 0), 1);
+        const ratio = MathUtils.clamp01((offset - props.getThumbSize() * 0.5) / travel);
 
         return props.getMin() + ratio * (props.getMax() - props.getMin());
     };
@@ -163,9 +164,7 @@ export const Range = (props: RangeProps) => {
     });
 
     const getRatios = createMemo(() => {
-        const span = getMax() - getMin();
-
-        return getValues().map((value) => (span === 0 ? 0 : Math.min(Math.max((value - getMin()) / span, 0), 1)));
+        return getValues().map((value) => MathUtils.clamp01(MathUtils.normalize(value, getMin(), getMax())));
     });
 
     const getFill = createMemo((): RangeSpan => {

@@ -28,6 +28,9 @@ const sources = (page: Page) =>
         .locator(IMAGES)
         .evaluateAll((images) => images.map((image) => (image as HTMLImageElement).getAttribute("src")));
 
+const loadReadout = async (page: Page) =>
+    ((await page.locator(`${example("Default")} [data-readout]`).textContent()) ?? "").trim();
+
 /**
  * Readiness is "the starting image has landed on one of the two elements", not visibility: the element
  * with nothing to show is deliberately `visibility: hidden`, and which of the pair that is depends on how
@@ -135,6 +138,51 @@ test("clearing the source swaps immediately and hides the element that has nothi
         visibilities.filter((value) => value === "hidden"),
         "the element with no image is hidden rather than drawing a broken one",
     ).toHaveLength(1);
+});
+
+/**
+ * `onLoad` was invisible to this suite until the page grew a readout to consume it — a callback nothing on
+ * the page reads cannot be driven by a harness that drives the page. What it reports is the **preloader's**
+ * load rather than either visible element's, which is why the count can be checked against the source that
+ * was chosen rather than against what is on screen.
+ */
+test("each source that actually loads is reported once, and names itself", async ({ page }) => {
+    await expect
+        .poll(() => loadReadout(page), { message: "the starting image is a load like any other" })
+        .toContain("loads: 1");
+    expect(await loadReadout(page), "and the consumer is told which one landed").toContain(PROFILE);
+
+    await chooseSource(page, "date");
+
+    await expect.poll(() => loadReadout(page), { message: "a second source is a second load" }).toContain("loads: 2");
+    expect(await loadReadout(page), "named in its turn").toContain(DATE);
+});
+
+/**
+ * The two paths that swap without a successful preload. Both are easy to get wrong in the same direction —
+ * reporting a load that never happened — and neither is visible in the images themselves, since the swap
+ * looks identical either way.
+ */
+test("a source that fails and a source that is cleared both swap without reporting a load", async ({ page }) => {
+    await expect.poll(() => loadReadout(page)).toContain("loads: 1");
+
+    await chooseSource(page, "missingFile");
+    await expect
+        .poll(async () => (await sources(page)).some((src) => src?.includes(MISSING)), {
+            message: "the swap happens on the error path",
+        })
+        .toBe(true);
+
+    expect(await loadReadout(page), "but nothing loaded, so nothing is reported").toContain("loads: 1");
+
+    await chooseSource(page, "none");
+    await expect
+        .poll(async () => (await sources(page)).filter((src) => src?.includes(MISSING)).length, {
+            message: "clearing swaps immediately",
+        })
+        .toBe(1);
+
+    expect(await loadReadout(page), "and there was nothing to preload either").toContain("loads: 1");
 });
 
 test("the transition duration the consumer sets reaches both elements", async ({ page }) => {

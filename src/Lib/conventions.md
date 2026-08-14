@@ -66,6 +66,53 @@ So `Abstracts/DateValue` wraps `@internationalized/date` from inside `src/Lib`, 
 declared here. Pure formatting or numeric helpers that grow out of this work are candidates for `ss-utils`;
 anything holding an import of the date package is not.
 
+### What went to `ss-utils`, and what was weighed and kept
+
+An extraction round ran on **2026-08-13/14**: everything in both trees that passed the test in the next
+section was staged in a temporary `src/Extract` folder, the user lifted what they wanted into `ss-utils`, and
+the folder was removed. **This is the record of what came back and why**, so the next round starts from the
+argument rather than from the survey.
+
+**What left**: `Audio`, `ColorValue` (now `Color`, reshaped into a namespace per colour space), `Decimal`,
+`Matrix3` (now `Matrix3d`, applying to a `Point3d` rather than a tuple) and `TimeValue` (now `TimeUtils`).
+`MathUtils` also gained `clamp`, `clamp01`, `normalize` and `lerp`, which retired sixteen hand-written
+`Math.min(Math.max(…))` clamps across ten files here — **so nobody should write that expression again.** Four
+of the sixteen turned out to be `clamp01(normalize(…))` and collapsed further; `Progress` was deliberately
+left with its own guard, because its zero-span answer is `1` where `normalize` reports `0`, and that choice
+belongs to the caller.
+
+**What was kept, and the shape each would need first.** The user's verdict was that the remainder still feels
+component-driven, which it does. None of this is outstanding work — it is the argument, recorded so it is not
+re-derived:
+
+- **`TextSyncUtils`** is the one that is ready as it stands: string and caret arithmetic, no DOM, and a mask
+  engine is normally its own package. It needs a name that is not "syncing a text field".
+- **`DismissUtils.getIsWithinOwnedLayer`** is ARIA-aware DOM containment with nothing about dismissal in it,
+  and `DOMUtils` is where that belongs.
+- **`AnchorUtils`** is "align one rect to another along an axis, in/out/center, then fall back to the variant
+  that fits". `Rect`, `Bounds` and `Dir` already exist to say that with; the `AnchorHPlacement` vocabulary is
+  the component-driven half, and dropping the word anchor **is** the abstraction. `getStackingBase` walks
+  `z-index` and would stay behind either way.
+- **`ElementHighlightUtils.getSegmentRects`** computes the eight regions left when one rect is subtracted from
+  another — general, except that it returns CSS strings. Returning rects is the change, and it is also why the
+  function has no unit test: geometry cannot be asserted on a string.
+- **`CellAnimationUtils`** is two things. `assignAnimationProps` writes ordered transforms and filters onto an
+  element and already reads `CSSConst.ANIMATION_UNITS`, so it is the missing writer half of something that
+  package owns; the four parity predicates are grid tiling and belong with the weights.
+- **`SlideButtonUtils`** and half of **`CellAnimationWeightUtils`** mostly dissolved into `clamp01` and
+  `normalize` already. What is left of the first is a thumb sliding in a track, which is `SlideButton`'s.
+- **`radar` and `spiral` should not go at all.** They take four multipliers named `cdoMul`, `croMul`, `cuoMul`
+  and `cloMul` — real algorithms behind a signature only their one caller can read.
+
+**What was never staged, by category**: anything shaped around a component's own record (`SelectUtils` walks
+`SelectItem`, `TreeUtils` walks a `TreeNode` carrying `tooltipDefs`, `ToastsUtils` walks a toast entry);
+anything bound to a framework (`Interaction`, `Focus`, `FPS`, `ElementFader`, and the three SVG defs modules
+that return JSX — those are the arithmetic item 11 in `review.md` wants split from its markup, and doing that
+first would make the arithmetic half a candidate); anything adapting a third-party package, which the section
+below puts explicitly on this side of the line (`DateValue` over `@internationalized/date`, `Virtualizer` over
+`@tanstack/solid-virtual`); and three near misses blocked only by a pure type sharing a file with Solid props
+— `NumberInputUtils`, `RichTextUtils.parseContent`, and `compileStops` / `sampleTrack`.
+
 ### Look in `ss-utils` before writing anything general-purpose
 
 Asked for by the user on **2026-08-13**. `ss-utils` is a dependency of this repo, written by the same person,
@@ -131,6 +178,29 @@ does not understand the newer syntax drops it and keeps a working colour. That i
 not a hard dependency. Before claiming a baseline, check where the feature actually lives and whether
 the existing uses degrade; if the new code has no fallback, say so rather than leaning on precedent
 that does.
+
+### Consult WCAG before settling any interaction, and say what it said
+
+Asked for by the user on **2026-08-13**, after checking WCAG on `SlideButton` turned a decision that had
+already been taken into a conformance gap that nobody had noticed. **At the very least, look it up.** Not
+after the argument, not as a review pass, and not only when a control looks unusual.
+
+**The reason it earns a standing rule is that this library's own instincts do not cover it.** The arguments
+recorded here are about ownership, slots, flags and who has to know what — they are good arguments and none
+of them would ever have produced 2.5.7, because a normative requirement is a fact about the outside world
+rather than a consequence of the design. The `SlideButton` case is the shape to expect: the keyboard route
+had been decided, argued and pinned in a spec, and it was still only half of what Level AA asks for, because
+2.5.7 is about **pointers** and every argument in the thread had been about keyboards.
+
+**Cite the criterion by number and quote the normative line.** Understanding documents carry the part that
+actually decides things, and it is routinely the opposite of the guess — 2.5.1 Pointer Gestures reads as
+though it governs any dragging and does not, because a slider using pointer capture is dragging only and not
+a path-based gesture. A criterion named without being read is the same failure as a browser-support claim
+made from memory, which _"Compatibility arguments"_ above already forbids.
+
+**Say what it said even when it changes nothing**, in the reply and in the entry. "Checked 2.5.7, the
+existing route conforms" is worth a line, because the next person otherwise has no way to tell a criterion
+that was considered from one that was never opened.
 
 ## API naming
 
@@ -3795,12 +3865,12 @@ grouped number has no pattern to state because it has as many separators as its 
 where `getMask` was — inside `TextSync.createValueSync` — because _"a mask owns the caret"_ is unchanged, and a
 transforming setter still cannot move a caret it never saw.
 
-### Controls: `AmountInput`, and why it is not `NumberInput` with grouping
+### Controls: `CurrencyInput`, and why it is not `NumberInput` with grouping
 
 Settled by the user on **2026-08-12**, choosing a separate control over widening `NumberInput`.
 
 **The two fields are typed differently, not styled differently.** `NumberInput` refuses characters one keystroke
-at a time and keeps `-`, `1.`, `1e` and `1e-` typeable on the way to a number. `AmountInput` accepts digits only
+at a time and keeps `-`, `1.`, `1e` and `1e-` typeable on the way to a number. `CurrencyInput` accepts digits only
 and fills a fixed fraction from the right, so `1`, `2`, `3` walk `0.01`, `0.12`, `1.23`. Neither behaviour is a
 mode of the other, and moving `NumberInput` onto the mask path to get grouping would have risked a shipped
 control for a field it is not.
@@ -4122,6 +4192,22 @@ rows. Each row instead carries `${treeId}-node-${index}` as its id, and moving f
 `getElementById`. The same id is what tells the key handler which row is focused, which is how a click and
 an arrow key end up on the same footing.
 
+**The focus rescue on a collapse is a guard over the visible rows, not a step inside `collapse`.** Corrected
+**2026-08-13**. It began as a check inside `collapse` — is focus on a descendant, and if so move it to the
+branch before the subtree goes — and that check could never be true: `ArrowLeft` and a click both act on the
+branch, which is already the focused element and stays mounted. The case it was written for is a **consumer**
+writing `expandedSignal` themselves, which is the only way a focused row can vanish, and which never enters
+`collapse` at all. So the guard now watches the visible rows: it remembers the last row focused inside this
+tree from a `focusin` on the root, and when a collapse leaves that row out of the visible set **and** focus
+has fallen to the document body, it moves focus to the branch that closed.
+
+All three conditions carry weight, which is worth stating because dropping any one of them looks harmless.
+Without the remembered row, a tree nobody has touched would steal focus whenever a consumer collapsed
+anything. Without checking that the row actually left, a collapse elsewhere in the tree would do the same.
+And without focus genuinely sitting on the body, the guard would fight a consumer who moved focus somewhere
+on purpose — which is why a button that collapses on the spot cannot exercise it: the button holds focus, so
+there is nothing to rescue.
+
 **One press both selects and toggles, because the library paints no twisty.** A consumer draws the branch
 marker inside `renderNode`, so the component cannot tell a press on the marker from a press on the label —
 and if a press did not toggle, a mouse user could not open a branch at all. `Enter` and `Space` do exactly
@@ -4146,3 +4232,259 @@ instead. Wrapping is what `Select`, `Menu`, `Tabs` and `RadioGroup` all do throu
 `NavigationUtils.computeNextPosition`, and a tree that stopped would be the one list here that behaves
 differently — so consistency inside the library won over the published behaviour, and the choice is
 recorded here rather than being discoverable only by pressing `ArrowUp` on the first row.
+
+### Controls: `SlideButton`, and why the gesture is the only thing it owns
+
+Settled **2026-08-13**, when the user named a slide-to-activate control as a gap in the catalogue. It is a
+`Button` whose activation is a drag from one end of a track to the other, for the case where an accidental
+press would be expensive — send, arm, delete.
+
+**It is a real `<button>`, and it does not listen for a click.** Listening for `click` would defeat the
+whole control, because a press and a release is a click whether or not anything slid — a tap would activate,
+and so would a slide that was dragged back and abandoned. So the element carries the button's semantics and
+its name, and every activation route is written by hand.
+
+**There are two routes, and neither of them is a tap: drag the thumb to the end, or hold a press until it
+fills.** The hold is the same confirmation by a different means — it drives the same `progressRatio`, so the
+paint is identical and a person who cannot drag sees exactly what a person who drags sees. It answers three
+things at once, which is why it is one mechanism rather than three:
+
+- **WCAG 2.2's 2.5.7 Dragging Movements**, Level AA: _"All functionality that uses a dragging movement for
+  operation can be achieved by a single pointer without dragging, unless dragging is essential."_ A keyboard
+  route does not satisfy it — 2.5.7 is about **pointers** — so a mouse or touch user who cannot drag needed a
+  route of their own. The published list of conforming alternatives names long press explicitly, and it is
+  the only entry on that list that does not throw away the deliberateness the control exists for.
+- **WCAG 2.1.1 Keyboard**, which the same hold answers by starting on `Enter` or `Space` held down. A tap of
+  either does nothing at all.
+- **The reason the control exists.** A stray `Enter` on a focused button is the keyboard's version of the
+  accidental press a slide resists; making the keyboard route a hold means the resistance is not something
+  only pointer users get.
+
+Note what does **not** bite, since it looks as though it should: **2.5.1 Pointer Gestures** is about
+path-based gestures, and its Understanding document is explicit that a slider using pointer capture — which
+is what `trackDrag` does — counts as dragging only. So the drag route is on the right side of 2.5.1 by
+construction, and it was 2.5.7 that had to be answered.
+
+**Apple's own answer is the shape of this, arrived at from the other end.** Asked whether a swipe-to-confirm
+harms VoiceOver users, Apple's guidance is to override `accessibilityActivate` so a single activation runs
+the same logic **without** the swipe; the iOS lock screen behaves that way, where a VoiceOver user selects
+the caption and double-taps. What is built here is that answer with the timing put back in, which is the
+part their platform gets from the assistive technology's own confirmation step and a web control does not.
+
+**A press on the thumb starts both, and movement decides which.** A hold begins on every press; a press that
+landed on the thumb converts to a drag as soon as the pointer travels past a few pixels, and the abandoned
+hold snaps back at that moment. Pressing the thumb and holding still therefore confirms, which matters
+because the thumb is the obvious thing to press and a dead zone there would fail exactly the people 2.5.7 is
+for. The travel threshold is a jitter guard rather than a tuned value and is a module constant; if it ever
+needs to move it should become a prop rather than a different number.
+
+**The press must land on the thumb for a drag.** `trackDrag` reports from `pointerdown` onward, which is what a slider
+wants — press the track and the value jumps there — and is exactly wrong here, since pressing at 90% and
+nudging right would be the shortcut the control exists to prevent. The first report of each drag is
+therefore hit-tested against the thumb's current span, and a drag that did not begin on the thumb is
+ignored for its whole length rather than being cancelled part-way. The grab offset inside the thumb is kept
+and subtracted from every later report, so the thumb does not jump under the pointer.
+
+**The thumb's size is the library's to know and the painter's to draw, which is `Range`'s cost paid
+again.** `getThumbSize` feeds the hit test and the painter positions its own thumb with
+`calc(ratio * (100% - thumbSize))`; nothing enforces that the two agree, and the Playground keeps them
+honest with one shared `SLIDE_BUTTON_THUMB_SIZE` constant. Handing the size out through the flags instead
+was considered and dropped for consistency with `Range`, which had the choice first.
+
+**The track is measured with `clientWidth` rather than `getBoundingClientRect`.** The thumb size arrives in
+plain CSS pixels, so the width it is divided by has to be in the same space. A client rect carries a
+`Viewport`'s scale baked in and the two would disagree by exactly that factor; `clientWidth` is a layout
+value and is unaffected by a transform. This is the same hazard the drag ratio itself avoids by being a
+fraction of two same-space measurements — but the thumb size is not one of those measurements, so it has to
+be handled rather than divided out.
+
+**Releasing is what activates a drag, and releasing short of the end is how the gesture is cancelled.** The
+alternative — firing the moment the thumb touches the end — takes away the ability to change your mind
+mid-slide, which is worth more here than the earlier feedback is. **A hold is the other way round**: it
+fires the moment it fills, because there is nothing to change your mind about once the bar is full and
+waiting for a release would leave a completed hold looking like a broken one.
+
+**`getHoldDurationMs` defaults to 1000 and is a prop because it is a tuned value.** Long enough to be
+deliberate, short enough not to feel stuck; nobody has measured it, and a consumer with a heavier
+consequence or a slower audience should be able to set it without forking the control.
+
+**The control returns to rest on release, always, including after a successful slide.** A slide is a way of
+pressing a button, and a button is not still pressed while the consumer's handler runs; anything that
+outlives the gesture — in flight, succeeded, failed — is the consumer's state, exactly as it is for
+`Button`. A consumer who wants the thumb to stay at the end after a confirmation already has the route
+without a new prop: pass `getIsPressed`, and the painter reads `isPressed` and draws the thumb at 1. The
+Playground's second variant is that composition, and it is there so the omission is not re-derived as a
+gap.
+
+**A drag does not focus the control, which is a departure from a native button and is the lesser evil.**
+`trackDrag` calls `preventDefault` on `pointerdown` — it must, or the press starts a text selection — and
+that suppresses the compatibility `mousedown` whose default action is the focus. Calling `focus()` back was
+tried and reverted the same day: a scripted focus is not a pointer focus as far as the engine is concerned,
+so `:focus-visible` matched and every mouse drag drew the focus ring. `ColorArea` does call `focus()` and
+should keep doing so — its axis sliders are useless unless the arrow keys reach them afterwards — while
+here there is nothing focus enables that the drag has not already done.
+
+**`isDragging` and `isHolding` are two flags rather than one, and a painter almost always wants both.** They
+are separate because they are separate facts — one is a pointer carrying the thumb, the other is a press
+filling it — and a painter that wants to say "keep holding" needs to tell them apart. The Playground's
+painter takes the union of the two and calls it tracking, which is the common case: while either is true the
+value is being driven live and a CSS transition on it would lag a frame behind.
+
+**`isDragging` means the thumb is being dragged, not that a pointer is down.** `trackDrag`'s own signal
+turns on for a press anywhere on the track, including one the hit test refused, so the flag a painter reads
+is that signal and a live grab together. A painter keyed on the raw one would drop its transition on a
+press that moves nothing.
+
+### The Playground: an example's source is a folder view, and a sample is a file
+
+Settled with the user on **2026-08-13**. `PageComponents/Examples` exists to put a source-code button next to
+a demo, and what that button shows has always been incomplete: an example imports its samples, its styled
+components and its page's own types, and only the example's own text was ever displayed. The reader was shown
+the half that was already obvious.
+
+**What is shown is a set of tabs, and a tab is a folder rather than a file.** One tab for the example itself,
+then one per thing it imports; inside a tab, an `Accordion` with the imported file open and its `.css.ts` and
+`.types.ts` siblings collapsed beside it. The sections are whichever of those files exist — four of the 37
+`StyledComponents` folders are missing one of the two, and a rule written as "the files that are there" costs
+nothing and never needs a special case.
+
+**A tab is not every file in the folder**, which is the version of this that looks simpler and is wrong: a page
+folder would drag in a 600-line props panel and `Samples/SVGDefs` would drag in sixty samples. It is the file
+that was imported, plus its style and types siblings.
+
+**Only `src/Playground` imports become tabs; everything from `src/Lib` stays opaque.** The line is what the
+consumer has to write: the Playground half is theirs to reproduce, and the library half is already written for
+them. `@thewaver/ss-utils` and `solid-js` are on the library side of that line for the same reason.
+
+**Depth stops where the code stops being consumer-shaped.** Tabs follow imports transitively through `Samples`
+and `StyledComponents`, and one level everywhere else. That is not an arbitrary cut: _"The three trees"_ above
+already defines `PageComponents` as what the Playground would still need if the library did not exist, which
+is exactly the code nobody copies. Following everything instead would put `Theme.css` on every example in the
+app.
+
+**A page's own types and stylesheet are behind a flag, defaulting on.** An example importing
+`ShapePage.types` is importing the shared prop type that lets one props panel drive seven examples — real, and
+not something a consumer would ever write. Whether it belongs in the tab list was a hard call, so the
+mechanism resolves it like any other folder and one constant decides whether it survives, in the shape
+`SHOW_COMPOSITES` already uses in `App.tsx`. **The default is not the user's call, it is this file's** — on,
+so the path stays exercised and so the question gets answered by looking at a real page rather than in the
+abstract.
+
+### Playground samples: one file per key, and the key is the file's name
+
+The same decision from the other end, and the reason `Samples/` had to be reorganised before any of the above
+could work.
+
+**A sample is a file, and the registry is an index that imports them.** `SVGDefs.const.tsx` was 2534 lines
+holding three registries; a tab showing it would have been useless whatever it cost to load. Splitting was
+never about weight — the source is fetched on demand, so a large file costs nothing until someone opens it. It
+is about a tab a person can read.
+
+**The key is the file's name, and that is what lets a runtime selection find its source.** The example imports
+the whole registry and indexes it with a key from the props panel, so nothing in its own imports says which
+sample is showing. Rather than tracing that, the modal resolves the key to `<Registry>/<key>.ts` by name. Two
+mechanisms that never have to know about each other: the example's imports give the general tabs, the current
+key gives the sample tab. It also means renaming a sample and renaming its file are the same act, which is the
+property worth having.
+
+**Keys collide across registries, so the samples sit one folder down per registry.** `plain` exists in both
+`Pattern` and `Gradient`. `Samples/SVGDefs/Samples/Gradient/plain.ts` keeps the name-is-the-key rule intact.
+
+**Nothing is folded into a factory.** `circle("grid")` produced three of the pattern samples from one helper,
+and a file whose whole content is that call teaches nobody anything — the reader still has to open a second
+tab. Each sample is written out. The line, taken from what `Gradient` already did: the sample's own **shape**
+is explicit, while small shared helpers that are not the point of any sample — a base colour, a diagonal
+offset — stay shared and get a tab of their own when one is opened. The total line count goes up, deliberately.
+
+**A registry is only split when a tab of it would be unreadable, which is not every registry.**
+`CellAnimationZones` and `CellAnimationOrigins` are 71 and 31 lines of one-line entries — `all: () => true`,
+`top: (count) => ({ x: (count.x - 1) * 0.5, y: 0 })` — and splitting those produces files shorter than their
+own import headers, which is the same emptiness that unfolding the pattern factories was meant to avoid, from
+the other direction. They get a folder and keep their registry whole. The rule is the goal restated: split
+until a tab reads, and stop. Split so far: `SVGDefs` (2534 lines), `CellAnimation` (600) and
+`CellAnimationWeights` (515). Left whole: `CellAnimationZones`, `CellAnimationOrigins`,
+`CellAnimationBreakpoints` and `ScanlineAnimationKeyframes`, the largest of which is 123 lines.
+
+**A Playground namespace may not share a name with a library one, and the source view is what makes that a
+rule rather than a preference.** The keyframe helpers were `CellAnimationUtils`, which `Lib/Exotics` already
+exports for something else entirely — its own `assignAnimationProps` plus four grid-parity predicates. Two
+namespaces of one name is legal and nothing imported both, so the collision cost nothing while the code was
+only ever read in an editor that could tell you which was which. A tab is read **out of context**, and that is
+exactly the confusion a tab cannot resolve. The Playground one is now `CellAnimationKeyframeUtils`.
+
+Two smaller rules fell out of the same correction, and both are house style everywhere else — they were only
+broken in the files this split created. **A `.utils.ts` exports a namespace**, like `InteractionUtils`,
+`TreeUtils` and `SelectUtils` do; `SVGDefsUtils` and `CellAnimationWeightUtils` were bare exports and are not
+any more. And **a samples folder is named after the namespace it exports** — the keyframes folder was
+`CellAnimation/` while exporting `CellAnimationKeyframes`, which every sibling folder does the other way
+round.
+
+**What is not shipping, and why it looks as though it should.** `fromStops` and the 3×3 matrix maths beside it
+turn a list of keyframe stops into the evaluation function `CellAnimation` asks for, so a consumer wanting
+keyframes rather than a formula writes their own. That is real, and it is still not the library's: the
+component's contract is already the smaller and more general thing — a function from timeline to result — and
+a stop list with `at`, `depth` and origin keys is one **opinion about how to author** such a function.
+Shipping it would freeze that opinion as API for a consumer nobody has met, which is the layer item 12 in
+`review.md` plans rather than this one. The matrix half is a different case: it needs only the language to
+work, which is the `ss-utils` test above, and that package has `Vec2d` and `Vec4d` but no matrix — noted as a
+candidate rather than moved, because one consumer is a thin case for an export in another repo.
+
+**Types move to `<Name>.types.ts`, and they stop being a namespace.** A sample file needs the config type and
+the registry needs the sample files, which is a cycle; the types have to come out. They cannot come out into a
+namespace of the same name, because a `namespace` does not merge across ES modules, so any file wanting both
+would import one identifier twice. Plain exported type names are what the rest of the repo already uses — see
+_"House style"_ — and the namespace stays on the value side only.
+
+### Controls: `Spotlight`, and three presets because a mode cannot move at runtime
+
+Settled with the user on **2026-08-14**, renaming `ElementHighlight` on the way. A spotlight cuts a hole in an
+overlay around one element; what differs between uses is **what the page is still allowed to do**, and that
+turned out to be three answers rather than a boolean.
+
+**`SpotlightHint` points, `SpotlightPrompt` insists, `SpotlightGuide` explains.** A hint yields to anything —
+a click anywhere dismisses it and so does any key that is not a bare modifier. A prompt makes the highlighted
+element the only reachable thing and waits. A guide seals the page entirely, shows the element rather than
+offering it, and puts the live controls in a popup beside it.
+
+**They are three presets over an unexported base, and the reason is the user's rather than mine.** My argument
+was that `renderPopup` is required on one and meaningless on the other two, which a mode prop cannot say in
+types. Theirs is better and subsumes it: **one variant can never become another while it is open**, so the
+choice is not a runtime value and has no business being a runtime prop. This is `Checkbox` / `Toggle` /
+`Radio` over `BinarySwitch` again, and `Drawer` over `Modal`.
+
+**Escape stays live in every mode, and that is a conformance requirement rather than a kindness.** WCAG 2.1.2
+No Keyboard Trap is Level A: _"If keyboard focus can be moved to a component of the page using a keyboard
+interface, then focus can be moved away from that component using only a keyboard interface"_ — trapping is
+allowed only _"as long as the user knows how to 'untrap' the focus"_, and Escape is a standard exit. So the
+honest description of `SpotlightPrompt` is **"click it, or press Escape"**, and nobody may harden that away
+to make the mode more absolute.
+
+**`prompt` and `guide` seal the page by opposite mechanisms, because `inert` is inherited.** There is no
+"seal everything except this one control": `inert` cannot be lifted off a descendant. So `guide`, whose hole
+is dead, sets `inert` and gets hit testing, tab order and the accessibility tree in one attribute; `prompt`,
+whose hole must stay live, keeps the overlay segments for the pointer and pulls focus back on `focusin` for
+the keyboard. The cost is recorded in `review.md`: `prompt` cannot hide the page from a screen reader.
+
+**The seal climbs to the body rather than sitting on a root, because there is no root.** The content a
+`Viewport` wraps is not a single node — the portal and the children are siblings inside it — and `Portal`
+nests its own container inside the mount, so the page is two levels above anything this component holds. The
+walk goes from the portal container up to `document.body`, inerting each ancestor's other children, which is
+the same shape with a `Viewport` and without one. Elements already `inert` are skipped, or the cleanup would
+hand back something that was never ours.
+
+**Autofocus waits for the placement and then latches, and both halves were bugs first.** The popup is
+`visibility: hidden` until `Anchor` has measured it, and a hidden element takes no focus — so autofocusing on
+mount silently did nothing and left a sealed page with focus on the body. Then, because the position changes
+on every step, an autofocus that kept following it threw focus back to the first control each time: press
+`Next`, and the next press lands on `Skip all`. Both are pinned in `spotlight.spec.ts`.
+
+### `Anchor` positions against a rect when it is given one
+
+Settled **2026-08-14**, and it is the virtual anchor `review.md` has wanted since `Menu`. `createPortalPosition`
+takes an optional `getAnchorRect`; when present it replaces the observed rect and the element observer is not
+attached at all. Everything downstream is unchanged, because the placement maths only ever saw a rect.
+
+Two consumers arrived together, which is what made it worth doing rather than inventing privately inside one
+of them: a spotlight positions its popup against the **padded hole** it cut rather than against the element
+inside it, and a right-click menu would anchor to the point that was pressed. The second is not built; the
+seam it needs now exists.

@@ -8,16 +8,15 @@ import { Viewport } from "../../Lib/Exotics/Viewport/Viewport";
 import { Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
 import type { Tab } from "../../Lib/Fundamentals/Tabs/Tabs.types";
 import { AccordionPage } from "./Pages/AccordionPage/AccordionPage";
-import { AmountInputPage } from "./Pages/AmountInputPage/AmountInputPage";
 import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
 import { CalendarPage } from "./Pages/CalendarPage/CalendarPage";
 import { CellAnimationPage } from "./Pages/CellAnimationPage/CellAnimationPage";
 import { CheckboxPage } from "./Pages/CheckboxPage/CheckboxPage";
 import { ColorAreaPage } from "./Pages/ColorAreaPage/ColorAreaPage";
 import { ColorInputPage } from "./Pages/ColorInputPage/ColorInputPage";
+import { CurrencyInputPage } from "./Pages/CurrencyInputPage/CurrencyInputPage";
 import { DatePickerPage } from "./Pages/DatePickerPage/DatePickerPage";
 import { DrawerPage } from "./Pages/DrawerPage/DrawerPage";
-import { ElementHighlightPage } from "./Pages/ElementHighlightPage/ElementHighlightPage";
 import { FileInputPage } from "./Pages/FileInputPage/FileInputPage";
 import { FormPage } from "./Pages/FormPage/FormPage";
 import { ImageSwitcherPage } from "./Pages/ImageSwitcherPage/ImageSwitcherPage";
@@ -32,6 +31,8 @@ import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAni
 import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
 import { SelectPage } from "./Pages/SelectPage/SelectPage";
 import { ShapePage } from "./Pages/ShapePage/ShapePage";
+import { SlideButtonPage } from "./Pages/SlideButtonPage/SlideButtonPage";
+import { SpotlightPage } from "./Pages/SpotlightPage/SpotlightPage";
 import { SurfacePage } from "./Pages/SurfacePage/SurfacePage";
 import { TabsPage } from "./Pages/TabsPage/TabsPage";
 import { TextAreaPage } from "./Pages/TextAreaPage/TextAreaPage";
@@ -133,16 +134,16 @@ const TAB_CONFIGS: TabConfig[] = [
         component: () => <ColorInputPage />,
     },
     {
+        name: "CurrencyInput",
+        component: () => <CurrencyInputPage />,
+    },
+    {
         name: "DatePicker",
         component: () => <DatePickerPage />,
     },
     {
         name: "Drawer",
         component: () => <DrawerPage />,
-    },
-    {
-        name: "ElementHighlight",
-        component: () => <ElementHighlightPage />,
     },
     {
         name: "FileInput",
@@ -169,10 +170,6 @@ const TAB_CONFIGS: TabConfig[] = [
         component: () => <ModalPage />,
     },
     {
-        name: "AmountInput",
-        component: () => <AmountInputPage />,
-    },
-    {
         name: "NumberInput",
         component: () => <NumberInputPage />,
     },
@@ -191,6 +188,14 @@ const TAB_CONFIGS: TabConfig[] = [
     {
         name: "Select",
         component: () => <SelectPage />,
+    },
+    {
+        name: "SlideButton",
+        component: () => <SlideButtonPage />,
+    },
+    {
+        name: "Spotlight",
+        component: () => <SpotlightPage />,
     },
     {
         name: "Tabs",

@@ -37,6 +37,14 @@ export const sourceModalOn = style([sourceModal, { transform: "scale(1)" }]);
 
 export const sourceModalOff = style([sourceModal, { transform: "scale(0)" }]);
 
+export const exampleReadout = style({
+    fontFamily: "monospace",
+    fontSize: themeVars.fontSize.xSmall,
+    textAlign: "center",
+    overflowWrap: "anywhere",
+    opacity: 0.75,
+});
+
 export const exampleTitle = style({
     display: "flex",
     flexDirection: "row",

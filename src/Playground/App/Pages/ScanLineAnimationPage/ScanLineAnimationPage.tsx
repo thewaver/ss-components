@@ -11,16 +11,16 @@ import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { StressTest } from "../../PageComponents/StressTest/StressTest";
 import type { StressTestDefs } from "../../PageComponents/StressTest/StressText.types";
-import { CellAnimationBreakpoints } from "../../Samples/CellAnimationBreakpoints.const";
-import { CellAnimationWeights } from "../../Samples/CellAnimationWeights.const";
-import { ScanlineAnimationKeyframes } from "../../Samples/ScanlineAnimationKeyframes.const";
+import { CellAnimationBreakpoints } from "../../Samples/CellAnimationBreakpoints/CellAnimationBreakpoints.const";
+import { CellAnimationWeights } from "../../Samples/CellAnimationWeights/CellAnimationWeights.const";
+import { ScanlineAnimationKeyframes } from "../../Samples/ScanlineAnimationKeyframes/ScanlineAnimationKeyframes.const";
 import {
     PageFileField,
     PageGroupedSelectField,
     PageNumberField,
     PageSelectField,
 } from "../../StyledComponents/Field/Field";
-import knight from "../../knight.png";
+import knight from "../../knight.webp";
 import { BrightnessExample } from "./Examples/Brightness";
 import BrightnessExampleRaw from "./Examples/Brightness.tsx?raw";
 import { GlitchExample } from "./Examples/Glitch";
@@ -41,6 +41,9 @@ import { MEASURE_BOX_PADDING } from "../../PageComponents/MeasureBox/MeasureBox.
 import * as styles from "./ScanlineAnimationPage.css";
 
 const IMAGE_CONTAINER_SIZE = 240 + MEASURE_BOX_PADDING * 2;
+const MIN_GLITCH_COUNT = 1;
+const MAX_GLITCH_COUNT = 10;
+const GLITCH_COUNT_STEP = 1;
 const MIN_SMOOTHNESS = 0.1;
 const MAX_SMOOTHNESS = 1;
 const SMOOTHNESS_STEP = 0.1;
@@ -213,6 +216,7 @@ const DirInput = (props: {
 
 const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
     const [keyframeOpts, setKeyframeOpts] = createStore({
+        count: 3,
         shiftPercent: 10,
         chunkyness: 0.8,
     });
@@ -224,6 +228,17 @@ const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
             </PageMeasureBox>
 
             <PagePropsPanel getScope={() => "local"}>
+                <PageProp getLabel={() => "Count"}>
+                    <PageNumberField
+                        getValue={() => keyframeOpts.count!}
+                        getMin={() => MIN_GLITCH_COUNT}
+                        getMax={() => MAX_GLITCH_COUNT}
+                        getStep={() => GLITCH_COUNT_STEP}
+                        getAriaLabel={() => "Count"}
+                        onInput={(value) => setKeyframeOpts("count", value)}
+                    />
+                </PageProp>
+
                 <PageProp getLabel={() => "Max shift (%)"}>
                     <PageNumberField
                         getValue={() => keyframeOpts.shiftPercent!}

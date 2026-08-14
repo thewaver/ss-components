@@ -1,6 +1,7 @@
 import type { Signal } from "solid-js";
 
-import type { ColorValueHsv } from "../../../Abstracts/ColorValue/ColorValue.types";
+import type { Color } from "@thewaver/ss-utils";
+
 import type { AccessorProps } from "../../../Utils/typeUtils";
 import type {
     InteractionControlProps,
@@ -10,13 +11,13 @@ import type {
 export type ColorAreaAxis = "saturation" | "brightness";
 
 export type ColorAreaFlags = {
-    hsv: ColorValueHsv;
+    hsv: Color.HSVA;
     isDragging: boolean;
     focusedAxis?: ColorAreaAxis;
 };
 
 export type ColorAreaCbs = {
-    onInput?: (hsv: ColorValueHsv) => void | Promise<void>;
+    onInput?: (hsv: Color.HSVA) => void | Promise<void>;
     onMouseEnter?: (e: MouseEvent) => void | Promise<void>;
     onMouseLeave?: (e: MouseEvent) => void | Promise<void>;
 };
@@ -33,7 +34,7 @@ export type ColorAreaElementProps = AccessorProps<
         InteractionControlProps<ColorAreaFlags> &
         Required<Omit<ColorAreaState, "name" | "ariaLabel">> &
         Pick<ColorAreaState, "name" | "ariaLabel"> & {
-            hsv: ColorValueHsv;
+            hsv: Color.HSVA;
             isTabbable?: boolean;
             setAxis: (axis: ColorAreaAxis, ratio: number) => void;
             setFocusedAxis: (axis?: ColorAreaAxis) => void;
@@ -46,6 +47,6 @@ export type ColorAreaProps = Omit<InteractionWrapperProps<ColorAreaFlags>, "rend
         ColorAreaCbs &
             Pick<InteractionControlProps<ColorAreaFlags>, "id" | "renderContent"> &
             ColorAreaState & {
-                hsvSignal: Signal<ColorValueHsv>;
+                hsvSignal: Signal<Color.HSVA>;
             }
     >;

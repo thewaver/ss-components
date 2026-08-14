@@ -1,6 +1,6 @@
 import { For, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
-import { type Point2d, type Size2d } from "@thewaver/ss-utils";
+import { MathUtils, type Point2d, type Size2d } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { SignalMirror } from "../../Abstracts/SignalMirror/SignalMirror";
@@ -48,8 +48,8 @@ export const CellAnimation = (props: CellAnimationProps) => {
             const rootSize = getRootSize();
 
             return {
-                x: Math.min(Math.max(Math.round(cellCount.x), 1), Math.max(Math.round(rootSize.width), 1)),
-                y: Math.min(Math.max(Math.round(cellCount.y), 1), Math.max(Math.round(rootSize.height), 1)),
+                x: MathUtils.clamp(Math.round(cellCount.x), 1, Math.max(Math.round(rootSize.width), 1)),
+                y: MathUtils.clamp(Math.round(cellCount.y), 1, Math.max(Math.round(rootSize.height), 1)),
             };
         },
         undefined,

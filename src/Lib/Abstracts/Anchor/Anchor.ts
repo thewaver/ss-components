@@ -16,6 +16,7 @@ export namespace Anchor {
             getPlacement: Accessor<AnchorPlacement>;
             getOffset?: () => Point2d;
             getReservedScreenSize?: () => Size2d;
+            getAnchorRect?: () => Rect | undefined;
         },
     ) => {
         const viewportContext = useViewportContext();
@@ -24,9 +25,17 @@ export namespace Anchor {
         const [getContentSize, setContentSize] = createSignal<Size2d | undefined>(undefined, {
             equals: Size2d.isSame,
         });
-        const [getAnchorRect, setAnchorRect] = createSignal<Rect | undefined>(undefined, {
+        const [getObservedRect, setAnchorRect] = createSignal<Rect | undefined>(undefined, {
             equals: Rect.isSame,
         });
+
+        /**
+         * A layer usually anchors to an element and the rect is measured from it, but a caller that already
+         * holds a rect can hand it over instead — a spotlight positions against the padded hole it cut rather
+         * than against the element inside it, and a context menu would anchor to the point that was pressed.
+         * The rest of the placement maths never learns the difference, because it only ever saw a rect.
+         */
+        const getAnchorRect = createMemo(() => opts.getAnchorRect?.() ?? getObservedRect());
 
         const getPlacement = createMemo((): AnchorPlacement => {
             const contentSize = getContentSize();
@@ -122,7 +131,9 @@ export namespace Anchor {
 
         const getZIndex = createMemo(() => (getIsVisible() ? AnchorUtils.getStackingBase(getAnchorRef()) + 1 : 1));
 
-        ElementObserver.createViewportRectObserver(getAnchorRef, getIsVisible, { setElementRect: setAnchorRect });
+        ElementObserver.createViewportRectObserver(getAnchorRef, () => getIsVisible() && !opts.getAnchorRect, {
+            setElementRect: setAnchorRect,
+        });
 
         createEffect(() => {
             let contentResizeObserver: ResizeObserver | undefined;

@@ -1,11 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-import { activeText, readout, tabIndex, variant } from "./helpers";
+import { activeMatches, activeText, readout, tabIndex, variant } from "./helpers";
 
 const DEFAULT = variant("Default");
 const COLLAPSED = variant("Everything collapsed");
 const DISABLED = variant("Disabled nodes");
 const REACHABLE = variant("Disabled nodes + reachable");
+const OUTSIDE = variant("Collapsed from outside");
+
+const OUTSIDE_COLLAPSE_DELAY_MS = 500;
 
 const node = (scope: string) => `${scope} [role="treeitem"]`;
 
@@ -172,4 +175,30 @@ test("a reachable disabled node takes focus, explains itself and still refuses t
 
     await page.locator(node(REACHABLE)).nth(2).hover();
     await expect(page.locator('[role="tooltip"]'), "hovering it says why").toContainText("Not indexed");
+});
+
+/**
+ * The one route that can strand focus, and the only one no keystroke or click can produce. `ArrowLeft` and a
+ * click both act on the branch, so focus is already sitting on an element that stays mounted; a **consumer**
+ * writing the expanded list from their own code goes nowhere near that, and the row holding focus simply
+ * unmounts. The button on the page defers the collapse rather than doing it outright, because a button that
+ * collapsed on the spot would be holding focus itself and the row would never have been the focused element.
+ */
+test("a branch collapsed from outside hands focus back rather than dropping it on the body", async ({ page }) => {
+    const rows = page.locator(node(OUTSIDE));
+
+    await page.locator(`${OUTSIDE} button`).click();
+    await rows.nth(3).focus();
+
+    expect(await activeText(page), "focus starts on a row inside the branch about to close").toContain("Tree.tsx");
+
+    await page.waitForTimeout(OUTSIDE_COLLAPSE_DELAY_MS * 2);
+
+    expect(
+        await activeMatches(page, "body"),
+        "the row holding focus unmounted, and focus must not be left on the document",
+    ).toBe(false);
+    expect(await activeText(page), "it lands on the branch that closed, which is where a reader expects it").toContain(
+        "Lib",
+    );
 });

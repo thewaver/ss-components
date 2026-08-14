@@ -1,7 +1,7 @@
 import { ScanlineAnimation } from "../../../../../Lib/Exotics/ScanlineAnimation/ScanlineAnimation";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
-import { CellAnimationBreakpoints } from "../../../Samples/CellAnimationBreakpoints.const";
-import { ScanlineAnimationKeyframes } from "../../../Samples/ScanlineAnimationKeyframes.const";
+import { CellAnimationBreakpoints } from "../../../Samples/CellAnimationBreakpoints/CellAnimationBreakpoints.const";
+import { ScanlineAnimationKeyframes } from "../../../Samples/ScanlineAnimationKeyframes/ScanlineAnimationKeyframes.const";
 import type { ScanlineAnimationExampleProps } from "../ScanlineAnimationPage.types";
 
 type Props = ScanlineAnimationExampleProps &

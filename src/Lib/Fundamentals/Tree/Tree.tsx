@@ -83,6 +83,39 @@ export const Tree = <T,>(props: TreeProps<T>) => {
 
     const findRowById = (id: string | undefined) => getNavigableRows().find((row) => getRowId(row) === id);
 
+    let lastFocusedValue: T | undefined;
+    let lastExpanded: T[] = [];
+
+    /**
+     * A row that unmounts while it holds focus leaves focus on the document body, which sends a keyboard
+     * reader to the top of the page rather than to the node that has just closed. The tree's own routes into
+     * `collapse` cannot produce that — `ArrowLeft` and a click both act on the branch, which is already the
+     * focused element and stays mounted — so the only way in is a **consumer** writing `expandedSignal`
+     * themselves, which never passes through `collapse` at all. Hence a guard over the visible rows rather
+     * than one inside the collapsing function.
+     *
+     * All three conditions are load-bearing. Without a remembered row a tree nobody has touched would steal
+     * focus the moment a consumer collapsed anything; without the row having left the visible set an
+     * unrelated collapse elsewhere in the tree would do the same; and without focus actually sitting on the
+     * body this would fight whatever the consumer moved focus to on purpose.
+     */
+    createEffect(() => {
+        const expanded = props.expandedSignal[0]();
+        const collapsed = lastExpanded.filter((value) => !expanded.includes(value));
+        const visible = getFlatRows();
+
+        lastExpanded = expanded;
+
+        if (collapsed.length < 1) return;
+        if (lastFocusedValue === undefined) return;
+        if (document.activeElement !== document.body) return;
+        if (visible.some((row) => row.node.value === lastFocusedValue)) return;
+
+        const branch = visible.find((row) => collapsed.includes(row.node.value));
+
+        if (branch) focusRow(branch);
+    });
+
     const focusRow = (row: TreeRow<T>) => {
         setFocusedValue(() => row.node.value);
 
@@ -103,21 +136,10 @@ export const Tree = <T,>(props: TreeProps<T>) => {
         props.expandedSignal[1]((prev) => (prev.includes(row.node.value) ? prev : [...prev, row.node.value]));
     };
 
-    /**
-     * Focus is moved to the branch before its subtree goes, because a row that unmounts while it holds focus
-     * leaves focus on the document body — which sends a keyboard reader to the top of the page rather than to
-     * the node they have just closed.
-     */
     const collapse = (row: TreeRow<T>) => {
         if (row.node.isDisabled) return;
 
-        const hasFocusInside = TreeUtils.getFlatRows(row.rows).some(
-            (child) => getRowId(child) === document.activeElement?.id,
-        );
-
         props.expandedSignal[1]((prev) => prev.filter((value) => value !== row.node.value));
-
-        if (hasFocusInside) focusRow(row);
     };
 
     const toggle = (row: TreeRow<T>) => {
@@ -281,7 +303,14 @@ export const Tree = <T,>(props: TreeProps<T>) => {
     );
 
     return (
-        <div role="tree" aria-label={props.getAriaLabel?.()} onKeyDown={handleKeyDown}>
+        <div
+            role="tree"
+            aria-label={props.getAriaLabel?.()}
+            onKeyDown={handleKeyDown}
+            onFocusIn={(e) => {
+                lastFocusedValue = findRowById((e.target as HTMLElement).id)?.node.value;
+            }}
+        >
             {renderRows(getRows)}
         </div>
     );

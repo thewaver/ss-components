@@ -1,10 +1,15 @@
 import { createMemo, createSignal } from "solid-js";
 
+import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Tree } from "../../../../Lib/Fundamentals/Tree/Tree";
 import type { TreeNode } from "../../../../Lib/Fundamentals/Tree/Tree.types";
+import { PageControlColumn } from "../../PageComponents/ControlRow/ControlRow";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
+import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 import { PageTreeNodeContent } from "../../StyledComponents/TreeNodeContent/TreeNodeContent";
+
+const OUTSIDE_COLLAPSE_DELAY_MS = 500;
 
 type Asset = {
     name: string;
@@ -80,8 +85,8 @@ const ASSETS: TreeNode<Asset>[] = [
     {
         value: { name: "Sprites", kind: "folder" },
         children: [
-            { value: { name: "knight.png", kind: "image" } },
-            { value: { name: "knight_profile.webp", kind: "image" } },
+            { value: { name: "knight.webp", kind: "image" } },
+            { value: { name: "knightette.webp", kind: "image" } },
         ],
     },
     {
@@ -103,6 +108,9 @@ export const TreePage = () => {
 
     const reachableSignal = createSignal<string | undefined>();
     const reachableExpandedSignal = createSignal<string[]>(["src"]);
+
+    const outsideSignal = createSignal<string | undefined>();
+    const outsideExpandedSignal = createSignal<string[]>(["src", "Lib"]);
 
     const recordSignal = createSignal<Asset | undefined>();
     const recordExpandedSignal = createSignal<Asset[]>([]);
@@ -171,6 +179,37 @@ export const TreePage = () => {
                             <PageTreeNodeContent getFlags={getFlags}>{getNode().value}</PageTreeNodeContent>
                         )}
                     />
+                ),
+            },
+            {
+                name: "Collapsed from outside",
+                readout: () =>
+                    `expanded: ${JSON.stringify(outsideExpandedSignal[0]())} — press the button, then focus a row inside Lib before the delay elapses; focus must land on Lib rather than on the page body`,
+                component: () => (
+                    <PageControlColumn>
+                        <Tree
+                            getNodes={() => FILES}
+                            valueSignal={outsideSignal}
+                            expandedSignal={outsideExpandedSignal}
+                            getAriaLabel={() => "Repository, collapsed from outside"}
+                            renderNode={(getNode, getFlags) => (
+                                <PageTreeNodeContent getFlags={getFlags}>{getNode().value}</PageTreeNodeContent>
+                            )}
+                        />
+
+                        <Button
+                            renderContent={(getFlags) => (
+                                <PageButtonContent getFlags={getFlags}>
+                                    {`Collapse Lib in ${OUTSIDE_COLLAPSE_DELAY_MS}ms`}
+                                </PageButtonContent>
+                            )}
+                            onClick={async () => {
+                                setTimeout(() => {
+                                    outsideExpandedSignal[1]((prev) => prev.filter((value) => value !== "Lib"));
+                                }, OUTSIDE_COLLAPSE_DELAY_MS);
+                            }}
+                        />
+                    </PageControlColumn>
                 ),
             },
             {

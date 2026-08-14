@@ -1,9 +1,9 @@
 import { createEffect, createMemo, createSignal, on, onCleanup, onMount } from "solid-js";
 
+import { AudioUtils } from "@thewaver/ss-utils";
 import { MathUtils } from "@thewaver/ss-utils";
 
 import type { AnimDirection } from "../../Abstracts/Anim/Anim.types";
-import { AudioUtils } from "../../Abstracts/Audio/Audio.utils";
 import { SignalMirror } from "../../Abstracts/SignalMirror/SignalMirror";
 import type { AudioSwitcherProps } from "./AudioSwitcher.types";
 

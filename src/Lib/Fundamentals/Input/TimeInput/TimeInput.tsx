@@ -1,9 +1,10 @@
 import { createEffect, createMemo, createSignal, untrack } from "solid-js";
 
+import { TimeUtils } from "@thewaver/ss-utils";
+import type { TimeValue, TimeValueMeridiem, TimeValueUnit } from "@thewaver/ss-utils";
+
 import { MaskedField } from "../../../Abstracts/MaskedField/MaskedField";
 import { TextSyncUtils } from "../../../Abstracts/TextSync/TextSync.utils";
-import type { TimeValue, TimeValueMeridiem, TimeValueUnit } from "../../../Abstracts/TimeValue/TimeValue.types";
-import { TimeValueUtils } from "../../../Abstracts/TimeValue/TimeValue.utils";
 import { TextField } from "../TextField/TextField";
 import type { TimeInputMeridiem, TimeInputProps } from "./TimeInput.types";
 
@@ -65,17 +66,15 @@ export const TimeInput = (props: TimeInputProps) => {
         untrack(() => {
             const value = props.valueSignal[0]();
 
-            return value ? TimeValueUtils.getMeridiem(value) : DEFAULT_MERIDIEM;
+            return value ? TimeUtils.getMeridiem(value) : DEFAULT_MERIDIEM;
         }),
     );
 
     const toText = (value: TimeValue) =>
-        getIsTwelveHour() ? TimeValueUtils.toTwelveHourText(value) : TimeValueUtils.toIso(value);
+        getIsTwelveHour() ? TimeUtils.toTwelveHourText(value) : TimeUtils.toIso(value);
 
     const parseText = (text: string) =>
-        getIsTwelveHour()
-            ? TimeValueUtils.fromTwelveHourText(text, untrack(getMeridiem))
-            : TimeValueUtils.fromIso(text);
+        getIsTwelveHour() ? TimeUtils.fromTwelveHourText(text, untrack(getMeridiem)) : TimeUtils.fromIso(text);
 
     const getSegmentCount = () => (props.getHasSeconds?.() ? SEGMENT_UNITS.length : SEGMENT_UNITS.length - 1);
 
@@ -86,7 +85,7 @@ export const TimeInput = (props: TimeInputProps) => {
 
         const parsed = parseText(TextSyncUtils.formatWithMask(untrack(getMask), digits));
 
-        return parsed && TimeValueUtils.getIsInRange(parsed, props.getMinTime?.(), props.getMaxTime?.())
+        return parsed && TimeUtils.getIsInRange(parsed, props.getMinTime?.(), props.getMaxTime?.())
             ? parsed
             : undefined;
     };
@@ -99,13 +98,13 @@ export const TimeInput = (props: TimeInputProps) => {
         toDigits: (value) => TextSyncUtils.getMaskedDigits(toText(value)),
         fromDigits,
         getHasImpossibleDigits: (digits) => getHasImpossibleSegment(digits, getSegmentCount(), getIsTwelveHour()),
-        getIsSame: TimeValueUtils.isSame,
+        getIsSame: TimeUtils.isSame,
     });
 
     createEffect(() => {
         const value = props.valueSignal[0]();
 
-        if (value) setMeridiem(TimeValueUtils.getMeridiem(value));
+        if (value) setMeridiem(TimeUtils.getMeridiem(value));
     });
 
     const meridiem: TimeInputMeridiem = {
@@ -118,11 +117,7 @@ export const TimeInput = (props: TimeInputProps) => {
             if (!value) return;
 
             field.commit(
-                TimeValueUtils.clamp(
-                    TimeValueUtils.withMeridiem(value, next),
-                    props.getMinTime?.(),
-                    props.getMaxTime?.(),
-                ),
+                TimeUtils.clamp(TimeUtils.withMeridiem(value, next), props.getMinTime?.(), props.getMaxTime?.()),
             );
         },
         toggle: () => {
@@ -138,8 +133,8 @@ export const TimeInput = (props: TimeInputProps) => {
         if (delta === undefined || !element || !value) return;
 
         const segment = getSegmentAt(element.selectionStart ?? 0);
-        const stepped = TimeValueUtils.clamp(
-            TimeValueUtils.addUnit(value, segment.unit, delta),
+        const stepped = TimeUtils.clamp(
+            TimeUtils.addUnit(value, segment.unit, delta),
             props.getMinTime?.(),
             props.getMaxTime?.(),
         );

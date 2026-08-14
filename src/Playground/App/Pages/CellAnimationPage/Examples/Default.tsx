@@ -1,6 +1,6 @@
 import { CellAnimation } from "../../../../../Lib/Exotics/CellAnimation/CellAnimation";
-import { CellAnimationKeyframes } from "../../../Samples/CellAnimation.const";
-import { CellAnimationBreakpoints } from "../../../Samples/CellAnimationBreakpoints.const";
+import { CellAnimationBreakpoints } from "../../../Samples/CellAnimationBreakpoints/CellAnimationBreakpoints.const";
+import { CellAnimationKeyframes } from "../../../Samples/CellAnimationKeyframes/CellAnimationKeyframes.const";
 import type { CellAnimationExampleProps } from "../CellAnimationPage.types";
 
 export const DefaultExample = ({

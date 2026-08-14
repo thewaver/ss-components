@@ -1,7 +1,7 @@
 import { createEffect, createMemo, createSignal, createUniqueId, onCleanup, untrack } from "solid-js";
 
-import type { ColorValueHsv } from "../../../../Lib/Abstracts/ColorValue/ColorValue.types";
-import { ColorValueUtils } from "../../../../Lib/Abstracts/ColorValue/ColorValue.utils";
+import { Color } from "@thewaver/ss-utils";
+
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { ColorArea } from "../../../../Lib/Fundamentals/Input/ColorArea/ColorArea";
 import { Range } from "../../../../Lib/Fundamentals/Input/Range/Range";
@@ -22,14 +22,14 @@ const AREA_SIZE = 160;
 const HUE_THUMB_SIZE = 18;
 const HUE_MAX = 360;
 const PERCENT = 100;
-const STARTING_HSV: ColorValueHsv = { h: 210, s: 0.7, v: 0.9 };
+const STARTING_HSV: Color.HSVA = { h: 210, s: 0.7, v: 0.9, a: 1 };
 
 export const ColorAreaPage = () => {
     const popupId = createUniqueId();
 
-    const bareSignal = createSignal<ColorValueHsv>(STARTING_HSV);
-    const pickerSignal = createSignal<ColorValueHsv>({ h: 90, s: 0.5, v: 0.8 });
-    const disabledSignal = createSignal<ColorValueHsv>({ h: 0, s: 0.6, v: 0.6 });
+    const bareSignal = createSignal<Color.HSVA>(STARTING_HSV);
+    const pickerSignal = createSignal<Color.HSVA>({ h: 90, s: 0.5, v: 0.8, a: 1 });
+    const disabledSignal = createSignal<Color.HSVA>({ h: 0, s: 0.6, v: 0.6, a: 1 });
 
     const [getIsOpen, setIsOpen] = createSignal(false);
     const [getTriggerRef, setTriggerRef] = createSignal<HTMLElement>();
@@ -54,7 +54,7 @@ export const ColorAreaPage = () => {
         });
     });
 
-    const getHexa = () => ColorValueUtils.toHexa(ColorValueUtils.hsvToRgba(pickerSignal[0]()));
+    const getHexa = () => Color.HSVA.toHexa(pickerSignal[0]());
 
     const hueSignal = createSignal(pickerSignal[0]().h);
 
@@ -89,7 +89,7 @@ export const ColorAreaPage = () => {
             {
                 name: "The surface alone",
                 readout: () =>
-                    `hsv: ${Math.round(bareSignal[0]().h)}° ${Math.round(bareSignal[0]().s * PERCENT)}% ${Math.round(bareSignal[0]().v * PERCENT)}% — hex: ${ColorValueUtils.hsvToHex(bareSignal[0]())}`,
+                    `hsv: ${Math.round(bareSignal[0]().h)}° ${Math.round(bareSignal[0]().s * PERCENT)}% ${Math.round(bareSignal[0]().v * PERCENT)}% — hex: ${Color.HSV.toHex(bareSignal[0]())}`,
                 component: () => renderArea(bareSignal),
             },
             {
@@ -101,7 +101,9 @@ export const ColorAreaPage = () => {
                             ref={setTriggerRef}
                             renderContent={(getFlags) => (
                                 <PageColorFieldTrigger getFlags={getFlags}>
-                                    <PageColorSwatch getValue={() => ColorValueUtils.toCssColor(pickerSignal[0]())} />
+                                    <PageColorSwatch
+                                        getValue={() => Color.RGBA.toCss(Color.HSVA.toRgba(pickerSignal[0]()))}
+                                    />
                                     {getHexa()}
                                 </PageColorFieldTrigger>
                             )}
@@ -126,7 +128,9 @@ export const ColorAreaPage = () => {
                             }}
                             renderContent={() => (
                                 <PageColorPickerPopup>
-                                    <PageColorPreview getValue={() => ColorValueUtils.toCssColor(pickerSignal[0]())} />
+                                    <PageColorPreview
+                                        getValue={() => Color.RGBA.toCss(Color.HSVA.toRgba(pickerSignal[0]()))}
+                                    />
 
                                     {renderArea(pickerSignal)}
 

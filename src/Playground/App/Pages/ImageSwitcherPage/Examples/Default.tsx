@@ -2,5 +2,11 @@ import { ImageSwitcher } from "../../../../../Lib/Fundamentals/ImageSwitcher/Ima
 import type { ImageSwitcherProps } from "../../../../../Lib/Fundamentals/ImageSwitcher/ImageSwitcher.types";
 
 export const DefaultExample = (props: ImageSwitcherProps) => {
-    return <ImageSwitcher getSrc={props.getSrc} getTransitionDurationMs={props.getTransitionDurationMs} />;
+    return (
+        <ImageSwitcher
+            getSrc={props.getSrc}
+            getTransitionDurationMs={props.getTransitionDurationMs}
+            onLoad={props.onLoad}
+        />
+    );
 };

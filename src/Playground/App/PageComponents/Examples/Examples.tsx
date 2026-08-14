@@ -49,6 +49,12 @@ export const PageExamples = (props: ExamplesProps) => {
                             </div>
 
                             {example.component()}
+
+                            {example.readout && (
+                                <div class={styles.exampleReadout} data-readout>
+                                    {example.readout()}
+                                </div>
+                            )}
                         </div>
                     )}
                 </For>

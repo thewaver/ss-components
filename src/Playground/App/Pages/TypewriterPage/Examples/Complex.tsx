@@ -1,5 +1,5 @@
 import { Typewriter } from "../../../../../Lib/Exotics/Typewriter/Typewriter";
-import knight from "../../../knight.png";
+import knight from "../../../knight.webp";
 import type { TypewriterExampleProps } from "../TypewriterPage.types";
 
 import * as styles from "../TypewriterPage.css";

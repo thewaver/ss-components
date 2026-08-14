@@ -4,7 +4,7 @@ import { CSSUtils } from "@thewaver/ss-utils";
 
 import { Surface } from "../../../../../../Lib/Composites/Surface/Surface";
 import type { SurfaceProps } from "../../../../../../Lib/Composites/Surface/Surface.types";
-import { SVGDefsSamples } from "../../../../Samples/SVGDefs.const";
+import { SVGDefsSamples } from "../../../../Samples/SVGDefs/SVGDefs.const";
 import knight_profile from "../../../../knight_profile.webp";
 
 import * as styles from "./Avatar.css";

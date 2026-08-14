@@ -1,4 +1,5 @@
-import type { TimeValueMeridiem } from "../../../../Lib/Abstracts/TimeValue/TimeValue.types";
+import type { TimeValueMeridiem } from "@thewaver/ss-utils";
+
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
 export type MeridiemToggleProps = AccessorProps<{

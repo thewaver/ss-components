@@ -1,7 +1,7 @@
 import type { Signal } from "solid-js";
 
-import type { ColorValueHsv } from "../../../../Lib/Abstracts/ColorValue/ColorValue.types";
+import type { Color } from "@thewaver/ss-utils";
 
 export type PageColorChannelsProps = {
-    hsvSignal: Signal<ColorValueHsv>;
+    hsvSignal: Signal<Color.HSVA>;
 };

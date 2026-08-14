@@ -1,7 +1,7 @@
 import { createEffect, createSignal, untrack } from "solid-js";
 
-import type { ColorValueSpace } from "../../../../Lib/Abstracts/ColorValue/ColorValue.types";
-import { ColorValueUtils } from "../../../../Lib/Abstracts/ColorValue/ColorValue.utils";
+import { Color } from "@thewaver/ss-utils";
+
 import { Radio } from "../../../../Lib/Fundamentals/Input/Radio/Radio";
 import { RadioGroup } from "../../../../Lib/Fundamentals/Input/RadioGroup/RadioGroup";
 import { TextInput } from "../../../../Lib/Fundamentals/Input/TextInput/TextInput";
@@ -18,7 +18,7 @@ import {
 import { PageNumberField } from "../Field/Field";
 import type { PageColorChannelsProps } from "./ColorChannels.types";
 
-const SPACES: ColorValueSpace[] = ["rgba", "hsla", "hexa"];
+const SPACES: Color.ValueSpace[] = ["rgba", "hsla", "hexa"];
 const RGB_CHANNELS = ["r", "g", "b"] as const;
 const HSL_CHANNELS = ["s", "l"] as const;
 const CHANNEL_FIELD_WIDTH = 76;
@@ -30,25 +30,25 @@ const ALPHA_STEP = 0.01;
 const ALPHA_MAX = 1;
 
 export const PageColorChannels = (props: PageColorChannelsProps) => {
-    const spaceSignal = createSignal<ColorValueSpace>("rgba");
+    const spaceSignal = createSignal<Color.ValueSpace>("rgba");
     const hexSignal = createSignal("");
 
-    const getRgba = () => ColorValueUtils.hsvToRgba(props.hsvSignal[0]());
+    const getRgba = () => Color.HSVA.toRgba(props.hsvSignal[0]());
 
-    const getHsla = () => ColorValueUtils.hsvToHsl(props.hsvSignal[0]());
+    const getHsla = () => Color.HSVA.toHsla(props.hsvSignal[0]());
 
-    const getHexa = () => ColorValueUtils.toHexa(getRgba());
+    const getHexa = () => Color.RGBA.toHexa(getRgba());
 
-    const getAlpha = () => ColorValueUtils.getAlpha(props.hsvSignal[0]());
+    const getAlpha = () => Color.HSVA.getClampedAlpha(props.hsvSignal[0]());
 
     const setRgbaChannel = (channel: (typeof RGB_CHANNELS)[number], value: number) => {
-        props.hsvSignal[1](() => ColorValueUtils.rgbaToHsv({ ...getRgba(), [channel]: value }));
+        props.hsvSignal[1](() => Color.RGBA.toHsva({ ...getRgba(), [channel]: value }));
     };
 
     const setHslaChannel = (channel: "h" | (typeof HSL_CHANNELS)[number], value: number) => {
         const hsl = { ...getHsla(), [channel]: channel === "h" ? value : value / PERCENT };
 
-        props.hsvSignal[1](() => ColorValueUtils.hslToHsv(hsl, getAlpha()));
+        props.hsvSignal[1](() => Color.HSLA.toHsva({ ...hsl, a: getAlpha() }));
     };
 
     const setAlpha = (alpha: number) => {
@@ -60,11 +60,11 @@ export const PageColorChannels = (props: PageColorChannelsProps) => {
     };
 
     createEffect(() => {
-        const rgba = ColorValueUtils.fromHexa(hexSignal[0]());
+        const hexa = hexSignal[0]();
 
-        if (!rgba) return;
+        if (!Color.Hexa.isHexa(hexa)) return;
 
-        props.hsvSignal[1](() => ColorValueUtils.rgbaToHsv(rgba));
+        props.hsvSignal[1](() => Color.Hexa.toHsva(hexa));
     });
 
     createEffect(() => {

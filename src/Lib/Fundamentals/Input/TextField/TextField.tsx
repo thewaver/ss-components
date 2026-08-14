@@ -2,7 +2,7 @@ import type { Accessor } from "solid-js";
 import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
-import { CSSUtils, StringUtils } from "@thewaver/ss-utils";
+import { CSSUtils, MathUtils, StringUtils } from "@thewaver/ss-utils";
 
 import type { TextSyncElement } from "../../../Abstracts/TextSync/TextSync";
 import { TextSync } from "../../../Abstracts/TextSync/TextSync";
@@ -60,7 +60,7 @@ const measureContentHeight = (element: HTMLElement, minRows: number, maxRows: nu
     const floor = minRows * lineHeight + framing;
     const ceiling = maxRows === undefined ? Number.POSITIVE_INFINITY : maxRows * lineHeight + framing;
 
-    return Math.min(Math.max(contentHeight, floor), ceiling);
+    return MathUtils.clamp(contentHeight, floor, ceiling);
 };
 
 const createAutoHeight = (

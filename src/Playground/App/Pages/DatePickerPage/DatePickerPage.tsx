@@ -1,10 +1,11 @@
 import { createMemo, createSignal } from "solid-js";
 
+import { TimeUtils } from "@thewaver/ss-utils";
+import type { TimeValue } from "@thewaver/ss-utils";
+
 import type { DateValue, DateValueCalendarId } from "../../../../Lib/Abstracts/DateValue/DateValue.types";
 import { DateValueUtils } from "../../../../Lib/Abstracts/DateValue/DateValue.utils";
 import type { InteractionFlags } from "../../../../Lib/Abstracts/Interaction/Interaction.types";
-import type { TimeValue } from "../../../../Lib/Abstracts/TimeValue/TimeValue.types";
-import { TimeValueUtils } from "../../../../Lib/Abstracts/TimeValue/TimeValue.utils";
 import { DateInput } from "../../../../Lib/Fundamentals/Input/DateInput/DateInput";
 import type { DateInputEra } from "../../../../Lib/Fundamentals/Input/DateInput/DateInput.types";
 import { DatePicker } from "../../../../Lib/Fundamentals/Input/DatePicker/DatePicker";
@@ -44,7 +45,7 @@ const CLOSING_TIME: TimeValue = { hour: 17, minute: 30 };
 
 const describe = (value: DateValue | undefined) => (value ? DateValueUtils.toIso(value) : "none");
 
-const describeTime = (value: TimeValue | undefined) => (value ? TimeValueUtils.toIso(value) : "none");
+const describeTime = (value: TimeValue | undefined) => (value ? TimeUtils.toIso(value) : "none");
 
 export const DatePickerPage = () => {
     const [getCalendarId, setCalendarId] = createSignal<DateValueCalendarId>("gregory");
@@ -194,7 +195,7 @@ export const DatePickerPage = () => {
             {
                 name: "Within opening hours",
                 readout: () =>
-                    `value: ${describeTime(shiftSignal[0]())} — ${TimeValueUtils.toIso(OPENING_TIME)} to ${TimeValueUtils.toIso(CLOSING_TIME)}`,
+                    `value: ${describeTime(shiftSignal[0]())} — ${TimeUtils.toIso(OPENING_TIME)} to ${TimeUtils.toIso(CLOSING_TIME)}`,
                 component: () => (
                     <TimeInput
                         {...renderField()}

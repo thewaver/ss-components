@@ -1,17 +1,16 @@
 import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 import { createStore } from "solid-js/store";
 
-import type { InteractionDragRatio, InternalInteractionFlags } from "./Interaction.types";
+import { MathUtils } from "@thewaver/ss-utils";
 
-const RATIO_MIN = 0;
-const RATIO_MAX = 1;
+import type { InteractionDragRatio, InternalInteractionFlags } from "./Interaction.types";
 
 const computeRatio = (element: HTMLElement, clientX: number, clientY: number): InteractionDragRatio => {
     const rect = element.getBoundingClientRect();
 
     return {
-        x: Math.min(Math.max(rect.width > 0 ? (clientX - rect.left) / rect.width : 0, RATIO_MIN), RATIO_MAX),
-        y: Math.min(Math.max(rect.height > 0 ? (clientY - rect.top) / rect.height : 0, RATIO_MIN), RATIO_MAX),
+        x: MathUtils.clamp01(MathUtils.normalize(clientX, rect.left, rect.right)),
+        y: MathUtils.clamp01(MathUtils.normalize(clientY, rect.top, rect.bottom)),
     };
 };
 

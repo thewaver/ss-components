@@ -1,6 +1,8 @@
 import { Show, createMemo, createSignal, createUniqueId } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
+import { MathUtils } from "@thewaver/ss-utils";
+
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { ElementObserver } from "../../Abstracts/ElementObserver/ElementObserver";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
@@ -68,7 +70,7 @@ export const Collapsible = (props: CollapsibleProps) => {
     const getHeadingTag = createMemo(() => {
         const level = props.getHeadingLevel?.();
 
-        return level === undefined ? undefined : HEADING_TAGS[Math.min(Math.max(level, 1), HEADING_TAGS.length) - 1];
+        return level === undefined ? undefined : HEADING_TAGS[MathUtils.clamp(level, 1, HEADING_TAGS.length) - 1];
     });
 
     const renderWrapper = () => (

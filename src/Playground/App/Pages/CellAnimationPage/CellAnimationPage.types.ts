@@ -3,8 +3,8 @@ import type { Signal } from "solid-js";
 import type { Point2d } from "@thewaver/ss-utils";
 
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
-import type { CellAnimationKeyframes } from "../../Samples/CellAnimation.const";
-import type { CellAnimationBreakpoints } from "../../Samples/CellAnimationBreakpoints.const";
+import type { CellAnimationBreakpoints } from "../../Samples/CellAnimationBreakpoints/CellAnimationBreakpoints.const";
+import type { CellAnimationKeyframes } from "../../Samples/CellAnimationKeyframes/CellAnimationKeyframes.const";
 
 export type CellAnimationExampleProps = AccessorProps<{
     src: string;

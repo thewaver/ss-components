@@ -10,6 +10,7 @@ const POPUP = '[role="dialog"]';
 const field = (scope: string) => `${scope} button[aria-haspopup="dialog"]`;
 
 const OUTSIDE_POINT = 5;
+const SETTLE_MS = 200;
 
 /**
  * The OS colour dialog is gone, so everything here is drivable for the first time: the surface is a real
@@ -52,10 +53,19 @@ test("opening it points the field at the popup and back", async ({ page }) => {
     );
 });
 
+/**
+ * The settle is load-bearing rather than defensive. A layer's opening placement is provisional — it measures
+ * itself on mount, before it has its final size, and the next frame corrects it — so a `boundingBox` read in
+ * that first frame reports a box up to 30px away from where the surface ends up, and the drag then starts
+ * somewhere other than the middle. `viewport.spec.ts` waits for the same reason.
+ */
 test("dragging the surface writes a hex value to the owner", async ({ page }) => {
     const before = await readout(page, "Default");
 
     await page.locator(field(DEFAULT)).click();
+    await expect(page.locator(POPUP)).toBeVisible();
+    await page.waitForTimeout(SETTLE_MS);
+
     await dragAcross(page, `${POPUP} [role="group"]`, [0.5, 0.5], [0.9, 0.1]);
 
     const after = await readout(page, "Default");

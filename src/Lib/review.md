@@ -40,7 +40,10 @@ reading.
 16. `Accordion` — four things deliberately not built — _open_
 17. `Tabs` — no automatic activation, and a pairing the consumer can still skip — _open_
 18. `Viewport` as a region: what is settled and what is not — _open_
-19. `Tree` — six things deliberately not built, and one extraction to decide — _open_
+19. `Tree` — five things deliberately not built, and one extraction to decide — _open_
+20. `SlideButton` — five things deliberately not built — _open_
+21. Planned: the Playground's source view, in three remaining phases — _in progress_
+22. `Spotlight` — three things deliberately not built — _open_
 
 ### Build order
 
@@ -53,15 +56,16 @@ decision is made once with several consumers in view rather than inferred from t
 privately inside them.
 
 1. **Nothing in the date and time family is blocked any more.** The mask covers fixed patterns and growing
-   groups, `MaskedField` holds the shared field, and `AmountInput` is the third consumer that proved the seam;
+   groups, `MaskedField` holds the shared field, and `CurrencyInput` is the third consumer that proved the seam;
    see `conventions.md`. What is left in item 7 is composition and range work, none of it waiting on a primitive.
 
 **Out of the cost ordering, deliberately:**
 
-- **The form story (item 9) should be decided far earlier than its size suggests.** It is the one item
-  whose cost _grows_ with delay: every control built without it grows its own half of error and validation
-  plumbing, and each becomes a retrofit. The count of controls carrying a `hasError` with nothing on the
-  other end of it is now seventeen.
+- **The form story is settled and wired.** `Form` and `FormField` ship and every control reads the description
+  context; see `conventions.md`. This entry used to say the opposite — that it was the one item whose cost
+  _grew_ with delay, because every control built without it grew its own half of the error plumbing — and that
+  cost has stopped growing. What is left of it in item 9 is one small piece, that nothing groups fields into
+  sections with their own validity, and it carries none of the original urgency.
 - **Dismissal and open state are both settled.** All five layers dismiss through `DismissStack` and all five take
   a `visibilitySignal`; see `conventions.md`. What is left of this family is `Menu` accepting an anchor and an
   opener, in item 6.
@@ -271,8 +275,10 @@ gaps, each with the reason it is still a gap.
   consumer's own button becomes part of the layer and a press on it no longer closes the menu before the handler
   reopens it — so a toggle button toggles, and a split button is a composition. See `conventions.md`. What a
   **right-click** menu needs is different in kind: it opens at the pointer rather than against an element, and
-  `Anchor` positions against a ref only. That is a virtual anchor — a rect standing in for an element — and it is a
-  change to `Anchor` rather than to `Menu`. Noted by the user on 2026-08-12 as understood but unsolved.
+  `Anchor` positions against a ref only. That needed a virtual anchor — a rect standing in for an element — and it now
+  exists: `Anchor.createPortalPosition` takes an optional `getAnchorRect`, built for `Spotlight` on 2026-08-14
+  and described in `conventions.md`. So what is left here is `Menu` accepting a point and opening on
+  `contextmenu`, with nothing underneath it still missing.
 - **There is no `menuitemcheckbox` or `menuitemradio`.** Those carry state, which is the line this
   control is on the other side of — `MenuFlags` has no selection and items have no `aria-checked`.
   Adding them means deciding whether a stateful menu is this component or a `Select` with menu paint.
@@ -303,7 +309,7 @@ doing:
   and `TextField.computeMaskedText` taking the transform rather than a pattern; all in `conventions.md`. Both
   things this bullet once predicted would need a non-digit slot were answered without one — the meridiem and the
   era are controls in the trailing and leading slots. What no mask here can express is a **typed sign**, so
-  `AmountInput` holds no negative amount and a consumer wanting one has nothing to reach for. Whether
+  `CurrencyInput` holds no negative amount and a consumer wanting one has nothing to reach for. Whether
   `TextSyncUtils` should be exported for a consumer building their own masked field is still open, and it now has
   three in-library consumers arguing for it.
 - **Grouping is uniform, so the Indian and Chinese groupings cannot be spelled.** `applyGroupedMask` takes one
@@ -362,10 +368,10 @@ doing:
 
 ## 8. Other core controls the library does not have
 
-`Fundamentals/Input` covers `TextInput`, `TextArea`, `NumberInput`, `AmountInput`, `Checkbox`, `Toggle`, `Radio`,
+`Fundamentals/Input` covers `TextInput`, `TextArea`, `NumberInput`, `CurrencyInput`, `Checkbox`, `Toggle`, `Radio`,
 `RadioGroup`, `Select`, `MultiSelect`, `FileInput`, `ColorInput`, `Label`, `Calendar`, `DateInput`,
-`DatePicker` and `TimeInput`; `Fundamentals` adds `Accordion`, `Button`, `Tabs`, `Tooltip`, `Popover`, `Menu`, `Modal`,
-`Drawer`, `Progress`, `Range`, `Toasts` and `Tree`.
+`DatePicker` and `TimeInput`; `Fundamentals` adds `Accordion`, `Button`, `SlideButton`, `Tabs`, `Tooltip`, `Popover`,
+`Menu`, `Modal`, `Drawer`, `Progress`, `Range`, `Toasts` and `Tree`.
 Beyond item 7, this is what is missing, ordered by how much of it is a new architectural problem rather
 than by how much markup it is.
 
@@ -424,7 +430,7 @@ any of those without first deciding these would bake the decision in by accident
   still missing is the origin of a **single activation** — see item 2, which also argues it is not worth building
   until something asks.
 - **Masking and formatting is built, and the field over it is shared.** `applyMask`, `applyGroupedMask` and
-  `Abstracts/MaskedField` are all in `conventions.md`, with `DateInput`, `TimeInput` and `AmountInput` over them.
+  `Abstracts/MaskedField` are all in `conventions.md`, with `DateInput`, `TimeInput` and `CurrencyInput` over them.
   What is not built is a typed sign or a non-uniform group pattern; see item 7.
 - **Virtualization is built.** `Abstracts/Virtualizer` wraps `@tanstack/solid-virtual` and `Select` is the
   first consumer; see `conventions.md`. It was made an `Abstract` rather than a `Select` feature because
@@ -482,12 +488,12 @@ permanently, and the same goes for `CellAnimation`, `ScanlineAnimation` and `Scr
 Playground page and no spec because what they produce is motion over time. A DOM-reading spec over those three
 would assert structure and call it coverage; nothing else here will reach them.
 
-**`ImageSwitcher`'s one remaining hole is `onLoad`, and the page is why.** The rest of the contract is
-now driven — the pair staying mounted, the preload finishing before either element changes, a failed
-source swapping anyway, the empty case, and the duration reaching both elements. `onLoad` cannot be
-reached because `ImageSwitcherPage` passes no handler, so covering it means the page growing a readout
-first. Worth stating as a shape rather than as one gap: a callback nothing on the page consumes is
-invisible to a suite that drives the page, and `onMount` handoffs are in the same position.
+**A callback nothing on the page consumes is invisible to a suite that drives the page**, and `onMount`
+handoffs are in the same position. `ImageSwitcher`'s `onLoad` was the standing example and is now covered —
+the page grew a readout, `ExampleDefs` grew the optional `readout` field `VariantDefs` already had, and the
+spec asserts both that a successful load is reported and that the two swap paths without one (a failed
+source, a cleared source) report nothing. The shape is what to keep: reaching a callback means giving the
+page a reason to consume it first.
 
 **Components with no Playground page at all**, so nothing can drive them until one exists:
 `AudioSwitcher` and `RichText`, both commented out of `TAB_CONFIGS` in
@@ -501,14 +507,21 @@ whether a spec is worth writing: `Popover` through `Select` and `Menu`, `Radio` 
 `select.spec.ts`, `Corners` and `Viewport` through whatever page happens to mount them,
 `InteractionWrapper` through every control.
 
-**Every rAF consumer but `ElementFader` hangs on a frame with no fallback.**
-`ElementObserver.createViewportRectObserver`, and through it `Anchor`, `Tooltip` and `Select`'s
-positioning, would leave a popup anchored to where its field used to be on a page that stopped painting.
-`ElementFader` was given a fallback timer because a state machine that stops advancing is a bug; whether
-a positioner that stops updating when nothing is painting is also a bug is undecided. This used to be
-observable through the old suite, whose headless mode stopped producing frames; Playwright does not
-stall that way, so the question is now purely about the components and nothing in the suite will surface
-it.
+**What a page that stops painting costs is now measured rather than guessed, and the answer split the two
+rAF consumers apart.** `e2e/noAnimationFrames.spec.ts` replaces `requestAnimationFrame` with a function that
+never calls back, before any application code runs — a frozen clock cannot express this, because Playwright
+fakes frames as a 16ms timer and advancing time to reach a fallback fires the frame first. Two findings:
+
+- **`ElementFader`'s 100ms fallback is real and is now driven.** With no frames at all a `Modal` still
+  reaches its visible target, which is the whole reason the fallback was written.
+- **The positioner's poll is load-bearing for exactly one thing: finishing the first placement.** A layer
+  measures itself on mount, before it has its final size, so the opening position is provisional and the
+  next tick corrects it — measured at 30px out on `ViewportPage`'s scrolled anchor. Everything after that is
+  carried by the capture-phase `scroll` listener alone: with frames starved, the first scroll lands the
+  layer exactly on its anchor's edge. So the fear this item used to record — a popup drifting further and
+  further from the field it belongs to — is not what happens. What does happen is that **every layer opens
+  one frame behind**, which is the same frame of drift item 18 records against a fast scroll, seen from the
+  other end. Whether to make the first placement frame-independent is a decision nobody has taken.
 
 **Time is no longer a blind spot, and the mechanism is worth knowing before the next timing bug.**
 Playwright's clock API fakes `Date`, `setTimeout`, `setInterval`, `requestAnimationFrame`,
@@ -516,11 +529,9 @@ Playwright's clock API fakes `Date`, `setTimeout`, `setInterval`, `requestAnimat
 `runFor`. `install` freezes time until it is advanced, so a duration becomes a stepped quantity rather
 than a wait — which is what let the toast pause arithmetic be asserted at all, since the question is not
 _whether_ four seconds elapse but _which_ four. `toasts.spec.ts` uses it in one describe block, and that
-is the pattern for anything else of this shape: `ElementFader`'s 100ms fallback is still undriven, and so
-is the paragraph above — stopping the frame supply is exactly what a frozen clock does to
-`requestAnimationFrame`, so "is a positioner that stops updating when nothing is painting a bug" is now a
-question a spec can put rather than an open one. What the clock does not reach is the three motion
-components, whose time is CSS's rather than the page's.
+is the pattern for anything else of this shape. What the clock does **not** reach is two things: the three
+motion components, whose time is CSS's rather than the page's, and the absence of frames, which needs the
+stub above rather than a fake clock — the two look interchangeable and are not.
 
 ---
 
@@ -866,7 +877,7 @@ that roams one of them at a scale you can change, and an anchor inside a scrolli
 
 ---
 
-## 19. `Tree` — six things deliberately not built, and one extraction to decide
+## 19. `Tree` — five things deliberately not built, and one extraction to decide
 
 The decisions behind what exists are in `conventions.md` under _"Controls: `Tree`, and the group box that
 could not be a child"_. These are the gaps, each with the reason it is still one.
@@ -892,12 +903,15 @@ could not be a child"_. These are the gaps, each with the reason it is still one
   subtree has to draw a `role="group"` whose start is above the window and whose end is below it. The flat
   walking order the windower needs is already computed and already carries each row's index, so what is
   missing is the markup rather than the arithmetic.
-- **The focus rescue on an outside collapse is not driven by anything.** A branch that collapses while a row
-  inside it holds focus hands focus back to the branch, rather than letting the browser drop it on the
-  document body. Every route the Playground can produce — a click, `ArrowLeft` — moves focus to the branch
-  first anyway, so the guard only fires when a **consumer** collapses from their own code, and nothing on the
-  page does that. Same shape as `ImageSwitcher`'s `onLoad` in item 10: correct, cheap, and invisible to a
-  suite that drives the page.
+
+**The focus rescue was wired to a function nothing could reach, and is now a guard over the visible rows.**
+It used to sit inside `collapse`, checking whether focus was on a descendant before removing the subtree — but
+both routes into `collapse` act on the branch itself, which is already the focused element and stays mounted,
+so the check was never true. A **consumer** writing `expandedSignal` from their own code, which is the only
+way to collapse a branch out from under a focused row, never passes through `collapse` at all. The guard now
+watches the visible rows and fires when a remembered focused row leaves the set while focus has fallen to the
+document body; `tree.spec.ts` drives it through a Playground button that defers the collapse, since a button
+that collapsed on the spot would be holding focus itself.
 
 **The extraction, which is a decision rather than a gap.** Flattening a nested list into a navigable one now
 exists twice: `SelectUtils.getFlatOptions`, which flattens one level of groups and needs `getItemOffsets`
@@ -931,6 +945,115 @@ having before a third consumer asks.
 - **Drag and drop is React Aria's, and nobody else's.** It arrives through the same `useDragAndDrop` hook its
   lists use rather than as anything tree-specific. Nothing here has asked for it, and it is recorded so the
   omission is not re-derived as an oversight.
+
+---
+
+## 20. `SlideButton` — five things deliberately not built
+
+The decisions behind what exists are in `conventions.md` under _"Controls: `SlideButton`, and why the gesture
+is the only thing it owns"_, including which WCAG criteria were read and what they decided. These are the
+gaps, each with the reason it is still one.
+
+- **The progress is in the flags and nowhere else.** There is no `progressSignal`, so a consumer who wants to
+  drive anything but the painter off the slide — a live readout, a second control, a warning that appears
+  half-way — has no route to the number. `SignalMirror.createOptional` is the shape it would take, exactly as
+  the popups' open state does, and it stays private because nothing has asked. Note the related case is
+  already solved from the other side: holding the thumb at the end after a confirmation is `getIsPressed` plus
+  a painter, and needs no library change.
+- **The thumb has to reach the end, and there is no threshold.** Overshooting clamps, so a drag past the end
+  is enough and reaching it is easy — but a consumer who wants a hair-trigger at 90%, or a longer travel than
+  the paint suggests, has nothing to set. It is not a prop because a tuned value with no consumer behind it is
+  a guess, and the rule about measured values says those are the user's to set rather than the library's to
+  invent.
+- **Horizontal only.** `Range` grew an `orientation` and this did not: the hit test and the progress
+  arithmetic both read one axis, and the painter's `calc` does too. A vertical slide-to-activate is a real
+  shape on a phone lock screen and nowhere else, which is why it was not built rather than why it could not
+  be.
+- **A cancelled pointer at the very end still activates.** `trackDrag` routes `pointercancel` to the same
+  handler as a release, so a drag the browser or the OS takes over while the thumb is already at the end reads
+  as a completed gesture. `touch-action: none` closes the route that would actually cause this — a touch drag
+  turning into a page scroll — so what is left needs the pointer taken away at exactly the wrong moment.
+  Distinguishing the two would mean `trackDrag` reporting why a drag ended, which is a change to a shipped
+  `Abstract` with two other consumers for a case nobody has hit.
+- **Nothing announces the progress, and the hold made that slightly worse.** A screen reader hears a button
+  and hears nothing while the bar fills, because a `<button>` has nowhere to put a value — so a person who
+  cannot see the fill has no way to know how much longer to hold, or that holding is doing anything at all.
+  `LiveAnnouncer` exists and is the obvious tool, but announcing on a timer is exactly the stutter it was
+  written to avoid; an `aria-description` naming the gesture up front may be the cheaper half. Nothing has
+  been argued.
+- **The hold duration is one number for everyone.** `getHoldDurationMs` defaults to 1000 and a consumer can
+  change it, which is the right shape — but there is no route to a duration that follows the person rather
+  than the control, and `prefers-reduced-motion` is not the signal for it either. Recorded because a fixed
+  hold is itself a dexterity assumption, and the control exists partly to avoid one.
+
+**_Elsewhere_**, read on **2026-08-13**, after the keyboard decision had already been taken.
+
+- **No headless library ships one, so there is nothing to copy either way.** Radix's thirty-odd primitives,
+  Base UI's thirty-five at its December 2025 stable release, React Aria and Ark UI all have a slider and a
+  button and nothing between them. That is the same finding as the animation components in item 3: the
+  omission is the field's, not this library's.
+- **The packages that do ship one have no keyboard route at all**, which is worse than the decision taken here
+  rather than different from it. `react-swipeable-button`'s whole documented surface is `onSuccess`,
+  `onFailure` and colours — no role, no `tabindex`, no key handling; `react-slide-button` is built on
+  `react-swipeable`, which is pointer-only by construction.
+- **Apple, whose lock screen is where the pattern comes from, answers exactly the decision taken here.** Asked
+  on the developer forum whether a swipe-to-confirm harms VoiceOver users, the guidance is to override
+  `accessibilityActivate` so that a single activation runs the same confirm logic **without** the swipe, or to
+  expose the confirmation as an `accessibilityCustomActions` entry. The lock screen itself behaves that way:
+  a VoiceOver user selects the caption and double-taps, and the gesture collapses to one activation. So "the
+  assistive route is a plain activation, not a reproduced gesture" is the platform's own answer and not a
+  convenience.
+- **The standard that decides it is 2.5.7 Dragging Movements, and it is newer than the pattern**, which is
+  most likely why none of the packages above answer it. What it asks for — a single-pointer route that is not
+  a drag — is what the hold is; see `conventions.md`.
+
+---
+
+## 21. Planned: the Playground's source view, in three remaining phases
+
+The decisions are settled and are in `conventions.md` under _"The Playground: an example's source is a folder
+view"_ and _"Playground samples: one file per key"_. The `Samples/` split those decisions needed is done — a
+folder per samples component and 140 sample files across the three registries big enough to warrant it. What
+is left is the source view itself, in three separately committable phases.
+
+**1 — The tabbed source view itself.** Loading raw source on demand rather than at module scope, resolving an
+example's own imports into folder tabs, resolving the current sample key to its file by name, and the
+`Accordion` per tab. Also the change that gives an example the key rather than the resolved config, so its
+source stops having a hole where the interesting decision was made. The page-scaffolding flag lands here.
+
+**2 — The same button on `Variants`.** This is the phase that is a second project rather than a step:
+variants are written inline inside each page's `getVariants`, so giving them a source view means extracting
+roughly 150 of them into their own files across about 30 pages. It is also the phase that makes the
+`StyledComponents` half of the tab rule pay, since examples import no styled components today and variants are
+made of them.
+
+**3 — A description under each page's title.** One or two sentences saying what the control is and any quirk
+worth knowing, distinct from the title and not documentation. Small, and independent of the other three.
+
+---
+
+---
+
+## 22. `Spotlight` — three things deliberately not built
+
+The decisions behind what exists are in `conventions.md` under _"Controls: `Spotlight`, and three presets
+because a mode cannot move at runtime"_. These are the gaps, each with the reason it is still one.
+
+- **Nothing scrolls the highlighted element into view.** `ElementObserver` measures the rect where it is, so a
+  step below the fold spotlights a rectangle nobody can see and a guide's popup is anchored to it. This is the
+  most likely of the three to be hit first, because a tour is exactly the case where the consumer does not
+  choose which part of the page is on screen. `scrollIntoView` on the element when the rect first resolves is
+  the whole of it; what has not been argued is whether a `hint` should do it too, since a hint that yanks the
+  page is a different thing from one that points at something already visible.
+- **A step change announces nothing.** The dialog stays mounted and focus deliberately does not move — see
+  `conventions.md` for why moving it is worse — so a screen reader hears silence when the popup's content is
+  replaced. `LiveAnnouncer` exists and is the obvious tool; what it should say, and whether a consumer wants to
+  own that string, is undecided. `Calendar` reached the same question from the other side.
+- **`prompt` cannot hide the page from a screen reader.** `inert` is inherited and cannot be lifted off a
+  descendant, so a mode that keeps one element live cannot seal the rest — the overlay stops the pointer and
+  the `focusin` guard stops the tab order, but a virtual cursor still reads everything behind. The only escape
+  is portalling the highlighted element into the overlay for the duration, which is far more invasive than the
+  mode is worth. Recorded as a limit of the mechanism rather than an oversight.
 
 ---
 

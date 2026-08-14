@@ -4,8 +4,8 @@ import { CSSUtils, type Size2d } from "@thewaver/ss-utils";
 
 import { Surface } from "../../../../../../Lib/Composites/Surface/Surface";
 import type { SurfaceProps } from "../../../../../../Lib/Composites/Surface/Surface.types";
-import { SVGDefsSamples } from "../../../../Samples/SVGDefs.const";
-import knight from "../../../../knight.png";
+import { SVGDefsSamples } from "../../../../Samples/SVGDefs/SVGDefs.const";
+import knight from "../../../../knight.webp";
 
 import * as styles from "./Banner.css";
 

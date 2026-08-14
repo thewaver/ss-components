@@ -1,0 +1,49 @@
+import { MathUtils } from "@thewaver/ss-utils";
+
+import { SVGAnimationUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Animation/SVGAnimationDefs.utils";
+import { SVGGradientDefsUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
+import type { PatternConfig } from "../../SVGDefs.types";
+import { SVGDefsUtils } from "../../SVGDefs.utils";
+
+export const whirl_2: PatternConfig = {
+    computeSVGDefs: (id, __, defs) => [
+        {
+            color: SVGDefsUtils.getBaseBackgroundColor(defs),
+        },
+        {
+            gradientOrPattern: {
+                id: `gradient1-${id}`,
+                renderDefsElement: () =>
+                    SVGGradientDefsUtils.computeRadialGradient(
+                        {
+                            id: `gradient1-${id}`,
+                            colors: [
+                                { value: defs.colors.primary },
+                                { value: defs.colors.primary },
+                                { value: defs.colors.secondary },
+                                { value: defs.colors.primary },
+                            ],
+                        },
+                        SVGAnimationUtils.Radial.grow([0, 2], {
+                            ...defs,
+                            animationDurationMs: defs.animationDurationMs * 0.5,
+                        }),
+                    ),
+            },
+            clipPath: {
+                id: `clip1-${id}`,
+                renderDefsElement: () => (
+                    <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
+                        {SVGAnimationUtils.Path.rotatingWedges(
+                            Math.max(defs.cellSize.width, defs.cellSize.height),
+                            0.75,
+                            0,
+                            MathUtils.getIntermediateValues(0, 360, 12),
+                            defs,
+                        )}
+                    </clipPath>
+                ),
+            },
+        },
+    ],
+};

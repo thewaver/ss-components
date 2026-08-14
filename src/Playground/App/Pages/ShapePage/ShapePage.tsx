@@ -11,7 +11,8 @@ import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { StressTest } from "../../PageComponents/StressTest/StressTest";
 import type { StressTestDefs } from "../../PageComponents/StressTest/StressText.types";
-import { SVGDefsSamples } from "../../Samples/SVGDefs.const";
+import { SVGDefsSamples } from "../../Samples/SVGDefs/SVGDefs.const";
+import type { SVGDefsColors } from "../../Samples/SVGDefs/SVGDefs.types";
 import {
     PageCheckField,
     PageColorField,
@@ -104,7 +105,7 @@ const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
     },
 ];
 
-const STARTING_COLORS: SVGDefsSamples.ColorDefs = {
+const STARTING_COLORS: SVGDefsColors = {
     background: "#282420",
     primary: "#FFFF00",
     secondary: "#00FFFF",

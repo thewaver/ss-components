@@ -1,5 +1,7 @@
 import { createMemo } from "solid-js";
 
+import { MathUtils } from "@thewaver/ss-utils";
+
 import type { ProgressProps, ProgressSizing, ProgressState } from "./Progress.types";
 
 import * as styles from "./Progress.css";
@@ -30,7 +32,7 @@ export const Progress = (props: ProgressProps) => {
                 value === undefined
                     ? undefined
                     : span > 0
-                      ? Math.min(Math.max((value - min) / span, 0), COMPLETE_RATIO)
+                      ? MathUtils.clamp(MathUtils.normalize(value, min, max), 0, COMPLETE_RATIO)
                       : COMPLETE_RATIO,
             hasError: props.getHasError?.() ?? false,
         };

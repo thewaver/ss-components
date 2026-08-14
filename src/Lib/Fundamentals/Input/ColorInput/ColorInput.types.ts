@@ -1,9 +1,9 @@
 import type { JSX, Signal } from "solid-js";
 
+import type { Color } from "@thewaver/ss-utils";
 import type { Point2d } from "@thewaver/ss-utils";
 
 import type { AnchorPlacement } from "../../../Abstracts/Anchor/Anchor.types";
-import type { ColorValueHsv } from "../../../Abstracts/ColorValue/ColorValue.types";
 import type { InteractionFlags } from "../../../Abstracts/Interaction/Interaction.types";
 import type { AccessorProps } from "../../../Utils/typeUtils";
 import type {
@@ -15,7 +15,7 @@ import type { RangeFlags } from "../Range/Range.types";
 
 export type ColorInputFlags = {
     value: string;
-    hsv: ColorValueHsv;
+    hsv: Color.HSVA;
     isOpen: boolean;
 };
 
@@ -58,7 +58,7 @@ export type ColorInputProps = Omit<InteractionWrapperProps<ColorInputFlags>, "re
         renderHue: (getFlags: () => InteractionFlags<RangeFlags>) => JSX.Element;
         renderPopup: (
             renderSurface: () => JSX.Element,
-            hsvSignal: Signal<ColorValueHsv>,
+            hsvSignal: Signal<Color.HSVA>,
             getVisibilityTarget: () => 0 | 1,
             getTransitionDurationMs: () => number,
         ) => JSX.Element;
