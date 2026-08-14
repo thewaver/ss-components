@@ -3958,6 +3958,16 @@ controller per mounted instance into an array and call `start()` on every one of
 closed. They now share one signal and write it once, and nothing has to still be mounted for that to work — which
 is the same argument the `Toasts` entry makes about a queue.
 
+**The cost of that, and the rule it produced: a shared playback signal also governs whatever mounts later.** The
+old controller array only ever held instances that existed when it was filled, so the stress-test modal's own
+items were never in it and started playing on mount regardless. One shared signal has no such boundary — the
+stress test writes `false` when the modal opens, the modal's items mount into a signal that already says stopped,
+and the thing being measured never runs. So **the animations under measurement own a second signal of their own**,
+declared in each page's `StressTestWrapper` and passed over the spread; the page-wide one keeps its job of
+suspending the examples behind the modal. Generally: a signal shared across a page is scoped to that page, and
+anything mounted into a different lifetime — a modal, a portal, a route — needs its own or it inherits a state
+that was never decided for it.
+
 **A command that is not a state stays a handle handed over at mount.** `Typewriter` keeps `restartAnimation` and
 `update(cause)`, and `AudioSwitcher` keeps `reset`. Restarting an animation and rewinding a track are not values
 anyone can read; they are requests, and the reason they cannot be faked with a signal is timing. Restarting means

@@ -126,6 +126,8 @@ const GRAYSCALE_SOURCE = highlighter.codeToHtml(GrayscaleExampleRaw, getDefaultH
 const HUE_SOURCE = highlighter.codeToHtml(HueExampleRaw, getDefaultHighlighterConfig());
 
 const StressTestWrapper = (props: ScanlineAnimationExampleProps) => {
+    const modalPlayback = createSignal(true);
+
     return (
         <>
             <div>{"120 lines"}</div>
@@ -164,6 +166,7 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps) => {
                         >
                             <ScanlineAnimation
                                 {...props}
+                                playbackSignal={modalPlayback}
                                 getLineCount={() => STRESS_LINE_COUNT}
                                 getAnimationIterationDelayMs={() => 0}
                                 computeScanlineAnimation={(defs, timeline) =>
@@ -470,9 +473,10 @@ const HueExampleWrapper = (props: ScanlineAnimationExampleProps) => {
 
 export const ScanlineAnimationPage = () => {
     /**
-     * One signal shared by every animation on the page, which is what replaced collecting a controller per mount.
-     * The stress test suspends them all while its modal is up by writing one variable, and nothing has to still be
-     * mounted for that to work.
+     * One signal shared by every animation on the page itself, which is what replaced collecting a controller per
+     * mount. The stress test suspends them all while its modal is up by writing one variable, and nothing has to
+     * still be mounted for that to work. The items inside the modal are the ones being measured, so they run off
+     * their own signal instead of this one.
      */
     const playback = createSignal(true);
 

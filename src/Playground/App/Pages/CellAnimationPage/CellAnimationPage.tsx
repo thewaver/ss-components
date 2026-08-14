@@ -103,6 +103,8 @@ const DefaultExampleWrapper = (props: CellAnimationExampleProps) => {
 };
 
 const StressTestWrapper = (props: CellAnimationExampleProps) => {
+    const modalPlayback = createSignal(true);
+
     return (
         <>
             <div>{`${STRESS_CELL_COUNT.x} x ${STRESS_CELL_COUNT.y} cells`}</div>
@@ -122,7 +124,11 @@ const StressTestWrapper = (props: CellAnimationExampleProps) => {
                         getHeight={() => STRESS_ITEMS[getConfigIndex()].size}
                         getPadding={() => 0}
                     >
-                        <DefaultExample {...props} getCellCount={() => STRESS_CELL_COUNT} />
+                        <DefaultExample
+                            {...props}
+                            playbackSignal={modalPlayback}
+                            getCellCount={() => STRESS_CELL_COUNT}
+                        />
                     </PageMeasureBox>
                 )}
             />
@@ -132,9 +138,10 @@ const StressTestWrapper = (props: CellAnimationExampleProps) => {
 
 export const CellAnimationPage = () => {
     /**
-     * One signal shared by every animation on the page, which is what replaced collecting a controller per mount.
-     * The stress test suspends them all while its modal is up by writing one variable, and nothing has to still be
-     * mounted for that to work.
+     * One signal shared by every animation on the page itself, which is what replaced collecting a controller per
+     * mount. The stress test suspends them all while its modal is up by writing one variable, and nothing has to
+     * still be mounted for that to work. The items inside the modal are the ones being measured, so they run off
+     * their own signal instead of this one.
      */
     const playback = createSignal(true);
 
