@@ -8,6 +8,7 @@ import { Viewport } from "../../Lib/Exotics/Viewport/Viewport";
 import { TabPanel, Tabs } from "../../Lib/Fundamentals/Tabs/Tabs";
 import type { Tab } from "../../Lib/Fundamentals/Tabs/Tabs.types";
 import { AccordionPage } from "./Pages/AccordionPage/AccordionPage";
+import { BreadcrumbsPage } from "./Pages/BreadcrumbsPage/BreadcrumbsPage";
 import { ButtonPage } from "./Pages/ButtonPage/ButtonPage";
 import { CalendarPage } from "./Pages/CalendarPage/CalendarPage";
 import { CarouselPage } from "./Pages/CarouselPage/CarouselPage";
@@ -35,9 +36,11 @@ import { ScrollerPage } from "./Pages/ScrollerPage/ScrollerPage";
 import { SelectPage } from "./Pages/SelectPage/SelectPage";
 import { ShapePage } from "./Pages/ShapePage/ShapePage";
 import { SlideButtonPage } from "./Pages/SlideButtonPage/SlideButtonPage";
+import { SplitPanePage } from "./Pages/SplitPanePage/SplitPanePage";
 import { SpotlightPage } from "./Pages/SpotlightPage/SpotlightPage";
 import { SurfacePage } from "./Pages/SurfacePage/SurfacePage";
 import { TabsPage } from "./Pages/TabsPage/TabsPage";
+import { TagInputPage } from "./Pages/TagInputPage/TagInputPage";
 import { TextAreaPage } from "./Pages/TextAreaPage/TextAreaPage";
 import { TextInputPage } from "./Pages/TextInputPage/TextInputPage";
 import { ToastsPage } from "./Pages/ToastsPage/ToastsPage";
@@ -132,6 +135,12 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
                 description:
                     "A set of disclosure sections, each a heading that opens a region. A collapsed panel stays built and measured, which is what lets it animate to its own height rather than to a guess.",
                 component: () => <AccordionPage />,
+            },
+            {
+                name: "Breadcrumbs",
+                description:
+                    "A trail of links to where you are, as a navigation landmark holding an ordered list. The last crumb is the page itself, so it is not a link and says so.",
+                component: () => <BreadcrumbsPage />,
             },
             {
                 name: "Button",
@@ -278,10 +287,22 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
                 component: () => <SpotlightPage />,
             },
             {
+                name: "SplitPane",
+                description:
+                    "Resizable panes over a CSS grid: the ratios are fr shares and a pane's bounds are a clamp, so a window resize is the browser's arithmetic rather than the component's. When the minimums cannot all fit, it overflows, exactly as grid does.",
+                component: () => <SplitPanePage />,
+            },
+            {
                 name: "Tabs",
                 description:
                     "A tab list built from records rather than from children, so the same list can be buttons, anchors, or a consumer's own link component. The panel is optional, and pairing it is the consumer's to wire.",
                 component: () => <TabsPage />,
+            },
+            {
+                name: "TagInput",
+                description:
+                    "A field whose value is a list: type a word, press Enter, and it becomes a tag beside the caret. Backspace on an empty field steps back into the tags rather than deleting one outright.",
+                component: () => <TagInputPage />,
             },
             {
                 name: "TextArea",

@@ -49,13 +49,13 @@ test("a transition still commits when no frame ever arrives", async ({ page }) =
 });
 
 /**
- * The other answer, and the question `review.md` left open: `ElementObserver.createViewportRectObserver`
+ * The other answer, and the question `backlog.md` left open: `ElementObserver.createViewportRectObserver`
  * polls on a frame **and** listens for `scroll` in the capture phase, and it was undecided what losing the
  * poll costs. Driving it splits the two apart cleanly, and the split is narrower than either guess.
  *
  * The poll is load-bearing for exactly one thing: **finishing the first placement.** A layer measures itself
  * on mount, before it has its final size, so the opening position is provisional and the next tick corrects
- * it — with frames that correction lands within one frame and is the drift `review.md` already records
+ * it — with frames that correction lands within one frame and is the drift `backlog.md` already records
  * against a fast scroll, seen here from the other end. Everything after the first placement is carried by
  * the listener alone: the first scroll lands the layer exactly on its anchor's edge with no frame involved.
  *

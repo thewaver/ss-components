@@ -1,7 +1,7 @@
 # Working with this user
 
 How to work here. Project and repo specifics are in [`src/Lib/conventions.md`](src/Lib/conventions.md);
-outstanding work is in [`src/Lib/review.md`](src/Lib/review.md). Read both before starting anything.
+outstanding work is in [`src/Lib/backlog.md`](src/Lib/backlog.md). Read both before starting anything.
 
 ## How work gets reviewed
 
@@ -16,14 +16,28 @@ observed behaviour, so an explanation only decodable by someone who already know
 change ships on trust rather than understanding.
 
 **Anything with no observable behaviour passes through unexamined.** Their gate catches whatever a user
-could see. It cannot catch this file, `conventions.md`, `review.md`, `e2e/`, or build config —
-nothing there changes what the Playground does. Write into that category only when asked or when it is
-clearly warranted, keep it small, and say plainly in the reply when a change lands there, so they can
-choose to look.
+could see. It cannot catch this file, `conventions.md`, `backlog.md`, `e2e/`, or build config —
+nothing there changes what the Playground does. Keep such changes small, and say plainly in the reply when
+one lands there, so they can choose to look.
+
+**The four documents split by audience, and that decides how freely to write in each.** Stated by the user
+on **2026-08-15**. **This file and `conventions.md` are read by Claude, not by them** — so write in them
+freely, in whatever wording is clearest to a future session, and do **not** ask permission first. Reporting
+the edit is still worth a line; requesting sanction for it is not. **`brief.md` and `backlog.md` are theirs**,
+and everything under _"Writing replies"_ applies to the text in them as much as to chat.
 
 **Never let a doc edit assert a policy the user did not set.** A convention written into this file is
 loaded as instruction at the start of every future session, so a call made unilaterally today comes back
-tomorrow looking like their standing rule. Propose; let them sanction.
+tomorrow looking like their standing rule. Free rein over the wording is not free rein over the rules:
+record decisions they took, not ones inferred on their behalf.
+
+**Do not write a fault into `brief.md` or `backlog.md` until they have said the explanation landed.** Asked
+for on **2026-08-15**, after an entry about `ColorInput`'s alpha was rewritten three times across one
+conversation and then deleted outright once they understood it — the item was never real, and each rewrite
+was polish on something already destined for the bin. Explain in chat first, in plain language, and wait for
+assent; then record. An explanation that has not landed yet may be describing the wrong thing entirely.
+This does not touch _"fix on sight"_, which is about defects in code — a broken thing still gets fixed
+immediately, and it does not slow edits to this file or `conventions.md` either.
 
 ## Writing replies
 
@@ -66,14 +80,14 @@ it still gets listed with the reason as its con, rather than argued away in a se
 **Every option carries an ID in its heading** — `1`, `2`, `3` or `A`, `B`, `C`. Asked for on **2026-08-13**.
 It gives them a one-character answer, which is what makes the list usable when they are replying by voice.
 
-The reasoning that would have gone into those paragraphs goes into `review.md` or `conventions.md`, which is
+The reasoning that would have gone into those paragraphs goes into `backlog.md` or `conventions.md`, which is
 where length is wanted.
 
 **Surface one decision at a time.** A long batched list of issues does not land; a single well-argued
 question does. They often work by voice and read in short bursts, so a bundled reply means the important
 item competes with three others and none land. When several decisions genuinely exist, say there are N
 pending and present only the first. This governs the reply, not the work — still do the whole task, and
-still write the full reasoning into `conventions.md` and `review.md`, where length is wanted.
+still write the full reasoning into `conventions.md` and `backlog.md`, where length is wanted.
 
 ## Arguing a position
 
@@ -148,7 +162,7 @@ inventing freely.
 
 **Do not bundle a judgment call into a bug fix.** Ship the defect fix on its own; do not carry a subjective
 design, API-surface, or performance change along under the fix's justification, and never list a taste
-change under the same `review.md` item as the bug it travelled with. A change riding along on a real fix
+change under the same `backlog.md` item as the bug it travelled with. A change riding along on a real fix
 is hard to spot in review and inherits credibility it has not earned, and the user often has context or
 measurements the code does not show. Raise the judgment call separately, in one sentence, and let them
 answer. When merging two implementations that disagree on a constant, keep both behaviours — a parameter
@@ -157,22 +171,35 @@ with per-call-site defaults — rather than picking a winner.
 **Treat anything measured as the user's call.** Cache sizes, thresholds, epsilons and similar tuned values
 are decisions backed by benchmarks you cannot see. Flag a concern; do not change one unsupervised.
 
-## The three documents
+## The four documents
+
+The first two are written for Claude and the last two for the user; see _"The four documents split by
+audience"_ above for what that changes.
 
 - **This file** — how to work with the user. Behaviour, not code.
 - **`conventions.md`** — settled decisions about the project and the reasoning behind them. It is the
   record of arguments already had, so they are not re-litigated. Before making an architectural call,
   check whether it is already there; after making a new one, add it.
-- **`review.md`** — outstanding work: bugs, smells, missing implementation, pending decisions. Numbered
+- **`backlog.md`** — outstanding work: bugs, smells, missing implementation, pending decisions. Numbered
   and contiguous from 1. Its last section, **_Accepted limits_**, is the exception: faults consciously left
   alone, unnumbered and outside the index. **They are not "what's left".** Do not raise one in a report on the
   state of the project, do not re-argue the trade, and do not weigh one against real work — say something only
   if a change has made the recorded reasoning wrong. Moving an item into that section is the user's decision to
   take, never a way to retire an item that has gone quiet.
+- **`brief.md`** — the same outstanding work as `backlog.md`, one line per fault, grouped by kind
+  rather than by component: missing components, pending abstractions, blockers and known issues,
+  accessibility gaps, planned projects. Asked for by the user on **2026-08-15** so that the state of the
+  project can be read in one screen. It carries no reasoning — the argument for why a gap is still a gap
+  stays in `backlog.md`, and every line here is a pointer to a numbered item there.
 
-**When an item in `review.md` is done or dropped, delete it outright** and renumber the rest. Nothing is
+**`backlog.md` and `brief.md` change together, always.** Closing an item, opening one, or moving one
+means editing both in the same change; a brief that disagrees with the full list is worse than no brief,
+because it is the one that gets read. `backlog.md` is the source of truth, so where the two differ the brief
+is what gets corrected.
+
+**When an item in `backlog.md` is done or dropped, delete it outright** and renumber the rest. Nothing is
 marked "resolved" in place. If closing it settled a decision that drives future work, that decision moves
 to `conventions.md`; the record of having done the work does not go anywhere.
 
-**No changelogs, in any of the three.** Nothing records "what landed", "what just shipped", or how many
+**No changelogs, in any of the four.** Nothing records "what landed", "what just shipped", or how many
 assertions passed. Once a thing is done, its only traces are the code and its `conventions.md` entry.

@@ -148,6 +148,8 @@ export const Tabs = <T,>(props: TabsProps<T>) => {
             selectedItemObserver?.disconnect();
         });
 
+        if (!props.renderFloater) return;
+
         const rootRef = getRootRef();
         const selectedItem = getItemRefs()[getSelectedIndex()];
         const selectedWrapper = selectedItem?.offsetParent as HTMLElement | null;

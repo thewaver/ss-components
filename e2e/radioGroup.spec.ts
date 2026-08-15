@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-import { activeMatches, attributesOf, readout, variant } from "./helpers";
+import { activeMatches, attributesOf, inlineStyle, readout, variant } from "./helpers";
 
 const DEFAULT = variant("Default");
 const REACHABLE = variant("Disabled + reachable");
 const DISABLED = variant("Disabled");
+const SEGMENTED = variant("Segmented");
 
 const option = (scope: string, label: string) => `${scope} input[aria-label="${label}"]`;
 
@@ -83,8 +84,41 @@ test("the walk stops on a reachable disabled radio without selecting it", async 
     ).toContain("value: large");
 });
 
+/**
+ * The floater is the group's, not the painter's: `RadioGroup` measures the selected radio's wrapper and
+ * writes the box as inline `top` / `left` / `width` / `height`, and the consumer only paints inside it.
+ * So what is asserted here is the measurement, read off the wrapper the library positions — the painted
+ * child carries a hashed class and says nothing about where it is.
+ *
+ * The first assertion is the one that catches a floater that mounted but never measured: a box still
+ * sitting at its initial empty style would pass a visibility check and fail this. The second is the
+ * movement itself, polled because the position is written from a `ResizeObserver` callback rather than
+ * synchronously with the click.
+ *
+ * A group with no `renderFloater` runs no observer at all, which is why only this variant has a box to
+ * find; `Default` is checked for its absence so that the guard cannot quietly stop guarding.
+ */
+const FLOATER_TIMEOUT_MS = 5_000;
+
+test("the floater is measured from the selected radio and moves with it", async ({ page }) => {
+    await expect(
+        page.locator(`${DEFAULT} [data-floater]`),
+        "a group that passes no floater renders none, and runs no observer for one",
+    ).toHaveCount(0);
+
+    const box = page.locator(`${SEGMENTED} [data-floater]`).locator("..");
+    const before = await inlineStyle(box, "left");
+
+    expect(before, "the floater is placed off a real measurement rather than left at zero").not.toBe("");
+
+    await page.locator(option(SEGMENTED, "Large")).click();
+
+    await expect.poll(() => inlineStyle(box, "left"), { timeout: FLOATER_TIMEOUT_MS }).not.toBe(before);
+    expect(await readout(page, "Segmented"), "and the value moved with it").toContain("value: large");
+});
+
 test("each group generates its own name", async ({ page }) => {
     const names = await attributesOf(page, "input[type='radio']", "name");
 
-    expect(new Set(names).size, "each group generates its own name, so the browser cannot mix two of them").toBe(5);
+    expect(new Set(names).size, "each group generates its own name, so the browser cannot mix two of them").toBe(7);
 });

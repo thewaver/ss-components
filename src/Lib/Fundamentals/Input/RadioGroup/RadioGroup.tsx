@@ -1,5 +1,6 @@
-import { createMemo, createSignal, createUniqueId, onCleanup } from "solid-js";
+import { createEffect, createMemo, createSignal, createUniqueId, onCleanup } from "solid-js";
 
+import { ElementFader } from "../../../Abstracts/ElementFader/ElementFader";
 import { NavigationUtils } from "../../../Abstracts/Navigation/Navigation.utils";
 import { RadioGroupContextProvider } from "./RadioGroup.context";
 import type { RadioGroupContextType, RadioGroupEntry } from "./RadioGroup.context.types";
@@ -9,13 +10,22 @@ import * as styles from "./RadioGroup.css";
 
 const DEFAULT_RADIO_GROUP_DIR: RadioGroupDir = "row";
 const DEFAULT_RADIO_GROUP_GAP = 0;
+const DEFAULT_RADIO_GROUP_TRANSITION_DURATION_MS = 200;
 
 export const RadioGroup = <T,>(props: RadioGroupProps<T>) => {
     const fallbackName = createUniqueId();
 
     const [getEntries, setEntries] = createSignal<RadioGroupEntry[]>([]);
+    const [getRootRef, setRootRef] = createSignal<HTMLElement>();
+    const [getFloaterBounds, setFloaterBounds] = createSignal<
+        { [k in "top" | "left" | "width" | "height"]: string } | undefined
+    >();
 
     const getDir = createMemo(() => props.getDir?.() ?? DEFAULT_RADIO_GROUP_DIR);
+
+    const getTransitionDurationMs = createMemo(
+        () => props.getTransitionDurationMs?.() ?? DEFAULT_RADIO_GROUP_TRANSITION_DURATION_MS,
+    );
 
     const getOrderedEntries = createMemo(() =>
         [...getEntries()].sort((a, b) => {
@@ -37,6 +47,47 @@ export const RadioGroup = <T,>(props: RadioGroupProps<T>) => {
         const value = props.valueSignal[0]();
 
         return navigable.find((entry) => entry.getValue() === value) ?? navigable[0];
+    });
+
+    const getSelectedEntry = createMemo(() =>
+        getOrderedEntries().find((entry) => entry.getValue() === props.valueSignal[0]()),
+    );
+
+    const getIsFloaterShown = createMemo(() => getSelectedEntry() !== undefined && getFloaterBounds() !== undefined);
+
+    const floaterFader = ElementFader.createFader(getIsFloaterShown, { getTransitionDurationMs });
+
+    createEffect(() => {
+        if (floaterFader.getIsVisible()) return;
+
+        setFloaterBounds(undefined);
+    });
+
+    createEffect(() => {
+        let selectedItemObserver: ResizeObserver | undefined;
+
+        onCleanup(() => {
+            selectedItemObserver?.disconnect();
+        });
+
+        if (!props.renderFloater) return;
+
+        const rootRef = getRootRef();
+        const selectedItem = getSelectedEntry()?.getElementRef();
+        const selectedWrapper = selectedItem?.offsetParent as HTMLElement | null;
+
+        if (!rootRef || !selectedWrapper) return;
+
+        selectedItemObserver = new ResizeObserver(() => {
+            setFloaterBounds({
+                top: `${selectedWrapper.offsetTop}px`,
+                left: `${selectedWrapper.offsetLeft}px`,
+                width: `${selectedWrapper.offsetWidth}px`,
+                height: `${selectedWrapper.offsetHeight}px`,
+            });
+        });
+        selectedItemObserver.observe(rootRef);
+        selectedItemObserver.observe(selectedWrapper);
     });
 
     const context: RadioGroupContextType = {
@@ -80,6 +131,7 @@ export const RadioGroup = <T,>(props: RadioGroupProps<T>) => {
 
     return (
         <div
+            ref={setRootRef}
             class={styles.radioGroupRoot}
             style={{
                 "flex-direction": getDir(),
@@ -90,6 +142,15 @@ export const RadioGroup = <T,>(props: RadioGroupProps<T>) => {
             aria-invalid={props.getHasError?.() || undefined}
             onKeyDown={handleKeyDown}
         >
+            {props.renderFloater && floaterFader.getIsVisible() && getFloaterBounds() && (
+                <div
+                    class={styles.radioGroupFloater}
+                    style={{ ...getFloaterBounds(), "transition-duration": `${getTransitionDurationMs()}ms` }}
+                >
+                    {props.renderFloater(floaterFader.getTransitionTarget, getTransitionDurationMs)}
+                </div>
+            )}
+
             <RadioGroupContextProvider value={context}>{props.children}</RadioGroupContextProvider>
         </div>
     );

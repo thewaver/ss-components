@@ -1,7 +1,7 @@
 # Conventions
 
 Settled decisions for this project, recorded so they are not re-litigated. This is the reasoning
-that would otherwise live in code comments. Open problems live in `review.md`; nothing here is a
+that would otherwise live in code comments. Open problems live in `backlog.md`; nothing here is a
 task. How to work with the user is in `CLAUDE.md` at the repo root.
 
 Most of what follows is about `src/Lib`, which is the part with a contract. The repo-level
@@ -107,7 +107,7 @@ re-derived:
 **What was never staged, by category**: anything shaped around a component's own record (`SelectUtils` walks
 `SelectItem`, `TreeUtils` walks a `TreeNode` carrying `tooltipDefs`, `ToastsUtils` walks a toast entry);
 anything bound to a framework (`Interaction`, `Focus`, `FPS`, `ElementFader`, and the three SVG defs modules
-that return JSX — those are the arithmetic item 11 in `review.md` wants split from its markup, and doing that
+that return JSX — those are the arithmetic item 11 in `backlog.md` wants split from its markup, and doing that
 first would make the arithmetic half a candidate); anything adapting a third-party package, which the section
 below puts explicitly on this side of the line (`DateValue` over `@internationalized/date`, `Virtualizer` over
 `@tanstack/solid-virtual`); and three near misses blocked only by a pure type sharing a file with Solid props
@@ -1216,7 +1216,7 @@ Both follow `checkedState` exactly — added to `ExternalInteractionFlags`, expo
 the omission prevents. `getIsReadOnly` stays public, since read-only is the consumer's to declare.
 The painter does **not** receive the value: the input already renders it, and a painter drawing it
 too would double it. `isEmpty` is the summary that drives placeholder and floating-label paint, and
-nothing more. What this costs is recorded in `review.md` — `ExternalInteractionFlags` is on its way
+nothing more. What this costs is recorded in `backlog.md` — `ExternalInteractionFlags` is on its way
 to being the union of every control's private state.
 
 **`number` is a type, not a component.** _Corrected after the fact: this section originally argued
@@ -1402,7 +1402,7 @@ whose job is one-directional must only depend on the direction it syncs from.
 
 ### Controls: `Range`
 
-Settled **2026-08-07**. `review.md` predicted this would be the most architecturally novel control
+Settled **2026-08-07**. `backlog.md` predicted this would be the most architecturally novel control
 left and got the central call wrong, which is the most useful thing to record about it.
 
 **A two-thumb range _is_ two native `<input type="range">` elements, one per thumb.** The prediction
@@ -1412,7 +1412,7 @@ the same painter, so a pair is the single case rendered twice and the two modes 
 paint, keyboard or ARIA. Keeping native also keeps `step`, `Home`/`End`, `PageUp`/`PageDown`, drag,
 and the track-click jump, none of which anyone has to write.
 
-`Range` therefore did **not** need `review.md` #2's pointer primitive, and item 2 stays open for the
+`Range` therefore did **not** need `backlog.md` #2's pointer primitive, and item 2 stays open for the
 thing that actually needs it — a two-dimensional colour surface, which has no native equivalent.
 
 **Crossing is prevented by the inputs' own `min` and `max`, not by JS.** Thumb `n`'s `min` is thumb
@@ -1607,7 +1607,7 @@ but tells a screen reader user nothing about the grouping the sighted user can s
 **The pairing that `Tab<T>`'s `id` and `panelId` exist for is now wired here too.** Each component
 config derives both from its own name, and the routed page is wrapped in `TabPanel` — so the menu
 stopped being the standing example of a tab list that names a panel nobody wrote. The bullet in
-`review.md` that this fixes is about the library, not the menu: nothing still forces a consumer to do
+`backlog.md` that this fixes is about the library, not the menu: nothing still forces a consumer to do
 it, and the menu went four months without.
 
 **A category whose entries are all filtered out disappears, heading and all.** The old menu kept every
@@ -1723,7 +1723,7 @@ library referenced it.
 
 ### Controls: the flags are extensible, and a painter is typed to its own control
 
-Settled **2026-08-06**, closing `review.md`'s third item on the trigger it named — `Select` wants
+Settled **2026-08-06**, closing `backlog.md`'s third item on the trigger it named — `Select` wants
 `isOpen`, `isFiltering` and more, which is well past the "two or more private flags" threshold.
 
 **`InteractionFlags<TExtra>` is generic with a `{}` default, so nothing that had no extras changed.**
@@ -1763,7 +1763,7 @@ read-only is a text concept here, and a future control that wants it declares it
 ### Controls: `Select`, and who owns a floating list
 
 Settled **2026-08-06**. This and the two `Select` headings after it are what remains of a design brief
-that was deleted once it shipped; `review.md` #6 carries what was deliberately left out of it.
+that was deleted once it shipped; `backlog.md` #6 carries what was deliberately left out of it.
 
 **One `mousedown` `preventDefault()` on the popup root is what makes the whole model work.** The
 options live in the `Viewport` portal, so clicking one would move focus out of the field and blur it.
@@ -2267,14 +2267,14 @@ library it is built on.
 `ElementFader` hanging its state machine on a single frame (below) are both bugs that are invisible in
 markup, and neither would have been found by looking at the page.
 
-`review.md` #11 carries what the suite still cannot see.
+`backlog.md` #11 carries what the suite still cannot see.
 
 ### Unit tests: `vitest`, colocated, and only for functions
 
 `e2e/` can only reach what a click can reach. A function that takes rectangles and returns a placement
 has no page to be clicked on, so provoking its edge cases through a browser means building a Playground
 variant per case — which is why `AnchorUtils`'s flip-and-clamp logic went unchecked long enough to ship
-the overflow in `review.md` #5. `npm test` is the other half: it calls library functions directly.
+the overflow in `backlog.md` #5. `npm test` is the other half: it calls library functions directly.
 
 **One dependency, and no DOM.** `vitest` reads the repo's own Vite setup, and `vitest.config.ts` sets
 `environment: "node"` because nothing under test touches a document. A jsdom environment would invite
@@ -2313,9 +2313,9 @@ rather than describe it, and would have to be re-blessed wholesale by any change
   JSX, and their arithmetic — the tiling offsets for each pattern, the gradient stop interpolation in
   `resolveStops` — is written inline inside the element being built or kept private to the module. There
   is real geometry in there and it is currently unreachable without either rendering or a refactor that
-  separates the arithmetic from the markup. `review.md` #12 records it.
+  separates the arithmetic from the markup. `backlog.md` #12 records it.
 - **A known-broken case is pinned rather than fixed.** `CellAnimation.utils.test.ts` asserts the
-  out-of-range weights that `review.md` #5 describes, with the measured numbers. It passes today and will
+  out-of-range weights that `backlog.md` #5 describes, with the measured numbers. It passes today and will
   fail the moment anyone fixes the bug, which is the point — both candidate fixes change output across
   every affected weight, so the test has to be re-blessed as part of the fix rather than quietly surviving
   it.
@@ -2362,7 +2362,7 @@ painter never handles an `undefined` its control cannot emit; here the control g
 the union is honest rather than an oversight.
 
 **The indeterminate animation is the painter's, which contradicts the note that raised this component.**
-`review.md` claimed the timing was the library's. It should not be: an indeterminate bar is a looping
+`backlog.md` claimed the timing was the library's. It should not be: an indeterminate bar is a looping
 animation with no state behind it, CSS runs it on the compositor for free, and a library-owned clock would
 burn frames to hand a painter a phase it can already get from `@keyframes`. The library says _that_ the
 bar is indeterminate; how it moves is paint like everything else.
@@ -2493,7 +2493,7 @@ brightness(120%) }`, because `filter` paints an element's outline and that rule 
 focus ring of every hovered button — the exact failure the ring rule exists to prevent, found by removing
 the thing that hid it.
 
-**The library's own `!important` resets stay, and `review.md`'s guess that "several could go" is wrong.**
+**The library's own `!important` resets stay, and `backlog.md`'s guess that "several could go" is wrong.**
 The Playground is not the only consumer. A blank slate that loses to an element selector is broken, and
 element-level input styling is what every reset stylesheet in existence ships. What the scoping removes is
 the **consumer-side** escalation — a painter no longer has to reach its own input through a `globalStyle`
@@ -2504,8 +2504,233 @@ to win — which is the half that was actually costing anyone anything.
 `PageFileField` live in one folder as one file, because seven two-line adapters in seven folders is worse
 than the family being visible in one place — the same call `Select.tsx` makes with its three private
 components. Each keeps a local `*Signal` and mirrors the panel's plain value into it. That mirror is
-written seven times and it is the thing `review.md` #10 now records as a gap: every control here owns its
+written seven times and it is the thing `backlog.md` #10 now records as a gap: every control here owns its
 value as a signal, and a consumer whose state is a store has to build the bridge themselves.
+
+### Controls: `SplitPane`, where CSS grid is the arithmetic
+
+Built **2026-08-15**. Resizable panes with a draggable gutter between each pair.
+
+**The stated objection to building it was wrong and is recorded so it is not raised again.** `backlog.md`
+held that this would be the first control to write a dimension, against the rule that the library leaves
+layout to the consumer. `Collapsible` already writes a measured pixel height, the `Tabs` and `RadioGroup`
+floaters write a full box, and `Viewport` scales its contents; the library also already owns wrapper
+elements around consumer content, such as `Breadcrumbs`' `<li>` and `Select`'s group box. The rule the
+objection appealed to does not exist in that form.
+
+**The value is ratios, and pixels are never stored.** `ratiosSignal` is `Signal<number[]>`, one share per
+pane. A container resize must not rewrite what the person chose: drag to 30/70 in a 1000px box, narrow the
+window, and the stored `0.3` stands while the rendered widths clamp — widen it again and 300/700 returns
+exactly. That is the same shape as `ColorArea` keeping HSV while emitting hex, and `DateValue` keeping the
+lossless form and converting at the edge.
+
+**The layout is one `grid-template` string and nothing else.** A pane is
+`calc(ratio * (100% - totalGutterPx))`, and a pane with bounds is that share inside a `clamp()`. The gutters
+are fixed tracks between them. So a window resize needs no observer, no measurement and no code at all —
+the browser recomputes, which is the whole reason this shape was chosen over an `fr`-based one: `fr` cannot
+appear inside `clamp()` or `min()`, so a per-pane maximum is not expressible alongside it, while
+percentages and pixels compose freely. N panes come free, and two panes are not a special case.
+
+**When the minimums cannot all fit, it overflows — accepted by the user on 2026-08-15.** Two floors of
+250px and 400px in a 600px box do not shrink proportionally; grid honours both and the row spills past its
+container. This was chosen over computing a proportional shrink, which would have needed a `ResizeObserver`
+and the library rewriting the floors on every resize. The user's reasoning is worth keeping: grid's
+behaviour is consistent, expected and documented, a consumer who declares floors that cannot fit is
+misusing the API rather than meeting a bug, and inheriting the platform's answer whole is preferable to
+inventing a second one. `splitPane.spec.ts` pins it so a later change has to break that test deliberately.
+
+**A gutter moves its two neighbours and nothing else.** Their combined share is conserved, so the ratios
+keep summing to one without a normalisation pass, and dragging at one end never reflows the far side.
+
+**The gutter is a `<button>` with `role="separator"`, and it carries a value.** `aria-valuenow` is the
+boundary as a percentage with a 0–100 range, `aria-orientation` states the axis, and the arrow keys for that
+axis move it by `keyStep`. A drag-only splitter is unreachable without a pointer, which is the half most
+implementations skip.
+
+**The drag is local rather than `InteractionUtils.trackDrag`.** That helper measures the pointer against
+the element it is attached to, which is right when the drag surface *is* the measured surface — `Range` and
+`ColorArea` both are. Here the drag surface is the gutter and the measured surface is the container, so the
+component reads the container's rect itself. If a third consumer of that shape appears, widening `trackDrag`
+to take a separate measuring ref is the change to argue then, not now.
+
+**Not built:** collapsing a pane to nothing and restoring it, a double-click to reset, and persisting the
+split. All three are the consumer's today, since they own the signal.
+
+### Controls: `TagInput`, and why it is not a `TextField` preset
+
+Built **2026-08-15**. A field whose value is a list: type a word, press Enter, it becomes a tag beside the
+caret.
+
+**It owns its own box rather than sitting in `TextField`'s leading slot, and that was the whole decision.**
+The obvious cheap route was a preset like `NumberInput`, with the tags handed to `renderLeading`. That slot
+is positioned absolutely and the input's left padding is inset by its measured width, which is exactly right
+for a currency symbol and wrong for a list — the moment tags wrap onto a second row, an out-of-flow strip and
+a single inset number cannot describe the layout. Widening `TextField` to make its slot optionally in-flow
+was the third option and was rejected on ownership: `TextField` is a single-line field with decorations at
+its edges, and a tag input is a box of controls that happens to contain a field. Bending the first into the
+second for one caller costs four shipped presets a concept they do not need.
+
+**Twelve tags in a 240px box wrap, and the box grows — settled by the user on 2026-08-15.** Nothing clips,
+nothing scrolls sideways, and there is no cap. The consequence is stated rather than hidden: the control's
+height is a function of its value, so a form reflows as tags are added. That is what every published tag
+input does by default, and the alternatives were weighed and deferred rather than missed — a `maxRows`-style
+cap, a single scrolling line over `Scroller`, and a "+10 more" collapse are all additions on top of wrapping
+rather than replacements for it, so none is closed off. `tagInput.spec.ts` pins the growth so a later cap has
+to break that test deliberately.
+
+**Backspace on an empty field steps into the tags rather than deleting one.** The first press moves focus
+onto the last tag; a second removes it. Deleting outright changes the value with nothing focused to announce
+it, which is silent for a screen reader and invisible to anyone who mis-hit the key. `ArrowLeft` does the
+same step, arrows walk the tags, and walking past the last one returns to the field. Backspace only leaves
+the field when the field is empty, or it would swallow ordinary editing.
+
+**The tag is a `<button>` whose accessible name is the tag text, and pressing it removes it.** No separate
+delete trigger inside the tag; a consumer painting an `✕` is painting decoration on a control that is already
+the remove control. The name defaults to the tag's own text rather than to a phrase like "Remove X", because
+a library that paints nothing has no business shipping an English sentence — `computeTagAriaLabel` is where a
+consumer supplies their own wording.
+
+**Tags are `string[]`, not `T[]`.** Every other list control here is generic, and this one is not, because a
+tag genuinely is the text that was typed: the value has no identity apart from its own characters. A consumer
+needing records keeps a map beside it. `computeTag` is where text becomes the stored form — trimming, casing,
+refusing a duplicate — and returning nothing is how a word is declined, which leaves the text in the field to
+be edited rather than retyped.
+
+**The draft text is private unless asked for.** `textSignal` is optional through `SignalMirror.createOptional`,
+the same arrangement the popups use for their open state.
+
+**Not built:** a cap or a collapse, per above; editing a tag in place; pasting a delimited list as several
+tags; and a drag to reorder.
+
+### Controls: `Breadcrumbs`, and why the last crumb is not a control
+
+Built **2026-08-15**. A trail of links to where you are. It had to earn its file, because the standing
+position was that it was a `Tabs` composition — what earns it is markup the consumer cannot get from `Tabs`
+at all.
+
+**A trail is a landmark around an ordered list.** `<nav aria-label>` holding an `<ol>` holding one `<li>` per
+crumb. The landmark is what lets someone jump straight to the trail; the list is what makes "four of these,
+in this order" true for a screen reader rather than only on screen. `Tabs` renders `role="tablist"`, which
+says the opposite thing — that these swap a region — so the composition was never right, only convenient.
+
+**The last crumb is the page you are already on, so it is a `<span>` with `aria-current="page"`.** Not a
+disabled link, which would stay in the tab order and be pressable-looking; not a button that does nothing.
+Which crumb is current is positional — it is the last one — so the component decides it rather than taking a
+prop for it, and hands the answer to the painter through `BreadcrumbsFlags.isCurrent`.
+
+**`isCurrent` is an extra flag rather than something the page recomputes.** `Tabs` makes its page derive
+`isSelected` by comparing the tab's value against the selected one, which is fine there because selection is
+the consumer's state. Here it is not: the component alone knows the crumb count, so a page deriving
+"last one" would be re-deriving something already known one level up, and would get it wrong the moment a
+trail is trimmed.
+
+**The item is a `<button>` when it has no `href` and an anchor when it does**, with a `linkComponent` escape
+for a router's own link — the same three-way shape `Tabs` and `Paginator` already use, reusing `TabLinkProps`
+rather than declaring a third identical type.
+
+**Separators are the consumer's paint, live outside the item, and are `aria-hidden`.** Otherwise a trail
+reads as "Home slash Library slash Inputs". The slot is optional and renders no wrapper when absent, so a
+consumer wanting only the gap pays for nothing.
+
+**There is no keyboard handling at all, and that is correct.** Crumbs are independent destinations, so each
+is its own tab stop — the same reasoning `Paginator` records for its page numbers. A roving order would make
+the trail one stop and hide the rest behind arrow keys, which is what a `tablist` wants and a `nav` does not.
+
+**Not built:** collapsing a long trail behind an overflow menu. It needs a decision about where the hidden
+crumbs go — a `Menu`, a widening in place — and nothing has asked.
+
+### `RadioGroup` takes a floater, and both floater observers are guarded
+
+Settled **2026-08-15**, straight after the segmented control below. A sliding indicator behind the chosen
+segment cannot be painted from inside one radio: it needs the selected item's **box**, and a painter only
+knows its own. So the geometry has to come from the group.
+
+**The objection this had to clear was purity, and it does not survive.** `RadioGroup` already takes `dir` and
+`gap` — it is already the thing that decides where its children sit, so handing that measurement back out
+exposes something it owns rather than teaching it something new. A floater prop would only be smuggling in an
+opinion if the container had none, which is not this control.
+
+**The mechanism is `Tabs`', copied deliberately rather than generalised.** A root ref, a `ResizeObserver`
+watching the root and the selected item's `offsetParent`, the box written as inline `top` / `left` / `width`
+/ `height`, and `ElementFader` for the entry and exit. Two consumers of a mechanism is not yet an `Abstract`;
+a third is when to extract it, and the note under _"`ScanlineAnimation` is a preset over this"_ is the
+precedent for waiting.
+
+**The observer is now guarded on the prop, in both controls.** It previously ran for every `Tabs` on the
+page, measuring for a floater nobody had asked to render, and copying it unguarded into `RadioGroup` would
+have put a `ResizeObserver` inside every radio group in every form. So the effect returns early when
+`renderFloater` is absent. Note what is **not** guarded: `Tabs` keeps its item refs regardless, because arrow
+keys focus through them — only the measuring is optional, and confusing the two would break the keyboard.
+
+**Both roots carry `isolation: isolate`, and without it the floater escapes the control.** The floater sits at
+`z-index: -1` so the items paint over it. A negative index is resolved against the nearest ancestor that
+starts a **stacking context** — a fresh scope for what paints in front of what — and `position: relative`
+alone does not start one. So the floater was not landing behind its own group; it was travelling up the
+ancestor chain until it found one, and any background painted by an ancestor on the way covered it. That is
+exactly what happened when the Playground put a background on the box wrapping the segmented strip: the
+floater was measured correctly, positioned correctly, and painted underneath the wrapper.
+
+`isolation: isolate` starts a stacking context and nothing else, which is the whole of the fix, and it is the
+narrowest tool for it — `z-index: 0` would work too but says something about the control's own order among
+its siblings, which is the consumer's business. `Tabs` had the same latent fault and now carries the same
+line: it went unnoticed only because nothing had yet painted a background behind a tab list.
+
+Worth knowing for the next painter: this class of fault is invisible to `e2e/`. The floater spec asserts the
+measured box, which was right the whole time.
+
+**The preset route was considered and rejected.** `Toggle` is `Checkbox` narrowed, so the parallel move was a
+segmented preset over `RadioGroup` owning the floater privately. That resurrects as a component the thing
+that had just been decided to be paint, for one optional prop's worth of surface — and a preset that exists
+to hide a prop the base already needs is a worse trade than the prop.
+
+### A segmented control is `RadioGroup` paint, and the Radio page proves it
+
+Settled **2026-08-15**, closing a `backlog.md` entry rather than opening one. A segmented control — a row of
+joined buttons with exactly one pressed — reads like `Tabs` and is not: `Tabs` is navigation, it swaps which
+region is shown, and nothing about the choice is submitted; a segmented control holds a **value** that is part
+of a form's answer. Same appearance, different meaning, and the meaning is what the role reflects —
+`role="tablist"` against a radio group.
+
+So it needs no component. `RadioPage`'s **Segmented** variant is the demonstration: `RadioGroup` with
+`getDir` row and `getGap` zero, painted by `RadioSegmentContent` instead of `RadioContent`. **A segment paints
+almost nothing** — no dot, no border, no background, only padding and a text colour that flips when checked.
+
+**The strip's own look belongs to a wrapper, not to the segments.** `PageRadioSegmentGroup` is a plain
+`<div>` around the whole `RadioGroup` carrying the border, the background and the outer radius, and the fill
+behind the chosen segment is the floater. Segments drawing their own borders was tried first and is worth
+knowing about: it needed an `isFirst` / `isLast` pair so the ends could round and the inner dividers could
+collapse, it made every segment opaque — which hid the floater completely, since the floater sits behind at
+`z-index: -1` — and it put the strip's appearance in three places instead of one. The wrapper needs none of
+that, because a container can round its own corners without knowing which child is first.
+
+The library cannot be that wrapper: `RadioGroup` accepts no class name, so the page supplies its own box
+around it. That is the same arrangement as everything else here — the library owns the roles and the
+geometry, the page owns the paint.
+
+**A rating input went the same way on the same day, and it is the more interesting of the two** because it
+had one part that genuinely is not `RadioGroup`. Five stars are five radios; what is not a radio is the
+**preview** — hovering the third star fills the first three, showing what pressing would give. A painter
+cannot do that alone, because `isHovered` is its own and star two would have to know about star three's.
+
+The page holds it instead: a `hoveredRatingSignal` written from each `Radio`'s `onMouseEnter` and
+`onMouseLeave`, with each star filled when its own number is at or below the hovered one, falling back to the
+value when nothing is hovered. Nothing was added to the library. Worth recording because the preview was the
+argument for a `Rating` component being more than paint, and it turned out to be **eight lines in the
+consumer** — the library already exposed the two callbacks that make it possible, and a radio group's arrow
+keys move the value itself, so the keyboard case needs no preview at all.
+
+### The Playground theme is an example, and carries no rationale on purpose
+
+Settled by the user on **2026-08-15**, when asked whether `App/Theme.css.ts`'s token shape deserved an entry
+here. It does not, and the reason is worth keeping so the question is not asked again: **every value in it is
+as arbitrary as any consumer's own would be.** Four steps per colour rather than a numeric ramp, one animation
+duration rather than a set, `half` / `full` / `double` / `quad` spacing — none of that is a recommendation and
+none of it constrains the library, which paints nothing and reads no token. It is there so the Playground has
+_a_ theme, and a consumer copying its shape is copying an example rather than following a convention.
+
+What this does **not** license is changing it casually. It is the only theme the Playground has, so a token
+edit repaints every page at once; the values being arbitrary is a statement about their origin, not an
+invitation to churn them.
 
 ### `ScreenWiper`: CSS shapes, not SVG
 
@@ -2653,10 +2878,10 @@ In the Playground they landed in the stress test modal's context and painted ove
 
 ### Controls: `Toasts`, and a queue the consumer owns
 
-Settled **2026-08-10**. It closes the shape question `review.md` had toasts parked on, and the answer is
+Settled **2026-08-10**. It closes the shape question `backlog.md` had toasts parked on, and the answer is
 that the question rested on a premise that does not hold here.
 
-**`review.md` claimed toasts needed "an out-of-tree queue and an API that is called rather than bound,
+**`backlog.md` claimed toasts needed "an out-of-tree queue and an API that is called rather than bound,
 which nothing here has". Both halves were already covered by settled conventions.** "Out of tree" is a
 signal created outside any component — `createRoot(() => createSignal<Toast<T>[]>([]))`, which
 `Viewport.context.ts` already does for its fallback context — so the list outlives whatever raised a
@@ -2786,7 +3011,7 @@ component reachable from `npm test`.
 
 **Flow stacking is the geometry props; an overlapping pile is the painter's**, offsetting and scaling
 itself off `index` and `count`, which works for a fixed peek distance. Overlapping by each card's own
-measured height does not work and is recorded in `review.md` rather than half-solved.
+measured height does not work and is recorded in `backlog.md` rather than half-solved.
 
 **Toasts sit above dialogs** — `z-index` 200 against `Modal`'s 100 — because a toast routinely reports
 the outcome of the action a dialog just took.
@@ -2861,7 +3086,7 @@ restored on every pass — the trick `TextField`'s auto-sizing uses on an absolu
 and it would fight the transition it is feeding.
 
 **`ElementObserver.createBorderBoxHeightObserver` is the extracted half, and `TextField` was
-deliberately not migrated onto it.** `review.md` asked for the shared piece so the measurement would not
+deliberately not migrated onto it.** `backlog.md` asked for the shared piece so the measurement would not
 be written twice. On reading both, they share less than that implied: `TextField` clamps to a row count
 derived from `line-height`, releases `bottom` to measure a `scrollHeight`, and republishes the result as
 the wrapper's `getMinHeight`. What is genuinely common is "observe an element and republish its own
@@ -2945,7 +3170,7 @@ the only thing they can mean to a grid. A month is not six weeks, so `Calendar` 
 
 ### Controls: `Calendar`, and the date value the library owns
 
-Settled **2026-08-10**. This closes the dependency question `review.md` recorded as a real decision
+Settled **2026-08-10**. This closes the dependency question `backlog.md` recorded as a real decision
 rather than an implementation detail.
 
 **No date library, and no `Date` in the public API.** `Abstracts/DateValue` holds
@@ -3002,7 +3227,7 @@ year 0 is inside the plain range.
 
 **What this does not buy: a BC date still cannot be typed.** `DateInput`'s mask is a fixed run of digit
 slots, and everything that is not a digit is discarded on the way in, so a sign has nowhere to go — the
-same missing piece `review.md` already tracks for the formatted number. Storing, loading, computing and
+same missing piece `backlog.md` already tracks for the formatted number. Storing, loading, computing and
 displaying a pre-common-era date all work; entering one is by code or by the calendar's own paging.
 
 Worth knowing before anything labels one: this is astronomical year numbering, inherited from `Date`, so
@@ -3093,12 +3318,12 @@ job is to draw that date and it would otherwise have to be handed the accessor t
 
 **An intervening wrapper div sits between `role="row"` and `role="gridcell"`**, because every cell is an
 `InteractionWrapper` and the wrapper owns its own root. `Select` already made this trade between
-`role="listbox"` and `role="option"`; it is recorded in `review.md` now that a second component has hit
+`role="listbox"` and `role="option"`; it is recorded in `backlog.md` now that a second component has hit
 it, since a grid's row/cell relationship is the stricter of the two.
 
 ### Pointer drag: a ratio, opt-in, and captured
 
-Settled **2026-08-10**, closing the primitive `review.md` #2 asked for. `InteractionUtils.trackDrag(ref,
+Settled **2026-08-10**, closing the primitive `backlog.md` #2 asked for. `InteractionUtils.trackDrag(ref,
 disabled, opts)` reports where a pointer is inside an element for as long as a drag lasts.
 
 **It is a separate call rather than part of `wrapElement`**, which is what item 2 asked for and the reason
@@ -3176,6 +3401,19 @@ hue `Range` inside. The three ownership questions that were open are answered as
   itself, which is what lets a consumer add a colour-space toggle and channel inputs — those are paint and
   arithmetic over a value they now hold, not behaviour the library owes them.
 
+**There is no `renderAlpha`, and there will not be one — settled by the user on 2026-08-15.** Alpha is a
+channel input in `renderPopup` and that is the whole answer. It was argued the other way first, on the
+grounds that alpha is judged by eye and a number field makes you type-look-type; what defeated that is
+`NumberInput`'s own press-and-hold, which repeats after a delay while the stepper is held, so the field
+already gives continuous adjustment against a live preview. A fourth slot would have bought the checkerboard
+track and nothing else, at the price of a permanent optional prop and a mode on a shipped control.
+
+Worth stating because the omission reads as a gap from outside: `renderArea` and `renderHue` are library-owned
+inputs and alpha has no twin, so a consumer scanning the props concludes transparency is unsupported. It is
+not — the value is `HSVA` throughout and `toHexValue` emits eight digits whenever alpha is below opaque. The
+asymmetry is deliberate and the bullet above is where it is explained: the two slots exist because those two
+controls own a **gesture** the library implements, and alpha owns none.
+
 **A native colour input is no longer reachable through this control**, which is the cost. There is no form
 value and no OS picker, and `FileInput` remains the only control where the UA still owns activation. The
 suite got better for it: every part of the picker is drivable, where the OS dialog could only ever be
@@ -3202,7 +3440,7 @@ stale hue straight back over the new colour — so typing a hex produced a diffe
 guard on the far side has to be read `untrack`ed. The same shape broke the hex field twice over: an effect
 that refreshed the field's text while tracking the picker overwrote what was being typed. This is the
 fourth mirror in the Playground and the first two to go wrong, which is the argument for extracting it —
-see `review.md`.
+see `backlog.md`.
 
 **A hex field owns its text until it is left.** Three and four digit hex forms parse, so a half-typed
 value commits early; pushing the canonical spelling back in would replace the text under the caret and
@@ -3218,7 +3456,7 @@ difference is only that their values are not converted on the way through.
 
 ### Controls: `DateInput` and `DatePicker`, without the mask
 
-Settled **2026-08-10**. Both ship; the mask `review.md` named as their blocker turned out not to be one for
+Settled **2026-08-10**. Both ship; the mask `backlog.md` named as their blocker turned out not to be one for
 a typed date, and that is the decision worth recording.
 
 **`DateInput` is a `TextField` over a private text signal, and it reads and writes ISO order only.**
@@ -3246,7 +3484,7 @@ picker's own signal, snapped to the value each time the popup opens, which is wh
 about the other — both write the same value signal, and the calendar follows it.
 
 **Dismissal repeats `ColorInput`'s arrangement**, outside-`pointerdown` plus `Escape`, and that is now the
-third dismissal story in the repo. It is the same open question `review.md` records for `Select` and
+third dismissal story in the repo. It is the same open question `backlog.md` records for `Select` and
 `Menu`; the count is the argument, not any one of them.
 
 **Paint is four slots**, matching `ColorInput` and `Select`: the field's own `renderContent`, `renderTrigger`
@@ -3256,7 +3494,7 @@ receives the month signal so the consumer draws the title and the paging buttons
 ### The mask: only digits are typed, and the caret is computed rather than preserved
 
 Settled **2026-08-10**, on the user's call to try a mask rather than the element-per-segment shape every
-other library uses (`review.md` item 7's survey). It is the primitive two shipped fields were waiting on.
+other library uses (`backlog.md` item 7's survey). It is the primitive two shipped fields were waiting on.
 
 **`TextSyncUtils.applyMask(pattern, previous, next, caret)` is a pure function, so the caret arithmetic is
 reachable from `npm test`.** A pattern is `#` for a digit slot and any other character as a literal, so
@@ -3351,7 +3589,7 @@ again clears that. Both surface through the flag the painter already reads: `get
 own prop **or** the field's own judgment, so a consumer who passes nothing still gets a field that says no.
 
 This is what `hasError` on sixteen controls was waiting for a producer to do, and it is worth noting that
-the producer turned out to be the control itself rather than the form story `review.md` files it under.
+the producer turned out to be the control itself rather than the form story `backlog.md` files it under.
 
 **The value is still cleared when the text cannot be read.** The error is about the text; the owner is told
 there is no date, which is true. What changed is that the field stops agreeing with the owner by going
@@ -3464,7 +3702,7 @@ walking. The select's list is controlled by the select's field, the field is ins
 press resolves as inside. **Ownership is already in the markup**, put there for screen readers, so nothing
 has to be registered on open and no order has to be maintained.
 
-It is not the layer stack `review.md` asks for, and it does not pretend to be: a stack also decides which of
+It is not the layer stack `backlog.md` asks for, and it does not pretend to be: a stack also decides which of
 several open layers a stray press dismisses, and orders them, which this cannot. It fixes the containment
 question only. `ColorInput` runs the same kind of listener and should adopt it when the stack is built.
 
@@ -3538,7 +3776,7 @@ control with no precedent in the repo, and it is why `TimeInput` takes `onKeyDow
 passing it through.
 
 **No time popup.** A list of times in a `Popover` is a `Select` with generated options, and nothing here
-needed one yet; typing plus stepping covers the field. Recorded in `review.md` rather than guessed at.
+needed one yet; typing plus stepping covers the field. Recorded in `backlog.md` rather than guessed at.
 
 ### `Button` can be named, and the label wins over the painter
 
@@ -3625,7 +3863,7 @@ defaults to `"button"`, so nothing changed for existing call sites.
 **Only `TextField` and `BinarySwitch` read the description context so far.** Those cover `TextInput`,
 `TextArea`, `NumberInput`, `DateInput`, `TimeInput`, `Checkbox`, `Toggle` and `Radio`. `Select`,
 `ColorInput`, `FileInput` and `Range` still need the same one-line call, and that is recorded in
-`review.md` rather than left to be discovered.
+`backlog.md` rather than left to be discovered.
 
 ### `Button` reports the pointer, and `NumberInput` repeats while held
 
@@ -3743,7 +3981,7 @@ to build the same mirror by hand.** `PageTextField`, `PageSelectField`, `PageChe
 sixth. `SignalMirror.createMirror(getOuter, setOuter, opts)` is that mirror once, with
 `createValueMirror` for the common case where nothing converts.
 
-**It takes a getter and a setter rather than a `Signal`**, which is the escape hatch `review.md` named as
+**It takes a getter and a setter rather than a `Signal`**, which is the escape hatch `backlog.md` named as
 the alternative to a signal-only surface. A consumer who does have a signal passes its two halves; one who
 has a store field, a route param or a callback passes those. The first attempt took a `Signal` and could
 not express any of the Playground's own wrappers, which is what settled it.
@@ -3847,11 +4085,11 @@ data loss.
 **`DateInput` needs no such check any more, because the value type stopped being able to hold one.** A
 `CalendarDate`'s year is a year _within an era_ and every supported calendar bounds it at four digits, so
 `getYearsInEra` is at most 9999 and a date the four slots cannot spell no longer exists. The rule stays
-written down because the formatted number will meet it again — see `review.md`.
+written down because the formatted number will meet it again — see `backlog.md`.
 
 **The rule has one accepted exception, and it is deliberate rather than overlooked.**
 `DateValueUtils.withCalendar` clamps when the target calendar cannot hold the date, and says nothing. Left
-alone by the user on **2026-08-11** with the cost of fixing it written out; it sits in `review.md` under
+alone by the user on **2026-08-11** with the cost of fixing it written out; it sits in `backlog.md` under
 _"Accepted limits"_, and is named here so the rule above is not read as absolute.
 
 ### The date value carries its calendar system, and every bound is asked of it
@@ -3859,7 +4097,7 @@ _"Accepted limits"_, and is named here so the rule above is not read as absolute
 Settled by the user on **2026-08-11**, choosing to take `@internationalized/date` as a dependency rather than
 read the calendars out of `Intl` by hand, and to support as many calendar systems as the package really
 implements. The reasoning that led there — what the platform contains, what the reverse conversion costs, why
-`chinese` cannot be done this way — was measured and is recorded in the entry below and in `review.md`.
+`chinese` cannot be done this way — was measured and is recorded in the entry below and in `backlog.md`.
 
 **`DateValue` is `CalendarDate`, aliased rather than wrapped.** So a value carries the calendar it belongs to,
 an era, a **year within that era**, a month index and a day. The old `{ year, month, day }` record with a
@@ -3964,7 +4202,7 @@ multiplying; an amount field is not where `1e21` belongs.
 **The separators come from the locale, not from props.** `Intl.NumberFormat` already knows them and the consumer
 has already said which locale they are in; asking twice invites the two to disagree. `getGroupSize` stays a prop
 because it is a layout choice rather than a locale fact — and because uniform groups are all `applyGroupedMask`
-can express, which is the limit `review.md` records.
+can express, which is the limit `backlog.md` records.
 
 **There is no sign and no currency symbol.** The mask is digits-only, so a negative amount cannot be typed; the
 symbol is paint in a leading slot, because a library holding no colours does not hold currencies either.
@@ -3989,7 +4227,7 @@ underscore in one of them — while both names come from `Intl` and are the loca
 
 ### A popup's open state is private until a consumer asks for it
 
-Settled by the user on **2026-08-12**, closing the `openSignal` question that items 5, 6, 7 and 15 of `review.md`
+Settled by the user on **2026-08-12**, closing the `openSignal` question that items 5, 6, 7 and 15 of `backlog.md`
 had all been waiting on. `Select`, `MultiSelect`, `Menu`, `ColorInput` and `DatePicker` each take an optional
 `visibilitySignal`, which is `Modal`'s prop under `Modal`'s name and rules.
 
@@ -4019,7 +4257,7 @@ back — the same correction `Modal` makes for its own dismissal.
 popup, so pressing it while the popup is open dismisses the popup first and the handler then re-opens it: a
 toggle button appears not to close. The Playground demonstrates open and close as two separate buttons for
 exactly that reason. Fixing it means `Menu` accepting an anchor and an opener, which is the next thing
-`review.md` item 6 asks for and is not this.
+`backlog.md` item 6 asks for and is not this.
 
 ### Playback is a signal; a rewind is a command
 
@@ -4078,11 +4316,11 @@ does its own work, and the consumer's own signal opens the menu.
 **A right-click context menu is still not possible, and the reason is worth stating**: it opens at the pointer
 rather than against an element, and `Anchor` positions against a ref only. That needs a virtual anchor — a rect
 standing in for an element — which is a change to `Anchor` rather than to `Menu`, and it is the last piece. See
-`review.md` item 6.
+`backlog.md` item 6.
 
 ### A list the consumer has not finished handing over: `getHasMoreOptions`, `onReachEnd`, and a marker
 
-Settled **2026-08-12**, after the published virtualization design was tried and reverted (see `review.md`
+Settled **2026-08-12**, after the published virtualization design was tried and reverted (see `backlog.md`
 item 5). This is the other half of the same problem and it is a different answer, so both are worth stating
 together: **virtualization keeps the whole list and mounts a window onto it; this keeps only what has arrived
 and mounts all of it.**
@@ -4129,7 +4367,7 @@ so the moment a jump to the end forces the skipped rows to be laid out for real,
 highlight is corrected at once and the scroll offset no longer points where it did. `End` then leaves the
 highlighted option below the visible box, having scrolled to where that option used to be. The user removed
 the switch on **2026-08-13** for that reason. What it bought was the cost of _painting_ options, which is a
-different cost from _mounting_ them and the smaller of the two; `review.md` item 5 holds what is left of that.
+different cost from _mounting_ them and the smaller of the two; `backlog.md` item 5 holds what is left of that.
 
 **The marker is keyed on the options array, and that is load-bearing.** An intersection observer reports only
 _changes_, so a batch too small to push the marker off screen would deliver no callback and the list would
@@ -4242,7 +4480,7 @@ that are not are here.
 `tooltipDefs` trio every other item record carries, so nothing about disabling or explaining a node is
 new. `TreeUtils.getIsBranch` is `(node.children?.length ?? 0) > 0`, which is `Menu`'s test for a submenu
 character for character. The cost is that a branch whose children have not been fetched yet cannot be
-spelled — an empty list reads as a leaf — and that is recorded in `review.md` rather than solved, because
+spelled — an empty list reads as a leaf — and that is recorded in `backlog.md` rather than solved, because
 the fix is a second field whose only job is to contradict the first.
 
 **Render from the nesting, walk the flat order.** `TreeUtils.getVisibleRows` takes the nodes and a
@@ -4301,7 +4539,7 @@ there is nothing to rescue.
 marker inside `renderNode`, so the component cannot tell a press on the marker from a press on the label —
 and if a press did not toggle, a mouse user could not open a branch at all. `Enter` and `Space` do exactly
 what a click does, which is the parity every other control here keeps. A consumer who wants "the chevron
-opens, the label selects" has no route to it; see `review.md`.
+opens, the label selects" has no route to it; see `backlog.md`.
 
 **A disabled node is not a disabled subtree.** The arrows skip it and nothing selects or opens it, but its
 children stay navigable if it was already open. A disabled branch is a statement about that node, and a
@@ -4546,7 +4784,7 @@ keyframes rather than a formula writes their own. That is real, and it is still 
 component's contract is already the smaller and more general thing — a function from timeline to result — and
 a stop list with `at`, `depth` and origin keys is one **opinion about how to author** such a function.
 Shipping it would freeze that opinion as API for a consumer nobody has met, which is the layer item 12 in
-`review.md` plans rather than this one. The matrix half is a different case: it needs only the language to
+`backlog.md` plans rather than this one. The matrix half is a different case: it needs only the language to
 work, which is the `ss-utils` test above, and that package has `Vec2d` and `Vec4d` but no matrix — noted as a
 candidate rather than moved, because one consumer is a thin case for an export in another repo.
 
@@ -4558,7 +4796,7 @@ _"House style"_ — and the namespace stays on the value side only.
 
 ### Controls: `Paginator`, where the arithmetic is the component
 
-Built **2026-08-14**, at the user's request, from the `review.md` entry that had already argued it out of
+Built **2026-08-14**, at the user's request, from the `backlog.md` entry that had already argued it out of
 the "compositions" list. The claim there was that the visible page range, where the gaps fall and how many
 pages sit either side of the current one is arithmetic, and arithmetic is the library's half of the
 contract. Everything below follows from taking that seriously.
@@ -4618,7 +4856,7 @@ rather than by a scrollbar. The user asked for it as a `Carousel`; the name was 
 built, because **a carousel is a different pattern with an accessibility contract this does not implement** —
 one slide at a time, wrapping, `aria-roledescription` of `carousel` and `slide`, and a pause control the
 moment it rotates by itself. Naming a component after what it resembles is the same trap already recorded
-for the segmented control that looks like `Tabs` and is not. The real carousel is `review.md` item 8.
+for the segmented control that looks like `Tabs` and is not. The real carousel is `backlog.md` item 8.
 
 **The track holds arbitrary children, and that is the user's call.** It renders nothing and types nothing:
 the consumer's markup goes in as `children` and comes out untouched. The alternative — a list of records, the
@@ -4690,17 +4928,17 @@ would make the buttons the only route, which is worse than the scrollbar it repl
 smooth in CSS rather than per call, so `prefers-reduced-motion` turns it off without the component asking.
 
 **Horizontal only.** The axis is one variable rather than a redesign, but nothing has asked for a column and
-`SlideButton`'s precedent is to build the axis that exists. Recorded in `review.md` rather than guessed at.
+`SlideButton`'s precedent is to build the axis that exists. Recorded in `backlog.md` rather than guessed at.
 
 ### Controls: `Carousel`, and the first component that acts without being asked
 
-Built **2026-08-14**, alongside `Paginator`, from the description `review.md` had been carrying since the
+Built **2026-08-14**, alongside `Paginator`, from the description `backlog.md` had been carrying since the
 `Scroller` naming argument. It shows one slide at a time, wraps at both ends, and can rotate on its own.
 
 **One slide at a time, and a page of several slides is not built.** The description this came from allowed
 either. One slide is the reading with a published pattern behind it, and a page of several is `Scroller`'s
 territory the moment the arithmetic starts asking how many fit — which is the boundary the two components
-were separated along in the first place. Recorded in `review.md` as a gap rather than left implicit.
+were separated along in the first place. Recorded in `backlog.md` as a gap rather than left implicit.
 
 **Wrapping is the difference that makes it a different component.** `Scroller` stops at each end and
 disables the step that has nowhere to go; `Carousel` comes round, so neither step is ever the dead one.
@@ -4720,7 +4958,7 @@ and outranks them: a stopped carousel stays stopped when the pointer leaves.
 `CarouselControls` object whose `renderStep`, `renderPick` and `renderRotationControl` **return elements**
 rather than taking callbacks, so a consumer writes the bar — order, wrapper, position — while each control
 is still a real `<button>` with a real name, built by the library. This is deliberately not `Scroller`'s
-arrangement, where the consumer renders the button itself and `review.md` records the consequence: a
+arrangement, where the consumer renders the button itself and `backlog.md` records the consequence: a
 library that renders no button cannot promise one is reachable or named. Here the two halves are split
 along the line that actually matters — the library owns what the control _is_, the consumer owns where it
 _sits_ and what it looks like. A consumer who passes no `renderControls` gets a carousel with no controls
@@ -4856,7 +5094,7 @@ to make the mode more absolute.
 "seal everything except this one control": `inert` cannot be lifted off a descendant. So `guide`, whose hole
 is dead, sets `inert` and gets hit testing, tab order and the accessibility tree in one attribute; `prompt`,
 whose hole must stay live, keeps the overlay segments for the pointer and pulls focus back on `focusin` for
-the keyboard. The cost is recorded in `review.md`: `prompt` cannot hide the page from a screen reader.
+the keyboard. The cost is recorded in `backlog.md`: `prompt` cannot hide the page from a screen reader.
 
 **The seal climbs to the body rather than sitting on a root, because there is no root.** The content a
 `Viewport` wraps is not a single node — the portal and the children are siblings inside it — and `Portal`
@@ -4873,7 +5111,7 @@ on every step, an autofocus that kept following it threw focus back to the first
 
 ### `Anchor` positions against a rect when it is given one
 
-Settled **2026-08-14**, and it is the virtual anchor `review.md` has wanted since `Menu`. `createPortalPosition`
+Settled **2026-08-14**, and it is the virtual anchor `backlog.md` has wanted since `Menu`. `createPortalPosition`
 takes an optional `getAnchorRect`; when present it replaces the observed rect and the element observer is not
 attached at all. Everything downstream is unchanged, because the placement maths only ever saw a rect.
 

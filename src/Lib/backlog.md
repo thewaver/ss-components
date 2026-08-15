@@ -1,8 +1,11 @@
-# Lib code review
+# Lib backlog
 
 Outstanding work in `src/Lib` — bugs, code and architectural smells, missing implementation, pending
 decisions. Nothing else belongs here. Once an item is done or dropped it is deleted outright rather
-than marked resolved, and the remaining items are renumbered to stay contiguous from 1. If closing it
+than marked resolved, and the remaining items are renumbered to stay contiguous from 1.
+
+**`brief.md` beside this file lists the same faults one line each, grouped by kind, and the two are
+edited together.** Anything opened, closed or renumbered here is reflected there in the same change. If closing it
 settled a decision that drives future work, that decision moves to `conventions.md`; the record of
 having done the work does not go anywhere.
 
@@ -29,14 +32,14 @@ reading.
 5. `Select` — six things deliberately not built — _open_
 6. `Menu` — five things deliberately not built — _open_
 7. What the date and time family still lacks — _open_
-8. Other core controls the library does not have — _open_
+8. Other core controls the library does not have — _open, ordered by the user_
 9. Machinery those controls need, none of which exists — _open_
 10. What the verification suite still cannot see — _open_
 11. The SVG defs' geometry cannot be reached without rendering — _open_
 12. Planned: strip `style.css`, add a theme, and add opinionated control presets — _planned_
 13. `Toasts` — five things deliberately not built — _open_
 14. `Calendar` — five things deliberately not built — _open_
-15. `ColorInput` — four things deliberately not built — _open_
+15. `ColorInput` — three things deliberately not built — _open_
 16. `Accordion` — four things deliberately not built — _open_
 17. `Tabs` — no automatic activation, and a pairing the consumer can still skip — _open_
 18. `Viewport` as a region: what is settled and what is not — _open_
@@ -47,6 +50,7 @@ reading.
 23. `Scroller` — five things deliberately not built — _open_
 24. `Paginator` — four things deliberately not built — _open_
 25. `Carousel` — five things deliberately not built — _open_
+26. `Stepper` — the next thing to build — _top priority_
 
 ### Build order
 
@@ -373,33 +377,48 @@ doing:
 
 `Fundamentals/Input` covers `TextInput`, `TextArea`, `NumberInput`, `CurrencyInput`, `Checkbox`, `Toggle`, `Radio`,
 `RadioGroup`, `Select`, `MultiSelect`, `FileInput`, `ColorInput`, `Label`, `Calendar`, `DateInput`,
-`DatePicker` and `TimeInput`; `Fundamentals` adds `Accordion`, `Button`, `Carousel`, `SlideButton`,
-`Scroller`, `Paginator`, `Tabs`, `Tooltip`, `Popover`, `Menu`, `Modal`, `Drawer`, `Progress`, `Range`,
-`Toasts` and `Tree`.
-Beyond item 7, this is what is missing, ordered by how much of it is a new architectural problem rather
-than by how much markup it is.
+`DatePicker`, `TagInput` and `TimeInput`; `Fundamentals` adds `Accordion`, `Breadcrumbs`, `Button`, `Carousel`,
+`SlideButton`, `Scroller`, `Paginator`, `SplitPane`, `Tabs`, `Tooltip`, `Popover`, `Menu`, `Modal`, `Drawer`, `Progress`,
+`Range`, `Toasts` and `Tree`.
+Beyond item 7, this is what is missing. **The order below is the user's, taken on 2026-08-15 after reading a
+worked example of each**, and it replaces the old ordering by architectural cost — that principle still
+explains what a thing would need, but it no longer decides what comes first.
 
 **This list cannot be inferred from the Playground**, and reading it as the evidence for what is missing
 is the trap: every control on every page and in every props panel is now a library control, so the
 Playground has nothing left to say about what the library lacks.
 
-### Structure
+**What was dropped on 2026-08-15, so it is not re-proposed:** a toolbar, a segmented control, a rating input,
+and the pure-paint family of `Skeleton`, `Avatar`, `Badge`, `Card` and `Icon`. The paint family was never a
+component question — the Playground already builds three of them as `Surface` examples — and the toolbar was
+judged not worth having. The segmented control and the rating are now the **Segmented** and **Rating**
+variants on the Radio page, which is the whole of what each was; see `conventions.md`, which also records why
+the rating's hover preview needed no library change. None of these is an accepted limit, because none is a
+fault; they are simply not wanted.
 
-**`Table` / data grid is out of scope for now** — sorting, selection, column sizing, sticky headers and
-virtualization together are a project rather than a component, and it should not be started as a
-by-product of anything else.
+### Next up, in the user's order
 
-**`Breadcrumbs` and a segmented control are compositions** — of `Tabs` and of `RadioGroup` with
-button-shaped painters — and should stay that way until something proves otherwise.
-A segmented control is worth naming explicitly because it looks like `Tabs` and is not: `Tabs` is
-navigation with `role="tablist"`, while a segmented control carries a **value**, which is `RadioGroup`
-with different paint.
+**A stepper is the priority, and it now has its own item — see item 26.** It is the only thing left in this section.
 
-### Not components at all
+**`Breadcrumbs`, `TagInput` and `SplitPane` were built on 2026-08-15** and are no longer here; their decisions are in
+`conventions.md`. What each left behind as a gap is recorded there rather than reopened as an item: a
+breadcrumb trail cannot collapse when it is too long, a tag input has no cap, no in-place editing, no
+paste-a-delimited-list and no reordering, and a split pane cannot collapse a pane or reset on a double-click.
 
-`Skeleton`, `Avatar`, `Badge` and `Card` are pure paint with no behaviour, which is the consumer's half
-of the contract by definition — the Playground already builds three of them as `Surface` examples.
-`Icon` likewise: a library that paints nothing cannot own an icon set.
+
+### Bottom of the list
+
+Both placed last by the user on **2026-08-15**, after the difference between each and its nearest existing
+control had been argued. Neither is dropped; neither is next.
+
+- **`Table` / data grid.** Sorting, selection, column sizing, sticky headers and virtualization together are
+  a project rather than a component, and it should not be started as a by-product of anything else.
+- **A command palette.** Mostly assembled already — `Select`'s autocomplete inside a `Modal`, since typing to
+  narrow a list is what the autocomplete does. What separates it from `Menu` is that it is opened by a
+  shortcut rather than by a button, and holds every action in the application rather than the few that relate
+  to one element. Two pieces are missing: results gathered from several sources and shown in labelled groups,
+  which is the grouped-and-windowed case item 5 leaves open, and a document-level hotkey, which wants the
+  register-and-stack shape `DismissStack` has rather than a listener per consumer.
 
 **_Elsewhere._** Ark UI's set is the widest of the headless libraries and is the most useful scope check
 available: it has a tree view, a pagination component, a **segment group** — a segmented control as its
@@ -407,21 +426,25 @@ own component, distinct from both tabs and toggle group — and a `Field` plus a
 table and no data grid. TanStack Table is what that gap gets filled with, and it is a separate project
 with its own release cycle, which is this item's call arrived at independently.
 
-- **The segmented control is a toggle group in the unstyled layer and a named component in the styled
-  one.** Radix has `ToggleGroup` (roving tab order, single or multiple pressed) and React Aria has
-  `ToggleButtonGroup`; Radix _Themes_ then ships a `SegmentedControl` on top of the first. React Aria's
-  own guidance in discussion is that a radio group is the right answer when only single selection is
-  needed — which is what this item says, from the library that would benefit from saying otherwise.
 - **Breadcrumbs is owned by at least one of them:** React Aria ships `Breadcrumbs`.
 - **Pagination is owned because it is arithmetic, not paint.** Ark UI's takes `page`, `pageSize`,
   `count`, `siblingCount` and `boundaryCount`, computes the visible page range and where the gaps fall,
   and switches between buttons and links with a `type` prop. That is more than a composition of `Button`,
   which is the argument this item lost — `Paginator` is built, and where it departs from that shape is in
   `conventions.md`.
-- **One of the four "pure paint" components turns out to have behaviour.** Radix ships `Avatar`, and the
-  image is the reason: `Avatar.Image` plus `Avatar.Fallback` with a `delayMs`, so the fallback does not
-  flash while a cached image loads. That is a load state machine, and it is the argument
-  `ImageSwitcher` already makes here.
+- **Worked examples of each, read on 2026-08-15**, which is what the user's ordering above was taken from:
+  [TanStack Table](https://tanstack.com/table/latest/docs/overview),
+  [React Aria Breadcrumbs](https://react-aria.adobe.com/Breadcrumbs/useBreadcrumbs.html),
+  [Ark UI Segment Group](https://ark-ui.com/docs/components/segment-group),
+  [Ark UI Splitter](https://ark-ui.com/docs/components/splitter),
+  [cmdk](https://cmdk.paco.me),
+  [Ark UI Tags Input](https://ark-ui.com/docs/components/tags-input),
+  [Ark UI Rating Group](https://ark-ui.com/docs/components/rating-group) and
+  [Ark UI Steps](https://ark-ui.com/docs/components/steps). Ark UI carries five of the eight, which is the
+  scope check this item already leaned on. Two details from those pages are worth keeping: the splitter
+  admits non-panel children such as toolbars and status bars inside its root, so it is not simply two boxes
+  and a drag; and the tags input sets the mobile keyboard's Enter key to read "Done", which is the kind of
+  thing only found by using one on a phone.
 
 ---
 
@@ -570,27 +593,28 @@ conventional shape is also the one that made the arithmetic outlive the renderer
 
 ---
 
-## 12. Planned: strip `style.css`, add a theme, and add opinionated control presets
+## 12. Planned: a consumer-facing layer of controls above the library — _not a focus_
 
-Recorded **2026-08-07** as advance notice, not as work to start. The user's plan, in three parts:
+**Deferred indefinitely by the user on 2026-08-15, and it is the lowest-priority item in this file.** Nothing
+is blocked on it, nothing is missing because of it, and it is very doubtful it becomes a focus any time soon.
+It stays numbered rather than moving to _Accepted limits_ because the packaging question inside it is a real
+decision nobody has taken — not because the work is queued. **Do not propose starting it, do not weigh it
+against anything else, and do not list it when asked what is next.**
 
-**Gut most of `style.css`, so anything that is not a library element stands out.** The Playground's
-app-level stylesheet currently paints a lot that the library deliberately does not, which means a raw
-element and a library control can look similar by accident. Removing it turns that into a visible
-difference rather than a thing you have to know. Expect a period where the Playground looks broken in
-places, and expect that to be the point.
+The reason it survived a review that nearly dropped it: every control is fully consumable today and the
+Playground proves it, so what this layer would buy is **less repetition, not more capability**. A page pairs a
+control with its painter at every call site — `ButtonPage` imports `Button` and `PageButtonContent` and writes
+the same threading closure five times — and about forty painters across thirty pages do the same. That is the
+entire cost, and in a repo with one author it is small.
 
-Two things to watch, because they were argued into their current shape against this stylesheet and
-lose their justification if it is not read carefully. The `!important` resets in `BinarySwitch.css.ts`,
-`TextInput.css.ts` and `Range.css.ts` exist because element selectors like `input:not([type="range"])`
-outrank a class — _"The library's own `!important` resets stay"_ in `conventions.md` argues they must
-survive anyway, since the Playground is not the only consumer, so removing the stylesheet is **not**
-evidence they can go. And `interactionRoot > * { margin: 0 !important }` guards against a painter's
-margin now, not only the app's.
+Recorded **2026-08-07** as advance notice in three parts. Two of them are built and are no longer
+outstanding: there is no `style.css` anywhere in `src/`, and `App/Theme.css.ts` is the theme — a
+vanilla-extract contract over colour, spacing, font size, radius, shadow, the hover / active / disabled
+filters and one animation duration, with a small global block for the reset, the focus ring, the
+scrollbars, links and `body`. The `--clr-*` custom properties this item used to call the de facto theme
+are gone, and the theme's token shape deliberately carries no reasoning — see `conventions.md`.
 
-**A theme file.** No shape decided. The library paints nothing and holds no colours, so a theme is
-entirely a consumer-side artifact; the current `--clr-*` / `--shd-*` / `--anim-duration` custom
-properties in the Playground are the de facto one.
+What is left is the third part.
 
 **A more final-consumer-like layer of controls — `MyButton` and friends — that trade API surface for
 decided behaviour.** The stated example: no `renderContent` tooltip renderer, just tooltip content as
@@ -599,6 +623,12 @@ and flags, and deliberately so: those arguments are about what a **library** owe
 not been met yet, and this layer is what a consumer who has been met actually writes. Worth knowing
 because a narrowing that is correct here would be wrong one level down, and the two layers will sit in
 the same repo.
+
+**`App/StyledComponents` is not this layer and should not be mistaken for it.** Those forty-odd files are
+painters — each named `<LibComponent>Content` after the slot it fills, per `conventions.md` — so they are
+handed to a library control by the page that mounts it. Nothing there narrows an API: a page still passes
+every prop the library takes. This layer is the opposite move, and it would consume those painters rather
+than replace them.
 
 The open question, when it starts: whether this layer lives in `src/Playground` as the demo it
 currently is, or becomes a second published entry point. That decides whether it needs a support
@@ -733,16 +763,13 @@ value the library owns"_.
 
 ---
 
-## 15. `ColorInput` — four things deliberately not built
+## 15. `ColorInput` — three things deliberately not built
 
 `ColorInput` is the custom picker now; the decisions are in `conventions.md` under the `ColorArea` heading.
 These are the gaps.
 
 - **No native colour input anywhere, so no form value and no OS picker.** Deliberate, and the cost of
   owning the surface. A consumer who wants the OS dialog has nothing to fall back on.
-- **Alpha is expressible but has no control of its own.** The value carries it and the surface preserves
-  it, but nothing in the library sets it — an alpha slider would be a second `Range` over a checkerboard,
-  and the Playground's channel inputs are currently the only way to reach it.
 - **No eyedropper, no swatch presets, no recent colours.** All three are paint plus a value write, so all
   three are the consumer's today; whether presets deserve a `renderPresets` slot depends on whether the
   keyboard order should include them, which is a real question and not a styling one.
@@ -756,9 +783,6 @@ These are the gaps.
   `ColorPicker` around one colour value object — has no native `<input type="color">` path either, and
   Ark UI's is custom too. Nobody keeps the OS dialog as a fallback, so the cost recorded in the first
   bullet is the cost everyone pays.
-- **Alpha is a second slider over the same value.** React Aria's `ColorSlider` takes `channel="alpha"`,
-  which is the shape this bullet predicts, and its colour value carries alpha throughout rather than
-  only in a hex string.
 - **The eyedropper is absent because the platform is.** `EyeDropper` is Chromium-only — MDN lists it as
   limited availability and not Baseline, needing a secure context and a user gesture, shipped in Chrome
   95 and unsupported in Firefox and Safari — and React Aria's colour documentation shows no eyedropper
@@ -1136,6 +1160,40 @@ that acts without being asked"_. These are the gaps, each with the reason it is 
   when away. This is `Accordion`'s trade rather than `Tree`'s, and here it is forced rather than chosen: the
   track has to be as wide as the slides to translate across them. A carousel of a hundred expensive slides
   builds all hundred, and windowing it is the same boundary `Select` and `Tree` already record.
+
+---
+
+## 26. `Stepper` — the next thing to build
+
+**Top priority, set by the user on 2026-08-15**, and promoted out of item 8 so it is not read as one entry in
+a survey. Nothing else in this file outranks it.
+
+A stepper is the numbered strip across a multi-page form — "1 Details — 2 Address — 3 Payment" — showing
+which step you are on, which are done, and which are still ahead. **Both orientations are wanted: horizontal
+and vertical**, stated at the same time as the priority, so the axis is a requirement rather than a later
+widening. That matters for where it starts: `Accordion` and `Scroller` both record an axis as something they
+would have to grow later, and this is the first control that has to hold two from the beginning.
+
+What it is made of, and what has to be decided first:
+
+- **The strip itself is `Tabs` with a linear order.** Each step is a tab, the panel is the page of the form,
+  and the difference from `Tabs` is that the steps have a **sequence** — a step knows whether it is before or
+  after the current one, which is what makes "done", "current" and "ahead" three different paints. Whether
+  that is `Tabs` with a flag added or a control of its own is the first question, and it should be answered
+  against the `Tabs` records in `conventions.md` rather than freshly.
+- **The gate is per-section validity, which does not exist.** A stepper usually refuses to move forward until
+  the current step's fields are valid. `Form` collects validity for the whole form and nothing groups fields
+  into a section with its own — item 9's last remaining piece. So this is the first consumer that forces that
+  decision, and building the strip without it produces a stepper that cannot gate, which is most of the point.
+- **Vertical is not the horizontal one rotated.** The connector between steps runs along the axis, so the
+  paint differs, and the arrow keys swap which pair moves between steps — `Range` already records the same
+  split under its own `orientation`, and that is the shape to copy.
+- **Whether a step can be revisited is the consumer's, and it needs a spelling.** Going back is usually free
+  while going forward is gated; a linear-only mode and a free-navigation mode are both real, so this is a prop
+  rather than a fixed behaviour.
+
+The worked example the priority was set from is [Ark UI Steps](https://ark-ui.com/docs/components/steps),
+which carries the orientation prop this item requires and controls the active step from outside.
 
 ---
 

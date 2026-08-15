@@ -1,4 +1,4 @@
-import type { ParentProps, Signal } from "solid-js";
+import type { JSX, ParentProps, Signal } from "solid-js";
 
 import type { AccessorProps } from "../../../Utils/typeUtils";
 
@@ -11,5 +11,9 @@ export type RadioGroupProps<T> = ParentProps<
         name?: string;
         ariaLabel?: string;
         hasError?: boolean;
-    }> & { valueSignal: Signal<T> }
+        transitionDurationMs?: number;
+    }> & {
+        valueSignal: Signal<T>;
+        renderFloater?: (getVisibilityTarget: () => 0 | 1, getTransitionDurationMs: () => number) => JSX.Element;
+    }
 >;

@@ -4,6 +4,7 @@ import { buttonElement } from "../Button/Button.css";
 
 export const tabsRoot = style({
     position: "relative",
+    isolation: "isolate",
     display: "flex",
 });
 
