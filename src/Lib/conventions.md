@@ -2507,6 +2507,59 @@ components. Each keeps a local `*Signal` and mirrors the panel's plain value int
 written seven times and it is the thing `backlog.md` #10 now records as a gap: every control here owns its
 value as a signal, and a consumer whose state is a store has to build the bridge themselves.
 
+### Controls: `Stepper`, where the state vocabulary is the consumer's
+
+Built **2026-08-15**, after the longest design conversation in this file's history. A progress strip over a
+multi-step flow.
+
+**The library never computes whether a step is complete.** Each step arrives with a `state` the component
+declares as a generic and never inspects — `done`, `failed`, `skipped`, whatever the consumer needs — and
+the source of that state is deliberately unknown to it: a form, a server, a person clicking a knob. This
+settled a question that had been open in `backlog.md` for months as "what does the stepper gate on", and the
+answer turned out to dissolve it: nothing, because it is told.
+
+**What the library does own is `aria-current="step"`.** That is not a state a consumer may invent.
+`aria-current` is an enumerated attribute whose defined tokens include `step`, meaning exactly this — the
+current step of a process — and an unrecognised value degrades silently to plain `true` rather than erroring.
+So a consumer expressing "current" as one of their own states would produce a strip whose position is
+invisible to a screen reader, and the component holds it instead. This is the same split `Breadcrumbs` makes
+with `aria-current="page"`.
+
+**`computeStepAriaLabel` is required, and that is the whole reason the free vocabulary is safe.** There is
+no ARIA attribute for "this step failed" — none exists, for any invented state. So a red ring on step two is,
+to a screen reader, indistinguishable from step three, and the only route by which an invented state can be
+announced is **text in the accessible name**. Requiring the map is what stops the freedom from being a trap
+that produces strips which look informative and say nothing. The strings are the consumer's, for the reason
+`TagInput` does not ship the word "Remove".
+
+**Navigability is per step and decides the element, not an attribute.** A step you can move to is a
+`<button>`; a step you cannot is a `<span>`. `Breadcrumbs` makes the same call for its last crumb. A step
+that is not navigable but carries a tooltip stays reachable, which is `InteractionWrapper`'s
+`getIsReachableWhenDisabled` pairing — and the component derives it from whether a tooltip exists rather than
+taking a prop, so the warning that rule already carries can never fire from here.
+
+**Each step is its own tab stop; there is no roving order.** The question was asked directly and researched.
+Roving is legal — no criterion counts tab stops — but the APG's own account of how a user _discovers_ arrow
+keys is that assistive technology recognises the role and says so, and the composite list it gives (combobox,
+grid, listbox, menu, radio group, tabs, toolbar, treegrid, tree view) has no stepper in it. An ordered list
+of buttons announces "list", so roving over it hides most of the strip from anyone who did not guess. There
+is also no ARIA attribute that advertises arrow-key navigation: `aria-keyshortcuts` is for shortcuts that
+activate or focus an element, `aria-roledescription` renames a role without adding behaviour and is
+explicitly discouraged, and `role="application"` disables browse mode wholesale. Getting the announcement
+would mean claiming `role="tablist"`, which asserts that the steps swap panels — untrue when the state
+source is agnostic. A stepper that genuinely does swap panels is `Tabs`, which already roves.
+
+The sharper argument is local: a locked or failed step stays reachable **so its tooltip can be read**. Under
+roving, someone who does not know to press an arrow tabs in, lands on the current step, tabs out, and never
+reaches it — roving would hide the exact thing the tooltip exists for.
+
+**Both orientations ship**, per the original requirement, as a `dir` prop with `aria-orientation` on the
+list.
+
+**Not built:** the connector is a slot rather than something the library draws, and nothing enforces that a
+linear flow is actually linear — a consumer who marks every step navigable gets free navigation, which is
+`nonLinear` elsewhere and needs no prop here.
+
 ### Controls: `SplitPane`, where CSS grid is the arithmetic
 
 Built **2026-08-15**. Resizable panes with a draggable gutter between each pair.
@@ -2548,7 +2601,7 @@ axis move it by `keyStep`. A drag-only splitter is unreachable without a pointer
 implementations skip.
 
 **The drag is local rather than `InteractionUtils.trackDrag`.** That helper measures the pointer against
-the element it is attached to, which is right when the drag surface *is* the measured surface — `Range` and
+the element it is attached to, which is right when the drag surface _is_ the measured surface — `Range` and
 `ColorArea` both are. Here the drag surface is the gutter and the measured surface is the container, so the
 component reads the container's rect itself. If a third consumer of that shape appears, widening `trackDrag`
 to take a separate measuring ref is the change to argue then, not now.

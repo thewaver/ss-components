@@ -134,6 +134,8 @@ export * from "./Fundamentals/Breadcrumbs/Breadcrumbs";
 export type * from "./Fundamentals/Breadcrumbs/Breadcrumbs.types";
 export * from "./Fundamentals/SplitPane/SplitPane";
 export type * from "./Fundamentals/SplitPane/SplitPane.types";
+export * from "./Fundamentals/Stepper/Stepper";
+export type * from "./Fundamentals/Stepper/Stepper.types";
 export * from "./Fundamentals/Input/TagInput/TagInput";
 export type * from "./Fundamentals/Input/TagInput/TagInput.types";
 export * from "./Fundamentals/Paginator/Paginator";

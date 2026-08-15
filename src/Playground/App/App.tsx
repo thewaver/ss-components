@@ -38,6 +38,7 @@ import { ShapePage } from "./Pages/ShapePage/ShapePage";
 import { SlideButtonPage } from "./Pages/SlideButtonPage/SlideButtonPage";
 import { SplitPanePage } from "./Pages/SplitPanePage/SplitPanePage";
 import { SpotlightPage } from "./Pages/SpotlightPage/SpotlightPage";
+import { StepperPage } from "./Pages/StepperPage/StepperPage";
 import { SurfacePage } from "./Pages/SurfacePage/SurfacePage";
 import { TabsPage } from "./Pages/TabsPage/TabsPage";
 import { TagInputPage } from "./Pages/TagInputPage/TagInputPage";
@@ -291,6 +292,12 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
                 description:
                     "Resizable panes over a CSS grid: the ratios are fr shares and a pane's bounds are a clamp, so a window resize is the browser's arithmetic rather than the component's. When the minimums cannot all fit, it overflows, exactly as grid does.",
                 component: () => <SplitPanePage />,
+            },
+            {
+                name: "Stepper",
+                description:
+                    "A progress strip whose per-step states are the consumer's to invent — the library owns only which step is current, and insists that whatever a state means reaches the step's name as words rather than as paint alone.",
+                component: () => <StepperPage />,
             },
             {
                 name: "Tabs",

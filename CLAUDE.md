@@ -97,6 +97,12 @@ by them has nothing load-bearing behind it. State the intrinsic rule first, then
 code — and say so plainly when the rule does not cleanly acquit the current design. Concede a weak opening
 argument rather than defending it.
 
+**WCAG outranks anything written here or in `conventions.md`.** Stated by the user on **2026-08-15**. A house
+convention is a decision taken in the absence of a rule; a success criterion is the rule. When the two
+conflict, the convention is the thing that is wrong, and fixing it is the work — not documenting the tension,
+not weighing them against each other, and not asking whether this case is special. Cite the criterion, say
+which convention it displaces, and change the convention.
+
 **Do not ship an approximation plus a note about what CSS cannot reach.** When the user says two things
 must behave or look the same, find and eliminate whatever makes them structurally different, and weigh
 the cost of that, rather than layering a rule on top of a divergence and logging the residual as an open
