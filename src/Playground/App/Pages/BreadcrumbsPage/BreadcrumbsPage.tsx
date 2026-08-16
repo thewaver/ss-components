@@ -2,6 +2,7 @@ import { createMemo, createSignal } from "solid-js";
 
 import { Breadcrumbs } from "../../../../Lib/Fundamentals/Breadcrumbs/Breadcrumbs";
 import type { Breadcrumb } from "../../../../Lib/Fundamentals/Breadcrumbs/Breadcrumbs.types";
+import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import type { TabLinkProps } from "../../../../Lib/Fundamentals/Tabs/Tabs.types";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
@@ -10,6 +11,7 @@ import {
     PageBreadcrumbContent,
     PageBreadcrumbSeparator,
 } from "../../StyledComponents/BreadcrumbContent/BreadcrumbContent";
+import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import { PageCheckField, PageNumberField } from "../../StyledComponents/Field/Field";
 
 type CrumbValue = "home" | "library" | "inputs" | "text" | "field";
@@ -52,17 +54,31 @@ export const BreadcrumbsPage = () => {
 
     const labelOf = (value: CrumbValue) => TRAIL.find((entry) => entry.value === value)!.label;
 
+    const navigate = (value: CrumbValue) => {
+        setDepth(TRAIL.findIndex((entry) => entry.value === value) + 1);
+    };
+
+    const reset = () => {
+        setDepth(STARTING_DEPTH);
+        setPressed(undefined);
+        setLinkPressed(undefined);
+    };
+
     const getVariants = createMemo(() => {
         return [
             {
                 name: "Default",
-                readout: () => `pressed: ${getPressed() ?? "nothing yet"} — the last crumb is the page you are on`,
+                readout: () =>
+                    `pressed: ${getPressed() ?? "nothing yet"} — pressing a crumb moves the page there, so the trail behind it is the whole trail; Reset puts it back`,
                 component: () => (
                     <Breadcrumbs
                         getCrumbs={getCrumbs}
                         getGap={() => BREADCRUMBS_GAP}
                         getAriaLabel={() => "Trail"}
-                        onSelect={setPressed}
+                        onSelect={(value) => {
+                            setPressed(value);
+                            navigate(value);
+                        }}
                         renderCrumb={(getCrumb, getFlags) => (
                             <PageBreadcrumbContent getFlags={getFlags}>
                                 {labelOf(getCrumb().value)}
@@ -96,7 +112,10 @@ export const BreadcrumbsPage = () => {
                         getCrumbs={getLinkCrumbs}
                         getGap={() => BREADCRUMBS_GAP}
                         getAriaLabel={() => "Linked trail"}
-                        onSelect={setLinkPressed}
+                        onSelect={(value) => {
+                            setLinkPressed(value);
+                            navigate(value);
+                        }}
                         renderCrumb={(getCrumb, getFlags) => (
                             <PageBreadcrumbContent getFlags={getFlags}>
                                 {labelOf(getCrumb().value)}
@@ -144,6 +163,15 @@ export const BreadcrumbsPage = () => {
 
                 <PageProp getLabel={() => "Disabled"}>
                     <PageCheckField getValue={getIsDisabled} getAriaLabel={() => "Disabled"} onChange={setIsDisabled} />
+                </PageProp>
+
+                <PageProp getLabel={() => "Trail"}>
+                    <Button
+                        renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Reset</PageButtonContent>}
+                        onClick={async () => {
+                            reset();
+                        }}
+                    />
                 </PageProp>
             </PagePropsPanel>
 

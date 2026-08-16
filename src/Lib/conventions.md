@@ -2560,6 +2560,26 @@ list.
 linear flow is actually linear — a consumer who marks every step navigable gets free navigation, which is
 `nonLinear` elsewhere and needs no prop here.
 
+**The entry takes the list's direction, and the first build forgot to give it one.** Fixed **2026-08-16**.
+`dir` was written onto the `<ol>` alone, but the `<li>` holds two things — the step and the connector that
+follows it — and it was a hard-coded row. So a column strip laid the connector _beside_ the step: a 2px
+hairline standing to the right of the label instead of a track running down the page between one step and
+the next. The `<li>` now carries the same `flex-direction` the list does. Nothing else was wrong with the
+column case, which is why it looked like a paint bug and was not one.
+
+**A row strip wraps rather than overflowing, and the alternatives were weighed.** Also **2026-08-16**. Four
+steps with word-length names are wider than a 370px column, and the strip had no answer: `stepperList` could
+not shrink (the painter's labels are `nowrap`, and the connector is a fixed-size slot the library does not
+own) and could not wrap, so it grew past its container **in both directions** — the first entry sat at
+`offsetLeft: -45`, outside the card. The three ways out were shrinking, scrolling and wrapping. Shrinking is
+not the library's to do: it would need the painter to let its labels truncate, so the library would be
+dictating paint to fix its own layout. Scrolling hides steps behind a gesture with nothing saying they are
+there. Wrapping needs nothing from the painter and truncates no label, so it is the default; a consumer who
+wants one of the other two has `overflow` on their own container and gets it. The `<li>` is the wrap unit
+already, so a connector never separates from the step it follows — a wrapped line can end on a connector,
+which is the cost. `maxWidth: 100%` on the list and `minWidth: 0` on the entry stop a single over-wide step
+escaping the near edge as well as the far one.
+
 ### Controls: `SplitPane`, where CSS grid is the arithmetic
 
 Built **2026-08-15**. Resizable panes with a draggable gutter between each pair.
@@ -2605,6 +2625,26 @@ the element it is attached to, which is right when the drag surface _is_ the mea
 `ColorArea` both are. Here the drag surface is the gutter and the measured surface is the container, so the
 component reads the container's rect itself. If a third consumer of that shape appears, widening `trackDrag`
 to take a separate measuring ref is the change to argue then, not now.
+
+**A pixel bound has to be reconciled with a ratio value, and CSS alone cannot do it.** Fixed
+**2026-08-16**, and it is the correction to the section above rather than an addition to it. `minPx` and
+`maxPx` were expressed only as the `clamp()` around each track, which is correct for _rendering_ and useless
+for _dragging_: `moveBoundary` knew nothing about them, so a drag kept writing ratios the `clamp()` then
+refused. Past a pane's floor the pane stopped moving while the gutter carried on under the pointer, the far
+pane went on growing, and the tracks summed to more than the container — a three-pane split with 80px floors
+looked, to the user who reported it, like a drag that shrank the wrong pane. The bound is now converted into
+a ratio against the container's measured size and the drag is clamped there, so the stored value never
+leaves the range CSS will honour.
+
+Two details matter and neither is obvious. **The measurement is `offsetWidth` / `offsetHeight`, not
+`getBoundingClientRect`** — `Viewport` scales its contents, so a client rect is layout size times a factor
+that is almost never 1, while `minPx` is a layout-space number. `computePointerBoundary` keeps using the
+client rect, correctly, because there both sides of its division carry the same factor and it cancels.
+**And the CSS `clamp()` stays.** The two layers are not redundant: the drag clamp holds while the pointer
+moves, the `clamp()` holds when the _container_ resizes, which changes the pixels under ratios nobody
+touched. When the floors cannot all fit, the drag clamp's own window is empty and it pins to the floor,
+which is what `clamp(min, …, max)` does when `min > max` — so the accepted overflow above survives
+unchanged, and `splitPane.spec.ts` still pins it.
 
 **Not built:** collapsing a pane to nothing and restoring it, a double-click to reset, and persisting the
 split. All three are the consumer's today, since they own the signal.
@@ -2652,6 +2692,58 @@ be edited rather than retyped.
 **The draft text is private unless asked for.** `textSignal` is optional through `SignalMirror.createOptional`,
 the same arrangement the popups use for their open state.
 
+**Owning the box means owning the pointer back, which the first build did not.** Fixed **2026-08-16**.
+`interactionRoot` sets `pointer-events: none` over the whole control and each part turns it back on for
+itself — `buttonElement` does, `textFieldElement` does. `tagInputField` did not, so the field was invisible
+to the mouse: it could not be clicked, focused or typed into, and the control read as a box of tags with no
+text entry at all. Every spec in `tagInput.spec.ts` passed throughout, because `fill()` writes the element
+directly and never asks whether a person could have reached it — the click path is now asserted, and that is
+the general lesson rather than a detail of this control. The root turns pointer events on too, with
+`cursor: text` and a `pointerdown` that focuses the field when the press landed on the root itself, so the
+padding around the tags behaves like the padding of any text box rather than as dead space.
+
+**A control that owns its box must be positioned, or the painter paints over it.** Fixed **2026-08-16**,
+one round after the pointer fix above, and it is the more general of the two. `renderContent` draws an
+opaque box at `position: absolute; inset: 0`, and CSS paints positioned elements _after_ ordinary in-flow
+content regardless of document order — so the painter's background covered the field's text. The value was
+in the DOM, the caret was in the field, the click worked, and the box still looked empty. The tags escaped
+it only by accident: each sits in an `InteractionWrapper`, whose root is `position: relative`. `TextField`
+escapes it deliberately, because its element is absolute too.
+
+So the rule is: **anything the painter is meant to sit behind has to be positioned.** `tagInputRoot` is now
+`position: relative`. This is the trap for every future control that renders in-flow content next to
+`renderContent` — the symptom is not a subtle one, it is content that is simply not there, and nothing in
+the markup or the flags hints at it.
+
+**The field is a row of its own beneath the tags.** Settled by the user on **2026-08-16**, and worth
+recording because the first build arrived there by accident and the second "fixed" it. An `<input>`'s
+intrinsic width is around 177px — the default `size` attribute — and `flex-basis: auto` takes that as its
+starting size, so it happened not to fit beside the tags and wrapped. That looked like a stray empty row
+and was changed to a 60px basis, which put the field back on the tags' line. The user asked for the full
+row, and they are right about the shape: chips in front of a caret on one line read as a search box that
+has already matched something, while a block of tags with an empty line under it reads as a list and a
+place to add to it. It is now `flex: 1 0 100%` — a 100% basis cannot share a line, so the break is
+declared rather than incidental, and it holds for one tag or for twelve.
+
+**The caret is the painter's, through `computeTextStyle`.** Same day. `TagInput` had no way to reach the
+input's text at all, so the caret fell back to the inherited text colour while every other field on the
+site drew the theme's. The slot is `TextField`'s, reused rather than reinvented — same name, same
+`TextFieldTextStyle` type — which is the `TabLinkProps` precedent applied again: a second identical type
+for the second caller is the thing to avoid.
+
+**A printable key on a focused tag returns to the field.** Also **2026-08-16**. Walking into the tags is a
+detour and the field is where text goes, but `handleTagKeyDown` answered only Backspace, Delete and the
+arrows, so a letter pressed on a tag went nowhere — no character, no movement, nothing. Focus now moves
+back to the field and the keystroke lands there, which is the only thing pressing a letter can have meant.
+This is deliberately not `preventDefault`ed: the character is inserted by the default action, after the
+handler has moved focus.
+
+**Disabled has to close the write paths, not only announce itself.** Same fix. The field carried
+`aria-disabled` and nothing else, so a disabled tag input could still be typed into and Enter still added
+tags. It now takes `readOnly` the way `TextField` does — never the native `disabled`, per the house rule —
+and both key handlers return early. `userSelect: text` was missing for the same reason as `pointer-events`:
+`interactionRoot` turns selection off and the field never turned it back on.
+
 **Not built:** a cap or a collapse, per above; editing a tag in place; pasting a delimited list as several
 tags; and a drag to reorder.
 
@@ -2688,6 +2780,14 @@ consumer wanting only the gap pays for nothing.
 **There is no keyboard handling at all, and that is correct.** Crumbs are independent destinations, so each
 is its own tab stop — the same reasoning `Paginator` records for its page numbers. A roving order would make
 the trail one stop and hide the rest behind arrow keys, which is what a `tablist` wants and a `nav` does not.
+
+**Trimming the trail is the consumer's, and the Playground now shows it.** Raised by the user on
+**2026-08-16**: pressing `B` in `A > B > C > D` ought to leave `A > B`, because that is where you now are.
+The behaviour is right and the component is too — `onSelect` reports the press and nothing else, since the
+component does not own the route and a trail that trimmed itself would fight any consumer whose crumbs come
+from a router. What was wrong was the demo, which reported the press into a readout and left the trail at
+four, so the page appeared to do nothing. The page now derives the trail from the pressed crumb's index,
+which is what a route-driven consumer does, and the panel's `Reset` is the way back.
 
 **Not built:** collapsing a long trail behind an overflow menu. It needs a decision about where the hidden
 crumbs go — a `Menu`, a widening in place — and nothing has asked.
@@ -2784,6 +2884,52 @@ _a_ theme, and a consumer copying its shape is copying an example rather than fo
 What this does **not** license is changing it casually. It is the only theme the Playground has, so a token
 edit repaints every page at once; the values being arbitrary is a statement about their origin, not an
 invitation to churn them.
+
+### The Playground's field look is one surface, and every field-shaped control wears it
+
+Extracted **2026-08-16**, after the user pointed out that `TagInput` did not look like the other inputs. It
+had been given a painter of its own — 1px border instead of 2, a theme background instead of black, no
+shadow, its own padding — so it read as a different kind of control sitting on an inputs page.
+
+`TextFieldContent.css` now exports **`fieldSurface`**, which is everything that makes a field look like a
+field: the border and its 25% currentColor, the radius, the black fill, the small shadow, the transition,
+and the `isReadOnly` / `hasError` / `isHovered` / `isDisabled` selectors. `textFieldContent` is
+`fieldSurface` plus the fixed 240×40 box and its `isStretched` escape; `tagInputContent` is `fieldSurface`
+plus `position: absolute; inset: 0`, since there the tags size the box rather than the painter. The flag
+classes are imported from `TextFieldContent.css` too, so hover, error and disabled behave identically
+rather than similarly.
+
+The two shapes are the reason this is a shared **surface** and not a shared component: in `TextField` the
+painter declares the size and the input is laid over it; in `TagInput` the content declares the size and
+the painter is laid under it. Only the appearance is common, so only the appearance is shared. The metrics
+travel as the existing `FIELD_PADDING` / `FIELD_GAP` / `FIELD_HEIGHT` constants, which `TagInput`'s page now
+passes — `FIELD_HEIGHT` through `getMinHeight`, so an empty tag box is exactly as tall as a text field and
+grows from there.
+
+**Width is the one thing deliberately not matched.** A text field is 240px because its painter says so; a
+tag box is as wide as its tags, which is the documented behaviour of the control. Forcing them equal would
+contradict the growth rule the section on `TagInput` above settled.
+
+### A Playground demo a visitor can move must be a demo they can put back
+
+Stated by the user on **2026-08-16**, after `TagInput` and `Stepper` shipped with no way to restore them:
+deleting a tag or pressing a step behind the current one changed the page permanently, so a second look at
+the starting state meant reloading. The rule is theirs and it is simple — **if pressing something inside a
+variant changes state the page owns, the page ships a way back to where it started.**
+
+The reset lives in the **props panel**, not beside the variant, for the same reason every other knob does:
+one control governs every instance, so the page returns as a whole rather than one card at a time. The
+starting values move to module constants and the reset writes them back.
+
+**A knob that happens to express the state does not stand in for the button.** Confirmed by the user on
+**2026-08-16** against the opposite guess: `Breadcrumbs` was left without one because its `Depth` field can
+already put the trail back, and they asked for the button anyway. The reasoning holds generally — a knob is
+somewhere to _set_ a value, and knowing that setting it to 4 happens to be the starting point is knowledge
+the page has and the visitor does not. A reset is also a reset of everything the page moved, which a single
+knob is not: pressing a crumb moved the trail _and_ the readout under it, and only the button puts both back.
+
+The exception is a variant whose whole point is a one-way gesture with an owner-held latch, which is why
+`SlideButton` keeps its `Reset` inside the card: there the button is part of what is being demonstrated.
 
 ### `ScreenWiper`: CSS shapes, not SVG
 

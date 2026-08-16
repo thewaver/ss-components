@@ -6,6 +6,7 @@ import type {
     InteractionControlProps,
     InteractionWrapperProps,
 } from "../../InteractionWrapper/InteractionWrapper.types";
+import type { TextFieldTextStyle } from "../TextField/TextField.types";
 
 export type TagInputFlags = {
     isEmpty: boolean;
@@ -39,6 +40,7 @@ export type TagInputProps = Omit<
             }
     > & {
         textSignal?: Signal<string>;
+        computeTextStyle?: (getFlags: () => InteractionFlags<TagInputFlags>) => TextFieldTextStyle;
         renderTag: (getTag: Accessor<string>, getFlags: () => InteractionFlags) => JSX.Element;
         renderPlaceholder?: (getFlags: () => InteractionFlags<TagInputFlags>) => JSX.Element;
     };

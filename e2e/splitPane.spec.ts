@@ -133,3 +133,46 @@ test("minimums that cannot fit overflow rather than shrink", async ({ page }) =>
         "the panes keep their floors, so the row of tracks is wider than the box holding it",
     ).toBeGreaterThan(overflow.box);
 });
+
+/**
+ * The bounds are declared in pixels and the value is a ratio, so the two have to be reconciled somewhere.
+ * They used to be reconciled only in CSS, which meant the drag kept writing ratios the `clamp()` then
+ * refused: past a pane's floor the pane stopped moving, the gutter carried on under the pointer, and the
+ * tracks added up to more than the container. Converting each bound into a ratio against the measured
+ * container and clamping the drag there keeps the stored value inside what CSS will honour, so the panes
+ * always add up to the box.
+ */
+test("a drag stops where the pixel bounds do, rather than writing past them", async ({ page }) => {
+    const drag = async (scope: string, index: number, dx: number) => {
+        const handle = page.locator(gutter(scope)).nth(index);
+        const box = (await handle.boundingBox())!;
+
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(box.x + box.width / 2 + dx, box.y + box.height / 2, { steps: 10 });
+        await page.mouse.up();
+    };
+
+    const tracks = (scope: string) =>
+        page.locator(root(scope)).evaluate((element) => ({
+            box: (element as HTMLElement).offsetWidth,
+            sum: Array.from(element.children).reduce((total, child) => total + (child as HTMLElement).offsetWidth, 0),
+            panes: Array.from(element.children)
+                .filter((child) => child.tagName === "DIV")
+                .map((child) => (child as HTMLElement).offsetWidth),
+        }));
+
+    await drag(TRIPLE, 1, -400);
+
+    const triple = await tracks(TRIPLE);
+
+    expect(triple.panes[1], "the middle pane stops on its 80px floor").toBe(80);
+    expect(triple.sum, "and the tracks still add up to the container rather than spilling out of it").toBe(triple.box);
+
+    await drag(BOUNDED, 0, 400);
+
+    const bounded = await tracks(BOUNDED);
+
+    expect(bounded.panes[1], "a drag the other way stops on the neighbour's floor instead").toBe(160);
+    expect(bounded.sum).toBe(bounded.box);
+});

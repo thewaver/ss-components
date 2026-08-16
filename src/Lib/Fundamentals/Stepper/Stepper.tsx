@@ -58,6 +58,7 @@ export const Stepper = <TValue, TState>(props: StepperProps<TValue, TState>) => 
             class={styles.stepperList}
             style={{
                 "flex-direction": getDir(),
+                "flex-wrap": getDir() === "row" ? "wrap" : undefined,
                 "gap": `${props.getGap?.() ?? DEFAULT_STEPPER_GAP}px`,
             }}
             aria-label={props.getAriaLabel?.()}
@@ -68,7 +69,7 @@ export const Stepper = <TValue, TState>(props: StepperProps<TValue, TState>) => 
                     const getTooltipDefs = () => props.computeTooltipDefs?.(getStep(), index);
 
                     return (
-                        <li class={styles.stepperEntry}>
+                        <li class={styles.stepperEntry} style={{ "flex-direction": getDir() }}>
                             <InteractionWrapper
                                 getIsDisabled={() => !(getStep().isNavigable ?? false)}
                                 getIsReachableWhenDisabled={() => getTooltipDefs() !== undefined}

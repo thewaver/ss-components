@@ -132,3 +132,114 @@ test("tags wrap in a narrow box, and the box grows to hold them", async ({ page 
         "twelve tags in 240px stand several rows tall, so nothing is clipped or hidden",
     ).toBeGreaterThan(await offsetHeight(single));
 });
+
+/**
+ * Every other spec in this file reaches the field with `fill`, which sets the value straight on the
+ * element and never asks whether a person could have got there. `InteractionWrapper`'s root turns
+ * pointer events off for the whole control and each part turns them back on for itself; the field never
+ * did, so it was invisible to the mouse — the box looked like a text field, took a click, and did
+ * nothing. Clicking is asserted here rather than typing alone, because typing is what already worked.
+ */
+test("the box takes a click and the caret lands in the field", async ({ page }) => {
+    const box = page.locator(`${DEFAULT} [role="group"]`);
+
+    await box.click({ position: { x: 4, y: 4 } });
+
+    await expect(
+        page.locator(field(DEFAULT)),
+        "the padding around the tags belongs to the field, the way it does in any text box",
+    ).toBeFocused();
+
+    await page.keyboard.type("typed");
+    await expect(page.locator(field(DEFAULT)), "and the keystrokes reach it").toHaveValue("typed");
+});
+
+test("a disabled tag input refuses the keyboard as well as the pointer", async ({ page }) => {
+    await page.getByLabel("Disabled").check();
+
+    const before = await readout(page, "Default");
+
+    await page.locator(field(DEFAULT)).press("Enter");
+    await page.locator(tag(DEFAULT)).first().press("Backspace");
+
+    expect(await readout(page, "Default"), "neither adding nor removing gets through").toBe(before);
+});
+
+/**
+ * The painter's box is `position: absolute; inset: 0`, and a positioned element paints above ordinary
+ * in-flow content however early it appears in the markup. So the opaque background drew straight over the
+ * typed text: the value was in the DOM, the caret was in the field, and the box looked empty. The tags
+ * escaped it only because each one sits in an `InteractionWrapper` and is positioned too. Making the box
+ * itself positioned puts it back on the painter's side of the order, which is what the assertion below is
+ * really about — `static` here means invisible text, however well everything else behaves.
+ */
+test("what is typed paints above the box that was painted for it", async ({ page }) => {
+    const box = page.locator(`${DEFAULT} [role="group"]`);
+
+    expect(
+        await box.evaluate((element) => getComputedStyle(element).position),
+        "the control is positioned, so it is not painted under its own decoration",
+    ).not.toBe("static");
+
+    await page.locator(field(DEFAULT)).click();
+    await page.keyboard.type("visible");
+
+    await expect(page.locator(field(DEFAULT)), "and the value is on screen rather than only in the DOM").toHaveValue(
+        "visible",
+    );
+});
+
+/**
+ * The field is a row of its own under the tags, settled by the user on **2026-08-16**. `flex: 1 0 100%` is
+ * what does it: a 100% basis cannot share a line with anything, so the field breaks onto the next one
+ * however few tags there are. The earlier arrangement let it sit beside them, which reads as a search box
+ * with chips in front of the caret rather than as a list with a place to add to it.
+ */
+test("the field is a row of its own beneath the tags", async ({ page }) => {
+    const layout = await page.locator(`${DEFAULT} [role="group"]`).evaluate((element) => {
+        const rect = (node: Element) => node.getBoundingClientRect();
+        const input = rect(element.querySelector("input")!);
+        const tags = Array.from(element.querySelectorAll("button")).map(rect);
+
+        return {
+            below: tags.every((tag) => input.top >= tag.bottom),
+            tagRows: new Set(tags.map((tag) => Math.round(tag.top))).size,
+            fillsWidth: Math.round(input.width) >= Math.round(rect(element).width) - 30,
+        };
+    });
+
+    expect(layout.tagRows, "the two tags share a line").toBe(1);
+    expect(layout.below, "and the field starts below every one of them").toBe(true);
+    expect(layout.fillsWidth, "taking the whole row rather than the gap at the end of the tags").toBe(true);
+});
+
+/**
+ * The caret is paint, so it belongs to whoever painted the box — the same argument `computeTextStyle`
+ * settles for `TextField`, whose slot and type this reuses rather than declaring a second one. Without it
+ * the caret fell back to the text colour while every other field on the site had the theme's own, which is
+ * the sort of difference that is invisible in markup and obvious on screen.
+ */
+test("the painter sets the caret, as it does on every other field", async ({ page }) => {
+    const caret = await page.locator(field(DEFAULT)).evaluate((element) => getComputedStyle(element).caretColor);
+
+    expect(caret, "the caret is the theme's, not the inherited text colour").not.toBe(
+        await page.locator(field(DEFAULT)).evaluate((element) => getComputedStyle(element).color),
+    );
+});
+
+/**
+ * Walking onto a tag is a detour, not a destination: the tags answer Backspace, Delete and the arrows and
+ * nothing else, so a letter typed there used to go nowhere at all — no character, no movement, no sound.
+ * A printable key now hands focus back to the field and the character lands in it, which is the only
+ * outcome anyone pressing a letter could have meant.
+ */
+test("typing while a tag has focus returns to the field and keeps the character", async ({ page }) => {
+    await page.locator(field(DEFAULT)).press("ArrowLeft");
+    expect(await activeMatches(page, tagNamed(DEFAULT, "vanilla-extract")), "focus starts on a tag").toBe(true);
+
+    await page.keyboard.type("z");
+
+    expect(await activeMatches(page, field(DEFAULT)), "a letter puts focus back in the field").toBe(true);
+    await expect(page.locator(field(DEFAULT)), "and the letter is not swallowed on the way").toHaveValue("z");
+    expect(await readout(page, "Default"), "while the tags are left alone").toContain("tags: solid, vanilla-extract");
+});

@@ -2,15 +2,16 @@ import type { ParentProps } from "solid-js";
 
 import type { TagContentProps, TagInputContentProps } from "./TagInputContent.types";
 
+import * as fieldStyles from "../TextFieldContent/TextFieldContent.css";
 import * as styles from "./TagInputContent.css";
 
 export const PageTagInputContent = (props: TagInputContentProps) => (
     <div
         class={styles.tagInputContent}
         classList={{
-            [styles.isHovered]: props.getFlags().isHovered,
-            [styles.isDisabled]: props.getFlags().isDisabled,
-            [styles.hasError]: props.getFlags().hasError,
+            [fieldStyles.isHovered]: props.getFlags().isHovered,
+            [fieldStyles.isDisabled]: props.getFlags().isDisabled,
+            [fieldStyles.hasError]: props.getFlags().hasError,
         }}
     />
 );

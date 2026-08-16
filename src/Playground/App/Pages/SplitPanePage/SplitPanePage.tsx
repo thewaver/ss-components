@@ -1,10 +1,12 @@
 import { createMemo, createSignal } from "solid-js";
 
+import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { SplitPane } from "../../../../Lib/Fundamentals/SplitPane/SplitPane";
 import type { SplitPaneEntry } from "../../../../Lib/Fundamentals/SplitPane/SplitPane.types";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
+import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import { PageCheckField, PageNumberField } from "../../StyledComponents/Field/Field";
 import {
     PageSplitPaneBox,
@@ -40,17 +42,31 @@ const STARTING_GUTTER = 8;
 const GUTTER_FIELD_WIDTH = 90;
 const CRAMPED_WIDTH = 600;
 
+const STARTING_PAIR = [0.3, 0.7];
+const STARTING_BOUNDED = [0.3, 0.7];
+const STARTING_CRAMPED = [0.5, 0.5];
+const STARTING_TRIPLE = [0.25, 0.5, 0.25];
+const STARTING_COLUMN = [0.4, 0.6];
+
 const percent = (ratios: number[]) => ratios.map((ratio) => `${Math.round(ratio * 100)}%`).join(" / ");
 
 export const SplitPanePage = () => {
     const [getGutterSize, setGutterSize] = createSignal(STARTING_GUTTER);
     const [getIsDisabled, setIsDisabled] = createSignal(false);
 
-    const pairSignal = createSignal([0.3, 0.7]);
-    const boundedSignal = createSignal([0.3, 0.7]);
-    const crampedSignal = createSignal([0.5, 0.5]);
-    const tripleSignal = createSignal([0.25, 0.5, 0.25]);
-    const columnSignal = createSignal([0.4, 0.6]);
+    const pairSignal = createSignal(STARTING_PAIR);
+    const boundedSignal = createSignal(STARTING_BOUNDED);
+    const crampedSignal = createSignal(STARTING_CRAMPED);
+    const tripleSignal = createSignal(STARTING_TRIPLE);
+    const columnSignal = createSignal(STARTING_COLUMN);
+
+    const reset = () => {
+        pairSignal[1](STARTING_PAIR);
+        boundedSignal[1](STARTING_BOUNDED);
+        crampedSignal[1](STARTING_CRAMPED);
+        tripleSignal[1](STARTING_TRIPLE);
+        columnSignal[1](STARTING_COLUMN);
+    };
 
     const getVariants = createMemo(() => {
         return [
@@ -185,6 +201,15 @@ export const SplitPanePage = () => {
 
                 <PageProp getLabel={() => "Disabled"}>
                     <PageCheckField getValue={getIsDisabled} getAriaLabel={() => "Disabled"} onChange={setIsDisabled} />
+                </PageProp>
+
+                <PageProp getLabel={() => "Ratios"}>
+                    <Button
+                        renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Reset</PageButtonContent>}
+                        onClick={async () => {
+                            reset();
+                        }}
+                    />
                 </PageProp>
             </PagePropsPanel>
 

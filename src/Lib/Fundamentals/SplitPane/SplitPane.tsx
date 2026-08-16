@@ -1,5 +1,7 @@
 import { Index, Show, createMemo, createSignal } from "solid-js";
 
+import { MathUtils } from "@thewaver/ss-utils";
+
 import type { SplitPaneDir, SplitPaneProps } from "./SplitPane.types";
 
 import * as styles from "./SplitPane.css";
@@ -50,11 +52,35 @@ export const SplitPane = (props: SplitPaneProps) => {
             .slice(0, index + 1)
             .reduce((total, ratio) => total + ratio, 0);
 
+    const getAvailablePx = () => {
+        const root = getRootRef();
+
+        if (!root) return 0;
+
+        return (getDir() === "row" ? root.offsetWidth : root.offsetHeight) - getTotalGutterSize();
+    };
+
+    const computeRatioBounds = (index: number, available: number) => {
+        const pane = props.getPanes()[index];
+
+        if (available <= 0) return { min: 0, max: 1 };
+
+        return {
+            min: (pane.minPx ?? 0) / available,
+            max: pane.maxPx === undefined ? 1 : pane.maxPx / available,
+        };
+    };
+
     const moveBoundary = (index: number, boundary: number) => {
         const ratios = [...getRatios()];
         const before = getBoundary(index) - ratios[index];
         const span = ratios[index] + ratios[index + 1];
-        const next = Math.min(Math.max(boundary, before), before + span);
+        const available = getAvailablePx();
+        const start = computeRatioBounds(index, available);
+        const end = computeRatioBounds(index + 1, available);
+        const floor = Math.max(before, before + start.min, before + span - end.max);
+        const ceiling = Math.min(before + span, before + start.max, before + span - end.min);
+        const next = ceiling < floor ? floor : MathUtils.clamp(boundary, floor, ceiling);
 
         ratios[index] = next - before;
         ratios[index + 1] = before + span - next;

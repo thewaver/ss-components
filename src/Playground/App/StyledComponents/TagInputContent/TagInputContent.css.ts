@@ -1,33 +1,19 @@
 import { style } from "@vanilla-extract/css";
 
 import { themeVars } from "../../Theme.css";
+import { FIELD_FONT_SIZE, fieldSurface } from "../TextFieldContent/TextFieldContent.css";
 
 export const isHovered = style({});
 export const isFocused = style({});
 export const isDisabled = style({});
-export const hasError = style({});
 
-export const tagInputContent = style({
-    position: "absolute",
-    inset: 0,
-    border: `1px solid rgb(from currentColor r g b / 25%)`,
-    borderRadius: themeVars.borderRadius.half,
-    backgroundColor: themeVars.color.background.dark,
-    transition: `border-color ${themeVars.animation.duration}, filter ${themeVars.animation.duration}, opacity ${themeVars.animation.duration}`,
-
-    selectors: {
-        [`&.${isHovered}`]: {
-            filter: themeVars.hover.filter,
-        },
-        [`&.${hasError}`]: {
-            borderColor: themeVars.color.error.main,
-        },
-        [`&.${isDisabled}`]: {
-            filter: themeVars.disabled.filter,
-            opacity: themeVars.disabled.opacity,
-        },
+export const tagInputContent = style([
+    fieldSurface,
+    {
+        position: "absolute",
+        inset: 0,
     },
-});
+]);
 
 export const tagContent = style({
     display: "flex",
@@ -64,6 +50,7 @@ export const tagRemove = style({
 
 export const tagInputPlaceholder = style({
     color: `rgb(from currentColor r g b / 50%)`,
-    fontSize: themeVars.fontSize.small,
+    fontSize: FIELD_FONT_SIZE,
+    lineHeight: 1,
     pointerEvents: "none",
 });

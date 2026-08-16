@@ -15,6 +15,8 @@ export const TagInput = (props: TagInputProps) => {
 
     const textSignal = SignalMirror.createOptional(() => props.textSignal, "");
 
+    const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
+
     const getTags = () => props.valueSignal[0]();
 
     const getIsEmpty = createMemo(() => textSignal[0]().length < 1);
@@ -62,6 +64,8 @@ export const TagInput = (props: TagInputProps) => {
     };
 
     const handleFieldKeyDown = (e: KeyboardEvent) => {
+        if (getIsDisabled()) return;
+
         if (e.key === "Enter") {
             e.preventDefault();
             addTag();
@@ -77,6 +81,13 @@ export const TagInput = (props: TagInputProps) => {
     };
 
     const handleTagKeyDown = (e: KeyboardEvent, index: number) => {
+        if (getIsDisabled()) return;
+
+        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            focusField();
+            return;
+        }
+
         if (e.key === "Backspace" || e.key === "Delete") {
             e.preventDefault();
             removeTag(index);
@@ -117,6 +128,12 @@ export const TagInput = (props: TagInputProps) => {
                         }}
                         role="group"
                         aria-label={props.getAriaLabel?.()}
+                        onPointerDown={(e) => {
+                            if (e.target !== e.currentTarget) return;
+
+                            e.preventDefault();
+                            focusField();
+                        }}
                     >
                         <Index each={getTags()}>
                             {(getTag, index) => (
@@ -156,7 +173,9 @@ export const TagInput = (props: TagInputProps) => {
                             type="text"
                             name={props.getName?.()}
                             class={styles.tagInputField}
+                            style={props.computeTextStyle?.(getFlags)}
                             value={textSignal[0]()}
+                            readOnly={getFlags().isDisabled}
                             aria-label={props.getAriaLabel?.()}
                             aria-disabled={getFlags().isDisabled || undefined}
                             onInput={(e) => textSignal[1](e.currentTarget.value)}

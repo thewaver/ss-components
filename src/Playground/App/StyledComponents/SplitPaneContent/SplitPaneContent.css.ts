@@ -48,6 +48,7 @@ export const splitPaneBox = style({
 });
 
 export const splitPaneFrame = style({
+    width: "100%",
     height: 220,
     padding: themeVars.spacing.half,
     border: `1px solid rgb(from currentColor r g b / 25%)`,

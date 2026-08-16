@@ -25,9 +25,7 @@ export const isReadOnly = style({});
 export const isDisabled = style({});
 export const hasError = style({});
 
-export const textFieldContent = style({
-    width: FIELD_WIDTH,
-    height: FIELD_HEIGHT,
+export const fieldSurface = style({
     boxShadow: themeVars.shadow.small,
     border: `${FIELD_BORDER}px solid rgb(from currentColor r g b / 25%)`,
     borderRadius: themeVars.borderRadius.half,
@@ -35,9 +33,6 @@ export const textFieldContent = style({
     transition: `filter ${themeVars.animation.duration}, opacity ${themeVars.animation.duration}, border-color ${themeVars.animation.duration}`,
 
     selectors: {
-        [`&.${isStretched}`]: {
-            height: "auto",
-        },
         [`&.${isReadOnly}`]: {
             backgroundColor: `rgb(from currentColor r g b / 12.5%)`,
         },
@@ -53,6 +48,20 @@ export const textFieldContent = style({
         },
     },
 });
+
+export const textFieldContent = style([
+    fieldSurface,
+    {
+        width: FIELD_WIDTH,
+        height: FIELD_HEIGHT,
+
+        selectors: {
+            [`&.${isStretched}`]: {
+                height: "auto",
+            },
+        },
+    },
+]);
 
 export const textFieldPlaceholder = style({
     display: "flex",

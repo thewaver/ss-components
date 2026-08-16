@@ -1,10 +1,12 @@
 import { createMemo, createSignal } from "solid-js";
 
+import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Stepper } from "../../../../Lib/Fundamentals/Stepper/Stepper";
 import type { Step } from "../../../../Lib/Fundamentals/Stepper/Stepper.types";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { PageVariants } from "../../PageComponents/Variants/Variants";
+import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import { PageCheckField } from "../../StyledComponents/Field/Field";
 import { PageStepConnector, PageStepContent } from "../../StyledComponents/StepContent/StepContent";
 import type { PageStepState } from "../../StyledComponents/StepContent/StepContent.types";
@@ -33,13 +35,22 @@ const FAILURE_REASON = "The card was declined, so this step has to be repeated b
 const LOCKED_REASON = "Review opens once payment succeeds, so there is nothing to look at here yet.";
 
 const STEPPER_GAP = 5;
+const STARTING_LINEAR: StepValue = "address";
+const STARTING_FAILED: StepValue = "payment";
+const STARTING_STACKED: StepValue = "address";
 
 export const StepperPage = () => {
     const [getIsFreeNavigation, setIsFreeNavigation] = createSignal(false);
 
-    const [getLinearCurrent, setLinearCurrent] = createSignal<StepValue>("address");
-    const [getFailedCurrent, setFailedCurrent] = createSignal<StepValue>("payment");
-    const [getStackedCurrent, setStackedCurrent] = createSignal<StepValue>("address");
+    const [getLinearCurrent, setLinearCurrent] = createSignal<StepValue>(STARTING_LINEAR);
+    const [getFailedCurrent, setFailedCurrent] = createSignal<StepValue>(STARTING_FAILED);
+    const [getStackedCurrent, setStackedCurrent] = createSignal<StepValue>(STARTING_STACKED);
+
+    const reset = () => {
+        setLinearCurrent(STARTING_LINEAR);
+        setFailedCurrent(STARTING_FAILED);
+        setStackedCurrent(STARTING_STACKED);
+    };
 
     const computeState = (value: StepValue, current: StepValue): PageStepState => {
         if (value === current) return "current";
@@ -202,6 +213,15 @@ export const StepperPage = () => {
                         getValue={getIsFreeNavigation}
                         getAriaLabel={() => "Free navigation"}
                         onChange={setIsFreeNavigation}
+                    />
+                </PageProp>
+
+                <PageProp getLabel={() => "Current step"}>
+                    <Button
+                        renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Reset</PageButtonContent>}
+                        onClick={async () => {
+                            reset();
+                        }}
                     />
                 </PageProp>
             </PagePropsPanel>

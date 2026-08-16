@@ -148,3 +148,48 @@ test("no step carries a native disabled attribute", async ({ page }) => {
         "the locked step says so without leaving the tab order",
     ).toEqual(["true"]);
 });
+
+/**
+ * The list flips its axis over `dir`, but each `<li>` holds a step and the connector that follows it, and
+ * the entry used to stay a row whatever the list did. So a column strip drew its connector beside the
+ * step rather than under it — a vertical hairline floating to the right of the label instead of a track
+ * running down the page. The entry now takes the list's direction, which is the only thing that made the
+ * two disagree.
+ */
+test("a stacked strip runs its connector under the step, not beside it", async ({ page }) => {
+    const geometry = await page.locator(`${STACKED} ol > li:nth-of-type(1)`).evaluate((element) => {
+        const [step, connector] = Array.from(element.children) as HTMLElement[];
+
+        return {
+            stepBottom: step.offsetTop + step.offsetHeight,
+            connectorTop: connector.offsetTop,
+            connectorLeft: connector.offsetLeft,
+            stepLeft: step.offsetLeft,
+        };
+    });
+
+    expect(geometry.connectorTop, "the track begins where the step it follows ends").toBeGreaterThanOrEqual(
+        geometry.stepBottom,
+    );
+    expect(geometry.connectorLeft, "and stays on the step's own column rather than to one side").toBe(
+        geometry.stepLeft,
+    );
+});
+
+/**
+ * Four steps with words for names are wider than a narrow column, and the strip had no answer for that:
+ * it could neither shrink nor wrap, so it grew past its container in both directions and spilled out of
+ * the card. A row strip now wraps, which needs nothing from the painter and truncates no label.
+ */
+test("a row strip stays inside the box it is given", async ({ page }) => {
+    const fit = await page.locator(`${LINEAR} ol`).evaluate((element) => ({
+        list: (element as HTMLElement).offsetWidth,
+        content: element.scrollWidth,
+        parent: (element.parentElement as HTMLElement).offsetWidth,
+        left: Math.min(...Array.from(element.children).map((child) => (child as HTMLElement).offsetLeft)),
+    }));
+
+    expect(fit.list, "the strip is no wider than what holds it").toBeLessThanOrEqual(fit.parent);
+    expect(fit.content, "and nothing inside it reaches past that either").toBeLessThanOrEqual(fit.list);
+    expect(fit.left, "so no step is pushed off the near edge").toBeGreaterThanOrEqual(0);
+});
