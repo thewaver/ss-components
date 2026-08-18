@@ -11,7 +11,7 @@ outstanding work. They are at the end of `backlog.md`.
 | ------------------------------------------------------- | ----: |
 | [Missing components](#missing-components)               |     8 |
 | [Pending abstractions](#pending-abstractions)           |    12 |
-| [Blockers and known issues](#blockers-and-known-issues) |    15 |
+| [Blockers and known issues](#blockers-and-known-issues) |    18 |
 | [Accessibility gaps](#accessibility-gaps)               |     5 |
 | [Planned projects](#planned-projects)                   |     2 |
 
@@ -53,23 +53,26 @@ Ordered by the user on 2026-08-15. A toolbar, a segmented control, a rating inpu
 
 ## Blockers and known issues
 
-| #      | Where                           | What happens                                                                            |
-| ------ | ------------------------------- | --------------------------------------------------------------------------------------- |
-| 10     | **`AudioSwitcher`, `RichText`** | No Playground page; `AudioSwitcher`'s `playbackSignal` has never been run               |
-| 10     | **Every popup layer**           | Opens one frame behind; the first placement depends on the frame poll                   |
-| 18     | **`Viewport`**                  | A fast scroll shows a frame of drift                                                    |
-| 18     | **`Viewport`, nested**          | An unsized host renders nothing and says nothing                                        |
-| 18     | **`Toasts`**                    | Fixed `z-index: 200`, outside the anchor-relative rule; nested-viewport case unexamined |
-| 5      | **`Select`, windowed**          | Rows sit a hairline apart under rounding, visible with a per-row background             |
-| 5      | **`Select`, filtered**          | A filter injecting a non-matching option lands the highlight on it                      |
-| 6      | **`Menu`**                      | `Tab` returns to the trigger rather than moving past it                                 |
-| 20     | **`SlideButton`**               | A `pointercancel` at the end of travel reads as a completed gesture                     |
-| 14     | **`Calendar`**                  | The disabled predicate runs 42 times per render; 42 `InteractionWrapper`s unmeasured    |
-| 16, 25 | **`Accordion`, `Carousel`**     | Every panel and every slide is built; forced by the track width in `Carousel`           |
-| 19     | **`Tree`**                      | Cannot express a branch whose children have not loaded                                  |
-| 23     | **`Scroller`**                  | A second press mid-scroll advances less than a page                                     |
-| 13     | **`Toasts`**                    | An id re-added while leaving fades back in instead of restarting                        |
-| 22, 16 | **`Spotlight`, `Accordion`**    | Nothing scrolls the highlighted element or the newly opened section into view           |
+| #      | Where                           | What happens                                                                                |
+| ------ | ------------------------------- | ------------------------------------------------------------------------------------------- |
+| 10     | **`AudioSwitcher`, `RichText`** | No Playground page; `AudioSwitcher`'s `playbackSignal` has never been run                   |
+| 10     | **Every popup layer**           | Opens one frame behind; the first placement depends on the frame poll                       |
+| 18     | **`Viewport`**                  | A fast scroll shows a frame of drift                                                        |
+| 18     | **`Viewport`, nested**          | An unsized host renders nothing and says nothing                                            |
+| 18     | **`Toasts`**                    | Fixed `z-index: 200`, outside the anchor-relative rule; nested-viewport case unexamined     |
+| 5      | **`Select`, windowed**          | Rows sit a hairline apart under rounding, visible with a per-row background                 |
+| 5      | **`Select`, filtered**          | A filter injecting a non-matching option lands the highlight on it                          |
+| 6      | **`Menu`**                      | `Tab` returns to the trigger rather than moving past it                                     |
+| 20     | **`SlideButton`**               | A `pointercancel` at the end of travel reads as a completed gesture                         |
+| 14     | **`Calendar`**                  | The disabled predicate runs 42 times per render; 42 `InteractionWrapper`s unmeasured        |
+| 16, 25 | **`Accordion`, `Carousel`**     | Every panel and every slide is built; forced by the track width in `Carousel`               |
+| 19     | **`Tree`**                      | Cannot express a branch whose children have not loaded                                      |
+| 23     | **`Scroller`**                  | A second press mid-scroll advances less than a page                                         |
+| 13     | **`Toasts`**                    | An id re-added while leaving fades back in instead of restarting                            |
+| 22, 16 | **`Spotlight`, `Accordion`**    | Nothing scrolls the highlighted element or the newly opened section into view               |
+| 27     | **`DrumWheel`**                 | Girth arithmetic replaced a tuned constant; the user recalls it misbehaving and will retest |
+| 28     | **`Typewriter`**                | Cannot render a blank line; a break-collapsing bug in `ss-utils`, fix parked in-repo        |
+| 27     | **`FlatWheel`**                 | Hit-tests up to 70px outside its circle; nothing visible, a trap for a control in a wedge   |
 
 ## Accessibility gaps
 

@@ -1,6 +1,7 @@
 import type { JSX } from "solid-js";
 import { Index, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
+import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
 import { LiveAnnouncer } from "../../Abstracts/LiveAnnouncer/LiveAnnouncer";
 import { SignalMirror } from "../../Abstracts/SignalMirror/SignalMirror";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
@@ -35,12 +36,6 @@ const ROTATION_LABELS = {
     stopped: "Start automatic slide show",
 };
 
-const getHasLeft = (event: FocusEvent | MouseEvent) => {
-    const target = event.relatedTarget;
-
-    return !(target instanceof Node) || !(event.currentTarget as HTMLElement).contains(target);
-};
-
 const CarouselControl = (props: CarouselControlProps) => {
     const getIsDisabled = () => props.getFlags().isDisabled ?? false;
 
@@ -64,9 +59,7 @@ const CarouselControl = (props: CarouselControlProps) => {
 };
 
 export const Carousel = <T,>(props: CarouselProps<T>) => {
-    const [getIsHovered, setIsHovered] = createSignal(false);
-    const [getHasFocusWithin, setHasFocusWithin] = createSignal(false);
-    const [getIsPageHidden, setIsPageHidden] = createSignal(document.hidden);
+    const [getRootRef, setRootRef] = createSignal<HTMLElement>();
 
     const [getIndex, setIndex] = SignalMirror.createOptional(() => props.indexSignal, 0);
     const [getIsPlaying, setIsPlaying] = SignalMirror.createOptional(() => props.playingSignal, true);
@@ -83,7 +76,7 @@ export const Carousel = <T,>(props: CarouselProps<T>) => {
 
     const getAutoplayDelayMs = createMemo(() => props.getAutoplayDelayMs?.());
 
-    const getIsHeld = createMemo(() => getIsHovered() || getHasFocusWithin() || getIsPageHidden());
+    const getIsHeld = InteractionUtils.trackHold(getRootRef);
 
     const getIsRotating = createMemo(
         () =>
@@ -96,18 +89,6 @@ export const Carousel = <T,>(props: CarouselProps<T>) => {
 
     const getSlideLabel = (index: number) =>
         props.computeSlideLabel?.(index + 1, getCount()) ?? `${index + 1} of ${getCount()}`;
-
-    createEffect(() => {
-        const handleVisibilityChange = () => {
-            setIsPageHidden(document.hidden);
-        };
-
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-
-        onCleanup(() => {
-            document.removeEventListener("visibilitychange", handleVisibilityChange);
-        });
-    });
 
     const goTo = (index: number) => {
         const next = CarouselUtils.wrapIndex(index, getCount());
@@ -212,23 +193,12 @@ export const Carousel = <T,>(props: CarouselProps<T>) => {
 
     return (
         <div
+            ref={setRootRef}
             class={styles.carouselRoot}
             style={{ gap: `${props.getGap?.() ?? DEFAULT_CAROUSEL_GAP}px` }}
             role="region"
             aria-roledescription={CAROUSEL_ROLE_DESCRIPTION}
             aria-label={props.getAriaLabel()}
-            onMouseOver={() => setIsHovered(true)}
-            onMouseOut={(e) => {
-                if (!getHasLeft(e)) return;
-
-                setIsHovered(false);
-            }}
-            onFocusIn={() => setHasFocusWithin(true)}
-            onFocusOut={(e) => {
-                if (!getHasLeft(e)) return;
-
-                setHasFocusWithin(false);
-            }}
         >
             <div class={styles.carouselViewport}>
                 <div

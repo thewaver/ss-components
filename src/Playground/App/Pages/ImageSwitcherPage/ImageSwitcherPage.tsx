@@ -10,10 +10,9 @@ import knight_date from "../../knight_date.webp";
 import knight_profile from "../../knight_profile.webp";
 import { DefaultExample } from "./Examples/Default";
 
-import { MEASURE_BOX_PADDING } from "../../PageComponents/MeasureBox/MeasureBox.css";
 import * as styles from "./ImageSwitcherPage.css";
 
-const IMAGE_CONTAINER_SIZE = 480 + MEASURE_BOX_PADDING * 2;
+const IMAGE_CONTAINER_SIZE = 480;
 const MISSING_SRC = "missing_image.webp";
 const SOURCE_TYPES = ["profile", "date", "missingFile", "none"] as const;
 

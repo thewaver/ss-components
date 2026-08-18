@@ -21,7 +21,7 @@ nothing there changes what the Playground does. Keep such changes small, and say
 one lands there, so they can choose to look.
 
 **The four documents split by audience, and that decides how freely to write in each.** Stated by the user
-on **2026-08-15**. **This file and `conventions.md` are read by Claude, not by them** — so write in them
+. **This file and `conventions.md` are read by Claude, not by them** — so write in them
 freely, in whatever wording is clearest to a future session, and do **not** ask permission first. Reporting
 the edit is still worth a line; requesting sanction for it is not. **`brief.md` and `backlog.md` are theirs**,
 and everything under _"Writing replies"_ applies to the text in them as much as to chat.
@@ -32,7 +32,7 @@ tomorrow looking like their standing rule. Free rein over the wording is not fre
 record decisions they took, not ones inferred on their behalf.
 
 **Do not write a fault into `brief.md` or `backlog.md` until they have said the explanation landed.** Asked
-for on **2026-08-15**, after an entry about `ColorInput`'s alpha was rewritten three times across one
+for, after an entry about `ColorInput`'s alpha was rewritten three times across one
 conversation and then deleted outright once they understood it — the item was never real, and each rewrite
 was polish on something already destined for the bin. Explain in chat first, in plain language, and wait for
 assent; then record. An explanation that has not landed yet may be describing the wrong thing entirely.
@@ -46,7 +46,7 @@ asks that concepts be explained plainly "for the sake of safe communication". Le
 happens, as a sequence — "the user presses Escape, the modal hides, the parent variable still says open,
 so clicking the button to reopen does nothing". Introduce a term only after describing the thing it names.
 
-**A fault is a numbered walkthrough, not a paragraph about the cause.** Asked for on **2026-08-13**. Write
+**A fault is a numbered walkthrough, not a paragraph about the cause.** Asked for by the user. Write
 the sequence when it goes right, one numbered step per thing that happens; then the same sequence with the
 fault, written out in full rather than referred back to; then a closing line naming which step is the actual
 defect and why the rest is tolerable. Steps are what a person does and sees, not what the code does — the
@@ -71,13 +71,13 @@ recommendation. An acknowledgement or a decision is one or two lines. Do not rec
 do not re-list open items they have already seen, and do not close by offering next steps unless asked.
 Detail belongs in the files, not repeated in chat.
 
-**A choice between approaches is a pros-and-cons list, not prose.** Asked for on **2026-08-11**, after three
+**A choice between approaches is a pros-and-cons list, not prose.** Asked for, after three
 prose answers in a row were called too verbose. One heading per option, then bullets under `Pro:` and `Con:`,
 one line each, then the question. No paragraphs around it, no preamble, no recommendation dressed as
 narrative — the trade-offs stand side by side so they can be compared by eye. If an option is a non-starter
 it still gets listed with the reason as its con, rather than argued away in a sentence above the list.
 
-**Every option carries an ID in its heading** — `1`, `2`, `3` or `A`, `B`, `C`. Asked for on **2026-08-13**.
+**Every option carries an ID in its heading** — `1`, `2`, `3` or `A`, `B`, `C`. Asked for by the user.
 It gives them a one-character answer, which is what makes the list usable when they are replying by voice.
 
 The reasoning that would have gone into those paragraphs goes into `backlog.md` or `conventions.md`, which is
@@ -97,7 +97,7 @@ by them has nothing load-bearing behind it. State the intrinsic rule first, then
 code — and say so plainly when the rule does not cleanly acquit the current design. Concede a weak opening
 argument rather than defending it.
 
-**WCAG outranks anything written here or in `conventions.md`.** Stated by the user on **2026-08-15**. A house
+**WCAG outranks anything written here or in `conventions.md`.** Stated by the user. A house
 convention is a decision taken in the absence of a rule; a success criterion is the rule. When the two
 conflict, the convention is the thing that is wrong, and fixing it is the work — not documenting the tension,
 not weighing them against each other, and not asking whether this case is special. Cite the criterion, say
@@ -133,7 +133,7 @@ needs the dev server out of the way — and if a port really is taken, say so ra
 ## Writing code
 
 **When you find something broken and can fix it, fix it — do not stop to ask.** Stated by the user on
-**2026-08-11**, after two rounds of reporting a date bug and waiting for permission before touching it.
+, after two rounds of reporting a date bug and waiting for permission before touching it.
 Two conditions, and they are the whole of it: the fix must not add a package, and it must not break
 something that already works. A defect that meets both is not a decision to surface — surfacing it costs
 a round trip and leaves the code broken in the meantime. Report what was fixed afterwards.
@@ -144,7 +144,7 @@ things. Fix the defect on sight; still raise the taste question separately.
 **`src/Lib` and `src/Playground` carry no comments of any kind, and none may be added.** Not a `//` note
 inside a function body, not a `/** */` block above a declaration, not on a component and not on a utility.
 This has been asked for repeatedly and in several wordings; the count reached 108 blocks anyway, every one
-of them written by Claude rather than by the user, and they were all deleted on **2026-08-14**. There is
+of them written by Claude rather than by the user, and they were all deleted. There is
 therefore no precedent left to copy: a comment appearing in either tree is new and is a defect. Reasoning
 that needs recording goes in `conventions.md` — _"method X does Y rather than Z, because…"_ is exactly what
 that file is for — or in the reply. If a change seems to need an inline comment to be understood, that is a
@@ -194,7 +194,7 @@ audience"_ above for what that changes.
   take, never a way to retire an item that has gone quiet.
 - **`brief.md`** — the same outstanding work as `backlog.md`, one line per fault, grouped by kind
   rather than by component: missing components, pending abstractions, blockers and known issues,
-  accessibility gaps, planned projects. Asked for by the user on **2026-08-15** so that the state of the
+  accessibility gaps, planned projects. Asked for by the user so that the state of the
   project can be read in one screen. It carries no reasoning — the argument for why a gap is still a gap
   stays in `backlog.md`, and every line here is a pointer to a numbered item there.
 
@@ -209,3 +209,9 @@ to `conventions.md`; the record of having done the work does not go anywhere.
 
 **No changelogs, in any of the four.** Nothing records "what landed", "what just shipped", or how many
 assertions passed. Once a thing is done, its only traces are the code and its `conventions.md` entry.
+
+**No dates, in any of the four.** Stated by the user: what matters is the conclusion and the reasoning
+behind it, not when it was taken — this is not a court. So no "settled on yyyy-mm-dd" stamps and no
+"asked for on" prefixes. Where the order of two decisions is part of the argument, say it in words
+("the first build did X, corrected afterwards"). A real date inside the subject matter — a calendar
+boundary, a browser-support year — is content and stays.

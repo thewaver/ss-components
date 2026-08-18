@@ -16,6 +16,7 @@ import { ComplexExample } from "./Examples/Complex";
 import { CustomExample } from "./Examples/Custom";
 import type { TypewriterExampleProps } from "./TypewriterPage.types";
 
+import { MEASURE_BOX_PADDING } from "../../PageComponents/MeasureBox/MeasureBox.css";
 import { FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/TextFieldContent/TextFieldContent.css";
 import * as styles from "./TypewriterPage.css";
 
@@ -44,7 +45,7 @@ type ExampleWrapperProps = TypewriterExampleProps &
 
 const ComplexExampleWrapper = ({ getWidth, ...props }: ExampleWrapperProps) => {
     return (
-        <PageMeasureBox getWidth={getWidth}>
+        <PageMeasureBox getWidth={getWidth} getPadding={() => MEASURE_BOX_PADDING}>
             <ComplexExample {...props} />
         </PageMeasureBox>
     );
@@ -78,7 +79,7 @@ const CustomExampleWrapper = ({ getWidth, ...props }: ExampleWrapperProps) => {
                 )}
             />
 
-            <PageMeasureBox getWidth={getWidth}>
+            <PageMeasureBox getWidth={getWidth} getPadding={() => MEASURE_BOX_PADDING}>
                 <CustomExample {...props} getText={textSignal[0]} />
             </PageMeasureBox>
         </>

@@ -25,10 +25,9 @@ import knight_profile from "../../knight_profile.webp";
 import type { CellAnimationExampleProps } from "./CellAnimationPage.types";
 import { DefaultExample } from "./Examples/Default";
 
-import { MEASURE_BOX_PADDING } from "../../PageComponents/MeasureBox/MeasureBox.css";
 import * as styles from "./CellAnimationPage.css";
 
-const IMAGE_CONTAINER_SIZE = 480 + MEASURE_BOX_PADDING * 2;
+const IMAGE_CONTAINER_SIZE = 480;
 const STRESS_CELL_COUNT: Point2d = { x: 11, y: 11 };
 const STRESS_ITEM_SIZE = 120;
 const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
@@ -120,7 +119,6 @@ const StressTestWrapper = (props: CellAnimationExampleProps) => {
                     <PageMeasureBox
                         getWidth={() => STRESS_ITEMS[getConfigIndex()].size}
                         getHeight={() => STRESS_ITEMS[getConfigIndex()].size}
-                        getPadding={() => 0}
                     >
                         <DefaultExample
                             {...props}

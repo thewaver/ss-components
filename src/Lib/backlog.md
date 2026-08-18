@@ -51,6 +51,8 @@ reading.
 24. `Paginator` — four things deliberately not built — _open_
 25. `Carousel` — five things deliberately not built — _open_
 26. A gesture `Abstract`, and the components that would consume it — _open_
+27. The four components ported from React — one thing to retest, one deliberately not built — _open_
+28. `Typewriter` cannot render a blank line, and the fix is in `ss-utils` — _open_
 
 ### Build order
 
@@ -1291,3 +1293,84 @@ and even whether the machine is on battery, so a committed image is only stable 
 produced it. The hosted services (Chromatic, Argos) keep baselines off the repo entirely and put the diff in the
 pull request for approval, which is what libraries with a design system to protect generally use. Neither
 arrangement survives the two grounds above.
+
+---
+
+## 27. The four components ported from React — one thing to retest, one deliberately not built
+
+`Satellite`, `Staircase`, `Formation`, `FlatWheel` and `DrumWheel` came in from a React codebase; what the port
+settled is in `conventions.md`. Two things did not settle, and only the first is live.
+
+**The drum's girth arithmetic was wrong twice and is now measured rather than argued.** What it reserves and
+why is in `conventions.md` under _"A drum reserves the room it paints in"_; both wrong answers are recorded there
+too, since the shape of the mistake repeated. What remains open is smaller than the original entry claimed:
+
+- **A wedge count that changes mid-turn interpolates the radius, and is left alone.** The user's call. A face
+  carries its angle and its distance from the axis in one `transform`, and that property is transitioned, so
+  changing the count while the drum is turning animates the radius over the rotation's duration while the barrel
+  jumps to the new one at once. For those few seconds the faces sit outside the box the component reserved. At
+  rest the transition duration is zero and the change applies instantly, so this needs a live count change
+  **during** a rotation to appear — which is exactly what a Playground knob does and what a fixed prize list
+  never will. Recorded rather than fixed because the fix costs an element per face, up to 48 on a doubled reel,
+  for a transient nothing outside a props panel produces.
+- **What the fix would be, if it is ever wanted.** Splitting the rotation onto an outer element and the radius
+  onto an inner one gives `rotate × translate` in that order with the radius untransitioned, which is the same
+  matrix as today. The individual `rotate` and `translate` CSS properties cannot do it: they compose as
+  `translate × rotate`, and this needs the translation to happen in the face's own turned frame, which is the
+  opposite order.
+- **Whether the user still sees the errors they remember from the original codebase.** Two wrong formulas have
+  been found and fixed since that note, so the recollection may already be accounted for.
+
+**A flat wheel hit-tests outside its visible circle, and is left that way for now.** The user's call, to be
+revisited. Each wedge is a full-size square div carrying the rotation, so a rotated square's corners point at the
+middles of the axis-aligned edges — measured, a press 40px clear of the wheel at mid-height lands on a wedge,
+while the same distance past a corner lands outside it. Nothing paints there and nothing in a wedge is
+interactive, so there is no visible effect; the exposure is a consumer who paints a control into a wedge, or an
+outside-click layer that would read such a press as inside the wheel.
+
+**What was measured, so the next attempt starts from evidence rather than from the three guesses that preceded
+it.** `pointer-events: visiblePainted` on the wedge wrapper does nothing: MDN lists it as SVG-only and
+experimental for HTML, and applying it across the whole wedge subtree left the hit chain identical. `none` on the
+wrapper and on the `<svg>` root, with `visiblePainted` on the shapes, closes it exactly — a press outside the
+wheel falls through and a press on the painted wedge lands on the `path` rather than on a div, so the hit area
+becomes the pie itself. Better than clipping the root to its square or the wedge layer to a circle, both of which
+were considered. **What stopped it is the consumer trap**: anything painted into a wedge silently stops being
+pressable until it opts back in with `pointer-events: auto`.
+
+**A flat wheel has one slot for its controls and it is the hub, chosen by the user over two alternatives.** A
+drum's controls sit under the barrel; a flat wheel's sit in the middle of it, and there is no second slot. The
+cost is the one item 23 already records for `Scroller`: a consumer who wants the control somewhere else renders
+their own button, and a library that renders no button cannot promise it is named or reachable. The two
+alternatives were a second slot beneath the wheel, rejected because the flat wheel is a square and anything
+under it changes the box it reserves, and a slot with a position prop, rejected because `Toasts` had already
+settled that a component does not fully delegate position. Recorded so it is not re-proposed as an oversight.
+
+---
+
+## 28. `Typewriter` cannot render a blank line, and the fix is in `ss-utils`
+
+**What a consumer sees.** Text containing `"a\n\nb"` renders as two lines with no blank line between them, and a
+stray blank line after the last one instead. It is on the Playground's second Typewriter example, whose starting
+text is `"Line one\n\nline two"`.
+
+**Where it comes from.** `JSXTextParser.getSegmentTokens` splits the text node into `"Line one"`, `"\n"`, `"\n"`,
+`"line two"` and pushes a break token for each newline — but through a helper that drops a break whose predecessor
+is already a break. So the second break is lost, while the wrapping element's own closing edge later pushes one
+that survives, because by then the last token is text. `Typewriter` renders the token list in order and cannot
+recover what is no longer in it.
+
+**The collapse is right for the case it was written for and wrong for two others.** Its own comment says so: two
+blocks in a row would otherwise close one and open the next. Block edges should collapse. A break the author
+wrote — a literal newline, or a `<br>` — is content, and a browser renders `<div>a</div><br>b` with a blank line.
+So the two explicit call sites push unconditionally and the two structural ones keep the helper.
+
+**It is a regression, and where it came from is known.** `git log -S'linebreak'` puts it in the commit that
+deleted this repo's own `src/Lib/Abstracts/JSX/Text/Parser/JSXTextParser.utils.ts` and moved the parser to
+`ss-utils`. The version deleted there had four unconditional pushes, with the block edges additionally guarded by
+`isBlockLike && tokens.length > 0`; the copy introduced the helper and routed all four through it. Both guards
+came across verbatim, so the only change was the two explicit sites gaining a condition they never had.
+
+**Nothing in this repo can fix it**, which is why this is carried rather than closed: the token is dropped before
+`Typewriter` is handed the list. The corrected file is parked at `src/Lib/JSXTextParser.utils.ts`, commented out —
+see _"A file in transit"_ in `conventions.md` — and this item closes when `ss-utils` ships it and the dependency
+is bumped.

@@ -21,6 +21,7 @@ import { DatePickerPage } from "./Pages/DatePickerPage/DatePickerPage";
 import { DrawerPage } from "./Pages/DrawerPage/DrawerPage";
 import { FileInputPage } from "./Pages/FileInputPage/FileInputPage";
 import { FormPage } from "./Pages/FormPage/FormPage";
+import { FormationPage } from "./Pages/FormationPage/FormationPage";
 import { ImageSwitcherPage } from "./Pages/ImageSwitcherPage/ImageSwitcherPage";
 import { LabelPage } from "./Pages/LabelPage/LabelPage";
 import { MenuPage } from "./Pages/MenuPage/MenuPage";
@@ -30,6 +31,7 @@ import { PaginatorPage } from "./Pages/PaginatorPage/PaginatorPage";
 import { ProgressPage } from "./Pages/ProgressPage/ProgressPage";
 import { RadioPage } from "./Pages/RadioPage/RadioPage";
 import { RangePage } from "./Pages/RangePage/RangePage";
+import { SatellitePage } from "./Pages/SatellitePage/SatellitePage";
 import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
 import { ScreenWiperPage } from "./Pages/ScreenWiperPage/ScreenWiperPage";
 import { ScrollerPage } from "./Pages/ScrollerPage/ScrollerPage";
@@ -38,6 +40,7 @@ import { ShapePage } from "./Pages/ShapePage/ShapePage";
 import { SlideButtonPage } from "./Pages/SlideButtonPage/SlideButtonPage";
 import { SplitPanePage } from "./Pages/SplitPanePage/SplitPanePage";
 import { SpotlightPage } from "./Pages/SpotlightPage/SpotlightPage";
+import { StaircasePage } from "./Pages/StaircasePage/StaircasePage";
 import { StepperPage } from "./Pages/StepperPage/StepperPage";
 import { SurfacePage } from "./Pages/SurfacePage/SurfacePage";
 import { TabsPage } from "./Pages/TabsPage/TabsPage";
@@ -49,6 +52,7 @@ import { TogglePage } from "./Pages/TogglePage/TogglePage";
 import { TreePage } from "./Pages/TreePage/TreePage";
 import { TypewriterPage } from "./Pages/TypewriterPage/TypewriterPage";
 import { ViewportPage } from "./Pages/ViewportPage/ViewportPage";
+import { WheelPage } from "./Pages/WheelPage/WheelPage";
 import { PageTextField } from "./StyledComponents/Field/Field";
 
 import * as styles from "./App.css";
@@ -84,12 +88,24 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
                     "Cuts an image into a grid and animates the cells on a stagger, where a cell's turn comes from a weight rather than from its index. The animations, weights and origins on this page are Playground samples — the component itself only asks for a function from timeline to result.",
                 component: () => <CellAnimationPage />,
             },
+            {
+                name: "Formation",
+                description:
+                    "Places a set of items into an arrangement — a podium, a whorl of three, a zigzag — from a function that answers with a position per item. Every position is a fraction of the formation's own width, so the whole thing scales with the container and nothing is measured in JavaScript.",
+                component: () => <FormationPage />,
+            },
             /*
             {
                 name: "RichText",
                 component: () => null,
             },
             */
+            {
+                name: "Satellite",
+                description:
+                    "Anchors one element to another and grows its own box to cover both, so a badge hanging off a corner still takes part in the parent's layout instead of spilling out of it. The placement vocabulary is the one Anchor already uses for floating layers.",
+                component: () => <SatellitePage />,
+            },
             {
                 name: "ScanlineAnimation",
                 description:
@@ -109,6 +125,12 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
                 component: () => <ShapePage />,
             },
             {
+                name: "Staircase",
+                description:
+                    "Stacks rows and insets each one by a function of its index, which makes a funnel, a spindle or a zigzag depending on the function. The direction knob hands the steps back to front rather than asking the function to know about direction.",
+                component: () => <StaircasePage />,
+            },
+            {
                 name: "TypeWriter",
                 description:
                     "Reveals text one character at a time without flattening it first, so a bold run or a nested element still animates in place.",
@@ -119,6 +141,12 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
                 description:
                     "Scales everything inside it to one design size. It is terminal: anything measured, anchored or portalled within it works in the viewport's coordinates rather than the window's.",
                 component: () => <ViewportPage />,
+            },
+            {
+                name: "Wheel",
+                description:
+                    "A wheel of wedges that spins to a wedge the consumer names, flat on the page or as a drum seen from the side. Both are presets over one unexported shell, and both take their rotation from the same abstract: spinning to an index, overshooting and settling back, and turning on its own until it is spun.",
+                component: () => <WheelPage />,
             },
         ],
     },

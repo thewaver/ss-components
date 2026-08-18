@@ -1,0 +1,17 @@
+import type { Accessor, ParentProps } from "solid-js";
+
+import type { InteractionFlags } from "../../../../Lib/Abstracts/Interaction/Interaction.types";
+import type { WheelSpinFlags, WheelWedgeState } from "../../../../Lib/Exotics/Wheel/Wheel.types";
+
+export type PageWheelWedgeProps = ParentProps<{
+    getState: Accessor<WheelWedgeState>;
+}>;
+
+export type PageWheelCardProps = ParentProps<{
+    getState: Accessor<WheelWedgeState>;
+    getRank?: Accessor<number>;
+}>;
+
+export type PageWheelSpinProps = {
+    getFlags: () => InteractionFlags<WheelSpinFlags>;
+};

@@ -27,10 +27,9 @@ import { SplitExample } from "./Examples/Split";
 import { SurgeExample } from "./Examples/Surge";
 import type { ScanlineAnimationExampleProps } from "./ScanlineAnimationPage.types";
 
-import { MEASURE_BOX_PADDING } from "../../PageComponents/MeasureBox/MeasureBox.css";
 import * as styles from "./ScanlineAnimationPage.css";
 
-const IMAGE_CONTAINER_SIZE = 240 + MEASURE_BOX_PADDING * 2;
+const IMAGE_CONTAINER_SIZE = 360;
 const MIN_GLITCH_COUNT = 1;
 const MAX_GLITCH_COUNT = 10;
 const GLITCH_COUNT_STEP = 1;
@@ -146,7 +145,6 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps) => {
                         <PageMeasureBox
                             getWidth={() => STRESS_ITEMS[getConfigIndex()].size}
                             getHeight={() => STRESS_ITEMS[getConfigIndex()].size}
-                            getPadding={() => 0}
                         >
                             <ScanlineAnimation
                                 {...props}

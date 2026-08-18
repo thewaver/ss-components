@@ -4,6 +4,7 @@ import { Portal } from "solid-js/web";
 import { CSSUtils, StringUtils } from "@thewaver/ss-utils";
 
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
+import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
 import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
 import type {
     Toast,
@@ -26,12 +27,6 @@ const DEFAULT_TOASTS_ARIA_LIVE: ToastsAriaLive = "polite";
 const DEFAULT_TOASTS_OVERFLOW: ToastsOverflow = "dismiss-oldest";
 const DEFAULT_TOASTS_GAP = 10;
 const TOASTS_Z_INDEX = 200;
-
-const getHasLeft = (event: FocusEvent | MouseEvent) => {
-    const target = event.relatedTarget;
-
-    return !(target instanceof Node) || !(event.currentTarget as HTMLElement).contains(target);
-};
 
 const ToastsItem = <T,>(props: ToastsItemProps<T>) => {
     const { getTransitionTarget, getHasTransitionFinished } = ElementFader.createFader(() => !props.getIsExiting(), {
@@ -88,9 +83,7 @@ export const Toasts = <T,>(props: ToastsProps<T>) => {
     const viewportContext = useViewportContext();
 
     const [getEntryIds, setEntryIds] = createSignal<string[]>([]);
-    const [getIsHovered, setIsHovered] = createSignal(false);
-    const [getHasFocusWithin, setHasFocusWithin] = createSignal(false);
-    const [getIsPageHidden, setIsPageHidden] = createSignal(document.hidden);
+    const [getRootRef, setRootRef] = createSignal<HTMLElement>();
 
     const getTransitionDurationMs = createMemo(
         () => props.getTransitionDurationMs?.() ?? DEFAULT_TOASTS_TRANSITION_DURATION_MS,
@@ -106,19 +99,7 @@ export const Toasts = <T,>(props: ToastsProps<T>) => {
 
     const getStackAlignment = createMemo(() => ToastsUtils.computeStackAlignment(getAlignment(), getDir()));
 
-    const getIsPaused = createMemo(() => getIsHovered() || getHasFocusWithin() || getIsPageHidden());
-
-    createEffect(() => {
-        const handleVisibilityChange = () => {
-            setIsPageHidden(document.hidden);
-        };
-
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-
-        onCleanup(() => {
-            document.removeEventListener("visibilitychange", handleVisibilityChange);
-        });
-    });
+    const getIsPaused = InteractionUtils.trackHold(getRootRef);
 
     const getAdmitted = createMemo(() => {
         const toasts = props.toastsSignal[0]();
@@ -171,6 +152,7 @@ export const Toasts = <T,>(props: ToastsProps<T>) => {
             }}
         >
             <div
+                ref={setRootRef}
                 class={styles.toastsRegion}
                 style={{
                     ...CSSUtils.spreadableToStyle(getMargins(), (key) => StringUtils.camelToKebabCase(key)),
@@ -183,18 +165,6 @@ export const Toasts = <T,>(props: ToastsProps<T>) => {
                 role="region"
                 aria-live={props.getAriaLive?.() ?? DEFAULT_TOASTS_ARIA_LIVE}
                 aria-label={props.getAriaLabel()}
-                onMouseOver={() => setIsHovered(true)}
-                onMouseOut={(e) => {
-                    if (!getHasLeft(e)) return;
-
-                    setIsHovered(false);
-                }}
-                onFocusIn={() => setHasFocusWithin(true)}
-                onFocusOut={(e) => {
-                    if (!getHasLeft(e)) return;
-
-                    setHasFocusWithin(false);
-                }}
             >
                 <For each={getEntryIds()}>
                     {(id, getIndex) => {

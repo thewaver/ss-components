@@ -5,6 +5,12 @@ import { MathUtils } from "@thewaver/ss-utils";
 
 import type { InteractionDragRatio, InternalInteractionFlags } from "./Interaction.types";
 
+const getHasLeft = (event: FocusEvent) => {
+    const target = event.relatedTarget;
+
+    return !(target instanceof Node) || !(event.currentTarget as HTMLElement).contains(target);
+};
+
 const computeRatio = (element: HTMLElement, clientX: number, clientY: number): InteractionDragRatio => {
     const rect = element.getBoundingClientRect();
 
@@ -164,6 +170,50 @@ export namespace InteractionUtils {
         });
 
         return { getFlags };
+    };
+
+    export const trackHold = (getRef: () => HTMLElement | undefined) => {
+        const [getIsHovered, setIsHovered] = createSignal(false);
+        const [getHasFocusWithin, setHasFocusWithin] = createSignal(false);
+        const [getIsPageHidden, setIsPageHidden] = createSignal(document.hidden);
+
+        const onMouseEnter = () => setIsHovered(true);
+        const onMouseLeave = () => setIsHovered(false);
+        const onFocusIn = () => setHasFocusWithin(true);
+        const onFocusOut = (event: FocusEvent) => {
+            if (!getHasLeft(event)) return;
+
+            setHasFocusWithin(false);
+        };
+        const onVisibilityChange = () => setIsPageHidden(document.hidden);
+
+        createEffect(() => {
+            const ref = getRef();
+
+            if (!ref) return;
+
+            ref.addEventListener("mouseenter", onMouseEnter);
+            ref.addEventListener("mouseleave", onMouseLeave);
+            ref.addEventListener("focusin", onFocusIn);
+            ref.addEventListener("focusout", onFocusOut);
+
+            onCleanup(() => {
+                ref.removeEventListener("mouseenter", onMouseEnter);
+                ref.removeEventListener("mouseleave", onMouseLeave);
+                ref.removeEventListener("focusin", onFocusIn);
+                ref.removeEventListener("focusout", onFocusOut);
+            });
+        });
+
+        createEffect(() => {
+            document.addEventListener("visibilitychange", onVisibilityChange);
+
+            onCleanup(() => {
+                document.removeEventListener("visibilitychange", onVisibilityChange);
+            });
+        });
+
+        return createMemo(() => getIsHovered() || getHasFocusWithin() || getIsPageHidden());
     };
 
     export const trackDrag = (

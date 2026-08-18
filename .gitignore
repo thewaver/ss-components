@@ -3,3 +3,5 @@ dist
 playground-dist
 test-results
 playwright-report
+external/*
+!external/.gitkeep

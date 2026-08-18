@@ -1,27 +1,30 @@
 import type { Accessor, Setter } from "solid-js";
-import { createEffect, createSignal, onCleanup, onMount } from "solid-js";
+import { createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
-import { Bounds, type Point2d, type Rect } from "@thewaver/ss-utils";
+import { Bounds, type Point2d, type Rect, Size2d } from "@thewaver/ss-utils";
 
 import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
 import { ViewportUtils } from "../../Exotics/Viewport/Viewport.utils";
 
 export namespace ElementObserver {
-    export const createBorderBoxHeightObserver = (
+    export const createBorderBoxSizeObserver = (
         getRef: Accessor<HTMLElement | undefined>,
         getIsEnabled?: Accessor<boolean>,
     ) => {
-        const [getHeight, setHeight] = createSignal(0);
+        const [getSize, setSize] = createSignal<Size2d>({ width: 0, height: 0 }, { equals: Size2d.isSame });
 
         createEffect(() => {
             const ref = getRef();
 
             if (!ref || getIsEnabled?.() === false) return;
 
-            setHeight(ref.offsetHeight);
+            setSize({ width: ref.offsetWidth, height: ref.offsetHeight });
 
             const observer = new ResizeObserver(([entry]) => {
-                setHeight(entry.borderBoxSize[0].blockSize);
+                setSize({
+                    width: entry.borderBoxSize[0].inlineSize,
+                    height: entry.borderBoxSize[0].blockSize,
+                });
             });
 
             observer.observe(ref);
@@ -31,7 +34,16 @@ export namespace ElementObserver {
             });
         });
 
-        return getHeight;
+        return getSize;
+    };
+
+    export const createBorderBoxHeightObserver = (
+        getRef: Accessor<HTMLElement | undefined>,
+        getIsEnabled?: Accessor<boolean>,
+    ) => {
+        const getSize = createBorderBoxSizeObserver(getRef, getIsEnabled);
+
+        return createMemo(() => getSize().height);
     };
 
     export const createViewportIntersectionObserver = (
