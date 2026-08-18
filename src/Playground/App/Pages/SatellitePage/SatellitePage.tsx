@@ -1,13 +1,13 @@
 import { createMemo, createSignal } from "solid-js";
 
 import type { AnchorHPlacement, AnchorVPlacement } from "../../../../Lib/Abstracts/Anchor/Anchor.types";
-import { Satellite } from "../../../../Lib/Exotics/Satellite/Satellite";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
-import { PageNumberField, PageSelectField } from "../../StyledComponents/Field/Field";
-import { PageSatelliteBadge, PageSatelliteSubject } from "../../StyledComponents/SatelliteContent/SatelliteContent";
+import { PageCheckField, PageNumberField, PageSelectField } from "../../StyledComponents/Field/Field";
+import { DefaultExample } from "./Examples/Default";
+import type { SatelliteExampleProps } from "./SatellitePage.types";
 
 const H_PLACEMENTS: AnchorHPlacement[] = ["left-out", "left-in", "center", "right-in", "right-out"];
 const V_PLACEMENTS: AnchorVPlacement[] = ["top-out", "top-in", "center", "bottom-in", "bottom-out"];
@@ -24,13 +24,21 @@ const BADGE_SIZE_STEP = 4;
 const FIELD_WIDTH = 110;
 const HOST_WIDTH = 260;
 const HOST_HEIGHT = 200;
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/SatellitePage/Examples";
 
 const STARTING_H_PLACEMENT: AnchorHPlacement = "right-out";
 const STARTING_V_PLACEMENT: AnchorVPlacement = "top-out";
 const STARTING_SUBJECT_WIDTH = 140;
 const STARTING_SUBJECT_HEIGHT = 80;
 const STARTING_BADGE_SIZE = 28;
-const SEAL_SIZE_RATIO = 2.5;
+
+const DefaultExampleWrapper = (props: SatelliteExampleProps) => {
+    return (
+        <PageMeasureBox getWidth={() => HOST_WIDTH} getHeight={() => HOST_HEIGHT}>
+            <DefaultExample {...props} />
+        </PageMeasureBox>
+    );
+};
 
 export const SatellitePage = () => {
     const [getHPlacement, setHPlacement] = createSignal<AnchorHPlacement>(STARTING_H_PLACEMENT);
@@ -40,71 +48,30 @@ export const SatellitePage = () => {
     const [getSubjectWidth, setSubjectWidth] = createSignal(STARTING_SUBJECT_WIDTH);
     const [getSubjectHeight, setSubjectHeight] = createSignal(STARTING_SUBJECT_HEIGHT);
     const [getBadgeSize, setBadgeSize] = createSignal(STARTING_BADGE_SIZE);
+    const [getIsBehindSubject, setIsBehindSubject] = createSignal(false);
 
     const getPlacement = createMemo(() => ({ x: getHPlacement(), y: getVPlacement() }));
 
     const getOffset = createMemo(() => ({ x: getOffsetX(), y: getOffsetY() }));
 
-    const renderSubject = (label: string) => (
-        <PageSatelliteSubject getWidth={getSubjectWidth} getHeight={getSubjectHeight}>
-            {label}
-        </PageSatelliteSubject>
-    );
+    const getExamples = createMemo(() => {
+        const commonProps: SatelliteExampleProps = {
+            getPlacement,
+            getOffset,
+            getIsBehindSubject,
+            getSubjectWidth,
+            getSubjectHeight,
+            getBadgeSize,
+        };
 
-    const getVariants = createMemo(() => [
-        {
-            name: "A badge hung off a corner",
-            readout: () =>
-                `the measured box is the parent — the wrapper grows on whichever sides the badge hangs over, so the pair never spills out of it`,
-            component: () => (
-                <PageMeasureBox getWidth={() => HOST_WIDTH} getHeight={() => HOST_HEIGHT}>
-                    <Satellite
-                        getPlacement={getPlacement}
-                        getOffset={getOffset}
-                        renderSatellite={() => (
-                            <PageSatelliteBadge getSize={getBadgeSize}>{getBadgeSize()}</PageSatelliteBadge>
-                        )}
-                    >
-                        {renderSubject("Subject")}
-                    </Satellite>
-                </PageMeasureBox>
-            ),
-        },
-        {
-            name: "A seal sitting behind it",
-            readout: () =>
-                `the same placement with the satellite drawn under the subject rather than over it, which only shows once the placement puts the two over each other`,
-            component: () => (
-                <PageMeasureBox getWidth={() => HOST_WIDTH} getHeight={() => HOST_HEIGHT}>
-                    <Satellite
-                        getPlacement={getPlacement}
-                        getOffset={getOffset}
-                        getIsBehindSubject={() => true}
-                        renderSatellite={() => (
-                            <PageSatelliteBadge
-                                getSize={() => getBadgeSize() * SEAL_SIZE_RATIO}
-                                getIsMuted={() => true}
-                            >
-                                seal
-                            </PageSatelliteBadge>
-                        )}
-                    >
-                        {renderSubject("Subject")}
-                    </Satellite>
-                </PageMeasureBox>
-            ),
-        },
-        {
-            name: "Nothing attached",
-            readout: () =>
-                `with no satellite to place there is no wrapper either, so the subject lays out as it would alone`,
-            component: () => (
-                <PageMeasureBox getWidth={() => HOST_WIDTH} getHeight={() => HOST_HEIGHT}>
-                    <Satellite getPlacement={getPlacement}>{renderSubject("Subject alone")}</Satellite>
-                </PageMeasureBox>
-            ),
-        },
-    ]);
+        return [
+            {
+                name: "Default",
+                component: () => <DefaultExampleWrapper {...commonProps} />,
+                path: `${EXAMPLES_ROOT}/Default.tsx`,
+            },
+        ];
+    });
 
     return (
         <>
@@ -188,9 +155,17 @@ export const SatellitePage = () => {
                         onInput={setBadgeSize}
                     />
                 </PageProp>
+
+                <PageProp getLabel={() => "Behind the subject"}>
+                    <PageCheckField
+                        getValue={getIsBehindSubject}
+                        getAriaLabel={() => "Behind the subject"}
+                        onChange={setIsBehindSubject}
+                    />
+                </PageProp>
             </PagePropsPanel>
 
-            <PageVariants getItems={getVariants} />
+            <PageExamples getItems={getExamples} />
         </>
     );
 };

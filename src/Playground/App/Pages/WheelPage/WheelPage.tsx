@@ -1,23 +1,14 @@
 import { createMemo, createSignal } from "solid-js";
 
-import type { Size2d } from "@thewaver/ss-utils";
-
-import { DrumWheel } from "../../../../Lib/Exotics/DrumWheel/DrumWheel";
-import { FlatWheel } from "../../../../Lib/Exotics/FlatWheel/FlatWheel";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
-import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import { PageCheckField, PageNumberField, PageSelectField } from "../../StyledComponents/Field/Field";
-import {
-    PageWheelBar,
-    PageWheelCard,
-    PageWheelHub,
-    PageWheelSpin,
-    PageWheelWedge,
-} from "../../StyledComponents/WheelContent/WheelContent";
-import type { WheelSpinStyleFn } from "./WheelPage.types";
+import { DrumOverExample } from "./Examples/DrumOver";
+import { DrumSidewaysExample } from "./Examples/DrumSideways";
+import { FlatExample } from "./Examples/Flat";
+import type { WheelExampleProps, WheelSpinStyleFn } from "./WheelPage.types";
 
 const MIN_WEDGE_COUNT = 2;
 const MAX_WEDGE_COUNT = 12;
@@ -29,17 +20,14 @@ const MIN_IDLE_DELAY_MS = 1000;
 const MAX_IDLE_DELAY_MS = 8000;
 const IDLE_DELAY_STEP_MS = 500;
 const FIELD_WIDTH = 130;
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/WheelPage/Examples";
 
 const STARTING_WEDGE_COUNT = 8;
 const STARTING_SPIN_DURATION_MS = 3000;
 const STARTING_SETTLE_DURATION_MS = 1500;
 const STARTING_IDLE_DELAY_MS = 3000;
 
-const PRIZE_FETCH_DELAY_MS = 400;
 const FLAT_WHEEL_SIZE = 340;
-const SIDEWAYS_DRUM_WEDGE_SIZE: Size2d = { width: 120, height: 74 };
-const REEL_DRUM_WEDGE_SIZE: Size2d = { width: 240, height: 56 };
-const REEL_TURN_COUNT = 2;
 const PLAIN_TURNS = 3;
 const MIN_LIVELY_TURNS = 1;
 const MAX_LIVELY_TURNS = 3;
@@ -60,20 +48,44 @@ const PRIZES = [
     "Another go",
 ];
 
-const plain: WheelSpinStyleFn = () => ({ turns: PLAIN_TURNS, jitterRatio: 0 });
+const rigid: WheelSpinStyleFn = () => ({ turns: PLAIN_TURNS, jitterRatio: 0 });
 
-const lively: WheelSpinStyleFn = () => ({
+const bouncy: WheelSpinStyleFn = () => ({
     turns: MIN_LIVELY_TURNS + Math.floor(Math.random() * (MAX_LIVELY_TURNS - MIN_LIVELY_TURNS + 1)),
     jitterRatio: (Math.random() - 0.5) * LIVELY_JITTER_SPREAD,
 });
 
-const SPIN_STYLES = { plain, lively } satisfies Record<string, WheelSpinStyleFn>;
+const SPIN_STYLES = { rigid, bouncy } satisfies Record<string, WheelSpinStyleFn>;
 
 type SpinStyleKey = keyof typeof SPIN_STYLES;
 
 const SPIN_STYLE_KEYS = Object.keys(SPIN_STYLES) as SpinStyleKey[];
 
-const STARTING_SPIN_STYLE_KEY: SpinStyleKey = "lively";
+const STARTING_SPIN_STYLE_KEY: SpinStyleKey = "bouncy";
+
+const FlatExampleWrapper = (props: WheelExampleProps) => {
+    return (
+        <PageMeasureBox getWidth={() => FLAT_WHEEL_SIZE}>
+            <FlatExample {...props} />
+        </PageMeasureBox>
+    );
+};
+
+const DrumSidewaysExampleWrapper = (props: WheelExampleProps) => {
+    return (
+        <PageMeasureBox>
+            <DrumSidewaysExample {...props} />
+        </PageMeasureBox>
+    );
+};
+
+const DrumOverExampleWrapper = (props: WheelExampleProps) => {
+    return (
+        <PageMeasureBox>
+            <DrumOverExample {...props} />
+        </PageMeasureBox>
+    );
+};
 
 export const WheelPage = () => {
     const [getWedgeCount, setWedgeCount] = createSignal(STARTING_WEDGE_COUNT);
@@ -90,111 +102,36 @@ export const WheelPage = () => {
 
     const getWedges = createMemo(() => PRIZES.slice(0, getWedgeCount()));
 
-    const getReelWedges = createMemo(() => Array.from({ length: REEL_TURN_COUNT }, () => getWedges()).flat());
-
-    const getSpinStyle = createMemo(() => SPIN_STYLES[getSpinStyleKey()]);
-
-    const pickPrizeIndex = (wedgeCount: number) =>
-        new Promise<number>((resolve) => {
-            setTimeout(() => resolve(Math.floor(Math.random() * wedgeCount)), PRIZE_FETCH_DELAY_MS);
-        });
-
     const getIdleDelay = () => (getIsIdlingAllowed() ? getIdleDelayMs() : undefined);
 
-    const readoutOf = (name: string, index: number, count: number) =>
-        `landed on ${name ?? "nothing"} (${index + 1} of ${count}) — it turns by itself until it is spun, and holds while the pointer is over it, while anything inside it has focus, and while the tab is in the background`;
+    const getExamples = createMemo(() => {
+        const commonProps = {
+            getWedges,
+            getIsDisabled,
+            getSpinDurationMs,
+            getSettleDurationMs,
+            getIdleDelayMs: getIdleDelay,
+            computeSpinDefs: (index: number, wedgeCount: number) => SPIN_STYLES[getSpinStyleKey()](index, wedgeCount),
+        };
 
-    const getVariants = createMemo(() => [
-        {
-            name: "Flat",
-            readout: () => readoutOf(getWedges()[flatIndexSignal[0]()], flatIndexSignal[0](), getWedgeCount()),
-            component: () => (
-                <PageMeasureBox getWidth={() => FLAT_WHEEL_SIZE}>
-                    <FlatWheel
-                        getWedges={getWedges}
-                        indexSignal={flatIndexSignal}
-                        getIsDisabled={getIsDisabled}
-                        getSpinDurationMs={getSpinDurationMs}
-                        getSettleDurationMs={getSettleDurationMs}
-                        getIdleDelayMs={getIdleDelay}
-                        getAriaLabel={() => "Prize wheel"}
-                        computeSpinTarget={() => pickPrizeIndex(getWedgeCount())}
-                        computeSpinDefs={(index, wedgeCount) => getSpinStyle()(index, wedgeCount)}
-                        computeWedgeLabel={(index) => `${getWedges()[index]}, ${index + 1} of ${getWedgeCount()}`}
-                        renderWedge={(getWedge, getState) => (
-                            <PageWheelWedge getState={getState}>{getWedge()}</PageWheelWedge>
-                        )}
-                        renderSpin={(getFlags) => <PageWheelSpin getFlags={getFlags} />}
-                        renderControls={(controls) => <PageWheelHub>{controls.renderSpin()}</PageWheelHub>}
-                    />
-                </PageMeasureBox>
-            ),
-        },
-        {
-            name: "Drum, turning sideways",
-            readout: () => readoutOf(getWedges()[sidewaysIndexSignal[0]()], sidewaysIndexSignal[0](), getWedgeCount()),
-            component: () => (
-                <PageMeasureBox>
-                    <DrumWheel
-                        getWedges={getWedges}
-                        indexSignal={sidewaysIndexSignal}
-                        getIsDisabled={getIsDisabled}
-                        getSpinDurationMs={getSpinDurationMs}
-                        getSettleDurationMs={getSettleDurationMs}
-                        getIdleDelayMs={getIdleDelay}
-                        getAxis={() => "row"}
-                        getWedgeSize={() => SIDEWAYS_DRUM_WEDGE_SIZE}
-                        getAriaLabel={() => "Prize drum, turning sideways"}
-                        computeSpinTarget={() => pickPrizeIndex(getWedgeCount())}
-                        computeSpinDefs={(index, wedgeCount) => getSpinStyle()(index, wedgeCount)}
-                        computeWedgeLabel={(index) => `${getWedges()[index]}, ${index + 1} of ${getWedgeCount()}`}
-                        renderWedge={(getWedge, getState) => (
-                            <PageWheelCard getState={getState}>{getWedge()}</PageWheelCard>
-                        )}
-                        renderWedgeBack={(_getWedge, getState) => <PageWheelCard getState={getState} />}
-                        renderSpin={(getFlags) => <PageButtonContent getFlags={getFlags}>Spin</PageButtonContent>}
-                        renderControls={(controls) => <PageWheelBar>{controls.renderSpin()}</PageWheelBar>}
-                    />
-                </PageMeasureBox>
-            ),
-        },
-        {
-            name: "Drum, turning over",
-            readout: () => {
-                const index = reelIndexSignal[0]();
-
-                return readoutOf(getReelWedges()[index], index % getWedgeCount(), getWedgeCount());
+        return [
+            {
+                name: "Flat, topside",
+                component: () => <FlatExampleWrapper {...commonProps} indexSignal={flatIndexSignal} />,
+                path: `${EXAMPLES_ROOT}/Flat.tsx`,
             },
-            component: () => (
-                <PageMeasureBox>
-                    <DrumWheel
-                        getWedges={getReelWedges}
-                        indexSignal={reelIndexSignal}
-                        getIsDisabled={getIsDisabled}
-                        getSpinDurationMs={getSpinDurationMs}
-                        getSettleDurationMs={getSettleDurationMs}
-                        getIdleDelayMs={getIdleDelay}
-                        getAxis={() => "column"}
-                        getWedgeSize={() => REEL_DRUM_WEDGE_SIZE}
-                        getAriaLabel={() => "Prize drum, turning over"}
-                        computeSpinTarget={() => pickPrizeIndex(getReelWedges().length)}
-                        computeSpinDefs={(index, wedgeCount) => getSpinStyle()(index, wedgeCount)}
-                        computeWedgeLabel={(index) =>
-                            `${getReelWedges()[index]}, ${(index % getWedgeCount()) + 1} of ${getWedgeCount()}`
-                        }
-                        renderWedge={(getWedge, getState) => (
-                            <PageWheelCard getState={getState} getRank={() => (getState().index % getWedgeCount()) + 1}>
-                                {getWedge()}
-                            </PageWheelCard>
-                        )}
-                        renderWedgeBack={(_getWedge, getState) => <PageWheelCard getState={getState} />}
-                        renderSpin={(getFlags) => <PageButtonContent getFlags={getFlags}>Spin</PageButtonContent>}
-                        renderControls={(controls) => <PageWheelBar>{controls.renderSpin()}</PageWheelBar>}
-                    />
-                </PageMeasureBox>
-            ),
-        },
-    ]);
+            {
+                name: "Drum, turning sideways",
+                component: () => <DrumSidewaysExampleWrapper {...commonProps} indexSignal={sidewaysIndexSignal} />,
+                path: `${EXAMPLES_ROOT}/DrumSideways.tsx`,
+            },
+            {
+                name: "Drum, turning over",
+                component: () => <DrumOverExampleWrapper {...commonProps} indexSignal={reelIndexSignal} />,
+                path: `${EXAMPLES_ROOT}/DrumOver.tsx`,
+            },
+        ];
+    });
 
     return (
         <>
@@ -271,7 +208,7 @@ export const WheelPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageVariants getItems={getVariants} />
+            <PageExamples getItems={getExamples} />
         </>
     );
 };

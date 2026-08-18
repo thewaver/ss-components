@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { computedStyle, variant } from "./helpers";
+import { computedStyle, example } from "./helpers";
 
 /**
  * The component measures nothing in JavaScript: every position it writes is in `cqw`, a fraction of the
@@ -14,13 +14,13 @@ import { computedStyle, variant } from "./helpers";
  * Second, there is no observer to wait for, so the arrangement has to be right on the first paint. Every
  * assertion here reads the DOM once, with no polling.
  */
-const FORWARD = variant("Later items in front");
-const REVERSE = variant("Earlier items in front");
+const FORMATION = example("Default");
 
 const root = (scope: string) => `${scope} div[style*="cqw"]`;
 const item = (scope: string) => `${scope} div[style*="left"]`;
 
 const numberField = (label: string) => `[data-prop="${label}"] input`;
+const checkField = (label: string) => `[data-prop="${label}"] input`;
 
 const boxOf = (page: import("@playwright/test").Page, selector: string, index: number) =>
     page.evaluate(
@@ -41,7 +41,7 @@ const boxOf = (page: import("@playwright/test").Page, selector: string, index: n
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/formation");
-    await expect(page.locator(item(FORWARD)).first()).toBeVisible();
+    await expect(page.locator(item(FORMATION)).first()).toBeVisible();
 });
 
 test("the formation is a query container, which is what the written units resolve against", async ({ page }) => {
@@ -49,14 +49,14 @@ test("the formation is a query container, which is what the written units resolv
         const spacer = document.querySelector(selector) as HTMLElement;
 
         return getComputedStyle(spacer.parentElement!).containerType;
-    }, root(FORWARD));
+    }, root(FORMATION));
 
     expect(container, "without this the units would silently fall back to the viewport").toBe("inline-size");
 });
 
 test("a position written as a fraction of the width lands at that fraction of the width", async ({ page }) => {
-    const written = await computedStyle(page.locator(item(FORWARD)).first(), "left");
-    const box = await boxOf(page, item(FORWARD), 0);
+    const written = await computedStyle(page.locator(item(FORMATION)).first(), "left");
+    const box = await boxOf(page, item(FORMATION), 0);
 
     expect(written.endsWith("px"), "the browser resolved the unit rather than the component").toBe(true);
 
@@ -69,7 +69,7 @@ test("a position written as a fraction of the width lands at that fraction of th
 });
 
 test("the height comes from the width, so the arrangement keeps its shape", async ({ page }) => {
-    const box = await boxOf(page, item(FORWARD), 0);
+    const box = await boxOf(page, item(FORMATION), 0);
 
     expect(box.hostHeight, "a formation with items in it reserves room for them").toBeGreaterThan(0);
     expect(
@@ -79,7 +79,7 @@ test("the height comes from the width, so the arrangement keeps its shape", asyn
 });
 
 test("an item's own size is a fraction of the width too", async ({ page }) => {
-    const box = await boxOf(page, item(FORWARD), 0);
+    const box = await boxOf(page, item(FORMATION), 0);
 
     expect(box.width / box.hostWidth, "half the width for a podium place").toBeCloseTo(0.5, 2);
 });
@@ -88,16 +88,16 @@ test("the arrangement changes with the item count, on the first paint", async ({
     await page.locator(numberField("Items")).fill("3");
     await page.locator(numberField("Items")).blur();
 
-    await expect(page.locator(item(FORWARD))).toHaveCount(3);
+    await expect(page.locator(item(FORMATION))).toHaveCount(3);
 
-    const before = await boxOf(page, item(FORWARD), 0);
+    const before = await boxOf(page, item(FORMATION), 0);
 
     await page.locator(numberField("Items")).fill("9");
     await page.locator(numberField("Items")).blur();
 
-    await expect(page.locator(item(FORWARD))).toHaveCount(9);
+    await expect(page.locator(item(FORMATION))).toHaveCount(9);
 
-    const after = await boxOf(page, item(FORWARD), 0);
+    const after = await boxOf(page, item(FORMATION), 0);
 
     expect(after.hostHeight, "three more whorls need three more whorls' worth of room").toBeGreaterThan(
         before.hostHeight,
@@ -107,19 +107,21 @@ test("the arrangement changes with the item count, on the first paint", async ({
 
 test("the stacking order is the consumer's, and reversing it moves nothing", async ({ page }) => {
     const forward = await page
-        .locator(item(FORWARD))
+        .locator(item(FORMATION))
         .first()
         .evaluate((element) => element.style.zIndex);
+    const forwardBox = await boxOf(page, item(FORMATION), 0);
+
+    await page.locator(checkField("Earlier items in front")).check();
+
     const reverse = await page
-        .locator(item(REVERSE))
+        .locator(item(FORMATION))
         .first()
         .evaluate((element) => element.style.zIndex);
+    const reverseBox = await boxOf(page, item(FORMATION), 0);
 
     expect(forward, "the first item is at the bottom of the pile by default").toBe("1");
     expect(Number(reverse), "and on top of it when reversed").toBeGreaterThan(Number(forward));
-
-    const forwardBox = await boxOf(page, item(FORWARD), 0);
-    const reverseBox = await boxOf(page, item(REVERSE), 0);
 
     expect({ left: reverseBox.left, top: reverseBox.top }).toEqual({ left: forwardBox.left, top: forwardBox.top });
 });
@@ -135,7 +137,7 @@ test("the arrangement sits the same distance from every edge of the box it asked
             left: Math.min(...items.map((item) => item.offsetLeft - item.offsetWidth * 0.5)),
             right: formation.offsetWidth - Math.max(...items.map((item) => item.offsetLeft + item.offsetWidth * 0.5)),
         };
-    }, item(FORWARD));
+    }, item(FORMATION));
 
     expect(
         Math.abs(edges.top - edges.bottom),

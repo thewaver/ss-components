@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { computedStyle, variant } from "./helpers";
+import { computedStyle, example } from "./helpers";
 
 /**
  * The thing worth pinning here is the growth, not the arithmetic — the unit tests already cover every
@@ -12,14 +12,13 @@ import { computedStyle, variant } from "./helpers";
  * sides the component writes into the shorthand; and it must contain an absolutely placed child, because the
  * measure box around the demo is padded as well.
  */
-const BADGE = variant("A badge hung off a corner");
-const BEHIND = variant("A seal sitting behind it");
-const BARE = variant("Nothing attached");
+const BADGE = example("Default");
 
 const wrapper = (scope: string) => `${scope} div[style*="padding"]:has(> div[style*="left"])`;
 const satellite = (scope: string) => `${scope} div[style*="left:"]`;
 
 const numberField = (label: string) => `[data-prop="${label}"] input`;
+const checkField = (label: string) => `[data-prop="${label}"] input`;
 const selectField = (label: string) => `[data-prop="${label}"] [role="combobox"]`;
 
 const option = '[role="listbox"] [role="option"]';
@@ -74,9 +73,8 @@ test("a satellite placed inside a corner costs no room at all", async ({ page })
 });
 
 test("the whole pair stays inside the parent it was given", async ({ page }) => {
-    const host = await page.locator(`${BADGE} [data-readout]`).evaluate((readout) => {
-        const parent = readout.previousElementSibling!.firstElementChild as HTMLElement;
-        const box = parent.getBoundingClientRect();
+    const host = await page.locator(wrapper(BADGE)).evaluate((element) => {
+        const box = element.getBoundingClientRect();
 
         return { left: box.left, top: box.top, right: box.right, bottom: box.bottom };
     });
@@ -97,22 +95,15 @@ test("the whole pair stays inside the parent it was given", async ({ page }) => 
 });
 
 test("the satellite can be sent behind the subject without moving", async ({ page }) => {
-    const before = await paddings(page, BEHIND);
+    const before = await paddings(page, BADGE);
+
+    await page.locator(checkField("Behind the subject")).check();
 
     await expect
-        .poll(() => page.locator(`${BEHIND} div[style*="z-index: 1"]`).count(), {
+        .poll(() => page.locator(`${BADGE} div[style*="z-index: 1"]`).count(), {
             message: "raising the subject is what puts the satellite behind it",
         })
         .toBe(1);
 
-    expect(await paddings(page, BEHIND), "and the box it needs is unchanged by the stacking order").toEqual(before);
-});
-
-test("with nothing to attach there is no wrapper either", async ({ page }) => {
-    await expect(
-        page.locator(wrapper(BARE)),
-        "the subject lays out exactly as it would without the component around it",
-    ).toHaveCount(0);
-
-    await expect(page.locator(BARE), "and it is still on the page").toContainText("Subject alone");
+    expect(await paddings(page, BADGE), "and the box it needs is unchanged by the stacking order").toEqual(before);
 });

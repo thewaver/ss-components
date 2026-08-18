@@ -2,20 +2,21 @@ import { createMemo, createSignal } from "solid-js";
 
 import { ShapeConst } from "@thewaver/ss-utils";
 
-import { Formation } from "../../../../Lib/Exotics/Formation/Formation";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { FormationLayouts } from "../../Samples/FormationLayouts/FormationLayouts.const";
-import { PageNumberField, PageSelectField } from "../../StyledComponents/Field/Field";
-import { PageFormationItem } from "../../StyledComponents/FormationContent/FormationContent";
+import { PageCheckField, PageNumberField, PageSelectField } from "../../StyledComponents/Field/Field";
+import { DefaultExample } from "./Examples/Default";
+import type { FormationExampleProps } from "./FormationPage.types";
 
 const MIN_ITEM_COUNT = 1;
 const MAX_ITEM_COUNT = 12;
 const ITEM_COUNT_STEP = 1;
 const FIELD_WIDTH = 130;
 const FORMATION_WIDTH = 380;
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/FormationPage/Examples";
 
 const STARTING_ITEM_COUNT = 6;
 const STARTING_LAYOUT_KEY: FormationLayouts.SampleKey = "podium";
@@ -36,43 +37,38 @@ const NAMES = [
     "Loam",
 ];
 
+const DefaultExampleWrapper = (props: FormationExampleProps) => {
+    return (
+        <PageMeasureBox getWidth={() => FORMATION_WIDTH}>
+            <DefaultExample {...props} />
+        </PageMeasureBox>
+    );
+};
+
 export const FormationPage = () => {
     const [getItemCount, setItemCount] = createSignal(STARTING_ITEM_COUNT);
     const [getLayoutKey, setLayoutKey] = createSignal<FormationLayouts.SampleKey>(STARTING_LAYOUT_KEY);
     const [getShapeKind, setShapeKind] = createSignal<ShapeConst.DefaultShape>(STARTING_SHAPE_KIND);
+    const [getIsStackedInReverse, setIsStackedInReverse] = createSignal(false);
 
     const getItems = createMemo(() => NAMES.slice(0, getItemCount()));
 
-    const getComputeLayout = createMemo(() => FormationLayouts.SAMPLE_LAYOUTS[getLayoutKey()]);
+    const getExamples = createMemo(() => {
+        const commonProps: FormationExampleProps = {
+            getItems,
+            getIsStackedInReverse,
+            getLayoutKey,
+            getShapeKind,
+        };
 
-    const renderFormation = (isStackedInReverse: boolean) => (
-        <PageMeasureBox getWidth={() => FORMATION_WIDTH}>
-            <Formation
-                getItems={getItems}
-                getIsStackedInReverse={() => isStackedInReverse}
-                computeLayout={(itemCount) => getComputeLayout()(itemCount)}
-                renderItem={(getItem, getState) => (
-                    <PageFormationItem getState={getState} getShapeKind={getShapeKind}>
-                        {getItem()}
-                    </PageFormationItem>
-                )}
-            />
-        </PageMeasureBox>
-    );
-
-    const getVariants = createMemo(() => [
-        {
-            name: "Later items in front",
-            readout: () =>
-                `every position is a fraction of the formation's own width, so narrowing the browser scales the whole arrangement rather than rearranging it`,
-            component: () => renderFormation(false),
-        },
-        {
-            name: "Earlier items in front",
-            readout: () => `the same arrangement stacked the other way, which is what a podium wants`,
-            component: () => renderFormation(true),
-        },
-    ]);
+        return [
+            {
+                name: "Default",
+                component: () => <DefaultExampleWrapper {...commonProps} />,
+                path: `${EXAMPLES_ROOT}/Default.tsx`,
+            },
+        ];
+    });
 
     return (
         <>
@@ -99,6 +95,14 @@ export const FormationPage = () => {
                     />
                 </PageProp>
 
+                <PageProp getLabel={() => "Earlier items in front"}>
+                    <PageCheckField
+                        getValue={getIsStackedInReverse}
+                        getAriaLabel={() => "Earlier items in front"}
+                        onChange={setIsStackedInReverse}
+                    />
+                </PageProp>
+
                 <PageProp getLabel={() => "Item shape"}>
                     <PageSelectField
                         getValue={getShapeKind}
@@ -110,7 +114,7 @@ export const FormationPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageVariants getItems={getVariants} />
+            <PageExamples getItems={getExamples} />
         </>
     );
 };

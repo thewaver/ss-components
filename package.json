@@ -34,30 +34,30 @@
     },
     "dependencies": {
         "@internationalized/date": "^3.12.3",
-        "@tanstack/solid-virtual": "^3.13.36",
+        "@tanstack/solid-virtual": "^3.13.37",
         "colorthief": "^3.5.0"
     },
     "devDependencies": {
         "@playwright/test": "^1.62.1",
         "@solidjs/router": "^1.0.0",
-        "@thewaver/ss-utils": "^0.0.21",
+        "@thewaver/ss-utils": "^0.0.22",
         "@trivago/prettier-plugin-sort-imports": "^6.0.2",
         "@vanilla-extract/css": "^1.21.2",
         "@vanilla-extract/dynamic": "^2.1.5",
         "@vanilla-extract/vite-plugin": "^5.2.6",
-        "prettier": "^3.9.5",
+        "prettier": "^3.9.6",
         "shiki": "^4.4.3",
-        "solid-js": "^1.9.14",
+        "solid-js": "^1.9.15",
         "tsup": "^8.5.1",
         "typescript": "^6.0.3",
         "vite": "^8.2.1",
         "vite-plugin-checker": "^0.14.5",
         "vite-plugin-solid": "^2.11.14",
-        "vitest": "^4.1.10"
+        "vitest": "^4.1.11"
     },
     "peerDependencies": {
-        "@thewaver/ss-utils": "^0.0.21",
-        "solid-js": "^1.9.14"
+        "@thewaver/ss-utils": "^0.0.22",
+        "solid-js": "^1.9.15"
     },
     "prettier": {
         "tabWidth": 4,
@@ -75,5 +75,8 @@
         ],
         "importOrderSeparation": true,
         "importOrderSortSpecifiers": true
+    },
+    "allowScripts": {
+        "esbuild@0.27.2": true
     }
 }

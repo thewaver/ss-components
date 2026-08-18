@@ -90,5 +90,5 @@ They cluster, and no single item owns them.
 
 | #   | What                                          | Standing                                                                                                    |
 | --- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| 21  | **The same source view on `Variants`**        | Blocked on where a variant's file lives — ~150 close over page signals                                      |
+| 21  | **The same source view on `Variants`**        | Shape settled on the four `Exotics` pages; 33 pages and ~200 demos left to extract                          |
 | 12  | **A consumer-facing layer above the library** | **Deferred indefinitely, not a focus, do not raise it.** The `style.css` strip and the theme are both built |

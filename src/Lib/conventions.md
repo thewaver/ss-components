@@ -4625,6 +4625,64 @@ sitting later in the document at the same level.
 in `App.tsx`, so the sentence under it does too — one place, one entry per page, and a page without a component
 keeps neither.
 
+### Turning a page's variants into examples, settled on the four `Exotics` pages
+
+`Formation`, `Satellite`, `Staircase` and `Wheel` were the first pages whose demos moved from `PageVariants` to
+`PageExamples`, which is the first slice of the project `backlog.md` item 21 describes. The question that item
+left open — where a variant's file lives and what it is given — is answered here, and the answer is the shape
+`ShapePage`, `TypewriterPage` and `ScanlineAnimationPage` already had rather than a new one.
+
+**The split is the library call on one side and the Playground's furniture on the other.** The example file
+holds the library component and the styled components it paints with, and nothing else. `PageMeasureBox`, any
+local props panel and the width the demo is stated at stay on the page, in an `<Name>ExampleWrapper` beside
+`getExamples`. That line is the same one the tab rule draws: what a consumer would write becomes a tab, what
+the Playground needs for its own sake does not.
+
+**What closed over the page's signals becomes one props type per page**, `<Name>ExampleProps` in
+`<Name>Page.types.ts`, built with `AccessorProps` and handed to every example on the page as `commonProps`.
+One type per page rather than one per example is what lets a single props panel drive all of them, which is
+the rule the panel already worked to.
+
+**Two demos differing by one prop are one example and a panel knob, never two files.** Corrected by the user,
+three times in a row on the same mistake: `Formation`'s pair differed only in `getIsStackedInReverse`,
+`Satellite`'s first two only in `getIsBehindSubject`, and `Staircase`'s only in `getDir`, and each was first
+built as two example files with the value written into each. Every one of them is now a single example with
+that prop wired to a control in the global panel — a `PageCheckField` for a boolean, a `PageSelectField` for
+an enum. This is the same rule as _"a props-panel control drives every instance"_ read from the other end: a
+value the panel could own is not a reason for a second demo, and two demos over one differing literal are two
+copies of one example rather than two examples. **A second example has to be a different call**, as
+`Wheel`'s three are — `FlatWheel` against `DrumWheel`, and a drum handed the prize list twice over to prove it
+can carry the same prizes round more than once.
+
+**Dropping a demo drops its spec, and that is the trade to state rather than work around.** `Satellite`'s
+third demo — the component with no satellite at all — was excluded on the user's instruction, so
+`with nothing to attach there is no wrapper either` went with it. The behaviour is still covered by unit
+tests; what is gone is the browser's confirmation of it.
+
+**Where a sample registry is not split, the key is still the example's to resolve.** `FormationLayouts` and
+`StaircaseIndents` are 80 and 46 lines and stay whole, so no `sampleKeys` entry can resolve to a file — but the
+example is still handed `getLayoutKey` / `getIndentKey` and does the lookup in its own body, because that is
+the line the reader came for. The registry it imports becomes a tab either way.
+
+**`Wheel` passes `computeSpinDefs` resolved rather than as a key**, which is the one place this departs from
+_"An example is given the key rather than the resolved sample"_. Its two spin styles are page constants and not
+a `Samples/` registry, so there is nothing for a key to resolve to; making them one is a separate change and
+has not been argued.
+
+**An example carries no readout, for now.** Stated by the user when these four converted. `ExampleDefs.readout`
+stays on the type and `PageExamples` still renders one when given it — nothing was removed — but no example on
+these pages sets it. Two specs read a readout and had to find the same fact elsewhere: `wheel.spec.ts` now
+reads the wedge's name out of the `LiveAnnouncer` region, which is the library's own report rather than the
+page's, and `satellite.spec.ts` used the readout only as a way to walk back to the demo and now locates the
+wrapper directly.
+
+**The attribute the interaction suite reads changes with the component.** `PageVariants` stamps `data-variant`
+and `PageExamples` stamps `data-example`, so a converted page's spec swaps `variant()` for `example()` in
+`e2e/helpers.ts`. One assertion had to move with it rather than being renamed: `wheel.spec.ts` counted the
+buttons inside the whole card to prove the wheel renders exactly one, and an example card carries the source
+button too, so the count is now scoped to the element carrying `aria-roledescription="wheel"`. That is the
+honest reading of what the test was always claiming.
+
 ### Controls: `Spotlight`, and three presets because a mode cannot move at runtime
 
 Settled with the user, renaming `ElementHighlight` on the way. A spotlight cuts a hole in an

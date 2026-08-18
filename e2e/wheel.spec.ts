@@ -1,6 +1,6 @@
 import { type Page, expect, test } from "@playwright/test";
 
-import { variant } from "./helpers";
+import { example } from "./helpers";
 
 /**
  * All three wheels on this page take their rotation from the same abstract, so most of what is checked here is
@@ -15,9 +15,9 @@ import { variant } from "./helpers";
  * spun. So what the last four tests pin is every way it can be brought to rest: a spin, a pointer resting on
  * it, a disabled wheel, and a visitor who has asked their system for less motion.
  */
-const FLAT = variant("Flat");
-const SIDEWAYS = variant("Drum, turning sideways");
-const REEL = variant("Drum, turning over");
+const FLAT = example("Flat");
+const SIDEWAYS = example("Drum, turning sideways");
+const REEL = example("Drum, turning over");
 
 const wheel = (scope: string) => `${scope} [aria-roledescription="wheel"]`;
 const wedge = (scope: string) => `${scope} [aria-roledescription="wedge"]`;
@@ -70,7 +70,7 @@ test("the wheel and every wedge say what they are, beyond what their roles conve
 
 test("the library owns the button, so it is a real button with a real name", async ({ page }) => {
     await expect(page.locator(spin(FLAT))).toHaveAttribute("type", "button");
-    await expect(page.locator(`${FLAT} button`), "and it is the only one the wheel renders").toHaveCount(1);
+    await expect(page.locator(`${wheel(FLAT)} button`), "and it is the only one the wheel renders").toHaveCount(1);
 });
 
 test("spinning lands on a wedge and says which one", async ({ page }) => {
@@ -79,10 +79,10 @@ test("spinning lands on a wedge and says which one", async ({ page }) => {
 
     await expect.poll(() => transformOf(page, FLAT), { timeout: SPIN_TOTAL_MS * 2 }).toContain("rotate(");
 
-    const landed = (await page.locator(`${FLAT} [data-readout]`).textContent()) ?? "";
-
-    expect(landed, "the readout names the wedge under the marker").toMatch(/landed on .+ \(\d+ of 8\)/);
-    await expect(page.locator(ANNOUNCER), "and a screen reader is told the same thing").toContainText(/of 8/);
+    await expect(
+        page.locator(ANNOUNCER),
+        "the announcement names the wedge under the marker, not only its position",
+    ).toContainText(/.+, \d+ of 8/);
 });
 
 test("a spin cannot be asked for twice, because the second request has nowhere to go", async ({ page }) => {

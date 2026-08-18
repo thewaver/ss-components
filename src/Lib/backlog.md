@@ -45,7 +45,7 @@ reading.
 18. `Viewport` as a region: what is settled and what is not — _open_
 19. `Tree` — five things deliberately not built, and one extraction to decide — _open_
 20. `SlideButton` — five things deliberately not built — _open_
-21. Planned: the same source view on `Variants` — _planned_
+21. Planned: the same source view on the pages still using `Variants` — _planned_
 22. `Spotlight` — three things deliberately not built — _open_
 23. `Scroller` — five things deliberately not built — _open_
 24. `Paginator` — four things deliberately not built — _open_
@@ -1056,22 +1056,22 @@ gaps, each with the reason it is still one.
 
 ---
 
-## 21. Planned: the same source view on `Variants`
+## 21. Planned: the same source view on the pages still using `Variants`
 
 The source view itself is built and is described in `conventions.md` under _"The Playground: an example's
 source is a folder view"_ and _"The source view, as built"_. What is left is putting the same button next to
-a variant, and it is a second project rather than a step: variants are written inline inside each page's
-`getVariants`, so giving them a source view means extracting roughly 150 of them into their own files across
-about 30 pages.
+the demos on the pages that still use `PageVariants`, which means extracting each of them into its own file.
 
-It is also the phase that makes the `StyledComponents` half of the tab rule pay. Examples import almost no
-styled components, so the transitive rule that follows imports through `StyledComponents` is currently
-exercised by nothing — variants are made of them, and every one of those tabs would be new ground.
+The four `Exotics` pages that used it — `Formation`, `Satellite`, `Staircase` and `Wheel` — are done, and the
+shape they settled on is recorded in `conventions.md` under _"Turning a page's variants into examples"_: the
+example file holds the library call and its painters, the page keeps the measure box and the props panel, and
+one `<Name>ExampleProps` per page carries what used to be closed-over signals. That answers the question this
+item was blocked on. Thirty-three pages still use `PageVariants`, carrying about two hundred demos between
+them; that is ordinary work now rather than a decision.
 
-**What has to be decided before the extraction starts** is where a variant's file lives and what it is given.
-An example is a component taking props from the page; a variant is a fragment of JSX closing over the page's
-own signals, so a straight extraction turns every closed-over signal into a prop and thirty pages grow a
-props type each. That is the whole of the work, and none of it has been argued.
+It is also the phase that makes the `StyledComponents` half of the tab rule pay, and the four converted pages
+are the first to exercise it: `FormationContent`, `SatelliteContent`, `StaircaseContent`, `WheelContent` and
+`ButtonContent` all appear as tabs now.
 
 ---
 
