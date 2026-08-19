@@ -2,9 +2,9 @@ import { expect, test } from "@playwright/test";
 
 import { isIndeterminate, variant } from "./helpers";
 
-const DEFAULT = `${variant("Default")} input`;
-const SUMMARY = `${variant("Mixed")} input[aria-label="All settings"]`;
-const FIRST_SETTING = `${variant("Mixed")} input[aria-label="First setting"]`;
+const DEFAULT = `${variant("default")} input`;
+const SUMMARY = "#allSettings";
+const FIRST_SETTING = "#firstSetting";
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/toggle");

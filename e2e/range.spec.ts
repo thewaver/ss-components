@@ -2,14 +2,13 @@ import { type Locator, type Page, expect, test } from "@playwright/test";
 
 import { activeMatches, attributesOf, inputValue, readout, tabIndex, variant } from "./helpers";
 
-const DEFAULT = variant("Default");
-const STEPPED = variant("Stepped");
-const PAIR = variant("Pair");
-const VERTICAL = variant("Vertical");
-const DISABLED = variant("Disabled");
-const DISABLED_PAIR = variant("Disabled pair");
-const REACHABLE = variant("Disabled + reachable");
-const ERRORED = variant("Error");
+const DEFAULT = variant("default");
+const STEPPED = variant("stepped");
+const PAIR = variant("pair");
+const DISABLED = variant("disabled");
+const DISABLED_PAIR = variant("disabledPair");
+const REACHABLE = variant("reachable");
+const ERRORED = variant("errored");
 
 const thumbs = (scope: string) => `${scope} input[type="range"]`;
 
@@ -74,7 +73,7 @@ test("crossing is prevented by the inputs' own bounds rather than by a guard", a
     await page.keyboard.press("End");
 
     expect(await valueOf(low), "so End stops at the neighbour rather than at the end of the scale").toBe(80);
-    expect(await readout(page, "Pair"), "and the owner sees the clamped value").toContain("start: 80 | end: 80");
+    expect(await readout(page, "pair"), "and the owner sees the clamped value").toContain("start: 80 | end: 80");
     await expect(high, "with the neighbour's floor following it up").toHaveAttribute("min", "80");
 });
 
@@ -84,7 +83,7 @@ test("two thumbs on the same value are not stuck, because the pointer's side bre
 
     await low.focus();
     await page.keyboard.press("End");
-    expect(await readout(page, "Pair"), "drive both thumbs onto one value").toContain("start: 80 | end: 80");
+    expect(await readout(page, "pair"), "drive both thumbs onto one value").toContain("start: 80 | end: 80");
 
     await dragFrom(page, high, 0.4, 0.2);
 
@@ -99,7 +98,7 @@ test("stepping honours the step and stops at both ends of the scale", async ({ p
     await page.keyboard.press("Home");
 
     expect(await valueOf(input), "Home is the floor").toBe(1);
-    expect(await readout(page, "Stepped"), "which the owner sees in its own units").toContain("value: 1 of 5");
+    expect(await readout(page, "stepped"), "which the owner sees in its own units").toContain("value: 1 of 5");
 
     await page.keyboard.press("ArrowRight");
     expect(await valueOf(input), "one press moves one step, not one unit of the scale").toBe(2);
@@ -110,7 +109,7 @@ test("stepping honours the step and stops at both ends of the scale", async ({ p
 });
 
 test("a vertical range puts the low value at the bottom", async ({ page }) => {
-    const input = page.locator(`${VERTICAL} input[aria-label="Vertical volume"]`);
+    const input = page.locator("#verticalVolume");
 
     await input.focus();
 
@@ -137,7 +136,7 @@ test("a disabled range refuses both the write and the focus", async ({ page }) =
         await valueOf(input),
         "the browser moves a range before it reports, so the sync writes state back over it",
     ).toBe(25);
-    expect(await readout(page, "Disabled"), "and the owner never hears about it").toContain("value: 25");
+    expect(await readout(page, "disabled"), "and the owner never hears about it").toContain("value: 25");
     expect(await activeMatches(page, thumbs(DISABLED)), "the mousedown refusal also keeps focus off it").toBe(false);
 });
 
@@ -160,7 +159,7 @@ test("a disabled pair takes both of its thumbs out of the tab order, not just th
     await page.mouse.click(box.x + box.width * 0.9, box.y + box.height / 2);
 
     expect(await activeMatches(page, thumbs(DISABLED_PAIR)), "neither thumb takes focus from a click").toBe(false);
-    expect(await readout(page, "Disabled pair"), "and the value is where it started").toContain("start: 35 | end: 65");
+    expect(await readout(page, "disabledPair"), "and the value is where it started").toContain("start: 35 | end: 65");
 });
 
 test("the owner's error reaches the element as ARIA, and leaves when the owner's rule stops holding", async ({

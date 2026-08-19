@@ -54,6 +54,7 @@ export const FormPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "reportsValidity",
                 name: "A form that reports its own validity",
                 readout: () => `outcome: ${getOutcome()}`,
                 component: () => (

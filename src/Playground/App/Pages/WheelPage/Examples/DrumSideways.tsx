@@ -39,6 +39,7 @@ export const DrumSidewaysExample = ({ getWedges, ...otherProps }: Props) => {
 
             <PageWheelBar>
                 <Button
+                    getId={() => "sidewaysSpin"}
                     getAriaLabel={() => "Spin the wheel"}
                     getIsDisabled={() => !getController()?.getIsSpinnable()}
                     renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Spin</PageButtonContent>}

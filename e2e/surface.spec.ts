@@ -2,9 +2,9 @@ import { expect, test } from "@playwright/test";
 
 import { example, inlineStyle } from "./helpers";
 
-const CARD = example("Card");
+const CARD = example("card");
 const CARD_ROOT = `${CARD} div[style*="border-radius"]`;
-const AVATAR = example("Avatar");
+const AVATAR = example("avatar");
 const DIALOG = '[role="dialog"]';
 
 /**

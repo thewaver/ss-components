@@ -26,6 +26,7 @@ export const FileInputPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () => `files: ${describe(defaultSignal[0]())}`,
                 component: () => (
@@ -37,6 +38,7 @@ export const FileInputPage = () => {
                 ),
             },
             {
+                key: "multiple",
                 name: "Multiple",
                 readout: () => `files: ${describe(multipleSignal[0]())}`,
                 component: () => (
@@ -49,6 +51,7 @@ export const FileInputPage = () => {
                 ),
             },
             {
+                key: "images",
                 name: "Accepting images only",
                 readout: () => `files: ${describe(imagesSignal[0]())} — accept is a filter, never a guarantee`,
                 component: () => (
@@ -61,6 +64,7 @@ export const FileInputPage = () => {
                 ),
             },
             {
+                key: "rejectingSetter",
                 name: "Rejecting setter",
                 readout: () =>
                     `files: ${describe(rejectingSignal[0]())}${getRejection() ? ` — ${getRejection()}` : ` — anything over ${MAX_ATTACHMENT_BYTES} bytes is refused`}`,
@@ -81,6 +85,7 @@ export const FileInputPage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled",
                 readout: () => `files: ${describe(disabledSignal[0]())}`,
                 component: () => (
@@ -93,6 +98,7 @@ export const FileInputPage = () => {
                 ),
             },
             {
+                key: "reachable",
                 name: "Disabled + reachable",
                 readout: () => `files: ${describe(reachableSignal[0]())}`,
                 component: () => (
@@ -118,6 +124,7 @@ export const FileInputPage = () => {
                 ),
             },
             {
+                key: "errored",
                 name: "Error",
                 readout: () => `files: ${describe(erroredSignal[0]())} — required, nothing picked yet`,
                 component: () => (
@@ -130,6 +137,7 @@ export const FileInputPage = () => {
                 ),
             },
             {
+                key: "label",
                 name: "In a Label",
                 readout: () => `files: ${describe(labelledSignal[0]())} — the caption opens the dialog`,
                 component: () => (

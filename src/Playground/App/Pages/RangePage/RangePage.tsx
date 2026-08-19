@@ -26,6 +26,7 @@ export const RangePage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () => `value: ${getVolume()}`,
                 component: () => (
@@ -38,6 +39,7 @@ export const RangePage = () => {
                 ),
             },
             {
+                key: "stepped",
                 name: "Stepped",
                 readout: () => `value: ${getSteps()} of 5`,
                 component: () => (
@@ -53,6 +55,7 @@ export const RangePage = () => {
                 ),
             },
             {
+                key: "pair",
                 name: "Pair",
                 readout: () => `start: ${priceSignal[0]().start} | end: ${priceSignal[0]().end}`,
                 component: () => (
@@ -66,6 +69,7 @@ export const RangePage = () => {
                 ),
             },
             {
+                key: "vertical",
                 name: "Vertical",
                 readout: () =>
                     `single: ${getVertical()} | pair: ${verticalPairSignal[0]().start}–${verticalPairSignal[0]().end}`,
@@ -73,6 +77,7 @@ export const RangePage = () => {
                     <PageControlRow>
                         <Range
                             valueSignal={[getVertical, setVertical]}
+                            getId={() => "verticalVolume"}
                             getAriaLabel={() => "Vertical volume"}
                             getOrientation={() => "vertical"}
                             getThumbSize={() => RANGE_THUMB_SIZE}
@@ -97,6 +102,7 @@ export const RangePage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled",
                 readout: () => `value: ${getDisabled()}`,
                 component: () => (
@@ -110,6 +116,7 @@ export const RangePage = () => {
                 ),
             },
             {
+                key: "disabledPair",
                 name: "Disabled pair",
                 readout: () =>
                     `start: ${disabledPairSignal[0]().start} | end: ${disabledPairSignal[0]().end} — both thumbs must be out of the tab order`,
@@ -125,6 +132,7 @@ export const RangePage = () => {
                 ),
             },
             {
+                key: "reachable",
                 name: "Disabled + reachable",
                 readout: () => `value: ${getReachable()}`,
                 component: () => (
@@ -152,6 +160,7 @@ export const RangePage = () => {
                 ),
             },
             {
+                key: "errored",
                 name: "Error",
                 readout: () => `value: ${getErrored()}`,
                 component: () => (

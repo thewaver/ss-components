@@ -37,6 +37,7 @@ export const FlatExample = ({ getWedges, ...otherProps }: Props) => {
 
             <PageWheelHub>
                 <Button
+                    getId={() => "flatSpin"}
                     getAriaLabel={() => "Spin the wheel"}
                     getIsDisabled={() => !getController()?.getIsSpinnable()}
                     renderContent={(getFlags) => (

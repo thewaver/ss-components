@@ -88,7 +88,7 @@ export const ViewportPage = () => {
 
     return (
         <div class={styles.root}>
-            <section class={styles.section} data-variant="A control roaming the viewport">
+            <section class={styles.section} data-variant data-testid="roaming">
                 <div class={styles.sectionTitle}>A control roaming the viewport</div>
 
                 <div>
@@ -103,6 +103,7 @@ export const ViewportPage = () => {
                     <div>Across</div>
                     <Range
                         valueSignal={[getRoamerX, setRoamerX]}
+                        getId={() => "roamerX"}
                         getAriaLabel={() => "Horizontal position"}
                         getThumbSize={() => RANGE_THUMB_SIZE}
                         renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
@@ -111,6 +112,7 @@ export const ViewportPage = () => {
                     <div>Down</div>
                     <Range
                         valueSignal={[getRoamerY, setRoamerY]}
+                        getId={() => "roamerY"}
                         getAriaLabel={() => "Vertical position"}
                         getThumbSize={() => RANGE_THUMB_SIZE}
                         renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
@@ -119,6 +121,7 @@ export const ViewportPage = () => {
                     <div>Scale</div>
                     <Range
                         valueSignal={[getScalePercent, setScalePercent]}
+                        getId={() => "viewportScale"}
                         getAriaLabel={() => "Viewport scale"}
                         getMin={() => SCALE_MIN}
                         getMax={() => SCALE_MAX}
@@ -145,6 +148,7 @@ export const ViewportPage = () => {
                             <Select
                                 valueSignal={[getRoamingValue, setRoamingValue]}
                                 getOptions={() => COUNTRIES}
+                                getId={() => "roamingCountry"}
                                 getAriaLabel={() => "Roaming country"}
                                 getTooltipDefs={() => renderTooltip("My tooltip has the same boundary I do.")}
                                 renderContent={(getSelectedOption, getFlags) => (
@@ -166,7 +170,7 @@ export const ViewportPage = () => {
                 </div>
             </section>
 
-            <section class={styles.section} data-variant="An anchor inside a scrolled box">
+            <section class={styles.section} data-variant data-testid="scrolled">
                 <div class={styles.sectionTitle}>An anchor inside a scrolled box</div>
 
                 <div>
@@ -182,6 +186,7 @@ export const ViewportPage = () => {
                             <Select
                                 valueSignal={[getScrolledValue, setScrolledValue]}
                                 getOptions={() => COUNTRIES}
+                                getId={() => "scrolledCountry"}
                                 getAriaLabel={() => "Scrolled country"}
                                 renderContent={(getSelectedOption, getFlags) => (
                                     <PageSelectContent getFlags={getFlags}>

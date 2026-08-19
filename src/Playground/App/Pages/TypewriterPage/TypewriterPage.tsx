@@ -98,11 +98,13 @@ export const TypewriterPage = () => {
 
         return [
             {
+                key: "complex",
                 name: "Complex",
                 component: () => <ComplexExampleWrapper {...commonProps} />,
                 path: `${EXAMPLES_ROOT}/Complex.tsx`,
             },
             {
+                key: "custom",
                 name: "Custom",
                 component: () => <CustomExampleWrapper {...commonProps} />,
                 path: `${EXAMPLES_ROOT}/Custom.tsx`,
@@ -113,7 +115,7 @@ export const TypewriterPage = () => {
     return (
         <div class={styles.root}>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Container width"}>
+                <PageProp getKey={() => "textContainerWidth"} getLabel={() => "Container width"}>
                     <PageNumberField
                         getValue={getTextContainerWidth}
                         getMin={() => MIN_CONTAINER_WIDTH}
@@ -124,7 +126,7 @@ export const TypewriterPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Effect"}>
+                <PageProp getKey={() => "textEffect"} getLabel={() => "Effect"}>
                     <PageSelectField
                         getValue={getTextEffect}
                         getValues={() => TEXT_EFFECTS}

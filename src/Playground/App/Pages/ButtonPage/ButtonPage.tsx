@@ -16,6 +16,7 @@ export const ButtonPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () => `clicks: ${getClicks()}`,
                 component: () => (
@@ -30,6 +31,7 @@ export const ButtonPage = () => {
                 ),
             },
             {
+                key: "decorated",
                 name: "Decorated",
                 readout: () => `pressed: ${getToggleOn()}`,
                 component: () => (
@@ -60,6 +62,7 @@ export const ButtonPage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled",
                 readout: () => `clicks: ${getDisabledClicks()}`,
                 component: () => (
@@ -75,6 +78,7 @@ export const ButtonPage = () => {
                 ),
             },
             {
+                key: "reachable",
                 name: "Disabled + reachable",
                 readout: () => `clicks: ${getReachableClicks()}`,
                 component: () => (
@@ -103,6 +107,7 @@ export const ButtonPage = () => {
                 ),
             },
             {
+                key: "errored",
                 name: "Error",
                 readout: () => `hasError: ${getHasError()}`,
                 component: () => (

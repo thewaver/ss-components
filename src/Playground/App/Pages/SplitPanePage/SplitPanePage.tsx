@@ -71,6 +71,7 @@ export const SplitPanePage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "pair",
                 name: "Two panes",
                 readout: () => `ratios: ${percent(pairSignal[0]())} — drag the gutter or arrow it with the keyboard`,
                 component: () => (
@@ -92,6 +93,7 @@ export const SplitPanePage = () => {
                 ),
             },
             {
+                key: "bounded",
                 name: "Bounded panes",
                 readout: () =>
                     `ratios: ${percent(boundedSignal[0]())} — the first pane is held between 120px and 220px whatever the ratio says`,
@@ -116,6 +118,7 @@ export const SplitPanePage = () => {
                 ),
             },
             {
+                key: "triple",
                 name: "Three panes",
                 readout: () =>
                     `ratios: ${percent(tripleSignal[0]())} — a gutter moves its two neighbours and nothing else`,
@@ -136,6 +139,7 @@ export const SplitPanePage = () => {
                 ),
             },
             {
+                key: "stacked",
                 name: "Stacked",
                 readout: () => `ratios: ${percent(columnSignal[0]())} — the same control on the other axis`,
                 component: () => (
@@ -158,6 +162,7 @@ export const SplitPanePage = () => {
                 ),
             },
             {
+                key: "cramped",
                 name: "Minimums that do not fit",
                 readout: () =>
                     `minimums of 250px and 400px in a box too narrow for both — grid honours the floors and lets the row overflow, which is the behaviour this control inherits rather than fights`,
@@ -187,7 +192,7 @@ export const SplitPanePage = () => {
     return (
         <>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Gutter size"}>
+                <PageProp getKey={() => "gutterSize"} getLabel={() => "Gutter size"}>
                     <PageNumberField
                         getValue={getGutterSize}
                         getMin={() => MIN_GUTTER}
@@ -199,11 +204,11 @@ export const SplitPanePage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Disabled"}>
+                <PageProp getKey={() => "isDisabled"} getLabel={() => "Disabled"}>
                     <PageCheckField getValue={getIsDisabled} getAriaLabel={() => "Disabled"} onChange={setIsDisabled} />
                 </PageProp>
 
-                <PageProp getLabel={() => "Ratios"}>
+                <PageProp getKey={() => "ratios"} getLabel={() => "Ratios"}>
                     <Button
                         renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Reset</PageButtonContent>}
                         onClick={async () => {

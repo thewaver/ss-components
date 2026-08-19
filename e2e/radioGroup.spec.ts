@@ -2,10 +2,10 @@ import { expect, test } from "@playwright/test";
 
 import { activeMatches, attributesOf, inlineStyle, readout, variant } from "./helpers";
 
-const DEFAULT = variant("Default");
-const REACHABLE = variant("Disabled + reachable");
-const DISABLED = variant("Disabled");
-const SEGMENTED = variant("Segmented");
+const DEFAULT = variant("default");
+const REACHABLE = variant("reachable");
+const DISABLED = variant("disabled");
+const SEGMENTED = variant("segmented");
 
 const option = (scope: string, label: string) => `${scope} input[aria-label="${label}"]`;
 
@@ -30,7 +30,7 @@ test("a group is one tab stop that travels with the selection", async ({ page })
 
     await page.locator(option(DEFAULT, "Small")).focus();
     await page.keyboard.press("ArrowRight");
-    expect(await readout(page, "Default"), "an arrow both moves and selects").toContain("value: medium");
+    expect(await readout(page, "default"), "an arrow both moves and selects").toContain("value: medium");
     expect(await activeMatches(page, option(DEFAULT, "Medium")), "and focus follows the selection").toBe(true);
     expect(await attributesOf(page, `${DEFAULT} input`, "tabindex"), "the single tab stop moves with it").toEqual([
         "-1",
@@ -45,13 +45,13 @@ test("the walk wraps and honours the edge keys", async ({ page }) => {
     await page.keyboard.press("ArrowRight");
     await page.keyboard.press("ArrowRight");
     await page.keyboard.press("ArrowRight");
-    expect(await readout(page, "Default"), "the walk wraps around the end").toContain("value: small");
+    expect(await readout(page, "default"), "the walk wraps around the end").toContain("value: small");
 
     await page.keyboard.press("End");
-    expect(await readout(page, "Default"), "End jumps to the last radio").toContain("value: large");
+    expect(await readout(page, "default"), "End jumps to the last radio").toContain("value: large");
 
     await page.keyboard.press("Home");
-    expect(await readout(page, "Default"), "Home jumps back to the first").toContain("value: small");
+    expect(await readout(page, "default"), "Home jumps back to the first").toContain("value: small");
 });
 
 test("a wholly disabled group has no tab stop at all", async ({ page }) => {
@@ -68,18 +68,16 @@ test("the walk stops on a reachable disabled radio without selecting it", async 
         await activeMatches(page, option(REACHABLE, "Medium")),
         "the walk stops on a disabled radio that is reachable, so its tooltip can be read",
     ).toBe(true);
-    expect(await readout(page, "Disabled + reachable"), "and refuses to select it while it is there").toContain(
-        "value: small",
-    );
+    expect(await readout(page, "reachable"), "and refuses to select it while it is there").toContain("value: small");
 
     await page.keyboard.press("ArrowRight");
-    expect(await readout(page, "Disabled + reachable"), "carrying on from it selects the next enabled radio").toContain(
+    expect(await readout(page, "reachable"), "carrying on from it selects the next enabled radio").toContain(
         "value: large",
     );
 
     await page.locator(option(REACHABLE, "Medium")).click({ force: true });
     expect(
-        await readout(page, "Disabled + reachable"),
+        await readout(page, "reachable"),
         "clicking a reachable disabled radio leaves the value alone too",
     ).toContain("value: large");
 });
@@ -114,7 +112,7 @@ test("the floater is measured from the selected radio and moves with it", async 
     await page.locator(option(SEGMENTED, "Large")).click();
 
     await expect.poll(() => inlineStyle(box, "left"), { timeout: FLOATER_TIMEOUT_MS }).not.toBe(before);
-    expect(await readout(page, "Segmented"), "and the value moved with it").toContain("value: large");
+    expect(await readout(page, "segmented"), "and the value moved with it").toContain("value: large");
 });
 
 test("each group generates its own name", async ({ page }) => {

@@ -15,6 +15,7 @@ export const DrawerPage = () => {
 
     const getVariants = createMemo(() =>
         EDGES.map((edge) => ({
+            key: edge,
             name: `Edge: ${edge}`,
             readout: () => `open: ${visibilityByEdge.get(edge)![0]()} — the edge is geometry, the slide is paint`,
             component: () => (

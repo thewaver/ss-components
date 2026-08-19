@@ -2,12 +2,12 @@ import { expect, test } from "@playwright/test";
 
 import { activeMatches, isChecked, isIndeterminate, readout, tabIndex, variant } from "./helpers";
 
-const DEFAULT = `${variant("Default")} input`;
-const SUMMARY = `${variant("Mixed")} input[aria-label="Select all"]`;
-const FIRST_CHILD = `${variant("Mixed")} input[aria-label="First child"]`;
-const EMAIL = `${variant("Refused write")} input[aria-label="Email"]`;
-const DISABLED = `${variant("Disabled")} input`;
-const REACHABLE = `${variant("Disabled + reachable")} input`;
+const DEFAULT = `${variant("default")} input`;
+const SUMMARY = "#selectAll";
+const FIRST_CHILD = "#firstChild";
+const EMAIL = "#email";
+const DISABLED = `${variant("disabled")} input`;
+const REACHABLE = `${variant("reachable")} input`;
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/checkbox");
@@ -23,12 +23,12 @@ test("no control uses the native disabled attribute", async ({ page }) => {
 
 test("a plain box toggles by pointer and by Space", async ({ page }) => {
     await page.locator(DEFAULT).click();
-    expect(await readout(page, "Default"), "clicking the box reports the change").toContain("checked: true");
+    expect(await readout(page, "default"), "clicking the box reports the change").toContain("checked: true");
     expect(await isChecked(page.locator(DEFAULT)), "and the input agrees with the state").toBe(true);
 
     await page.locator(DEFAULT).focus();
     await page.keyboard.press(" ");
-    expect(await readout(page, "Default"), "Space toggles it back").toContain("checked: false");
+    expect(await readout(page, "default"), "Space toggles it back").toContain("checked: false");
 });
 
 test("a mixed summary box resolves to checked and follows its children", async ({ page }) => {
@@ -37,7 +37,7 @@ test("a mixed summary box resolves to checked and follows its children", async (
 
     await page.locator(SUMMARY).click();
     expect(
-        await readout(page, "Mixed"),
+        await readout(page, "mixed"),
         "clicking a mixed box resolves it to checked and sets both children",
     ).toContain("mixed: false | all: true | children: true, true");
     expect(
@@ -55,10 +55,10 @@ test("a mixed summary box resolves to checked and follows its children", async (
 });
 
 test("an owner that refuses a write leaves the control where it put it", async ({ page }) => {
-    expect(await readout(page, "Refused write"), "the guarded pair starts with Email on").toContain("email: true");
+    expect(await readout(page, "refusedWrite"), "the guarded pair starts with Email on").toContain("email: true");
 
     await page.locator(EMAIL).click();
-    expect(await readout(page, "Refused write"), "a refused write leaves the state where the owner put it").toContain(
+    expect(await readout(page, "refusedWrite"), "a refused write leaves the state where the owner put it").toContain(
         "email: true",
     );
     expect(
@@ -81,7 +81,7 @@ test("a disabled box refuses activation and focus", async ({ page }) => {
     expect(await tabIndex(page.locator(DISABLED)), "and is out of the tab order").toBe(-1);
 
     await page.locator(DISABLED).click({ force: true });
-    expect(await readout(page, "Disabled"), "clicking a disabled box changes nothing").toContain("checked: true");
+    expect(await readout(page, "disabled"), "clicking a disabled box changes nothing").toContain("checked: true");
     expect(await isChecked(page.locator(DISABLED)), "and the cancelled click leaves the input alone").toBe(true);
     expect(await activeMatches(page, DISABLED), "clicking a disabled box does not even focus it").toBe(false);
 });
@@ -93,7 +93,7 @@ test("a reachable disabled box keeps its tab stop and explains itself", async ({
     expect(await activeMatches(page, REACHABLE), "and can be focused so its tooltip can be read").toBe(true);
 
     await page.keyboard.press(" ");
-    expect(await readout(page, "Disabled + reachable"), "Space on a reachable disabled box changes nothing").toContain(
+    expect(await readout(page, "reachable"), "Space on a reachable disabled box changes nothing").toContain(
         "checked: true",
     );
 

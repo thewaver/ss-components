@@ -53,6 +53,7 @@ export const TagInputPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () => `tags: ${defaultSignal[0]().join(", ") || "none"}`,
                 component: () => (
@@ -76,6 +77,7 @@ export const TagInputPage = () => {
                 ),
             },
             {
+                key: "empty",
                 name: "Empty",
                 readout: () => `tags: ${emptySignal[0]().join(", ") || "none"}`,
                 component: () => (
@@ -99,6 +101,7 @@ export const TagInputPage = () => {
                 ),
             },
             {
+                key: "unique",
                 name: "Refusing duplicates",
                 readout: () => `tags: ${uniqueSignal[0]().join(", ") || "none"} — the same word twice is refused`,
                 component: () => (
@@ -127,6 +130,7 @@ export const TagInputPage = () => {
                 ),
             },
             {
+                key: "crowded",
                 name: "Crowded and narrow",
                 readout: () =>
                     `${crowdedSignal[0]().length} tags in ${NARROW_WIDTH}px — they wrap and the box grows with them`,
@@ -158,15 +162,15 @@ export const TagInputPage = () => {
     return (
         <>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Disabled"}>
+                <PageProp getKey={() => "isDisabled"} getLabel={() => "Disabled"}>
                     <PageCheckField getValue={getIsDisabled} getAriaLabel={() => "Disabled"} onChange={setIsDisabled} />
                 </PageProp>
 
-                <PageProp getLabel={() => "Error"}>
+                <PageProp getKey={() => "hasError"} getLabel={() => "Error"}>
                     <PageCheckField getValue={getHasError} getAriaLabel={() => "Error"} onChange={setHasError} />
                 </PageProp>
 
-                <PageProp getLabel={() => "Tags"}>
+                <PageProp getKey={() => "tags"} getLabel={() => "Tags"}>
                     <Button
                         renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Reset</PageButtonContent>}
                         onClick={async () => {

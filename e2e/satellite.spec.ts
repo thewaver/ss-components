@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { computedStyle, example } from "./helpers";
+import { computedStyle, example, prop } from "./helpers";
 
 /**
  * The thing worth pinning here is the growth, not the arithmetic — the unit tests already cover every
@@ -12,19 +12,19 @@ import { computedStyle, example } from "./helpers";
  * sides the component writes into the shorthand; and it must contain an absolutely placed child, because the
  * measure box around the demo is padded as well.
  */
-const BADGE = example("Default");
+const BADGE = example("default");
 
 const wrapper = (scope: string) => `${scope} div[style*="padding"]:has(> div[style*="left"])`;
 const satellite = (scope: string) => `${scope} div[style*="left:"]`;
 
-const numberField = (label: string) => `[data-prop="${label}"] input`;
-const checkField = (label: string) => `[data-prop="${label}"] input`;
-const selectField = (label: string) => `[data-prop="${label}"] [role="combobox"]`;
+const numberField = (key: string) => `${prop(key)} input`;
+const checkField = (key: string) => `${prop(key)} input`;
+const selectField = (key: string) => `${prop(key)} [role="combobox"]`;
 
 const option = '[role="listbox"] [role="option"]';
 
-const pick = async (page: import("@playwright/test").Page, label: string, name: string) => {
-    await page.locator(selectField(label)).click();
+const pick = async (page: import("@playwright/test").Page, key: string, name: string) => {
+    await page.locator(selectField(key)).click();
     await page.locator(option, { hasText: name }).click();
 };
 
@@ -41,7 +41,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("the wrapper grows on exactly the sides the satellite hangs over", async ({ page }) => {
-    const badgeSize = await page.locator(numberField("Satellite size (px)")).inputValue();
+    const badgeSize = await page.locator(numberField("badgeSize")).inputValue();
 
     await expect
         .poll(() => paddings(page, BADGE), {
@@ -51,10 +51,10 @@ test("the wrapper grows on exactly the sides the satellite hangs over", async ({
 });
 
 test("moving the placement moves the growth with it", async ({ page }) => {
-    await pick(page, "Placement across", "left-out");
-    await pick(page, "Placement down", "bottom-out");
+    await pick(page, "hPlacement", "left-out");
+    await pick(page, "vPlacement", "bottom-out");
 
-    const badgeSize = await page.locator(numberField("Satellite size (px)")).inputValue();
+    const badgeSize = await page.locator(numberField("badgeSize")).inputValue();
 
     await expect
         .poll(() => paddings(page, BADGE), { message: "the same overhang, now down and to the left" })
@@ -62,8 +62,8 @@ test("moving the placement moves the growth with it", async ({ page }) => {
 });
 
 test("a satellite placed inside a corner costs no room at all", async ({ page }) => {
-    await pick(page, "Placement across", "right-in");
-    await pick(page, "Placement down", "top-in");
+    await pick(page, "hPlacement", "right-in");
+    await pick(page, "vPlacement", "top-in");
 
     await expect
         .poll(() => paddings(page, BADGE), {
@@ -97,7 +97,7 @@ test("the whole pair stays inside the parent it was given", async ({ page }) => 
 test("the satellite can be sent behind the subject without moving", async ({ page }) => {
     const before = await paddings(page, BADGE);
 
-    await page.locator(checkField("Behind the subject")).check();
+    await page.locator(checkField("isBehindSubject")).check();
 
     await expect
         .poll(() => page.locator(`${BADGE} div[style*="z-index: 1"]`).count(), {

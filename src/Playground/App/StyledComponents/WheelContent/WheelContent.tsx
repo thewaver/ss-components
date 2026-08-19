@@ -1,4 +1,4 @@
-import type { ParentProps } from "solid-js";
+import { type ParentProps, createMemo } from "solid-js";
 
 import type { PageWheelCardProps, PageWheelSpinProps, PageWheelWedgeProps } from "./WheelContent.types";
 
@@ -6,9 +6,12 @@ import * as styles from "./WheelContent.css";
 
 const WEDGE_RADIUS = 50;
 const WEDGE_CENTRE = 50;
-const READABLE_WEDGE_COUNT = 12;
+const LABEL_RADIUS = 44;
+const LABEL_TYPE_RATIO = 0.14;
 
-const getWedgePath = (wedgeCount: number) => {
+const toWheelWidth = (viewBoxUnits: number) => `${viewBoxUnits}cqw`;
+
+const getWedgeGeometry = (wedgeCount: number) => {
     const wedgeAngle = (2 * Math.PI) / Math.max(1, wedgeCount);
     const startAngle = -Math.PI / 2 - wedgeAngle / 2;
     const endAngle = startAngle + wedgeAngle;
@@ -17,28 +20,45 @@ const getWedgePath = (wedgeCount: number) => {
     const startY = WEDGE_CENTRE + WEDGE_RADIUS * Math.sin(startAngle);
     const endX = WEDGE_CENTRE + WEDGE_RADIUS * Math.cos(endAngle);
     const endY = WEDGE_CENTRE + WEDGE_RADIUS * Math.sin(endAngle);
+    const edgeHalfWidth = LABEL_RADIUS * Math.tan(Math.min(wedgeAngle, Math.PI) / 2);
+    const arcHalfWidth = Math.sqrt(WEDGE_RADIUS ** 2 - LABEL_RADIUS ** 2);
+    const labelWidth = 2 * Math.min(edgeHalfWidth, arcHalfWidth);
 
-    return `M ${WEDGE_CENTRE} ${WEDGE_CENTRE} L ${startX} ${startY} A ${WEDGE_RADIUS} ${WEDGE_RADIUS} 0 ${largeArcFlag} 1 ${endX} ${endY} Z`;
+    return {
+        path: `M ${WEDGE_CENTRE} ${WEDGE_CENTRE} L ${startX} ${startY} A ${WEDGE_RADIUS} ${WEDGE_RADIUS} 0 ${largeArcFlag} 1 ${endX} ${endY} Z`,
+        labelInset: (2 * WEDGE_RADIUS - labelWidth) / 2,
+        labelTop: WEDGE_RADIUS - LABEL_RADIUS,
+        labelTypeSize: labelWidth * LABEL_TYPE_RATIO,
+    };
 };
 
-export const PageWheelWedge = (props: PageWheelWedgeProps) => (
-    <div class={styles.wheelWedge}>
-        <svg class={styles.wheelWedgeSVG} width="100%" height="100%" viewBox="0 0 100 100">
-            <path
-                class={styles.wheelWedgeShape}
-                classList={{ [styles.isSelected]: props.getState().isSelected }}
-                d={getWedgePath(props.getState().wedgeCount)}
-            />
-        </svg>
+export const PageWheelWedge = (props: PageWheelWedgeProps) => {
+    const getGeometry = createMemo(() => getWedgeGeometry(props.getState().wedgeCount));
 
-        <div
-            class={styles.wheelWedgeLabel}
-            style={{ transform: `scale(${Math.min(READABLE_WEDGE_COUNT / props.getState().wedgeCount, 1)})` }}
-        >
-            {props.children}
+    return (
+        <div class={styles.wheelWedge}>
+            <svg class={styles.wheelWedgeSVG} width="100%" height="100%" viewBox="0 0 100 100">
+                <path
+                    class={styles.wheelWedgeShape}
+                    classList={{ [styles.isSelected]: props.getState().isSelected }}
+                    d={getGeometry().path}
+                />
+            </svg>
+
+            <div
+                class={styles.wheelWedgeLabel}
+                style={{
+                    "top": toWheelWidth(getGeometry().labelTop),
+                    "left": toWheelWidth(getGeometry().labelInset),
+                    "right": toWheelWidth(getGeometry().labelInset),
+                    "font-size": toWheelWidth(getGeometry().labelTypeSize),
+                }}
+            >
+                {props.children}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 export const PageWheelCard = (props: PageWheelCardProps) => (
     <div

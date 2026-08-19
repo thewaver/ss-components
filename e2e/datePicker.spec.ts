@@ -1,20 +1,20 @@
 import { expect, test } from "@playwright/test";
 
-import { inputValue, readout, variant } from "./helpers";
+import { inputValue, prop, readout, variant } from "./helpers";
 
-const TYPED = variant("Typed only");
-const LOCALE = variant("Day first");
-const ERA = variant("Before the common era");
-const PICKED = variant("With a calendar");
-const BOUNDED = variant("Bounded");
-const TIME = variant("A time, typed or stepped");
-const TWELVE = variant("Twelve hour");
-const PRECISE = variant("To the second");
-const SHIFT = variant("Within opening hours");
+const TYPED = variant("typed");
+const LOCALE = variant("locale");
+const ERA = variant("era");
+const PICKED = variant("picked");
+const BOUNDED = variant("bounded");
+const TIME = variant("time");
+const TWELVE = variant("twelve");
+const PRECISE = variant("precise");
+const SHIFT = variant("shift");
 const POPUP = '[role="dialog"]';
 
 const field = (scope: string) => `${scope} input`;
-const trigger = (scope: string) => `${scope} button[aria-label="Open the calendar"]`;
+const trigger = (key: string) => `#${key}Trigger`;
 const day = (label: string) => `${POPUP} [role="gridcell"][aria-label="${label}"]`;
 
 /**
@@ -36,17 +36,17 @@ test.beforeEach(async ({ page }) => {
 test("a complete date reaches the owner as a date, not as text", async ({ page }) => {
     await typeInto(page, field(TYPED), "2026-12-25");
 
-    expect(await readout(page, "Typed only")).toContain("value: 2026-12-25");
+    expect(await readout(page, "typed")).toContain("value: 2026-12-25");
 });
 
 test("a date that does not exist reports nothing rather than being nudged", async ({ page }) => {
     await typeInto(page, field(TYPED), "2026-02-31");
 
-    expect(await readout(page, "Typed only"), "the 31st of February is not the 3rd of March").toContain("value: none");
+    expect(await readout(page, "typed"), "the 31st of February is not the 3rd of March").toContain("value: none");
 
     await typeInto(page, field(TYPED), "2026-02-28");
 
-    expect(await readout(page, "Typed only"), "while a real date lands").toContain("value: 2026-02-28");
+    expect(await readout(page, "typed"), "while a real date lands").toContain("value: 2026-02-28");
 });
 
 /**
@@ -62,7 +62,7 @@ test.describe("a day-first field", () => {
         expect(await inputValue(page.locator(field(LOCALE))), "eight digits become a punctuated date").toBe(
             "25/12/2026",
         );
-        expect(await readout(page, "Day first"), "and the owner gets the date, in its own order").toContain(
+        expect(await readout(page, "locale"), "and the owner gets the date, in its own order").toContain(
             "value: 2026-12-25",
         );
     });
@@ -71,9 +71,7 @@ test.describe("a day-first field", () => {
         await typeInto(page, field(LOCALE), "31022026");
 
         expect(await inputValue(page.locator(field(LOCALE))), "the text is what was typed").toBe("31/02/2026");
-        expect(await readout(page, "Day first"), "but the 31st of February is still not a date").toContain(
-            "value: none",
-        );
+        expect(await readout(page, "locale"), "but the 31st of February is still not a date").toContain("value: none");
     });
 
     test("takes the digit with the separator when the separator is backspaced", async ({ page }) => {
@@ -99,17 +97,16 @@ test.describe("a day-first field", () => {
         await page.locator(field(LOCALE)).fill("25.12.2026");
 
         expect(await inputValue(page.locator(field(LOCALE))), "the mask re-punctuates it").toBe("25/12/2026");
-        expect(await readout(page, "Day first")).toContain("value: 2026-12-25");
+        expect(await readout(page, "locale")).toContain("value: 2026-12-25");
     });
 
     test("leaves the previous value alone while it is half typed, and snaps back on blur", async ({ page }) => {
         await typeInto(page, field(LOCALE), "25122026");
         await typeInto(page, field(LOCALE), "2512");
 
-        expect(
-            await readout(page, "Day first"),
-            "four digits are not a date, so they neither commit nor clear",
-        ).toContain("value: 2026-12-25");
+        expect(await readout(page, "locale"), "four digits are not a date, so they neither commit nor clear").toContain(
+            "value: 2026-12-25",
+        );
 
         await page.locator(field(TYPED)).click();
 
@@ -124,32 +121,31 @@ test("a half-typed date leaves the previous value alone until it is complete", a
     await typeInto(page, field(TYPED), "2026-12-25");
     await typeInto(page, field(TYPED), "2026-1");
 
-    expect(
-        await readout(page, "Typed only"),
-        "an incomplete date is neither committed nor treated as cleared",
-    ).toContain("value: 2026-12-25");
+    expect(await readout(page, "typed"), "an incomplete date is neither committed nor treated as cleared").toContain(
+        "value: 2026-12-25",
+    );
 });
 
 test("the trigger opens a calendar over the field", async ({ page }) => {
     await expect(page.locator(POPUP), "nothing is portalled before it opens").toHaveCount(0);
 
-    await page.locator(trigger(PICKED)).first().click();
+    await page.locator(trigger("picked")).click();
 
     await expect(page.locator(POPUP)).toHaveAttribute("aria-label", "Choose a date");
     await expect(page.locator(`${POPUP} [role="gridcell"]`), "six weeks of days").toHaveCount(42);
 });
 
 test("picking a day writes the field and the owner together", async ({ page }) => {
-    await page.locator(trigger(PICKED)).first().click();
+    await page.locator(trigger("picked")).click();
     await page.locator(day("18 August 2026")).click();
 
-    expect(await readout(page, "With a calendar")).toContain("value: 2026-08-18");
+    expect(await readout(page, "picked")).toContain("value: 2026-08-18");
     expect(await inputValue(page.locator(field(PICKED))), "and the text follows the pick").toBe("2026-08-18");
 });
 
 test("typing moves the calendar to the month it lands in", async ({ page }) => {
     await typeInto(page, field(PICKED), "2027-03-09");
-    await page.locator(trigger(PICKED)).first().click();
+    await page.locator(trigger("picked")).click();
 
     await expect(page.locator(day("9 March 2027")), "the popup opens on the value's own month").toHaveAttribute(
         "aria-selected",
@@ -158,24 +154,24 @@ test("typing moves the calendar to the month it lands in", async ({ page }) => {
 });
 
 test("Escape closes the calendar and leaves the value alone", async ({ page }) => {
-    await page.locator(trigger(PICKED)).first().click();
+    await page.locator(trigger("picked")).click();
     await page.locator(day("18 August 2026")).click();
     await page.keyboard.press("Escape");
 
     await expect(page.locator(POPUP)).toHaveCount(0);
-    expect(await readout(page, "With a calendar")).toContain("value: 2026-08-18");
+    expect(await readout(page, "picked")).toContain("value: 2026-08-18");
 });
 
 test("bounds refuse a date whether it is typed or picked", async ({ page }) => {
     await typeInto(page, field(BOUNDED), "2026-08-01");
 
-    expect(await readout(page, "Bounded"), "a typed date outside the range is not a value").toContain("value: none");
+    expect(await readout(page, "bounded"), "a typed date outside the range is not a value").toContain("value: none");
 
     await typeInto(page, field(BOUNDED), "2026-08-12");
 
-    expect(await readout(page, "Bounded"), "one inside it is").toContain("value: 2026-08-12");
+    expect(await readout(page, "bounded"), "one inside it is").toContain("value: 2026-08-12");
 
-    await page.locator(trigger(BOUNDED)).first().click();
+    await page.locator(trigger("bounded")).click();
 
     await expect(
         page.locator(`${POPUP} [role="gridcell"][aria-disabled="true"]`),
@@ -199,15 +195,15 @@ const selectionOf = (page: import("@playwright/test").Page, selector: string) =>
 test("a complete time reaches the owner, and an impossible one does not", async ({ page }) => {
     await typeInto(page, field(TIME), "14:45");
 
-    expect(await readout(page, "A time, typed or stepped")).toContain("value: 14:45");
+    expect(await readout(page, "time")).toContain("value: 14:45");
 
     await typeInto(page, field(TIME), "24:00");
 
-    expect(await readout(page, "A time, typed or stepped"), "there is no 24th hour").toContain("value: none");
+    expect(await readout(page, "time"), "there is no 24th hour").toContain("value: none");
 
     await typeInto(page, field(TIME), "09:60");
 
-    expect(await readout(page, "A time, typed or stepped"), "nor a 60th minute").toContain("value: none");
+    expect(await readout(page, "time"), "nor a 60th minute").toContain("value: none");
 });
 
 test("the arrows step whichever segment the caret is in, and select it", async ({ page }) => {
@@ -216,9 +212,7 @@ test("the arrows step whichever segment the caret is in, and select it", async (
     await caretAt(page, field(TIME), 0);
     await page.keyboard.press("ArrowUp");
 
-    expect(await readout(page, "A time, typed or stepped"), "the caret in the hour steps the hour").toContain(
-        "value: 15:45",
-    );
+    expect(await readout(page, "time"), "the caret in the hour steps the hour").toContain("value: 15:45");
     expect(await selectionOf(page, field(TIME)), "and the stepped segment is selected, ready to be stepped again").toBe(
         "0-2",
     );
@@ -226,9 +220,7 @@ test("the arrows step whichever segment the caret is in, and select it", async (
     await caretAt(page, field(TIME), 4);
     await page.keyboard.press("ArrowDown");
 
-    expect(await readout(page, "A time, typed or stepped"), "the caret in the minute steps the minute").toContain(
-        "value: 15:44",
-    );
+    expect(await readout(page, "time"), "the caret in the minute steps the minute").toContain("value: 15:44");
     expect(await selectionOf(page, field(TIME))).toBe("3-5");
 });
 
@@ -237,18 +229,15 @@ test("stepping carries between segments and wraps around the day", async ({ page
     await caretAt(page, field(TIME), 4);
     await page.keyboard.press("ArrowUp");
 
-    expect(await readout(page, "A time, typed or stepped"), "a minute past 59 carries into the hour").toContain(
-        "value: 10:00",
-    );
+    expect(await readout(page, "time"), "a minute past 59 carries into the hour").toContain("value: 10:00");
 
     await typeInto(page, field(TIME), "23:30");
     await caretAt(page, field(TIME), 0);
     await page.keyboard.press("ArrowUp");
 
-    expect(
-        await readout(page, "A time, typed or stepped"),
-        "and an hour past 23 wraps rather than leaving the day",
-    ).toContain("value: 00:30");
+    expect(await readout(page, "time"), "and an hour past 23 wraps rather than leaving the day").toContain(
+        "value: 00:30",
+    );
 });
 
 test("a seconds field has a third segment of its own", async ({ page }) => {
@@ -256,25 +245,24 @@ test("a seconds field has a third segment of its own", async ({ page }) => {
     await caretAt(page, field(PRECISE), 7);
     await page.keyboard.press("ArrowUp");
 
-    expect(await readout(page, "To the second")).toContain("value: 09:30:01");
+    expect(await readout(page, "precise")).toContain("value: 09:30:01");
 });
 
 test("bounds refuse a typed time and clamp a stepped one", async ({ page }) => {
     await typeInto(page, field(SHIFT), "08:00");
 
-    expect(await readout(page, "Within opening hours"), "before opening is not a value").toContain("value: none");
+    expect(await readout(page, "shift"), "before opening is not a value").toContain("value: none");
 
     await typeInto(page, field(SHIFT), "17:30");
 
-    expect(await readout(page, "Within opening hours"), "the closing time itself is").toContain("value: 17:30");
+    expect(await readout(page, "shift"), "the closing time itself is").toContain("value: 17:30");
 
     await caretAt(page, field(SHIFT), 0);
     await page.keyboard.press("ArrowUp");
 
-    expect(
-        await readout(page, "Within opening hours"),
-        "and stepping past the end clamps rather than wrapping",
-    ).toContain("value: 17:30");
+    expect(await readout(page, "shift"), "and stepping past the end clamps rather than wrapping").toContain(
+        "value: 17:30",
+    );
 });
 
 /**
@@ -294,13 +282,13 @@ test.describe("a twelve-hour field", () => {
             "aria-label",
             "Before or after noon: PM",
         );
-        expect(await readout(page, "Twelve hour"), "while the owner still holds 14:30").toContain("value: 14:30");
+        expect(await readout(page, "twelve"), "while the owner still holds 14:30").toContain("value: 14:30");
     });
 
     test("the toggle moves the value by twelve hours without touching the text", async ({ page }) => {
         await page.locator(toggle).click();
 
-        expect(await readout(page, "Twelve hour"), "pm becomes am, so 14:30 becomes 02:30").toContain("value: 02:30");
+        expect(await readout(page, "twelve"), "pm becomes am, so 14:30 becomes 02:30").toContain("value: 02:30");
         expect(
             await inputValue(page.locator(field(TWELVE))),
             "and the text is unchanged, because it reads the same",
@@ -308,46 +296,44 @@ test.describe("a twelve-hour field", () => {
 
         await page.locator(toggle).click();
 
-        expect(await readout(page, "Twelve hour"), "and back again").toContain("value: 14:30");
+        expect(await readout(page, "twelve"), "and back again").toContain("value: 14:30");
     });
 
     test("typing twelve-hour digits lands the hour the half of the day says", async ({ page }) => {
         await typeInto(page, field(TWELVE), "09:15");
 
-        expect(await readout(page, "Twelve hour"), "nine fifteen in the afternoon is 21:15").toContain("value: 21:15");
+        expect(await readout(page, "twelve"), "nine fifteen in the afternoon is 21:15").toContain("value: 21:15");
 
         await page.locator(toggle).click();
 
-        expect(await readout(page, "Twelve hour"), "and in the morning it is 09:15").toContain("value: 09:15");
+        expect(await readout(page, "twelve"), "and in the morning it is 09:15").toContain("value: 09:15");
     });
 
     test("twelve o'clock is the case that catches an off-by-twelve", async ({ page }) => {
         await typeInto(page, field(TWELVE), "12:00");
 
-        expect(await readout(page, "Twelve hour"), "12:00 pm is noon, not midnight").toContain("value: 12:00");
+        expect(await readout(page, "twelve"), "12:00 pm is noon, not midnight").toContain("value: 12:00");
 
         await page.locator(toggle).click();
 
-        expect(await readout(page, "Twelve hour"), "and 12:00 am is midnight, not noon").toContain("value: 00:00");
+        expect(await readout(page, "twelve"), "and 12:00 am is midnight, not noon").toContain("value: 00:00");
     });
 
     test("refuses an hour a twelve-hour clock does not have", async ({ page }) => {
         await typeInto(page, field(TWELVE), "13:00");
 
-        expect(await readout(page, "Twelve hour"), "there is no thirteenth hour to read").toContain("value: none");
+        expect(await readout(page, "twelve"), "there is no thirteenth hour to read").toContain("value: none");
     });
 
     test("stepping the hour crosses noon and takes the half of the day with it", async ({ page }) => {
         await typeInto(page, field(TWELVE), "11:30");
         await caretAt(page, field(TWELVE), 0);
 
-        expect(await readout(page, "Twelve hour"), "starting at half past eleven in the evening").toContain(
-            "value: 23:30",
-        );
+        expect(await readout(page, "twelve"), "starting at half past eleven in the evening").toContain("value: 23:30");
 
         await page.keyboard.press("ArrowUp");
 
-        expect(await readout(page, "Twelve hour"), "stepping the hour wraps around midnight").toContain("value: 00:30");
+        expect(await readout(page, "twelve"), "stepping the hour wraps around midnight").toContain("value: 00:30");
         await expect(
             page.locator(toggle),
             "and the toggle follows the value rather than being set twice",
@@ -362,28 +348,25 @@ test.describe("a twelve-hour field", () => {
  * its accessible name keeps these tests independent of the era's display name, which is the locale's to choose.
  */
 test.describe("eras and other calendar systems", () => {
-    const prop = (label: string) => `[data-prop="${label}"]`;
     const option = '[role="listbox"] [role="option"]';
     const eraButton = (scope: string) => `${scope} button[aria-label^="Era:"]`;
 
-    const chooseProp = async (page: import("@playwright/test").Page, label: string, text: string) => {
-        await page.locator(`${prop(label)} [role="combobox"]`).click();
+    const chooseProp = async (page: import("@playwright/test").Page, key: string, text: string) => {
+        await page.locator(`${prop(key)} [role="combobox"]`).click();
         await page.locator(option, { hasText: text }).first().click();
     };
 
     test("spells a year before the common era as a positive year beside its era", async ({ page }) => {
         expect(await inputValue(page.locator(field(ERA))), "four digits, and no sign among them").toBe("0044-03-15");
         await expect(page.locator(eraButton(ERA)), "the era is named beside the digits").toHaveText("BC");
-        expect(await readout(page, "Before the common era"), "and the value is the astronomical year").toContain(
-            "value: -000043-03-15",
-        );
+        expect(await readout(page, "era"), "and the value is the astronomical year").toContain("value: -000043-03-15");
     });
 
     test("moving the era keeps the year and lands on a different real date", async ({ page }) => {
         await page.locator(eraButton(ERA)).click();
 
         await expect(page.locator(eraButton(ERA))).toHaveText("AD");
-        expect(await readout(page, "Before the common era")).toContain("value: 0044-03-15");
+        expect(await readout(page, "era")).toContain("value: 0044-03-15");
         expect(await inputValue(page.locator(field(ERA))), "the digits are untouched by the era moving").toBe(
             "0044-03-15",
         );
@@ -392,17 +375,17 @@ test.describe("eras and other calendar systems", () => {
     test("a typed date is re-expressed when the calendar system changes", async ({ page }) => {
         expect(await inputValue(page.locator(field(TYPED)))).toBe("2026-08-10");
 
-        await chooseProp(page, "Calendar", "japanese");
+        await chooseProp(page, "calendarId", "japanese");
 
         expect(
             await inputValue(page.locator(field(TYPED))),
             "the same day, counted inside the era the Japanese calendar is in",
         ).toBe("0008-08-10");
-        expect(await readout(page, "Typed only"), "and the value itself has not moved").toContain("value: 2026-08-10");
+        expect(await readout(page, "typed"), "and the value itself has not moved").toContain("value: 2026-08-10");
     });
 
     test("offers the calendar's own era list rather than a pair", async ({ page }) => {
-        await chooseProp(page, "Calendar", "japanese");
+        await chooseProp(page, "calendarId", "japanese");
 
         await expect(page.locator(eraButton(TYPED)), "a date in 2026 is in the current era").toHaveText("Reiwa");
 
@@ -415,12 +398,11 @@ test.describe("eras and other calendar systems", () => {
     });
 
     test("typing a date in another calendar reads back as that calendar's date", async ({ page }) => {
-        await chooseProp(page, "Calendar", "hebrew");
+        await chooseProp(page, "calendarId", "hebrew");
         await typeInto(page, field(TYPED), "5784-06-01");
 
-        expect(
-            await readout(page, "Typed only"),
-            "Adar I of a leap year is a real month and lands a real day",
-        ).toContain("value: 2024-02-10");
+        expect(await readout(page, "typed"), "Adar I of a leap year is a real month and lands a real day").toContain(
+            "value: 2024-02-10",
+        );
     });
 });

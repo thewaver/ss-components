@@ -78,6 +78,7 @@ export const StepperPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "linear",
                 name: "Linear",
                 readout: () =>
                     `current: ${getLinearCurrent()} — only the steps behind you can be pressed, unless free navigation is on`,
@@ -104,6 +105,7 @@ export const StepperPage = () => {
                 ),
             },
             {
+                key: "failed",
                 name: "A step that failed",
                 readout: () =>
                     `current: ${getFailedCurrent()} — the failed step is reachable by keyboard so its tooltip can be read, and its name carries the state as words`,
@@ -153,6 +155,7 @@ export const StepperPage = () => {
                 ),
             },
             {
+                key: "stacked",
                 name: "Stacked",
                 readout: () => `current: ${getStackedCurrent()} — the same steps down the page`,
                 component: () => (
@@ -179,6 +182,7 @@ export const StepperPage = () => {
                 ),
             },
             {
+                key: "bare",
                 name: "No connector",
                 readout: () => "the connector slot is optional, so a bare strip renders nothing between the steps",
                 component: () => (
@@ -208,7 +212,7 @@ export const StepperPage = () => {
     return (
         <>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Free navigation"}>
+                <PageProp getKey={() => "isFreeNavigation"} getLabel={() => "Free navigation"}>
                     <PageCheckField
                         getValue={getIsFreeNavigation}
                         getAriaLabel={() => "Free navigation"}
@@ -216,7 +220,7 @@ export const StepperPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Current step"}>
+                <PageProp getKey={() => "currentStep"} getLabel={() => "Current step"}>
                     <Button
                         renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Reset</PageButtonContent>}
                         onClick={async () => {

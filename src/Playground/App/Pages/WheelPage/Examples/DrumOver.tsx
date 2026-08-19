@@ -39,6 +39,7 @@ export const DrumOverExample = ({ getWedges, ...otherProps }: Props) => {
 
             <PageWheelBar>
                 <Button
+                    getId={() => "reelSpin"}
                     getAriaLabel={() => "Spin the wheel"}
                     getIsDisabled={() => !getController()?.getIsSpinnable()}
                     renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Spin</PageButtonContent>}

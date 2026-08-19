@@ -51,6 +51,7 @@ export const CarouselPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "manual",
                 name: "Stepped by hand",
                 readout: () =>
                     `slide ${manualIndexSignal[0]() + 1} of ${getSlideCount()} — stepping past either end wraps round, which is what separates this from the scroller`,
@@ -71,6 +72,7 @@ export const CarouselPage = () => {
                 ),
             },
             {
+                key: "rotating",
                 name: "Rotating on its own",
                 readout: () =>
                     `slide ${rotatingIndexSignal[0]() + 1} of ${getSlideCount()} | ${rotatingPlayingSignal[0]() ? "playing" : "stopped"} — it holds while the pointer is over it, while anything inside it has focus, and while the tab is in the background`,
@@ -94,6 +96,7 @@ export const CarouselPage = () => {
                 ),
             },
             {
+                key: "noControls",
                 name: "No controls at all",
                 readout: () =>
                     `slide ${barelessIndexSignal[0]() + 1} of ${getSlideCount()} — nothing is drawn beside the slides, so the surrounding page owns the buttons through the signal it shares`,
@@ -115,7 +118,7 @@ export const CarouselPage = () => {
     return (
         <>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Slide count"}>
+                <PageProp getKey={() => "slideCount"} getLabel={() => "Slide count"}>
                     <PageNumberField
                         getValue={getSlideCount}
                         getMin={() => MIN_SLIDE_COUNT}
@@ -127,7 +130,7 @@ export const CarouselPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Rotation delay"}>
+                <PageProp getKey={() => "delayMs"} getLabel={() => "Rotation delay"}>
                     <PageNumberField
                         getValue={getDelayMs}
                         getMin={() => MIN_DELAY_MS}
@@ -139,7 +142,7 @@ export const CarouselPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Disabled"}>
+                <PageProp getKey={() => "isDisabled"} getLabel={() => "Disabled"}>
                     <PageCheckField getValue={getIsDisabled} getAriaLabel={() => "Disabled"} onChange={setIsDisabled} />
                 </PageProp>
             </PagePropsPanel>

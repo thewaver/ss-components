@@ -6,5 +6,6 @@ import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 export type PageCalendarCaptionProps = {
     monthSignal: Signal<DateValue>;
 } & AccessorProps<{
+    key: string;
     locale?: string;
 }>;

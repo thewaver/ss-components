@@ -105,6 +105,7 @@ export const PageColorChannels = (props: PageColorChannelsProps) => {
                                 getMin={() => 0}
                                 getMax={() => CHANNEL_MAX}
                                 getWidth={() => CHANNEL_FIELD_WIDTH}
+                                getId={() => `channel${channel.toUpperCase()}`}
                                 getAriaLabel={() => `Red green blue channel ${channel}`}
                                 onInput={(value) => setRgbaChannel(channel, value)}
                             />
@@ -114,6 +115,7 @@ export const PageColorChannels = (props: PageColorChannelsProps) => {
                     <PageColorChannel label="a">
                         <PageNumberField
                             getValue={getAlpha}
+                            getId={() => "channelA"}
                             getMin={() => 0}
                             getMax={() => ALPHA_MAX}
                             getStep={() => ALPHA_STEP}
@@ -133,6 +135,7 @@ export const PageColorChannels = (props: PageColorChannelsProps) => {
                             getMin={() => 0}
                             getMax={() => HUE_MAX}
                             getWidth={() => CHANNEL_FIELD_WIDTH}
+                            getId={() => "channelH"}
                             getAriaLabel={() => "Hue channel"}
                             onInput={(value) => setHslaChannel("h", value)}
                         />
@@ -145,6 +148,7 @@ export const PageColorChannels = (props: PageColorChannelsProps) => {
                                 getMin={() => 0}
                                 getMax={() => PERCENT}
                                 getWidth={() => CHANNEL_FIELD_WIDTH}
+                                getId={() => `channel${channel.toUpperCase()}`}
                                 getAriaLabel={() => `Hue saturation lightness channel ${channel}`}
                                 onInput={(value) => setHslaChannel(channel, value)}
                             />
@@ -154,6 +158,7 @@ export const PageColorChannels = (props: PageColorChannelsProps) => {
                     <PageColorChannel label="a">
                         <PageNumberField
                             getValue={getAlpha}
+                            getId={() => "channelA"}
                             getMin={() => 0}
                             getMax={() => ALPHA_MAX}
                             getStep={() => ALPHA_STEP}
@@ -170,6 +175,7 @@ export const PageColorChannels = (props: PageColorChannelsProps) => {
                     <PageColorChannel label="hexa">
                         <TextInput
                             valueSignal={hexSignal}
+                            getId={() => "channelHexa"}
                             getAriaLabel={() => "Hex with alpha"}
                             getPadding={() => FIELD_PADDING}
                             getGap={() => FIELD_GAP}

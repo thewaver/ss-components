@@ -23,7 +23,7 @@ const SCROLL_BY = 80;
 const DRIFT_TOLERANCE = 2;
 const SETTLE_MS = 200;
 
-const SCROLLED = variant("An anchor inside a scrolled box");
+const SCROLLED = variant("scrolled");
 const LISTBOX = '[role="listbox"]';
 const DIALOG = '[role="dialog"]';
 
@@ -42,7 +42,7 @@ test.beforeEach(async ({ page }) => {
  */
 test("a transition still commits when no frame ever arrives", async ({ page }) => {
     await page.goto("/modal");
-    await page.locator("button", { hasText: "Open Modal" }).click();
+    await page.locator("#openModal").click();
 
     await expect(page.locator(DIALOG), "the fallback timer commits what the frame was going to").toBeVisible();
     await expect(page.locator(DIALOG)).toHaveAttribute("aria-modal", "true");
@@ -67,11 +67,11 @@ test("an anchored layer opens a frame behind, then tracks its anchor on the even
     await page.goto("/viewport");
     await expect(page.locator("[data-variant]").first()).toBeVisible();
 
-    await page.locator('[aria-label="Scrolled country"]').click();
+    await page.locator("#scrolledCountry").click();
     await expect(page.locator(LISTBOX)).toBeVisible();
     await page.waitForTimeout(SETTLE_MS);
 
-    const anchorBefore = (await page.locator('[aria-label="Scrolled country"]').boundingBox())!;
+    const anchorBefore = (await page.locator("#scrolledCountry").boundingBox())!;
     const before = (await page.locator(LISTBOX).boundingBox())!;
 
     expect(
@@ -84,7 +84,7 @@ test("an anchored layer opens a frame behind, then tracks its anchor on the even
     }, SCROLL_BY);
     await page.waitForTimeout(SETTLE_MS);
 
-    const anchorAfter = (await page.locator('[aria-label="Scrolled country"]').boundingBox())!;
+    const anchorAfter = (await page.locator("#scrolledCountry").boundingBox())!;
     const after = (await page.locator(LISTBOX).boundingBox())!;
 
     expect(anchorAfter.y, "the scroll really did move the anchor").not.toBe(anchorBefore.y);

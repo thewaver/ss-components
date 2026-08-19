@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-import { attributesOf, readout, tagName, variant } from "./helpers";
+import { attributesOf, prop, readout, tagName, variant } from "./helpers";
 
-const DEFAULT = variant("Default");
-const BARE = variant("No separator");
-const LINKED = variant("Crumbs that are links");
-const ROUTED = variant("Links through a component");
+const DEFAULT = variant("default");
+const BARE = variant("bare");
+const LINKED = variant("linked");
+const ROUTED = variant("linkComponent");
 
 const crumb = (scope: string) => `${scope} nav[aria-label] ol > li`;
 
@@ -55,10 +55,10 @@ test("the last crumb is the current page, and is not a control", async ({ page }
 
 test("pressing a crumb reports its value, and the current one has nothing to report", async ({ page }) => {
     await page.locator(`${DEFAULT} button`).first().click();
-    expect(await readout(page, "Default"), "a crumb reports the value it was given").toContain("pressed: home");
+    expect(await readout(page, "default"), "a crumb reports the value it was given").toContain("pressed: home");
 
     await page.locator(`${DEFAULT} [aria-current]`).click();
-    expect(await readout(page, "Default"), "and the current crumb is inert, so the reading stands").toContain(
+    expect(await readout(page, "default"), "and the current crumb is inert, so the reading stands").toContain(
         "pressed: home",
     );
 });
@@ -97,7 +97,7 @@ test("an href makes a crumb an anchor, and a link component replaces the element
  * and refuses the press, so someone arrowing through the trail can still read a step they cannot take.
  */
 test("a disabled crumb is reachable and refuses the press", async ({ page }) => {
-    await page.getByLabel("Disabled").check();
+    await page.locator(`${prop("isDisabled")} input`).check();
 
     const first = page.locator(`${DEFAULT} button`).first();
 
@@ -108,5 +108,5 @@ test("a disabled crumb is reachable and refuses the press", async ({ page }) => 
     await expect(page.locator(`${DEFAULT} button[disabled]`), "and no crumb carries the native one").toHaveCount(0);
 
     await first.click({ force: true });
-    expect(await readout(page, "Default"), "pressing it reports nothing").toContain("pressed: nothing yet");
+    expect(await readout(page, "default"), "pressing it reports nothing").toContain("pressed: nothing yet");
 });

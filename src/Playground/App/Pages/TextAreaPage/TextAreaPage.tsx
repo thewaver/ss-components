@@ -33,6 +33,7 @@ export const TextAreaPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "fixedHeight",
                 name: "Fixed height",
                 readout: () => `length: ${fixedSignal[0]().length} — the painter sizes the box and it stays put`,
                 component: () => (
@@ -58,6 +59,7 @@ export const TextAreaPage = () => {
                 ),
             },
             {
+                key: "autoSizing",
                 name: "Auto-sizing",
                 readout: () =>
                     `length: ${growingSignal[0]().length} — grows from ${MIN_ROWS} rows with no ceiling, so it never scrolls`,
@@ -86,6 +88,7 @@ export const TextAreaPage = () => {
                 ),
             },
             {
+                key: "autoSizingCapped",
                 name: "Auto-sizing, capped",
                 readout: () => `length: ${cappedSignal[0]().length} — stops growing at ${MAX_ROWS} rows and scrolls`,
                 component: () => (
@@ -109,6 +112,7 @@ export const TextAreaPage = () => {
                 ),
             },
             {
+                key: "readOnly",
                 name: "Read-only",
                 readout: () => `length: ${readOnlySignal[0]().length} — selectable and copyable, never editable`,
                 component: () => (
@@ -132,6 +136,7 @@ export const TextAreaPage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled",
                 readout: () => `length: ${disabledSignal[0]().length}`,
                 component: () => (
@@ -153,6 +158,7 @@ export const TextAreaPage = () => {
                 ),
             },
             {
+                key: "reachable",
                 name: "Disabled + reachable",
                 readout: () => `length: ${reachableSignal[0]().length}`,
                 component: () => (
@@ -187,6 +193,7 @@ export const TextAreaPage = () => {
                 ),
             },
             {
+                key: "errored",
                 name: "Error",
                 readout: () =>
                     `length: ${erroredSignal[0]().length} — fewer than ${REVIEW_LIMIT} characters is an error`,
@@ -212,6 +219,7 @@ export const TextAreaPage = () => {
                 ),
             },
             {
+                key: "label",
                 name: "In a Label",
                 readout: () => `length: ${labelledSignal[0]().length}`,
                 component: () => (

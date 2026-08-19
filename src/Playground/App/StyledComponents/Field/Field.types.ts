@@ -1,6 +1,7 @@
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
 export type PageNumberFieldProps = AccessorProps<{
+    id?: string;
     value: number;
     min?: number;
     max?: number;

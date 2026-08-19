@@ -7,7 +7,11 @@ export const PageProp = (props: PagePropProps) => {
     const propsPanelScope = usePropsPanelContext();
 
     return (
-        <div class={styles.propsScopeVariants[propsPanelScope?.getScope?.() ?? "unknown"]} data-prop={props.getLabel()}>
+        <div
+            class={styles.propsScopeVariants[propsPanelScope?.getScope?.() ?? "unknown"]}
+            data-prop
+            data-testid={props.getKey()}
+        >
             <div class={styles.propLabel}>{props.getLabel()}</div>
 
             {props.children}

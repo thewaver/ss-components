@@ -81,6 +81,7 @@ export const TabsPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "row",
                 name: "A row of tabs",
                 readout: () => `selected: ${getRowValue()}`,
                 component: () => (
@@ -121,6 +122,7 @@ export const TabsPage = () => {
                 ),
             },
             {
+                key: "column",
                 name: "A column of tabs",
                 readout: () => `selected: ${getColumnValue()}`,
                 component: () => (
@@ -161,6 +163,7 @@ export const TabsPage = () => {
                 ),
             },
             {
+                key: "links",
                 name: "Tabs that are links",
                 readout: () => `selected: ${getLinkValue()} — every tab carries an href, so each one is an anchor`,
                 component: () => (
@@ -192,6 +195,7 @@ export const TabsPage = () => {
                 ),
             },
             {
+                key: "linkComponent",
                 name: "Links through a component",
                 readout: () =>
                     `selected: ${getCustomLinkValue()} — the same tabs rendered by a consumer's own link component`,
@@ -225,6 +229,7 @@ export const TabsPage = () => {
                 ),
             },
             {
+                key: "clearable",
                 name: "A selection that can be cleared",
                 readout: () =>
                     `selected: ${getClearableValue() ?? "nothing"} — the floater plays itself out over ${CLEARABLE_TRANSITION_DURATION_MS}ms when the selection goes, and plays itself back in when one returns`,
@@ -268,6 +273,7 @@ export const TabsPage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Every tab disabled",
                 readout: () => `selected: ${getDisabledValue()} — nothing can move it, so no tab holds the tab stop`,
                 component: () => (

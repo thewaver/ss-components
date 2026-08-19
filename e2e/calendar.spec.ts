@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { readout, tabIndex, variant } from "./helpers";
+import { prop, readout, tabIndex, variant } from "./helpers";
 
-const DEFAULT = variant("Default");
-const BOUNDED = variant("Bounded");
-const WEEKDAYS = variant("Weekdays only");
+const DEFAULT = variant("default");
+const BOUNDED = variant("bounded");
+const WEEKDAYS = variant("weekdays");
 
 /**
  * Days are located by their accessible name rather than by their text, because the painter draws a bare
@@ -19,11 +19,10 @@ const day = (scope: string, label: string) => `${cell(scope)}[aria-label="${labe
  * The week start and the calendar system are props-panel knobs rather than buttons inside one variant, so
  * they govern all three calendars at once. A knob is driven through its own `Select` the way a consumer would.
  */
-const prop = (label: string) => `[data-prop="${label}"]`;
 const option = '[role="listbox"] [role="option"]';
 
-const chooseProp = async (page: import("@playwright/test").Page, label: string, text: string) => {
-    await page.locator(`${prop(label)} [role="combobox"]`).click();
+const chooseProp = async (page: import("@playwright/test").Page, key: string, text: string) => {
+    await page.locator(`${prop(key)} [role="combobox"]`).click();
     await page.locator(option, { hasText: text }).first().click();
 };
 
@@ -40,7 +39,7 @@ test("the grid is always six weeks, so paging never changes its height", async (
     await expect(page.locator(`${DEFAULT} [role="columnheader"]`), "with a weekday header each").toHaveCount(7);
     await expect(page.locator(`${DEFAULT} [role="row"]`), "in a header row plus six week rows").toHaveCount(7);
 
-    await page.locator(`${DEFAULT} button[aria-label="Next month"]`).click();
+    await page.locator("#defaultNextMonth").click();
 
     await expect(page.locator(cell(DEFAULT)), "and the next month is the same size").toHaveCount(42);
 });
@@ -72,7 +71,7 @@ test("the grid is one tab stop wherever the roving day is", async ({ page }) => 
 test("clicking a day reports it to the owner as a date, not an index", async ({ page }) => {
     await page.locator(day(DEFAULT, "18 August 2026")).click();
 
-    expect(await readout(page, "Default"), "the owner's signal holds the date itself").toContain("value: 2026-08-18");
+    expect(await readout(page, "default"), "the owner's signal holds the date itself").toContain("value: 2026-08-18");
 });
 
 test("the arrow walk crosses the month boundary and takes the grid with it", async ({ page }) => {
@@ -84,7 +83,7 @@ test("the arrow walk crosses the month boundary and takes the grid with it", asy
     await page.keyboard.press("ArrowRight");
 
     expect(await activeLabel(page), "one day past the end of the month lands in the next one").toBe("1 September 2026");
-    expect(await readout(page, "Default"), "and the visible month follows the walk").toContain("month: 2026-09-01");
+    expect(await readout(page, "default"), "and the visible month follows the walk").toContain("month: 2026-09-01");
 
     await page.keyboard.press("ArrowUp");
     expect(await activeLabel(page), "and a week backwards crosses back").toBe("25 August 2026");
@@ -112,7 +111,7 @@ test("Enter picks the day the keyboard is on", async ({ page }) => {
     await page.keyboard.press("ArrowRight");
     await page.keyboard.press("Enter");
 
-    expect(await readout(page, "Default")).toContain("value: 2026-08-11");
+    expect(await readout(page, "default")).toContain("value: 2026-08-11");
 });
 
 test("a bounded calendar refuses the days outside its range without a native attribute", async ({ page }) => {
@@ -124,7 +123,7 @@ test("a bounded calendar refuses the days outside its range without a native att
 
     await page.locator(day(BOUNDED, "1 August 2026")).dispatchEvent("click");
 
-    expect(await readout(page, "Bounded"), "and clicking one picks nothing").toContain("value: none");
+    expect(await readout(page, "bounded"), "and clicking one picks nothing").toContain("value: none");
 });
 
 test("a consumer's own predicate can refuse days the range allows", async ({ page }) => {
@@ -133,7 +132,7 @@ test("a consumer's own predicate can refuse days the range allows", async ({ pag
         "twelve weekend days in a six-week grid",
     ).toHaveCount(12);
 
-    await chooseProp(page, "Week starts on", "Sunday");
+    await chooseProp(page, "weekStartsOn", "Sunday");
 
     await expect(
         page.locator(`${WEEKDAYS} [role="columnheader"]`).first(),
@@ -174,12 +173,12 @@ const ANNOUNCER = 'body > [role="log"][aria-live="polite"]';
 test("paging announces the month it landed on, through a region no component owns", async ({ page }) => {
     await expect(page.locator(ANNOUNCER), "nothing has been announced yet, so no region exists").toHaveCount(0);
 
-    await page.locator(`${DEFAULT} button[aria-label="Next month"]`).click();
+    await page.locator("#defaultNextMonth").click();
 
     await expect(page.locator(ANNOUNCER), "paging says where it landed").toContainText("September 2026");
 
-    await page.locator(`${DEFAULT} button[aria-label="Previous month"]`).click();
-    await page.locator(`${DEFAULT} button[aria-label="Previous month"]`).click();
+    await page.locator("#defaultPreviousMonth").click();
+    await page.locator("#defaultPreviousMonth").click();
 
     await expect(
         page.locator(ANNOUNCER),
@@ -207,7 +206,7 @@ test.describe("another calendar system", () => {
     test("re-expresses the same instant without changing the grid's shape", async ({ page }) => {
         await expect(page.locator(day(DEFAULT, "10 August 2026"))).toHaveCount(1);
 
-        await chooseProp(page, "Calendar", "hebrew");
+        await chooseProp(page, "calendarId", "hebrew");
 
         await expect(page.locator(cell(DEFAULT)), "still six weeks of seven days").toHaveCount(42);
         await expect(
@@ -217,7 +216,7 @@ test.describe("another calendar system", () => {
     });
 
     test("reaches every calendar on the page, not just the first", async ({ page }) => {
-        await chooseProp(page, "Calendar", "hebrew");
+        await chooseProp(page, "calendarId", "hebrew");
 
         for (const scope of [DEFAULT, BOUNDED, WEEKDAYS]) {
             await expect(page.locator(cell(scope)), "each variant is drawn in the chosen system").toHaveCount(42);
@@ -226,9 +225,9 @@ test.describe("another calendar system", () => {
     });
 
     test("offers a thirteenth month where the calendar has one", async ({ page }) => {
-        await chooseProp(page, "Calendar", "ethiopic");
+        await chooseProp(page, "calendarId", "ethiopic");
 
-        await page.locator(`${DEFAULT} button[aria-label*="pick a month and year"]`).click();
+        await page.locator("#defaultMonthTitle").click();
         await page.locator(`${DEFAULT} [role="combobox"]`).click();
 
         await expect(
@@ -238,7 +237,7 @@ test.describe("another calendar system", () => {
     });
 
     test("keeps a bounded calendar's refusals on the same real days", async ({ page }) => {
-        await chooseProp(page, "Calendar", "hebrew");
+        await chooseProp(page, "calendarId", "hebrew");
 
         await expect(
             page.locator(`${cell(BOUNDED)}[aria-disabled="true"]`),

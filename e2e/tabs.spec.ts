@@ -7,12 +7,12 @@ import { activeText, computedStyle, inlineStyle, readout, tabIndex, tagName, var
  * list holds a disabled entry in the middle rather than at an edge, which is the case a walk can get
  * wrong in both directions at once.
  */
-const ROW = variant("A row of tabs");
-const COLUMN = variant("A column of tabs");
-const LINKS = variant("Tabs that are links");
-const LINK_COMPONENT = variant("Links through a component");
-const CLEARABLE = variant("A selection that can be cleared");
-const DISABLED = variant("Every tab disabled");
+const ROW = variant("row");
+const COLUMN = variant("column");
+const LINKS = variant("links");
+const LINK_COMPONENT = variant("linkComponent");
+const CLEARABLE = variant("clearable");
+const DISABLED = variant("disabled");
 
 const list = (scope: string) => `${scope} [role="tablist"]`;
 const tab = (scope: string) => `${scope} [role="tab"]`;
@@ -97,19 +97,17 @@ test("moving the focus does not move the selection, and the tab itself does the 
     await page.locator(`${tab(ROW)}[tabindex="0"]`).focus();
     await page.keyboard.press("ArrowRight");
 
-    expect(await readout(page, "A row of tabs"), "an arrow moves the focus and nothing else").toBe("selected: Render");
+    expect(await readout(page, "row"), "an arrow moves the focus and nothing else").toBe("selected: Render");
     await expect(page.locator(`${tab(ROW)}[aria-selected="true"]`)).toHaveText("Render");
 
     await page.keyboard.press("Enter");
-    expect(await readout(page, "A row of tabs"), "and the focused tab selects when it is activated").toBe(
-        "selected: Source",
-    );
+    expect(await readout(page, "row"), "and the focused tab selects when it is activated").toBe("selected: Source");
 
     await page.locator(tab(ROW)).nth(3).click();
-    expect(await readout(page, "A row of tabs"), "a click does the same thing").toBe("selected: Export");
+    expect(await readout(page, "row"), "a click does the same thing").toBe("selected: Export");
 
     await page.locator(tab(ROW)).nth(2).click({ force: true });
-    expect(await readout(page, "A row of tabs"), "and a disabled tab refuses both").toBe("selected: Export");
+    expect(await readout(page, "row"), "and a disabled tab refuses both").toBe("selected: Export");
 });
 
 test("a tab and its panel point at each other, and the pair moves with the selection", async ({ page }) => {
@@ -202,7 +200,7 @@ test("the floater plays itself out before it goes, and back in when a selection 
     ).toBeLessThan(RETURN_TOLERANCE_PX);
 
     await expect.poll(() => computedStyle(painted, "transform")).toBe(SHOWN_TRANSFORM);
-    expect(await readout(page, "A selection that can be cleared")).toContain("selected: Three");
+    expect(await readout(page, "clearable")).toContain("selected: Three");
 });
 
 test("an href makes the tab an anchor, and a link component replaces the element", async ({ page }) => {
@@ -216,9 +214,7 @@ test("an href makes the tab an anchor, and a link component replaces the element
     ).toHaveCount(3);
 
     await page.locator(tab(LINK_COMPONENT)).nth(1).click();
-    expect(await readout(page, "Links through a component"), "and it still reports the selection").toContain(
-        "selected: Guides",
-    );
+    expect(await readout(page, "linkComponent"), "and it still reports the selection").toContain("selected: Guides");
 });
 
 test("a list with nothing enabled holds no tab stop at all", async ({ page }) => {
@@ -229,5 +225,5 @@ test("a list with nothing enabled holds no tab stop at all", async ({ page }) =>
     ).toHaveCount(0);
 
     await page.locator(tab(DISABLED)).nth(1).click({ force: true });
-    expect(await readout(page, "Every tab disabled"), "and clicking changes nothing").toContain("selected: Draft");
+    expect(await readout(page, "disabled"), "and clicking changes nothing").toContain("selected: Draft");
 });

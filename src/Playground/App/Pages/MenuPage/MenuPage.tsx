@@ -130,6 +130,7 @@ export const MenuPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "driven",
                 name: "Driven from outside",
                 readout: () =>
                     `${getLastDrivenAction()} — the menu is ${drivenVisibility[0]() ? "open" : "closed"}, and it is anchored to the toggle rather than to its own trigger`,
@@ -150,6 +151,7 @@ export const MenuPage = () => {
 
                         <Button
                             ref={setDrivenAnchor}
+                            getId={() => "menuToggle"}
                             getAriaLabel={() => "Toggle the menu from outside"}
                             renderContent={(getFlags) => (
                                 <PageButtonContent getFlags={getFlags}>
@@ -164,6 +166,7 @@ export const MenuPage = () => {
                 ),
             },
             {
+                key: "default",
                 name: "Default",
                 readout: () => `${getLastAction()} — activating an item closes the menu`,
                 component: () => (
@@ -180,6 +183,7 @@ export const MenuPage = () => {
                 ),
             },
             {
+                key: "disabledItems",
                 name: "Disabled items",
                 readout: () => `${getLastDisabledAction()} — arrows skip Paste and Duplicate`,
                 component: () => (
@@ -196,6 +200,7 @@ export const MenuPage = () => {
                 ),
             },
             {
+                key: "disabledItemsReachable",
                 name: "Disabled items + reachable",
                 readout: () => `${getLastReachableAction()} — arrows stop on Paste, hover explains why`,
                 component: () => (
@@ -212,6 +217,7 @@ export const MenuPage = () => {
                 ),
             },
             {
+                key: "submenus",
                 name: "Submenus",
                 readout: () => `${getLastNestedAction()} — ArrowRight steps in, ArrowLeft steps back out`,
                 component: () => (
@@ -229,6 +235,7 @@ export const MenuPage = () => {
                 ),
             },
             {
+                key: "placedAbove",
                 name: "Placed above",
                 readout: () => `${getLastFlippedAction()} — the surface flips its own transform`,
                 component: () => (
@@ -246,6 +253,7 @@ export const MenuPage = () => {
                 ),
             },
             {
+                key: "scrollingList",
                 name: "Scrolling list",
                 readout: () => `${getLastLayerAction()} — Home and End reach both ends`,
                 component: () => (
@@ -262,6 +270,7 @@ export const MenuPage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled",
                 readout: () => "the trigger neither opens nor takes focus",
                 component: () => (
@@ -279,6 +288,7 @@ export const MenuPage = () => {
                 ),
             },
             {
+                key: "reachable",
                 name: "Disabled + reachable",
                 readout: () => "focusable so the tooltip can be read, but the menu must not open",
                 component: () => (

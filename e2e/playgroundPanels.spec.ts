@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { inlineStyle } from "./helpers";
+import { inlineStyle, prop } from "./helpers";
 
 const CORNER_GRID = '[data-panel="global"] [style*="grid-template-columns"]';
 
@@ -37,7 +37,7 @@ test("a migrated Checkbox still drives the page state the raw one did", async ({
         "the corner grid starts collapsed to one column",
     ).toBe("repeat(1, 1fr)");
 
-    await page.locator('input[aria-label="Individual corner settings"]').click();
+    await page.locator(`${prop("hasIndividualCorners")} input`).click();
     expect(
         await inlineStyle(page.locator(CORNER_GRID).first(), "grid-template-columns"),
         "and a migrated Checkbox still drives the page state the raw one did",

@@ -2,11 +2,11 @@ import { expect, test } from "@playwright/test";
 
 import { computedStyle, inputValue, isReadOnly, isScrolling, offsetHeight, readout, tagName, variant } from "./helpers";
 
-const FIXED = `${variant("Fixed height")} textarea`;
-const GROWING = `${variant("Auto-sizing")} textarea`;
-const CAPPED = `${variant("Auto-sizing, capped")} textarea`;
-const READ_ONLY = `${variant("Read-only")} textarea`;
-const DISABLED = `${variant("Disabled")} textarea`;
+const FIXED = `${variant("fixedHeight")} textarea`;
+const GROWING = `${variant("autoSizing")} textarea`;
+const CAPPED = `${variant("autoSizingCapped")} textarea`;
+const READ_ONLY = `${variant("readOnly")} textarea`;
+const DISABLED = `${variant("disabled")} textarea`;
 
 const THREE_LINES = "one\ntwo\nthree";
 
@@ -33,7 +33,7 @@ test("typing reports each keystroke across lines", async ({ page }) => {
     await page.locator(FIXED).focus();
     await page.keyboard.type(THREE_LINES);
     expect(await inputValue(page.locator(FIXED)), "a newline is a value like any other").toBe(THREE_LINES);
-    expect(await readout(page, "Fixed height"), "and every keystroke is reported").toContain(
+    expect(await readout(page, "fixedHeight"), "and every keystroke is reported").toContain(
         `length: ${THREE_LINES.length}`,
     );
 });

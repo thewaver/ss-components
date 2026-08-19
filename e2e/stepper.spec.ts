@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-import { attributesOf, readout, tabIndex, tagName, variant } from "./helpers";
+import { attributesOf, prop, readout, tabIndex, tagName, variant } from "./helpers";
 
-const LINEAR = variant("Linear");
-const FAILED = variant("A step that failed");
-const STACKED = variant("Stacked");
-const BARE = variant("No connector");
+const LINEAR = variant("linear");
+const FAILED = variant("failed");
+const STACKED = variant("stacked");
+const BARE = variant("bare");
 
 const step = (scope: string) => `${scope} ol > li`;
 const TOOLTIP = '[role="tooltip"]';
@@ -69,7 +69,7 @@ test("a navigable step is a button and the rest are not", async ({ page }) => {
         "a step ahead of you is not a control at all",
     ).toBe("SPAN");
 
-    await page.getByLabel("Free navigation").check();
+    await page.locator(`${prop("isFreeNavigation")} input`).check();
 
     expect(
         await tagName(page.locator(`${LINEAR} ol > li:nth-of-type(4) [aria-label]`)),
@@ -79,12 +79,12 @@ test("a navigable step is a button and the rest are not", async ({ page }) => {
 
 test("pressing a navigable step reports it, and an unreachable one reports nothing", async ({ page }) => {
     await page.locator(`${LINEAR} ol > li:nth-of-type(1) [aria-label]`).click();
-    expect(await readout(page, "Linear"), "a step you can return to moves the current one").toContain(
+    expect(await readout(page, "linear"), "a step you can return to moves the current one").toContain(
         "current: details",
     );
 
     await page.locator(`${LINEAR} ol > li:nth-of-type(4) [aria-label]`).click({ force: true });
-    expect(await readout(page, "Linear"), "and a step ahead of you does nothing when pressed").toContain(
+    expect(await readout(page, "linear"), "and a step ahead of you does nothing when pressed").toContain(
         "current: details",
     );
 });

@@ -1,7 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-import { example } from "./helpers";
-
 const DIALOG = '[role="dialog"]';
 const TAB = `${DIALOG} [role="tab"]`;
 const SECTION_HEADER = `${DIALOG} h3 button`;
@@ -13,11 +11,8 @@ const CODE = `${DIALOG} .shiki`;
  * into a tab. Nothing about that is checkable from the module graph, because the resolution happens from
  * the raw text — so the only honest check is to open the modal and look at what came back.
  */
-const openSource = async (page: import("@playwright/test").Page, name: string) => {
-    await page
-        .locator(`${example(name)} button`, { hasText: "</>" })
-        .first()
-        .click();
+const openSource = async (page: import("@playwright/test").Page, key: string) => {
+    await page.locator(`#${key}Source`).click();
     await expect(page.locator(DIALOG)).toBeVisible();
     await expect(
         page.locator(TAB).first(),
@@ -29,7 +24,7 @@ const tabNames = (page: import("@playwright/test").Page) => page.locator(TAB).al
 
 test("a tab appears for the example and for every Playground file it imports", async ({ page }) => {
     await page.goto("/surface");
-    await openSource(page, "Card");
+    await openSource(page, "card");
 
     const names = await tabNames(page);
 
@@ -44,7 +39,7 @@ test("a tab appears for the example and for every Playground file it imports", a
 
 test("a file reached only through a displayed sibling is not followed", async ({ page }) => {
     await page.goto("/surface");
-    await openSource(page, "Avatar");
+    await openSource(page, "avatar");
 
     const names = await tabNames(page);
 
@@ -57,7 +52,7 @@ test("a file reached only through a displayed sibling is not followed", async ({
 
 test("the sections of a tab are the imported file plus its style and type siblings", async ({ page }) => {
     await page.goto("/surface");
-    await openSource(page, "Card");
+    await openSource(page, "card");
 
     const sections = await page.locator(SECTION_HEADER).allTextContents();
 
@@ -69,7 +64,7 @@ test("the sections of a tab are the imported file plus its style and type siblin
 
 test("the sample the props panel currently selects gets a tab of its own", async ({ page }) => {
     await page.goto("/shape");
-    await openSource(page, "Default");
+    await openSource(page, "default");
 
     const names = await tabNames(page);
 
@@ -86,7 +81,7 @@ test("the sample the props panel currently selects gets a tab of its own", async
 
 test("switching tabs replaces the sections and closing the modal needs no source button", async ({ page }) => {
     await page.goto("/shape");
-    await openSource(page, "Default");
+    await openSource(page, "default");
 
     await page.locator(TAB, { hasText: "SVGDefs" }).first().click();
 

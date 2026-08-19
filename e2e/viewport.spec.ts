@@ -7,8 +7,7 @@ import { variant } from "./helpers";
  * what is being checked is the boundary rather than the paint. A layer may not cross it, may not cover the
  * anchor it belongs to, and when neither is possible it keeps its size and is cut.
  */
-const ROAMING = variant("A control roaming the viewport");
-const SCROLLED = variant("An anchor inside a scrolled box");
+const SCROLLED = variant("scrolled");
 
 const LISTBOX = '[role="listbox"]';
 
@@ -28,8 +27,8 @@ const isPaintedAt = (page: Page, point: { x: number; y: number }) =>
     page.evaluate((at) => document.elementFromPoint(at.x, at.y)?.closest('[role="listbox"]') !== null, point);
 
 const parkRoamer = async (page: Page, x: string, y: string) => {
-    await page.locator(`${ROAMING} [aria-label="Horizontal position"]`).fill(x);
-    await page.locator(`${ROAMING} [aria-label="Vertical position"]`).fill(y);
+    await page.locator("#roamerX").fill(x);
+    await page.locator("#roamerY").fill(y);
     await page.waitForTimeout(SETTLE_MS);
 };
 
@@ -46,12 +45,12 @@ test("a list opened against any edge stops at the viewport it belongs to", async
         ["50", "100"],
     ]) {
         await parkRoamer(page, x, y);
-        await page.locator('[aria-label="Roaming country"]').click();
+        await page.locator("#roamingCountry").click();
         await expect(page.locator(LISTBOX)).toBeVisible();
         await page.waitForTimeout(SETTLE_MS);
 
         const stage = (await page.locator("[data-stage]").boundingBox())!;
-        const anchor = (await page.locator('[aria-label="Roaming country"]').boundingBox())!;
+        const anchor = (await page.locator("#roamingCountry").boundingBox())!;
         const list = (await page.locator(LISTBOX).boundingBox())!;
 
         expect(list.x, `x=${x} y=${y}: the list cannot start before the square`).toBeGreaterThanOrEqual(
@@ -70,15 +69,15 @@ test("a list opened against any edge stops at the viewport it belongs to", async
  * anchor's edge, and lose the far end.
  */
 test("a list with nowhere to fit keeps its size and is cut by the edge", async ({ page }) => {
-    await page.locator(`${ROAMING} [aria-label="Viewport scale"]`).fill("200");
+    await page.locator("#viewportScale").fill("200");
     await parkRoamer(page, "50", "50");
 
-    await page.locator('[aria-label="Roaming country"]').click();
+    await page.locator("#roamingCountry").click();
     await expect(page.locator(LISTBOX)).toBeVisible();
     await page.waitForTimeout(SETTLE_MS);
 
     const stage = (await page.locator("[data-stage]").boundingBox())!;
-    const anchor = (await page.locator('[aria-label="Roaming country"]').boundingBox())!;
+    const anchor = (await page.locator("#roamingCountry").boundingBox())!;
     const list = (await page.locator(LISTBOX).boundingBox())!;
 
     expect(list.height, "the list kept the size its painter asked for rather than shrinking to fit").toBeGreaterThan(
@@ -100,13 +99,13 @@ test("a list with nowhere to fit keeps its size and is cut by the edge", async (
 
 test("the scale slider resizes the content without moving the boundary", async ({ page }) => {
     const stageBefore = (await page.locator("[data-stage]").boundingBox())!;
-    const anchorBefore = (await page.locator('[aria-label="Roaming country"]').boundingBox())!;
+    const anchorBefore = (await page.locator("#roamingCountry").boundingBox())!;
 
-    await page.locator(`${ROAMING} [aria-label="Viewport scale"]`).fill("50");
+    await page.locator("#viewportScale").fill("50");
     await page.waitForTimeout(SETTLE_MS);
 
     const stageAfter = (await page.locator("[data-stage]").boundingBox())!;
-    const anchorAfter = (await page.locator('[aria-label="Roaming country"]').boundingBox())!;
+    const anchorAfter = (await page.locator("#roamingCountry").boundingBox())!;
 
     expect(stageAfter.height, "the square is the same square").toBe(stageBefore.height);
     expect(anchorAfter.height, "while the control inside it is drawn at half the size").toBeLessThan(
@@ -125,11 +124,11 @@ test("a list at either end of a scrolled box stays clear of its anchor", async (
         }, to);
         await page.waitForTimeout(SETTLE_MS);
 
-        await page.locator('[aria-label="Scrolled country"]').click();
+        await page.locator("#scrolledCountry").click();
         await expect(page.locator(LISTBOX)).toBeVisible();
         await page.waitForTimeout(SETTLE_MS);
 
-        const anchor = (await page.locator('[aria-label="Scrolled country"]').boundingBox())!;
+        const anchor = (await page.locator("#scrolledCountry").boundingBox())!;
         const list = (await page.locator(LISTBOX).boundingBox())!;
 
         expectNoOverlap(anchor, list);
@@ -149,11 +148,11 @@ test("a list with too little room keeps the anchor's edge and is cut at the far 
         }, top);
         await page.waitForTimeout(SETTLE_MS);
 
-        await page.locator('[aria-label="Scrolled country"]').click({ force: true });
+        await page.locator("#scrolledCountry").click({ force: true });
         await expect(page.locator(LISTBOX)).toBeVisible();
         await page.waitForTimeout(SETTLE_MS);
 
-        const anchor = (await page.locator('[aria-label="Scrolled country"]').boundingBox())!;
+        const anchor = (await page.locator("#scrolledCountry").boundingBox())!;
         const list = (await page.locator(LISTBOX).boundingBox())!;
 
         expect(
@@ -180,11 +179,11 @@ const gapToAnchor = (anchor: { y: number; height: number }, list: { y: number; h
     list.y >= anchor.y ? list.y - (anchor.y + anchor.height) : anchor.y - (list.y + list.height);
 
 test("an open list stays on its anchor's edge while the box under it scrolls", async ({ page }) => {
-    await page.locator('[aria-label="Scrolled country"]').click();
+    await page.locator("#scrolledCountry").click();
     await expect(page.locator(LISTBOX)).toBeVisible();
     await page.waitForTimeout(SETTLE_MS);
 
-    const anchorBefore = (await page.locator('[aria-label="Scrolled country"]').boundingBox())!;
+    const anchorBefore = (await page.locator("#scrolledCountry").boundingBox())!;
     const before = (await page.locator(LISTBOX).boundingBox())!;
 
     expect(Math.abs(gapToAnchor(anchorBefore, before)), "it starts on the anchor's edge").toBeLessThanOrEqual(
@@ -196,7 +195,7 @@ test("an open list stays on its anchor's edge while the box under it scrolls", a
     }, SCROLL_BY);
     await page.waitForTimeout(SETTLE_MS);
 
-    const anchorAfter = (await page.locator('[aria-label="Scrolled country"]').boundingBox())!;
+    const anchorAfter = (await page.locator("#scrolledCountry").boundingBox())!;
     const after = (await page.locator(LISTBOX).boundingBox())!;
 
     expect(anchorAfter.y, "the scroll really did move the anchor").not.toBe(anchorBefore.y);

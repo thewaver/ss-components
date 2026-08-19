@@ -29,6 +29,7 @@ export const LabelPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "checkbox",
                 name: "Checkbox",
                 readout: () => `checked: ${checkboxSignal[0]()}`,
                 component: () => (
@@ -38,11 +39,12 @@ export const LabelPage = () => {
                             renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
                         />
 
-                        <PageLabelCaption>Remember me</PageLabelCaption>
+                        <PageLabelCaption getId={() => "rememberCaption"}>Remember me</PageLabelCaption>
                     </Label>
                 ),
             },
             {
+                key: "toggleCaptionFirst",
                 name: "Toggle, caption first",
                 readout: () => `on: ${toggleSignal[0]()}`,
                 component: () => (
@@ -57,6 +59,7 @@ export const LabelPage = () => {
                 ),
             },
             {
+                key: "column",
                 name: "Column",
                 readout: () => `checked: ${columnSignal[0]()}`,
                 component: () => (
@@ -71,6 +74,7 @@ export const LabelPage = () => {
                 ),
             },
             {
+                key: "labelPerRadio",
                 name: "One label per radio",
                 readout: () => `value: ${planSignal[0]()}`,
                 component: () => (
@@ -91,6 +95,7 @@ export const LabelPage = () => {
                 ),
             },
             {
+                key: "suppressed",
                 name: "Suppressed aria-label",
                 readout: () => `checked: ${suppressedSignal[0]()} — the caption wins, and the console says so`,
                 component: () => (
@@ -106,6 +111,7 @@ export const LabelPage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled",
                 readout: () => `checked: ${disabledSignal[0]()}`,
                 component: () => (
@@ -116,7 +122,9 @@ export const LabelPage = () => {
                             renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
                         />
 
-                        <PageLabelCaption>Caption clicks must do nothing</PageLabelCaption>
+                        <PageLabelCaption getId={() => "disabledCaption"}>
+                            Caption clicks must do nothing
+                        </PageLabelCaption>
                     </Label>
                 ),
             },

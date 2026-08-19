@@ -51,6 +51,7 @@ export const CurrencyInputPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () =>
                     `value: ${describe(priceSignal[0]())} — digits fill from the right, and the separators are the field's rather than yours to type`,
@@ -59,6 +60,7 @@ export const CurrencyInputPage = () => {
                 ),
             },
             {
+                key: "empty",
                 name: "Empty",
                 readout: () => `value: ${describe(emptySignal[0]())} — an empty field has no value at all`,
                 component: () => (
@@ -66,6 +68,7 @@ export const CurrencyInputPage = () => {
                 ),
             },
             {
+                key: "symbol",
                 name: "With a symbol",
                 readout: () =>
                     `value: ${describe(priceSignal[0]())} — the currency is paint in a slot, since the library holds no currencies`,
@@ -81,6 +84,7 @@ export const CurrencyInputPage = () => {
                 ),
             },
             {
+                key: "bounded",
                 name: "Bounded",
                 readout: () =>
                     `value: ${describe(budgetSignal[0]())} — at most ${BUDGET_MAX}, and going over is refused as it is typed`,
@@ -94,6 +98,7 @@ export const CurrencyInputPage = () => {
                 ),
             },
             {
+                key: "big",
                 name: "Many groups",
                 readout: () =>
                     `value: ${describe(bigSignal[0]())} — the group count grows with the value, which a fixed pattern cannot do`,
@@ -107,7 +112,7 @@ export const CurrencyInputPage = () => {
     return (
         <>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Locale"}>
+                <PageProp getKey={() => "locale"} getLabel={() => "Locale"}>
                     <PageSelectField
                         getValue={getLocale}
                         getValues={() => LOCALES}
@@ -117,7 +122,7 @@ export const CurrencyInputPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Decimals"}>
+                <PageProp getKey={() => "decimals"} getLabel={() => "Decimals"}>
                     <PageSelectField
                         getValue={getDecimals}
                         getValues={() => DECIMALS}
@@ -126,7 +131,7 @@ export const CurrencyInputPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Group size"}>
+                <PageProp getKey={() => "groupSize"} getLabel={() => "Group size"}>
                     <PageSelectField
                         getValue={getGroupSize}
                         getValues={() => GROUP_SIZES}

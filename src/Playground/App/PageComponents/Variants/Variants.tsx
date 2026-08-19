@@ -8,7 +8,7 @@ export const PageVariants = (props: VariantsProps) => (
     <div class={styles.variantsRoot}>
         <For each={props.getItems()}>
             {(variant) => (
-                <div class={styles.variantContainer} data-variant={variant.name}>
+                <div class={styles.variantContainer} data-variant data-testid={variant.key}>
                     <div class={styles.variantTitle}>{variant.name}</div>
 
                     <div class={styles.variantDemo}>{variant.component()}</div>

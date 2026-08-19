@@ -1,9 +1,9 @@
 import { type Page, expect, test } from "@playwright/test";
 
-import { variant } from "./helpers";
+import { prop, variant } from "./helpers";
 
-const SPLIT = variant("One button at each end");
-const TABBED = variant("Focus reveals what it lands on");
+const SPLIT = variant("split");
+const TABBED = variant("tabbed");
 
 /**
  * The `Scroller` owns one number — how far its track is scrolled — and everything observable about it is a
@@ -40,7 +40,7 @@ test("the buttons report the ends rather than wrapping round", async ({ page }) 
 
 test("the buttons leave entirely when everything fits", async ({ page }) => {
     const buttons = page.locator(`${SPLIT} button`);
-    const itemCount = page.getByLabel("Item count");
+    const itemCount = page.locator(`${prop("itemCount")} input`);
 
     await expect(buttons, "twelve items overrun the strip, so both buttons are there").toHaveCount(2);
 

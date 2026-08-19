@@ -2,11 +2,11 @@ import { expect, test } from "@playwright/test";
 
 import { activeMatches, readout, tabIndex, variant } from "./helpers";
 
-const DEFAULT = `${variant("Default")} button`;
-const DECORATED = `${variant("Decorated")} button`;
-const DISABLED = `${variant("Disabled")} button`;
-const REACHABLE = `${variant("Disabled + reachable")} button`;
-const ERROR = `${variant("Error")} button`;
+const DEFAULT = `${variant("default")} button`;
+const DECORATED = `${variant("decorated")} button`;
+const DISABLED = `${variant("disabled")} button`;
+const REACHABLE = `${variant("reachable")} button`;
+const ERROR = `${variant("errored")} button`;
 const TOOLTIP = '[role="tooltip"]';
 
 test.beforeEach(async ({ page }) => {
@@ -20,14 +20,14 @@ test("no control uses the native disabled attribute", async ({ page }) => {
 
 test("a plain button activates by pointer and by both keys", async ({ page }) => {
     await page.locator(DEFAULT).click();
-    expect(await readout(page, "Default"), "a click reaches the handler").toContain("clicks: 1");
+    expect(await readout(page, "default"), "a click reaches the handler").toContain("clicks: 1");
 
     await page.locator(DEFAULT).focus();
     await page.keyboard.press("Enter");
-    expect(await readout(page, "Default"), "Enter activates it as a native button does").toContain("clicks: 2");
+    expect(await readout(page, "default"), "Enter activates it as a native button does").toContain("clicks: 2");
 
     await page.keyboard.press(" ");
-    expect(await readout(page, "Default"), "and so does Space").toContain("clicks: 3");
+    expect(await readout(page, "default"), "and so does Space").toContain("clicks: 3");
 });
 
 test("pressed state is announced only by a button that has one", async ({ page }) => {
@@ -40,7 +40,7 @@ test("pressed state is announced only by a button that has one", async ({ page }
 
     await page.locator(DECORATED).click();
     await expect(page.locator(DECORATED), "and flips it on activation").toHaveAttribute("aria-pressed", "true");
-    expect(await readout(page, "Decorated"), "with the owner's signal following").toContain("pressed: true");
+    expect(await readout(page, "decorated"), "with the owner's signal following").toContain("pressed: true");
 });
 
 test("a button with a tooltip reveals and announces it", async ({ page }) => {
@@ -62,7 +62,7 @@ test("a disabled button is disabled through ARIA and gated in JS", async ({ page
     expect(await tabIndex(page.locator(DISABLED)), "it is out of the tab order").toBe(-1);
 
     await page.locator(DISABLED).click({ force: true });
-    expect(await readout(page, "Disabled"), "clicking it does not reach the handler").toContain("clicks: 0");
+    expect(await readout(page, "disabled"), "clicking it does not reach the handler").toContain("clicks: 0");
     expect(await activeMatches(page, DISABLED), "and does not even focus it").toBe(false);
 });
 
@@ -82,7 +82,7 @@ test("a reachable disabled button is identical to a disabled one but for its tab
 
     await page.keyboard.press("Enter");
     expect(
-        await readout(page, "Disabled + reachable"),
+        await readout(page, "reachable"),
         "Enter on it still reaches nothing — gating is in JS, not in the native attribute",
     ).toContain("clicks: 0");
 
@@ -93,8 +93,8 @@ test("a reachable disabled button is identical to a disabled one but for its tab
 });
 
 test("an errored button still activates", async ({ page }) => {
-    expect(await readout(page, "Error"), "an errored button starts errored").toContain("hasError: true");
+    expect(await readout(page, "errored"), "an errored button starts errored").toContain("hasError: true");
 
     await page.locator(ERROR).click();
-    expect(await readout(page, "Error"), "and an ordinary click clears it").toContain("hasError: false");
+    expect(await readout(page, "errored"), "and an ordinary click clears it").toContain("hasError: false");
 });

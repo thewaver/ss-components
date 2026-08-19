@@ -36,6 +36,7 @@ export const AccordionPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "multi",
                 name: "Many open at once",
                 readout: () => `expanded: ${JSON.stringify(multiSignal[0]())}`,
                 component: () => (
@@ -60,6 +61,7 @@ export const AccordionPage = () => {
                 ),
             },
             {
+                key: "single",
                 name: "One at a time",
                 readout: () => `expanded: ${JSON.stringify(singleSignal[0]())} — the component keeps at most one`,
                 component: () => (
@@ -85,6 +87,7 @@ export const AccordionPage = () => {
                 ),
             },
             {
+                key: "growing",
                 name: "Content that grows while open",
                 readout: () => `extra lines: ${getExtraLines()} — the panel follows its content without reopening`,
                 component: () => (
@@ -101,6 +104,7 @@ export const AccordionPage = () => {
                                 getTransitionDurationMs={getTransitionDurationMs}
                             >
                                 <Button
+                                    getId={() => "addALine"}
                                     renderContent={(getFlags) => (
                                         <PageButtonContent getFlags={getFlags}>Add a line</PageButtonContent>
                                     )}
@@ -118,6 +122,7 @@ export const AccordionPage = () => {
                 ),
             },
             {
+                key: "singlePanel",
                 name: "A single panel, no heading",
                 readout: () =>
                     `expanded: ${showMoreSignal[0]()} — a Collapsible on its own: no heading element, no region, no arrow keys`,

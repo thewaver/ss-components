@@ -11,6 +11,7 @@ export const isSelected = style({});
 
 export const wheelWedge = style({
     position: "relative",
+    containerType: "inline-size",
     width: "100%",
     height: "100%",
 });
@@ -37,19 +38,15 @@ export const wheelWedgeShape = style({
 
 export const wheelWedgeLabel = style({
     position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: "50%",
-    left: 0,
+    bottom: "50cqw",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: themeVars.spacing.half,
-    paddingTop: "12%",
-    transformOrigin: "top center",
+    gap: "0.5em",
     color: themeVars.color.background.contrast,
-    fontSize: themeVars.fontSize.small,
-    whiteSpace: "nowrap",
+    lineHeight: 1.2,
+    textAlign: "center",
+    textWrap: "balance",
 });
 
 export const wheelStack = style({

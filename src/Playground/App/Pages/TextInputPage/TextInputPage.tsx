@@ -34,6 +34,7 @@ export const TextInputPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () => `value: "${defaultSignal[0]()}"`,
                 component: () => (
@@ -51,6 +52,7 @@ export const TextInputPage = () => {
                 ),
             },
             {
+                key: "transformingSetter",
                 name: "Transforming setter",
                 readout: () => `value: "${codeSignal[0]()}" — type lowercase mid-string, the caret must not jump`,
                 component: () => (
@@ -73,6 +75,7 @@ export const TextInputPage = () => {
                 ),
             },
             {
+                key: "refusingSetter",
                 name: "Refusing setter",
                 readout: () => `value: "${pinSignal[0]()}" — letters are refused, ${PIN_LENGTH} digits max`,
                 component: () => (
@@ -95,6 +98,7 @@ export const TextInputPage = () => {
                 ),
             },
             {
+                key: "password",
                 name: "Password",
                 readout: () => `value: "${passwordSignal[0]()}" | revealed: ${revealSignal[0]()}`,
                 component: () => (
@@ -126,6 +130,7 @@ export const TextInputPage = () => {
                 ),
             },
             {
+                key: "bothAdornments",
                 name: "Both adornments",
                 readout: () => `value: "${amountSignal[0]()}"`,
                 component: () => (
@@ -158,6 +163,7 @@ export const TextInputPage = () => {
                 ),
             },
             {
+                key: "number",
                 name: "Number",
                 readout: () => `value: "${quantitySignal[0]()}" — arrows step by 5, no spinner buttons`,
                 component: () => (
@@ -176,6 +182,7 @@ export const TextInputPage = () => {
                 ),
             },
             {
+                key: "readOnly",
                 name: "Read-only",
                 readout: () => `value: "${readOnlySignal[0]()}" — selectable and copyable, never editable`,
                 component: () => (
@@ -191,6 +198,7 @@ export const TextInputPage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled",
                 readout: () => `value: "${disabledSignal[0]()}"`,
                 component: () => (
@@ -206,6 +214,7 @@ export const TextInputPage = () => {
                 ),
             },
             {
+                key: "reachable",
                 name: "Disabled + reachable",
                 readout: () => `value: "${reachableSignal[0]()}"`,
                 component: () => (
@@ -234,6 +243,7 @@ export const TextInputPage = () => {
                 ),
             },
             {
+                key: "errored",
                 name: "Error",
                 readout: () => `value: "${erroredSignal[0]()}"`,
                 component: () => (
@@ -251,6 +261,7 @@ export const TextInputPage = () => {
                 ),
             },
             {
+                key: "label",
                 name: "In a Label",
                 readout: () => `value: "${labelledSignal[0]()}"`,
                 component: () => (

@@ -88,7 +88,7 @@ export const ToastsPage = () => {
     return (
         <div class={styles.root}>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Alignment"}>
+                <PageProp getKey={() => "alignment"} getLabel={() => "Alignment"}>
                     <PageSelectField
                         getValue={getAlignment}
                         getValues={() => ALIGNMENTS}
@@ -97,7 +97,7 @@ export const ToastsPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Dir"}>
+                <PageProp getKey={() => "dir"} getLabel={() => "Dir"}>
                     <PageSelectField
                         getValue={getDir}
                         getValues={() => DIRS}
@@ -106,7 +106,7 @@ export const ToastsPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Limit"}>
+                <PageProp getKey={() => "limit"} getLabel={() => "Limit"}>
                     <PageSelectField
                         getValue={getLimit}
                         getValues={() => LIMITS}
@@ -116,7 +116,7 @@ export const ToastsPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Overflow"}>
+                <PageProp getKey={() => "overflow"} getLabel={() => "Overflow"}>
                     <PageSelectField
                         getValue={getOverflow}
                         getValues={() => OVERFLOWS}
@@ -125,7 +125,7 @@ export const ToastsPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Duration"}>
+                <PageProp getKey={() => "durationMs"} getLabel={() => "Duration"}>
                     <PageSelectField
                         getValue={getDurationMs}
                         getValues={() => DURATIONS_MS}
@@ -135,7 +135,7 @@ export const ToastsPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Animation"}>
+                <PageProp getKey={() => "animation"} getLabel={() => "Animation"}>
                     <PageSelectField
                         getValue={getAnimation}
                         getValues={() => ANIMATIONS}
@@ -144,7 +144,7 @@ export const ToastsPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Gap"}>
+                <PageProp getKey={() => "gap"} getLabel={() => "Gap"}>
                     <PageNumberField
                         getValue={getGap}
                         getMin={() => MIN_GAP}
@@ -154,7 +154,7 @@ export const ToastsPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Margin"}>
+                <PageProp getKey={() => "margin"} getLabel={() => "Margin"}>
                     <PageNumberField
                         getValue={getMargin}
                         getMin={() => MIN_MARGIN}
@@ -164,7 +164,7 @@ export const ToastsPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Transition duration (ms)"}>
+                <PageProp getKey={() => "transitionDurationMs"} getLabel={() => "Transition duration (ms)"}>
                     <PageNumberField
                         getValue={getTransitionDurationMs}
                         getMin={() => MIN_TRANSITION_DURATION_MS}
@@ -178,18 +178,22 @@ export const ToastsPage = () => {
 
             <div class={styles.raiseRow}>
                 <Button
+                    getId={() => "raiseInfo"}
                     renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Info</PageButtonContent>}
                     onClick={() => raiseToast("info", getDurationMs())}
                 />
                 <Button
+                    getId={() => "raiseSuccess"}
                     renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Success</PageButtonContent>}
                     onClick={() => raiseToast("success", getDurationMs())}
                 />
                 <Button
+                    getId={() => "raiseError"}
                     renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Error</PageButtonContent>}
                     onClick={() => raiseToast("error", getDurationMs())}
                 />
                 <Button
+                    getId={() => "raiseBurst"}
                     renderContent={(getFlags) => (
                         <PageButtonContent getFlags={getFlags}>Raise {BURST_SIZE}</PageButtonContent>
                     )}
@@ -198,6 +202,7 @@ export const ToastsPage = () => {
                     }}
                 />
                 <Button
+                    getId={() => "clearToasts"}
                     renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Clear</PageButtonContent>}
                     onClick={() => {
                         setToasts([]);

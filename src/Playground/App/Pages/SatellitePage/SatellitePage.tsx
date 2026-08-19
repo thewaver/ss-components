@@ -66,6 +66,7 @@ export const SatellitePage = () => {
 
         return [
             {
+                key: "default",
                 name: "Default",
                 component: () => <DefaultExampleWrapper {...commonProps} />,
                 path: `${EXAMPLES_ROOT}/Default.tsx`,
@@ -76,7 +77,7 @@ export const SatellitePage = () => {
     return (
         <>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Placement across"}>
+                <PageProp getKey={() => "hPlacement"} getLabel={() => "Placement across"}>
                     <PageSelectField
                         getValue={getHPlacement}
                         getValues={() => H_PLACEMENTS}
@@ -86,7 +87,7 @@ export const SatellitePage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Placement down"}>
+                <PageProp getKey={() => "vPlacement"} getLabel={() => "Placement down"}>
                     <PageSelectField
                         getValue={getVPlacement}
                         getValues={() => V_PLACEMENTS}
@@ -96,7 +97,7 @@ export const SatellitePage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Offset across (px)"}>
+                <PageProp getKey={() => "offsetX"} getLabel={() => "Offset across (px)"}>
                     <PageNumberField
                         getValue={getOffsetX}
                         getMin={() => MIN_OFFSET}
@@ -108,7 +109,7 @@ export const SatellitePage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Offset down (px)"}>
+                <PageProp getKey={() => "offsetY"} getLabel={() => "Offset down (px)"}>
                     <PageNumberField
                         getValue={getOffsetY}
                         getMin={() => MIN_OFFSET}
@@ -120,7 +121,7 @@ export const SatellitePage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Subject width (px)"}>
+                <PageProp getKey={() => "subjectWidth"} getLabel={() => "Subject width (px)"}>
                     <PageNumberField
                         getValue={getSubjectWidth}
                         getMin={() => MIN_SUBJECT_SIZE}
@@ -132,7 +133,7 @@ export const SatellitePage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Subject height (px)"}>
+                <PageProp getKey={() => "subjectHeight"} getLabel={() => "Subject height (px)"}>
                     <PageNumberField
                         getValue={getSubjectHeight}
                         getMin={() => MIN_SUBJECT_SIZE}
@@ -144,7 +145,7 @@ export const SatellitePage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Satellite size (px)"}>
+                <PageProp getKey={() => "badgeSize"} getLabel={() => "Satellite size (px)"}>
                     <PageNumberField
                         getValue={getBadgeSize}
                         getMin={() => MIN_BADGE_SIZE}
@@ -156,7 +157,7 @@ export const SatellitePage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Behind the subject"}>
+                <PageProp getKey={() => "isBehindSubject"} getLabel={() => "Behind the subject"}>
                     <PageCheckField
                         getValue={getIsBehindSubject}
                         getAriaLabel={() => "Behind the subject"}

@@ -141,6 +141,7 @@ export const TreePage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () =>
                     `value: ${defaultSignal[0]() ?? "undefined"} | expanded: ${JSON.stringify(defaultExpandedSignal[0]())} — right opens a branch, left closes it or climbs to the parent`,
@@ -157,6 +158,7 @@ export const TreePage = () => {
                 ),
             },
             {
+                key: "collapsed",
                 name: "Everything collapsed",
                 readout: () =>
                     `value: ${collapsedSignal[0]() ?? "undefined"} | expanded: ${JSON.stringify(collapsedExpandedSignal[0]())} — asterisk opens every branch at the level focus is on`,
@@ -173,6 +175,7 @@ export const TreePage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled nodes",
                 readout: () =>
                     `value: ${disabledSignal[0]() ?? "undefined"} — arrows skip index.ts and Lib, while what is inside Lib stays reachable`,
@@ -189,6 +192,7 @@ export const TreePage = () => {
                 ),
             },
             {
+                key: "reachable",
                 name: "Disabled nodes + reachable",
                 readout: () =>
                     `value: ${reachableSignal[0]() ?? "undefined"} — arrows stop on node_modules, hover explains why, and nothing opens it`,
@@ -205,6 +209,7 @@ export const TreePage = () => {
                 ),
             },
             {
+                key: "outside",
                 name: "Collapsed from outside",
                 readout: () =>
                     `expanded: ${JSON.stringify(outsideExpandedSignal[0]())} — press the button, then focus a row inside Lib before the delay elapses; focus must land on Lib rather than on the page body`,
@@ -236,6 +241,7 @@ export const TreePage = () => {
                 ),
             },
             {
+                key: "links",
                 name: "Nodes that are links",
                 readout: () =>
                     `value: ${linkSignal[0]() ?? "undefined"} — every leaf carries an href, so each one is an anchor and the branches stay plain`,
@@ -252,6 +258,7 @@ export const TreePage = () => {
                 ),
             },
             {
+                key: "linkComponent",
                 name: "Links through a component",
                 readout: () =>
                     `value: ${customLinkSignal[0]() ?? "undefined"} — the same nodes rendered by a consumer's own link component`,
@@ -269,6 +276,7 @@ export const TreePage = () => {
                 ),
             },
             {
+                key: "recordValues",
                 name: "Record values",
                 readout: () =>
                     `value: ${recordSignal[0]()?.name ?? "undefined"} | expanded: ${recordExpandedSignal[0]().length} branch(es) — the value is the record itself, not a name`,

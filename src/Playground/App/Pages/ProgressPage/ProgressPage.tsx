@@ -24,6 +24,7 @@ export const ProgressPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "determinate",
                 name: "Determinate",
                 readout: () => "ratio: 0.4 — a plain 0..1 value, which is what the painter is handed",
                 component: () => (
@@ -36,6 +37,7 @@ export const ProgressPage = () => {
                 ),
             },
             {
+                key: "indeterminate",
                 name: "Indeterminate",
                 readout: () => "no value at all, so aria-valuenow is absent and the painter animates instead",
                 component: () => (
@@ -47,6 +49,7 @@ export const ProgressPage = () => {
                 ),
             },
             {
+                key: "liveRange",
                 name: "Live range",
                 readout: () => `${getUploadedBytes()} of ${UPLOAD_TOTAL_BYTES} bytes — min and max are the real units`,
                 component: () => (
@@ -61,6 +64,7 @@ export const ProgressPage = () => {
                 ),
             },
             {
+                key: "outOfRange",
                 name: "Out of range",
                 readout: () => "value: 5 against a 0..1 range — clamped rather than drawn past the end",
                 component: () => (
@@ -73,6 +77,7 @@ export const ProgressPage = () => {
                 ),
             },
             {
+                key: "errored",
                 name: "Error",
                 readout: () => "value: 0.62 — the transfer stalled, and hasError is the owner's to say",
                 component: () => (
@@ -86,6 +91,7 @@ export const ProgressPage = () => {
                 ),
             },
             {
+                key: "fillingContainer",
                 name: "Filling its container",
                 readout: () => "sizing: fill — the default, since a track's natural width is its container's",
                 component: () => (

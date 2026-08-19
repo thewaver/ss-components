@@ -15,16 +15,16 @@ import {
 const LISTBOX = '[role="listbox"]';
 const OPTION = '[role="listbox"] [role="option"]';
 
-const field = (name: string) => `${variant(name)} [role="combobox"]`;
+const field = (key: string) => `${variant(key)} [role="combobox"]`;
 
 /**
  * Opening is not instant: the list mounts and only then does the field point at a highlighted option.
  * An arrow pressed before that lands nowhere, so every keyboard case waits on the highlight rather than
  * on the list merely existing.
  */
-const openedWithHighlight = async (page: Page, name: string) => {
-    await page.locator(field(name)).click();
-    await expect(page.locator(field(name))).toHaveAttribute("aria-activedescendant", /.+/);
+const openedWithHighlight = async (page: Page, key: string) => {
+    await page.locator(field(key)).click();
+    await expect(page.locator(field(key))).toHaveAttribute("aria-activedescendant", /.+/);
 };
 
 test.beforeEach(async ({ page }) => {
@@ -33,74 +33,74 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("a non-editable field is a button that starts closed", async ({ page }) => {
-    expect(await tagName(page.locator(field("Default"))), "a non-editable field is a real button").toBe("BUTTON");
-    await expect(page.locator(field("Default")), "and says what it pops up").toHaveAttribute(
+    expect(await tagName(page.locator(field("default"))), "a non-editable field is a real button").toBe("BUTTON");
+    await expect(page.locator(field("default")), "and says what it pops up").toHaveAttribute(
         "aria-haspopup",
         "listbox",
     );
-    await expect(page.locator(field("Default")), "and starts closed").toHaveAttribute("aria-expanded", "false");
+    await expect(page.locator(field("default")), "and starts closed").toHaveAttribute("aria-expanded", "false");
     await expect(page.locator(LISTBOX), "with no listbox in the tree at all").toHaveCount(0);
 });
 
 test("opening renders the records and points at the list", async ({ page }) => {
-    await page.locator(field("Default")).click();
+    await page.locator(field("default")).click();
 
-    await expect(page.locator(field("Default")), "clicking it opens the list").toHaveAttribute("aria-expanded", "true");
+    await expect(page.locator(field("default")), "clicking it opens the list").toHaveAttribute("aria-expanded", "true");
     await expect(page.locator(OPTION), "which renders one option per record").toHaveCount(6);
     expect(
-        await page.locator(field("Default")).getAttribute("aria-controls"),
+        await page.locator(field("default")).getAttribute("aria-controls"),
         "and points at the listbox it controls",
     ).toBe(await page.locator(LISTBOX).getAttribute("id"));
     expect(
-        await activeDescendantText(page, field("Default")),
+        await activeDescendantText(page, field("default")),
         "with nothing selected, the highlight starts on the first option",
     ).toBe("Belgium");
 });
 
 test("picking an option keeps focus on the field and closes the list", async ({ page }) => {
-    await page.locator(field("Default")).click();
+    await page.locator(field("default")).click();
     await page.locator(OPTION, { hasText: "Denmark" }).first().click();
 
-    expect(await readout(page, "Default"), "clicking an option picks it").toContain("value: Denmark");
+    expect(await readout(page, "default"), "clicking an option picks it").toContain("value: Denmark");
     expect(
-        await activeMatches(page, field("Default")),
+        await activeMatches(page, field("default")),
         "and focus never leaves the field, which is what makes aria-activedescendant honest",
     ).toBe(true);
     await expect(page.locator(LISTBOX), "a single-select list closes on a pick").toHaveCount(0);
 });
 
 test("opening onto a selection highlights it rather than the first option", async ({ page }) => {
-    await page.locator(field("Preselected")).click();
+    await page.locator(field("preselected")).click();
 
     expect(
-        await activeDescendantText(page, field("Preselected")),
+        await activeDescendantText(page, field("preselected")),
         "opening onto a selection highlights it rather than the first option",
     ).toBe("Portugal");
     expect(await selectedTexts(page, OPTION), "and marks exactly it as selected").toEqual(["Portugal"]);
 });
 
 test("the walk steps over a disabled option with nothing to explain", async ({ page }) => {
-    await openedWithHighlight(page, "Disabled options");
+    await openedWithHighlight(page, "disabledOptions");
     await page.keyboard.press("ArrowDown");
 
     expect(
-        await activeDescendantText(page, field("Disabled options")),
+        await activeDescendantText(page, field("disabledOptions")),
         "the walk steps over a disabled option with nothing to explain",
     ).toBe("Estonia");
 });
 
 test("the walk stops on a reachable disabled option and picks nothing there", async ({ page }) => {
-    await openedWithHighlight(page, "Disabled options + reachable");
+    await openedWithHighlight(page, "disabledOptionsReachable");
     await page.keyboard.press("ArrowDown");
 
     expect(
-        await activeDescendantText(page, field("Disabled options + reachable")),
+        await activeDescendantText(page, field("disabledOptionsReachable")),
         "and stops on a disabled option that has a tooltip to reveal",
     ).toBe("Denmark");
 
     await page.keyboard.press("Enter");
     expect(
-        await readout(page, "Disabled options + reachable"),
+        await readout(page, "disabledOptionsReachable"),
         "Enter on a reachable disabled option picks nothing",
     ).toContain("value: undefined");
     await expect(page.locator(LISTBOX), "and leaves the list open").toHaveCount(1);
@@ -110,7 +110,7 @@ test("the walk stops on a reachable disabled option and picks nothing there", as
 });
 
 test("a grouped list owns its group roles and the walk crosses them", async ({ page }) => {
-    await openedWithHighlight(page, "Option groups");
+    await openedWithHighlight(page, "optionGroups");
 
     await expect(page.locator(`${LISTBOX} [role="group"]`), "a grouped list owns its group roles").toHaveCount(2);
     expect(
@@ -120,19 +120,19 @@ test("a grouped list owns its group roles and the walk crosses them", async ({ p
 
     await page.keyboard.press("ArrowDown");
     expect(
-        await activeDescendantText(page, field("Option groups")),
+        await activeDescendantText(page, field("optionGroups")),
         "the walk skips a disabled option inside a group",
     ).toBe("Sweden");
 
     await page.keyboard.press("ArrowDown");
     expect(
-        await activeDescendantText(page, field("Option groups")),
+        await activeDescendantText(page, field("optionGroups")),
         "and then crosses into the next group without knowing groups exist",
     ).toBe("Belgium");
 });
 
 test("a multi list stays open, accumulates and toggles back out", async ({ page }) => {
-    await page.locator(field("Multi-select")).click();
+    await page.locator(field("multiSelect")).click();
     await expect(page.locator(LISTBOX), "a multi list says it is multi").toHaveAttribute(
         "aria-multiselectable",
         "true",
@@ -140,30 +140,27 @@ test("a multi list stays open, accumulates and toggles back out", async ({ page 
 
     await page.locator(OPTION, { hasText: "Belgium" }).first().click();
     await expect(page.locator(LISTBOX), "picking in a multi list keeps it open").toHaveCount(1);
-    expect(await readout(page, "Multi-select"), "and adds to the selection").toContain("Belgium");
-    expect(await readout(page, "Multi-select"), "without dropping what was already there").toContain("Denmark");
+    expect(await readout(page, "multiSelect"), "and adds to the selection").toContain("Belgium");
+    expect(await readout(page, "multiSelect"), "without dropping what was already there").toContain("Denmark");
     expect(
-        await activeDescendantText(page, field("Multi-select")),
+        await activeDescendantText(page, field("multiSelect")),
         "and the highlight moves to the row just picked, so arrowing carries on from there",
     ).toBe("Belgium");
 
     await page.locator(OPTION, { hasText: "Belgium" }).first().click();
-    expect(await readout(page, "Multi-select"), "picking it again toggles it back out").not.toContain("Belgium");
+    expect(await readout(page, "multiSelect"), "picking it again toggles it back out").not.toContain("Belgium");
 });
 
 test("a disabled field opens nothing by pointer or by key", async ({ page }) => {
-    expect(await tabIndex(page.locator(field("Disabled"))), "a disabled field is out of the tab order").toBe(-1);
+    expect(await tabIndex(page.locator(field("disabled"))), "a disabled field is out of the tab order").toBe(-1);
 
-    await page.locator(field("Disabled")).click({ force: true });
+    await page.locator(field("disabled")).click({ force: true });
     await expect(page.locator(LISTBOX), "clicking it does not open the list").toHaveCount(0);
-    expect(await activeMatches(page, field("Disabled")), "and does not focus it either").toBe(false);
+    expect(await activeMatches(page, field("disabled")), "and does not focus it either").toBe(false);
 
-    expect(
-        await tabIndex(page.locator(field("Disabled + reachable"))),
-        "while its reachable twin keeps its tab stop",
-    ).toBe(0);
+    expect(await tabIndex(page.locator(field("reachable"))), "while its reachable twin keeps its tab stop").toBe(0);
 
-    await page.locator(field("Disabled + reachable")).focus();
+    await page.locator(field("reachable")).focus();
     await page.keyboard.press("Enter");
     await expect(page.locator(LISTBOX), "Enter on a reachable disabled field still opens nothing").toHaveCount(0);
 });
@@ -177,44 +174,42 @@ test("a disabled field opens nothing by pointer or by key", async ({ page }) => 
  * delay, and asserting against that delay would make the spec a race.
  */
 test("a list that is not all there fetches its first batch by opening", async ({ page }) => {
-    expect(await readout(page, "Loaded on demand"), "nothing is fetched before the list is opened").toContain(
-        "0 of 500",
-    );
+    expect(await readout(page, "onDemand"), "nothing is fetched before the list is opened").toContain("0 of 500");
 
-    await page.locator(field("Loaded on demand")).click();
+    await page.locator(field("onDemand")).click();
     await expect(
-        page.locator(`${variant("Loaded on demand")} [data-readout]`),
+        page.locator(`${variant("onDemand")} [data-readout]`),
         "opening asks for the first batch",
     ).toContainText("40 of 500", { timeout: 5000 });
 
     expect(
-        await activeDescendantText(page, field("Loaded on demand")),
+        await activeDescendantText(page, field("onDemand")),
         "and the highlight lands on the first option that arrived",
     ).toContain("Route 1");
 });
 
 test("the walk stops at the last option held rather than wrapping round", async ({ page }) => {
-    await page.locator(field("Loaded on demand")).click();
-    await expect(page.locator(`${variant("Loaded on demand")} [data-readout]`)).toContainText("40 of 500", {
+    await page.locator(field("onDemand")).click();
+    await expect(page.locator(`${variant("onDemand")} [data-readout]`)).toContainText("40 of 500", {
         timeout: 5000,
     });
 
     await page.keyboard.press("End");
     expect(
-        await activeDescendantText(page, field("Loaded on demand")),
+        await activeDescendantText(page, field("onDemand")),
         "End reaches the last option the consumer has handed over",
     ).toContain("Route 40");
 
     await page.keyboard.press("ArrowDown");
     expect(
-        await activeDescendantText(page, field("Loaded on demand")),
+        await activeDescendantText(page, field("onDemand")),
         "and arrowing past it stays put rather than wrapping to the first, because more exist",
     ).toContain("Route 40");
 
-    await expect(
-        page.locator(`${variant("Loaded on demand")} [data-readout]`),
-        "reaching the end asks for more",
-    ).toContainText("80 of 500", { timeout: 5000 });
+    await expect(page.locator(`${variant("onDemand")} [data-readout]`), "reaching the end asks for more").toContainText(
+        "80 of 500",
+        { timeout: 5000 },
+    );
 });
 
 /**
@@ -231,8 +226,8 @@ test("the walk stops at the last option held rather than wrapping round", async 
  * other rather than against a number is what keeps this readable at every scale.
  */
 test("the end marker sits inside the last option rather than past it", async ({ page }) => {
-    await page.locator(field("Loaded on demand")).click();
-    await expect(page.locator(`${variant("Loaded on demand")} [data-readout]`)).toContainText("40 of 500", {
+    await page.locator(field("onDemand")).click();
+    await expect(page.locator(`${variant("onDemand")} [data-readout]`)).toContainText("40 of 500", {
         timeout: 5000,
     });
 
@@ -262,7 +257,7 @@ test("the end marker sits inside the last option rather than past it", async ({ 
  * seen is the proof that the move was taken over rather than lost.
  */
 test("a list given an estimated height mounts a window rather than every option", async ({ page }) => {
-    const stress = "Virtualized";
+    const stress = "virtualized";
 
     await page.locator(field(stress)).click();
     await expect(page.locator(OPTION).first()).toBeVisible();
@@ -315,14 +310,14 @@ test("a list given an estimated height mounts a window rather than every option"
  * to filter — and the list it replaces may be any length, including the length it was last asked at.
  */
 test("an autocomplete loaded on demand searches again rather than filtering what it holds", async ({ page }) => {
-    const searched = `${variant("Autocomplete, loaded on demand")} [data-readout]`;
+    const searched = `${variant("autocompleteOnDemand")} [data-readout]`;
 
     await expect(page.locator(searched), "the first batch of the empty query arrives on its own").toContainText(
         "40 of 500 matches held",
         { timeout: 5000 },
     );
 
-    await page.locator(field("Autocomplete, loaded on demand")).focus();
+    await page.locator(field("autocompleteOnDemand")).focus();
     await page.keyboard.type("route 12");
 
     await expect(page.locator(searched), "typing runs a fresh search and replaces everything held").toContainText(
@@ -337,25 +332,25 @@ test("an autocomplete loaded on demand searches again rather than filtering what
 
 test("an autocomplete field filters through the consumer's matcher", async ({ page }) => {
     expect(
-        await tagName(page.locator(field("Autocomplete"))),
+        await tagName(page.locator(field("autocomplete"))),
         "a field given a query signal is an editable input instead",
     ).toBe("INPUT");
-    await expect(page.locator(field("Autocomplete")), "and announces as one").toHaveAttribute(
+    await expect(page.locator(field("autocomplete")), "and announces as one").toHaveAttribute(
         "aria-autocomplete",
         "list",
     );
 
-    await page.locator(field("Autocomplete")).focus();
+    await page.locator(field("autocomplete")).focus();
     await page.keyboard.type("lis");
     await expect(page.locator(OPTION), "typing filters through the consumer's own matcher").toHaveCount(1);
     expect(
-        await activeDescendantText(page, field("Autocomplete")),
+        await activeDescendantText(page, field("autocomplete")),
         "and the highlight prefers the first match over any selection",
     ).toBe("Lisbon (LIS)");
 
     await page.keyboard.press("Enter");
     await expect(page.locator(LISTBOX)).toHaveCount(0);
-    expect(await readout(page, "Autocomplete"), "Enter picks the highlighted match").toContain("value: LIS");
-    expect(await readout(page, "Autocomplete"), "and closing clears the query").toContain('query: ""');
-    expect(await inputValue(page.locator(field("Autocomplete"))), "leaving the field's own text empty").toBe("");
+    expect(await readout(page, "autocomplete"), "Enter picks the highlighted match").toContain("value: LIS");
+    expect(await readout(page, "autocomplete"), "and closing clears the query").toContain('query: ""');
+    expect(await inputValue(page.locator(field("autocomplete"))), "leaving the field's own text empty").toBe("");
 });

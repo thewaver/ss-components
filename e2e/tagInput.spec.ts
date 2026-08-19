@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-import { activeMatches, offsetHeight, readout, variant } from "./helpers";
+import { activeMatches, offsetHeight, prop, readout, variant } from "./helpers";
 
-const DEFAULT = variant("Default");
-const EMPTY = variant("Empty");
-const UNIQUE = variant("Refusing duplicates");
-const CROWDED = variant("Crowded and narrow");
+const DEFAULT = variant("default");
+const EMPTY = variant("empty");
+const UNIQUE = variant("unique");
+const CROWDED = variant("crowded");
 
 const field = (scope: string) => `${scope} input[type="text"]`;
 const tag = (scope: string) => `${scope} [role="group"] button`;
@@ -20,7 +20,7 @@ test("typing and pressing Enter turns text into a tag, and empties the field", a
     await page.locator(field(DEFAULT)).fill("playwright");
     await page.keyboard.press("Enter");
 
-    expect(await readout(page, "Default"), "the typed word joins the list").toContain(
+    expect(await readout(page, "default"), "the typed word joins the list").toContain(
         "tags: solid, vanilla-extract, playwright",
     );
     await expect(page.locator(field(DEFAULT)), "and the field is cleared to take the next one").toHaveValue("");
@@ -32,7 +32,7 @@ test("Enter on an empty or blank field adds nothing", async ({ page }) => {
     await page.locator(field(DEFAULT)).fill("   ");
     await page.keyboard.press("Enter");
 
-    expect(await readout(page, "Default"), "whitespace is not a tag").toContain("tags: solid, vanilla-extract");
+    expect(await readout(page, "default"), "whitespace is not a tag").toContain("tags: solid, vanilla-extract");
 });
 
 /**
@@ -56,12 +56,12 @@ test("Backspace steps into the tags before it deletes one", async ({ page }) => 
         await activeMatches(page, tagNamed(DEFAULT, "vanilla-extract")),
         "on an empty field it steps back onto the last tag instead of deleting it",
     ).toBe(true);
-    expect(await readout(page, "Default"), "and nothing has been removed yet").toContain(
+    expect(await readout(page, "default"), "and nothing has been removed yet").toContain(
         "tags: solid, vanilla-extract",
     );
 
     await page.keyboard.press("Backspace");
-    expect(await readout(page, "Default"), "a second press removes the tag focus is on").toContain("tags: solid");
+    expect(await readout(page, "default"), "a second press removes the tag focus is on").toContain("tags: solid");
     expect(await activeMatches(page, tagNamed(DEFAULT, "solid")), "and focus lands on the neighbour").toBe(true);
 });
 
@@ -83,7 +83,7 @@ test("arrows walk the tags and return to the field", async ({ page }) => {
 test("pressing a tag removes it", async ({ page }) => {
     await page.locator(tag(DEFAULT)).first().click();
 
-    expect(await readout(page, "Default"), "the pressed tag is gone and the rest stay in order").toContain(
+    expect(await readout(page, "default"), "the pressed tag is gone and the rest stay in order").toContain(
         "tags: vanilla-extract",
     );
 });
@@ -98,7 +98,7 @@ test("a consumer's transform can refuse a word", async ({ page }) => {
     await page.keyboard.press("Enter");
 
     expect(
-        await readout(page, "Refusing duplicates"),
+        await readout(page, "unique"),
         "a duplicate is refused however it was cased, and no untransformed copy sneaks in either",
     ).not.toContain("SOLID");
     await expect(page.locator(tag(UNIQUE)), "so the list is the length it started at").toHaveCount(2);
@@ -155,14 +155,14 @@ test("the box takes a click and the caret lands in the field", async ({ page }) 
 });
 
 test("a disabled tag input refuses the keyboard as well as the pointer", async ({ page }) => {
-    await page.getByLabel("Disabled").check();
+    await page.locator(`${prop("isDisabled")} input`).check();
 
-    const before = await readout(page, "Default");
+    const before = await readout(page, "default");
 
     await page.locator(field(DEFAULT)).press("Enter");
     await page.locator(tag(DEFAULT)).first().press("Backspace");
 
-    expect(await readout(page, "Default"), "neither adding nor removing gets through").toBe(before);
+    expect(await readout(page, "default"), "neither adding nor removing gets through").toBe(before);
 });
 
 /**
@@ -241,5 +241,5 @@ test("typing while a tag has focus returns to the field and keeps the character"
 
     expect(await activeMatches(page, field(DEFAULT)), "a letter puts focus back in the field").toBe(true);
     await expect(page.locator(field(DEFAULT)), "and the letter is not swallowed on the way").toHaveValue("z");
-    expect(await readout(page, "Default"), "while the tags are left alone").toContain("tags: solid, vanilla-extract");
+    expect(await readout(page, "default"), "while the tags are left alone").toContain("tags: solid, vanilla-extract");
 });

@@ -30,6 +30,7 @@ export const CheckboxPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () => `checked: ${defaultSignal[0]()}`,
                 component: () => (
@@ -41,6 +42,7 @@ export const CheckboxPage = () => {
                 ),
             },
             {
+                key: "decorated",
                 name: "Decorated",
                 readout: () => `checked: ${decoratedSignal[0]()}`,
                 component: () => (
@@ -60,6 +62,7 @@ export const CheckboxPage = () => {
                 ),
             },
             {
+                key: "mixed",
                 name: "Mixed",
                 readout: () =>
                     `mixed: ${getIsAllMixed()} | all: ${allSignal[0]()} | children: ${firstChildSignal[0]()}, ${secondChildSignal[0]()}`,
@@ -68,6 +71,7 @@ export const CheckboxPage = () => {
                         <Checkbox
                             checkedSignal={allSignal}
                             getIsMixed={getIsAllMixed}
+                            getId={() => "selectAll"}
                             getAriaLabel={() => "Select all"}
                             renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
                             getTooltipDefs={() => ({
@@ -97,6 +101,7 @@ export const CheckboxPage = () => {
 
                         <Checkbox
                             checkedSignal={firstChildSignal}
+                            getId={() => "firstChild"}
                             getAriaLabel={() => "First child"}
                             renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
                         />
@@ -110,6 +115,7 @@ export const CheckboxPage = () => {
                 ),
             },
             {
+                key: "refusedWrite",
                 name: "Refused write",
                 readout: () =>
                     `email: ${emailSignal[0]()} | sms: ${smsSignal[0]()} — whichever is the last one on refuses to go off`,
@@ -117,6 +123,7 @@ export const CheckboxPage = () => {
                     <PageControlRow>
                         <Checkbox
                             checkedSignal={emailSignal}
+                            getId={() => "email"}
                             getAriaLabel={() => "Email"}
                             renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
                             onChange={(isChecked) => {
@@ -142,6 +149,7 @@ export const CheckboxPage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled",
                 readout: () => `checked: ${disabledSignal[0]()}`,
                 component: () => (
@@ -154,6 +162,7 @@ export const CheckboxPage = () => {
                 ),
             },
             {
+                key: "reachable",
                 name: "Disabled + reachable",
                 readout: () => `checked: ${reachableSignal[0]()}`,
                 component: () => (
@@ -180,6 +189,7 @@ export const CheckboxPage = () => {
                 ),
             },
             {
+                key: "errored",
                 name: "Error",
                 readout: () => `checked: ${erroredSignal[0]()}`,
                 component: () => (

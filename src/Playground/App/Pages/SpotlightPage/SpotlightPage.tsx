@@ -57,6 +57,7 @@ export const SpotlightPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "hint",
                 name: "Hint",
                 readout: () => `open: ${hintVisibility[0]()} — a click anywhere or any real key puts it away`,
                 component: () => (
@@ -94,6 +95,7 @@ export const SpotlightPage = () => {
                 ),
             },
             {
+                key: "prompt",
                 name: "Prompt",
                 readout: () => `bought: ${getBought()} — nothing else on the page answers until you do`,
                 component: () => (
@@ -131,6 +133,7 @@ export const SpotlightPage = () => {
                 ),
             },
             {
+                key: "guide",
                 name: "Guide",
                 readout: () => `step: ${getStep() + 1} of ${TOUR_STEPS.length} — ${getFinished()}`,
                 component: () => (

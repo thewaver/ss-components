@@ -1,12 +1,26 @@
 import type { Locator, Page } from "@playwright/test";
 
-export const variant = (name: string) => `[data-variant="${name}"]`;
+/**
+ * A demo is found by the key its page gave it, never by the caption it displays. A caption is editorial —
+ * anybody may reword one without touching a behaviour — and a suite that reads captions answers "has the
+ * copy changed" in the same red as "has the behaviour changed". The key is chosen once, is never displayed,
+ * and every Playground example, variant, props row and driven control carries its own in `data-testid`.
+ */
+export const variant = (key: string) => `[data-variant][data-testid="${key}"]`;
 
-export const example = (name: string) => `[data-example="${name}"]`;
+export const example = (key: string) => `[data-example][data-testid="${key}"]`;
+
+/**
+ * Each of the three carries the kind it is as a bare attribute and its key in `data-testid`, so a key is
+ * only ever looked up among things of the same kind — a variant and a props row may both be keyed `size`
+ * without either lookup becoming ambiguous. The bare attribute is also what `[data-variant]` presence
+ * checks read, which is why the kind did not simply move into the key.
+ */
+export const prop = (key: string) => `[data-prop][data-testid="${key}"]`;
 
 /** The reading the Playground itself displays, so a spec checks state the way the page shows it. */
-export const readout = async (page: Page, name: string) =>
-    ((await page.locator(`${variant(name)} [data-readout]`).textContent()) ?? "").trim();
+export const readout = async (page: Page, key: string) =>
+    ((await page.locator(`${variant(key)} [data-readout]`).textContent()) ?? "").trim();
 
 export const tagName = (locator: Locator) => locator.evaluate((element) => element.tagName);
 

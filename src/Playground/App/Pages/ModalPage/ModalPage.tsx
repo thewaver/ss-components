@@ -34,6 +34,7 @@ export const ModalPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () => `open: ${modalVisibility[0]()} — Escape and an overlay click both dismiss it`,
                 component: () => (
@@ -51,6 +52,7 @@ export const ModalPage = () => {
                                     </PageTooltipContent>
                                 ),
                             })}
+                            getId={() => "openModal"}
                             renderContent={(getFlags) => (
                                 <PageButtonContent getFlags={getFlags}>Open Modal</PageButtonContent>
                             )}
@@ -100,6 +102,7 @@ export const ModalPage = () => {
                 ),
             },
             {
+                key: "destructiveConfirmation",
                 name: "Destructive confirmation",
                 readout: () =>
                     `open: ${destructiveVisibility[0]()} | outcome: ${getOutcome()} — the alertdialog role, a required focus target, and no overlay dismissal`,
@@ -168,12 +171,14 @@ export const ModalPage = () => {
                 ),
             },
             {
+                key: "layered",
                 name: "A popup inside it",
                 readout: () =>
                     `open: ${layeredVisibility[0]()} | country: ${layeredSignal[0]() ?? "undefined"} — Escape closes the innermost layer only`,
                 component: () => (
                     <>
                         <Button
+                            getId={() => "openLayers"}
                             renderContent={(getFlags) => (
                                 <PageButtonContent getFlags={getFlags}>Open layers</PageButtonContent>
                             )}

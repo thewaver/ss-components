@@ -2,9 +2,9 @@ import { type Page, expect, test } from "@playwright/test";
 
 import { attributesOf, inputValue, readout, tabIndex, variant } from "./helpers";
 
-const BARE = variant("The surface alone");
-const DROPDOWN = variant("In a dropdown, replacing the OS dialog");
-const DISABLED = variant("Disabled");
+const BARE = variant("bare");
+const DROPDOWN = variant("dropdown");
+const DISABLED = variant("disabled");
 
 const surface = (scope: string) => `${scope} [role="group"]`;
 const axis = (scope: string) => `${scope} input[type="range"]`;
@@ -44,11 +44,11 @@ test("the surface is a group over two real sliders, one per axis", async ({ page
 });
 
 test("one drag moves both axes at once, which is the whole reason it exists", async ({ page }) => {
-    expect(await readout(page, "The surface alone")).toContain("70% 90%");
+    expect(await readout(page, "bare")).toContain("70% 90%");
 
     await dragAcross(page, surface(BARE), [0.25, 0.75], [0.8, 0.2]);
 
-    const after = await readout(page, "The surface alone");
+    const after = await readout(page, "bare");
 
     expect(after, "saturation follows the horizontal axis").toContain("80%");
     expect(after, "and brightness the vertical one, inverted").toContain("80% 80%");
@@ -88,7 +88,7 @@ test("the dropdown is a dialog holding the surface and a hue slider", async ({ p
         "Choose a colour",
     );
     await expect(page.locator(`${POPUP} ${surface("")}`).first(), "with the surface inside it").toBeVisible();
-    await expect(page.locator(`${POPUP} input[aria-label="Hue"]`), "and a hue slider beside it").toHaveCount(1);
+    await expect(page.locator("#hueSlider"), "and a hue slider beside it").toHaveCount(1);
 });
 
 test("hue and the surface write the same colour, and the popup's own mousedown does not block the drag", async ({
@@ -97,36 +97,31 @@ test("hue and the surface write the same colour, and the popup's own mousedown d
     await page.locator(`${DROPDOWN} button`).first().click();
     await expect(page.locator(POPUP)).toBeVisible();
 
-    const before = await readout(page, "In a dropdown, replacing the OS dialog");
+    const before = await readout(page, "dropdown");
 
-    await page.locator(`${POPUP} input[aria-label="Hue"]`).focus();
+    await page.locator("#hueSlider").focus();
     await page.keyboard.press("ArrowRight");
     await page.keyboard.press("ArrowRight");
 
-    expect(await readout(page, "In a dropdown, replacing the OS dialog"), "the hue slider changes the hex").not.toBe(
-        before,
-    );
+    expect(await readout(page, "dropdown"), "the hue slider changes the hex").not.toBe(before);
 
-    const afterHue = await readout(page, "In a dropdown, replacing the OS dialog");
+    const afterHue = await readout(page, "dropdown");
 
     await dragAcross(page, `${POPUP} [role="group"]`, [0.5, 0.5], [0.95, 0.05]);
 
-    expect(
-        await readout(page, "In a dropdown, replacing the OS dialog"),
-        "and a drag inside the popup still reaches the surface",
-    ).not.toBe(afterHue);
+    expect(await readout(page, "dropdown"), "and a drag inside the popup still reaches the surface").not.toBe(afterHue);
 });
 
 test("the hue slider can be dragged, not only typed", async ({ page }) => {
     await page.locator(`${DROPDOWN} button`).first().click();
     await expect(page.locator(POPUP)).toBeVisible();
 
-    const before = await readout(page, "In a dropdown, replacing the OS dialog");
+    const before = await readout(page, "dropdown");
 
-    await dragAcross(page, `${POPUP} input[aria-label="Hue"]`, [0.2, 0.5], [0.75, 0.5]);
+    await dragAcross(page, "#hueSlider", [0.2, 0.5], [0.75, 0.5]);
 
     expect(
-        await readout(page, "In a dropdown, replacing the OS dialog"),
+        await readout(page, "dropdown"),
         "a dialog popup does not refuse mousedown, so the native thumb drag survives",
     ).not.toBe(before);
     await expect(page.locator(POPUP), "and dragging inside it does not dismiss it").toBeVisible();
@@ -139,24 +134,24 @@ test("Escape closes the dropdown and gives the trigger its focus back", async ({
     await page.keyboard.press("Escape");
 
     await expect(page.locator(POPUP)).toHaveCount(0);
-    expect(await readout(page, "In a dropdown, replacing the OS dialog")).toContain("open: false");
+    expect(await readout(page, "dropdown")).toContain("open: false");
 });
 
 test("clicking outside closes the dropdown, while clicking inside it does not", async ({ page }) => {
     await page.locator(`${DROPDOWN} button`).first().click();
     await expect(page.locator(POPUP)).toBeVisible();
 
-    await page.locator(`${POPUP} input[aria-label="Hue"]`).click();
+    await page.locator("#hueSlider").click();
     await expect(page.locator(POPUP), "a click on the popup's own controls leaves it open").toBeVisible();
 
     await page.locator(BARE).click();
 
     await expect(page.locator(POPUP), "a click anywhere else closes it").toHaveCount(0);
-    expect(await readout(page, "In a dropdown, replacing the OS dialog")).toContain("open: false");
+    expect(await readout(page, "dropdown")).toContain("open: false");
 });
 
 const RADIO = '[role="dialog"] input[type="radio"]';
-const field = (label: string) => `${POPUP} input[aria-label="${label}"]`;
+const channel = (key: string) => `#channel${key[0].toUpperCase()}${key.slice(1)}`;
 
 test("the space toggle is a radio group, so the dropdown holds no second dropdown", async ({ page }) => {
     await page.locator(`${DROPDOWN} button`).first().click();
@@ -172,42 +167,36 @@ test("the space toggle is a radio group, so the dropdown holds no second dropdow
 test("each space shows its own channels and writes the same colour", async ({ page }) => {
     await page.locator(`${DROPDOWN} button`).first().click();
 
-    await page.locator(field("Red green blue channel r")).fill("17");
-    await page.locator(field("Red green blue channel g")).fill("34");
-    await page.locator(field("Red green blue channel b")).fill("51");
+    await page.locator(channel("r")).fill("17");
+    await page.locator(channel("g")).fill("34");
+    await page.locator(channel("b")).fill("51");
 
-    expect(
-        await readout(page, "In a dropdown, replacing the OS dialog"),
-        "rgba writes the channels it names",
-    ).toContain("#112233");
+    expect(await readout(page, "dropdown"), "rgba writes the channels it names").toContain("#112233");
 
     await page.locator(RADIO).nth(1).click();
 
-    expect(
-        await inputValue(page.locator(field("Hue channel"))),
-        "and hsla reads the same colour back in its own units",
-    ).toBe("210");
+    expect(await inputValue(page.locator(channel("h"))), "and hsla reads the same colour back in its own units").toBe(
+        "210",
+    );
 
     await page.locator(RADIO).nth(2).click();
 
-    expect(await inputValue(page.locator(field("Hex with alpha"))), "as does hexa, always eight digits").toBe(
-        "#112233ff",
-    );
+    expect(await inputValue(page.locator(channel("hexa"))), "as does hexa, always eight digits").toBe("#112233ff");
 });
 
 test("alpha is a channel like any other, and reaches the hex form", async ({ page }) => {
     await page.locator(`${DROPDOWN} button`).first().click();
 
-    await page.locator(field("Alpha")).fill("0.5");
+    await page.locator(channel("a")).fill("0.5");
 
-    expect(await readout(page, "In a dropdown, replacing the OS dialog"), "half alpha is 80 in hex").toContain("80");
+    expect(await readout(page, "dropdown"), "half alpha is 80 in hex").toContain("80");
 });
 
 test("a half-typed hex is not committed over the text being typed", async ({ page }) => {
     await page.locator(`${DROPDOWN} button`).first().click();
     await page.locator(RADIO).nth(2).click();
 
-    const hex = page.locator(field("Hex with alpha"));
+    const hex = page.locator(channel("hexa"));
 
     await hex.click();
     await page.keyboard.press("ControlOrMeta+a");
@@ -218,7 +207,7 @@ test("a half-typed hex is not committed over the text being typed", async ({ pag
     await page.locator(RADIO).nth(2).focus();
 
     expect(await inputValue(hex), "and only snaps to the canonical spelling once it is left").toBe("#ff00aaff");
-    expect(await readout(page, "In a dropdown, replacing the OS dialog")).toContain("#ff00aaff");
+    expect(await readout(page, "dropdown")).toContain("#ff00aaff");
 });
 
 test("a disabled surface attaches no drag and uses no native attribute", async ({ page }) => {

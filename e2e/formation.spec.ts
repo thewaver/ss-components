@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { computedStyle, example } from "./helpers";
+import { computedStyle, example, prop } from "./helpers";
 
 /**
  * The component measures nothing in JavaScript: every position it writes is in `cqw`, a fraction of the
@@ -14,13 +14,13 @@ import { computedStyle, example } from "./helpers";
  * Second, there is no observer to wait for, so the arrangement has to be right on the first paint. Every
  * assertion here reads the DOM once, with no polling.
  */
-const FORMATION = example("Default");
+const FORMATION = example("default");
 
 const root = (scope: string) => `${scope} div[style*="cqw"]`;
 const item = (scope: string) => `${scope} div[style*="left"]`;
 
-const numberField = (label: string) => `[data-prop="${label}"] input`;
-const checkField = (label: string) => `[data-prop="${label}"] input`;
+const numberField = (key: string) => `${prop(key)} input`;
+const checkField = (key: string) => `${prop(key)} input`;
 
 const boxOf = (page: import("@playwright/test").Page, selector: string, index: number) =>
     page.evaluate(
@@ -85,15 +85,15 @@ test("an item's own size is a fraction of the width too", async ({ page }) => {
 });
 
 test("the arrangement changes with the item count, on the first paint", async ({ page }) => {
-    await page.locator(numberField("Items")).fill("3");
-    await page.locator(numberField("Items")).blur();
+    await page.locator(numberField("itemCount")).fill("3");
+    await page.locator(numberField("itemCount")).blur();
 
     await expect(page.locator(item(FORMATION))).toHaveCount(3);
 
     const before = await boxOf(page, item(FORMATION), 0);
 
-    await page.locator(numberField("Items")).fill("9");
-    await page.locator(numberField("Items")).blur();
+    await page.locator(numberField("itemCount")).fill("9");
+    await page.locator(numberField("itemCount")).blur();
 
     await expect(page.locator(item(FORMATION))).toHaveCount(9);
 
@@ -112,7 +112,7 @@ test("the stacking order is the consumer's, and reversing it moves nothing", asy
         .evaluate((element) => element.style.zIndex);
     const forwardBox = await boxOf(page, item(FORMATION), 0);
 
-    await page.locator(checkField("Earlier items in front")).check();
+    await page.locator(checkField("isStackedInReverse")).check();
 
     const reverse = await page
         .locator(item(FORMATION))

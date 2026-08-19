@@ -2,9 +2,9 @@ import { type Page, expect, test } from "@playwright/test";
 
 import { activeText, readout, variant } from "./helpers";
 
-const HINT = variant("Hint");
-const PROMPT = variant("Prompt");
-const GUIDE = variant("Guide");
+const HINT = variant("hint");
+const PROMPT = variant("prompt");
+const GUIDE = variant("guide");
 
 const SETTLE_MS = 300;
 
@@ -66,14 +66,14 @@ test("opening cuts the overlay into segments around the element", async ({ page 
  */
 test("a hint is dismissed by a real key and survives a bare modifier", async ({ page }) => {
     await pressByKeyboard(page, button(HINT, "Highlight Me"));
-    expect(await readout(page, "Hint")).toContain("open: true");
+    expect(await readout(page, "hint")).toContain("open: true");
 
     await page.keyboard.down("Shift");
     await page.keyboard.up("Shift");
-    expect(await readout(page, "Hint"), "holding Shift is not moving on").toContain("open: true");
+    expect(await readout(page, "hint"), "holding Shift is not moving on").toContain("open: true");
 
     await page.keyboard.press("a");
-    expect(await readout(page, "Hint"), "but a key that means something is").toContain("open: false");
+    expect(await readout(page, "hint"), "but a key that means something is").toContain("open: false");
 });
 
 test("a prompt refuses every other control until the highlighted one is used", async ({ page }) => {
@@ -84,13 +84,13 @@ test("a prompt refuses every other control until the highlighted one is used", a
         .locator(button(PROMPT, "Insist"))
         .click({ force: true, timeout: 2000 })
         .catch(() => undefined);
-    expect(await readout(page, "Prompt"), "the trigger behind the overlay is unreachable").toContain("bought: 0");
+    expect(await readout(page, "prompt"), "the trigger behind the overlay is unreachable").toContain("bought: 0");
 
     await page.keyboard.press("Tab");
     expect(await activeText(page), "and focus is pulled back to the one live control").toContain("Buy the potato");
 
     await page.locator(button(PROMPT, "Buy the potato")).click();
-    expect(await readout(page, "Prompt"), "using it is the way out").toContain("bought: 1");
+    expect(await readout(page, "prompt"), "using it is the way out").toContain("bought: 1");
 });
 
 /**
@@ -104,7 +104,7 @@ test("a prompt still answers Escape, which is what keeps it out of a keyboard tr
     await page.keyboard.press("Escape");
 
     await expect(page.locator(SEGMENTS), "the spotlight is gone").toHaveCount(0);
-    expect(await readout(page, "Prompt"), "without the highlighted control ever being used").toContain("bought: 0");
+    expect(await readout(page, "prompt"), "without the highlighted control ever being used").toContain("bought: 0");
 });
 
 test("a guide seals the page and puts focus in its own popup", async ({ page }) => {
@@ -126,12 +126,12 @@ test("a guide steps between elements and reports how it ended", async ({ page })
     await page.locator(button(GUIDE, "Take the tour")).click();
     await expect(page.locator(POPUP)).toBeVisible();
 
-    expect(await readout(page, "Guide"), "it starts on the first step").toContain("step: 1 of 2");
+    expect(await readout(page, "guide"), "it starts on the first step").toContain("step: 1 of 2");
     await expect(page.locator(POPUP)).toContainText("This is a potato");
 
     await page.locator(popupButton("Next")).click();
 
-    expect(await readout(page, "Guide"), "Next advances it").toContain("step: 2 of 2");
+    expect(await readout(page, "guide"), "Next advances it").toContain("step: 2 of 2");
     expect(
         await activeText(page),
         "and focus stays where the reader put it — a step change must not throw them onto Skip all",
@@ -141,7 +141,7 @@ test("a guide steps between elements and reports how it ended", async ({ page })
     await page.locator(popupButton("Done")).click();
 
     await expect(page.locator(POPUP), "finishing closes it").toHaveCount(0);
-    expect(await readout(page, "Guide")).toContain("finished");
+    expect(await readout(page, "guide")).toContain("finished");
     await expect(page.locator("[inert]"), "and the page is handed back").toHaveCount(0);
 });
 
@@ -152,5 +152,5 @@ test("a guide can be abandoned, and says so", async ({ page }) => {
     await page.locator(popupButton("Skip all")).click();
 
     await expect(page.locator(POPUP)).toHaveCount(0);
-    expect(await readout(page, "Guide")).toContain("skipped");
+    expect(await readout(page, "guide")).toContain("skipped");
 });

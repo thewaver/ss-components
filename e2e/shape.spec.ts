@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-import { example } from "./helpers";
+import { example, prop } from "./helpers";
 
-const DEFAULT = example("Default");
+const DEFAULT = example("default");
 const LAYERS = `${DEFAULT} svg`;
 const FILL_PATH = `${DEFAULT} svg >> nth=0 >> path`;
-const SHAPE_FIELD = '[data-panel="global"] [role="combobox"][aria-label="Shape"]';
-const JOINT_RADIUS = '[data-panel="global"] input[aria-label="Joint radius 1"]';
+const SHAPE_FIELD = `${prop("shapeKind")} [role="combobox"]`;
+const JOINT_RADIUS = "#jointRadius1";
 
 /**
  * `Shape` sizes itself from a `ResizeObserver` rather than from props, so the one thing worth asserting

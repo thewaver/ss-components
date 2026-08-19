@@ -74,6 +74,7 @@ export const PageNumberField = (props: PageNumberFieldProps) => {
     return (
         <NumberInput
             valueSignal={valueSignal}
+            getId={props.getId}
             getMin={props.getMin}
             getMax={props.getMax}
             getStep={props.getStep}

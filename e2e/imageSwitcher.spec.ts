@@ -1,13 +1,12 @@
 import { type Page, expect, test } from "@playwright/test";
 
-import { computedStyle, example, inlineStyle } from "./helpers";
+import { computedStyle, example, inlineStyle, prop } from "./helpers";
 
-const IMAGES = `${example("Default")} img`;
+const IMAGES = `${example("default")} img`;
 const PROFILE = "knight_profile";
 const DATE = "knight_date";
 const MISSING = "missing_image.webp";
 
-const prop = (label: string) => `[data-prop="${label}"]`;
 const OPTION = '[role="listbox"] [role="option"]';
 
 const PRELOAD_DELAY_MS = 1500;
@@ -19,7 +18,7 @@ const PRELOAD_DELAY_MS = 1500;
  * somewhere the user cannot see.
  */
 const chooseSource = async (page: Page, name: string) => {
-    await page.locator(`${prop("Source")} [role="combobox"]`).click();
+    await page.locator(`${prop("sourceType")} [role="combobox"]`).click();
     await page.locator(OPTION, { hasText: name }).first().click();
 };
 
@@ -29,7 +28,7 @@ const sources = (page: Page) =>
         .evaluateAll((images) => images.map((image) => (image as HTMLImageElement).getAttribute("src")));
 
 const loadReadout = async (page: Page) =>
-    ((await page.locator(`${example("Default")} [data-readout]`).textContent()) ?? "").trim();
+    ((await page.locator(`${example("default")} [data-readout]`).textContent()) ?? "").trim();
 
 /**
  * Readiness is "the starting image has landed on one of the two elements", not visibility: the element
@@ -186,7 +185,7 @@ test("a source that fails and a source that is cleared both swap without reporti
 });
 
 test("the transition duration the consumer sets reaches both elements", async ({ page }) => {
-    await page.locator(`${prop("Transition duration (ms)")} input`).fill("250");
+    await page.locator(`${prop("transitionDurationMs")} input`).fill("250");
 
     await expect
         .poll(() => inlineStyle(page.locator(IMAGES).first(), "transition-duration"), {

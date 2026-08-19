@@ -2,10 +2,10 @@ import { type Locator, type Page, expect, test } from "@playwright/test";
 
 import { activeMatches, readout, tabIndex, variant } from "./helpers";
 
-const DEFAULT = variant("Default");
-const HELD = variant("Held at the end by the owner");
-const DISABLED = variant("Disabled");
-const REACHABLE = variant("Disabled + reachable");
+const DEFAULT = variant("default");
+const HELD = variant("held");
+const DISABLED = variant("disabled");
+const REACHABLE = variant("reachable");
 
 const HOLD_DURATION_MS = 1000;
 const HOLD_SLACK_MS = 250;
@@ -54,11 +54,11 @@ test.beforeEach(async ({ page }) => {
 test("a slide that reaches the end activates once, and the thumb returns to rest", async ({ page }) => {
     const element = page.locator(track(DEFAULT));
 
-    expect(await readout(page, "Default"), "nothing has happened yet").toContain("activations: 0");
+    expect(await readout(page, "default"), "nothing has happened yet").toContain("activations: 0");
 
     await slide(page, element, (await thumbSpan(page, DEFAULT)).centre, 1);
 
-    expect(await readout(page, "Default"), "one gesture is one activation").toContain("activations: 1");
+    expect(await readout(page, "default"), "one gesture is one activation").toContain("activations: 1");
 
     await expect
         .poll(async () => (await thumbSpan(page, DEFAULT)).start, {
@@ -72,7 +72,7 @@ test("a slide that stops short of the end activates nothing", async ({ page }) =
 
     await slide(page, element, (await thumbSpan(page, DEFAULT)).centre, 0.6);
 
-    expect(await readout(page, "Default"), "letting go before the end is how the gesture is cancelled").toContain(
+    expect(await readout(page, "default"), "letting go before the end is how the gesture is cancelled").toContain(
         "activations: 0",
     );
 });
@@ -99,7 +99,7 @@ test("a press on the track away from the thumb is not a grab", async ({ page }) 
 
     await page.mouse.up();
 
-    expect(await readout(page, "Default"), "so a shortcut from halfway along the track buys nothing").toContain(
+    expect(await readout(page, "default"), "so a shortcut from halfway along the track buys nothing").toContain(
         "activations: 0",
     );
 });
@@ -109,9 +109,7 @@ test("an owner can hold the thumb at the end after a successful slide", async ({
 
     await slide(page, element, (await thumbSpan(page, HELD)).centre, 1);
 
-    expect(await readout(page, "Held at the end by the owner"), "the owner's own state is what stays").toContain(
-        "armed: true",
-    );
+    expect(await readout(page, "held"), "the owner's own state is what stays").toContain("armed: true");
 
     await expect
         .poll(async () => (await thumbSpan(page, HELD)).start, {
@@ -121,9 +119,7 @@ test("an owner can hold the thumb at the end after a successful slide", async ({
 
     await page.locator(`${HELD} button`).nth(1).click();
 
-    expect(await readout(page, "Held at the end by the owner"), "and clearing it releases the thumb").toContain(
-        "armed: false",
-    );
+    expect(await readout(page, "held"), "and clearing it releases the thumb").toContain("armed: false");
 
     await expect
         .poll(async () => (await thumbSpan(page, HELD)).start, { message: "which drops it back to the start" })
@@ -141,7 +137,7 @@ test("a disabled slide button refuses the drag, and the focus with it", async ({
 
     await slide(page, element, (await thumbSpan(page, DISABLED)).centre, 1);
 
-    expect(await readout(page, "Disabled"), "the drag is not attached at all, so nothing moves").toContain(
+    expect(await readout(page, "disabled"), "the drag is not attached at all, so nothing moves").toContain(
         "activations: 0",
     );
     expect(await activeMatches(page, track(DISABLED)), "and the mousedown refusal keeps focus off it").toBe(false);
@@ -159,7 +155,7 @@ test("a reachable slide button keeps its tab stop and still refuses to activate"
     await page.waitForTimeout(HOLD_DURATION_MS + HOLD_SLACK_MS);
     await page.keyboard.up("Enter");
 
-    expect(await readout(page, "Disabled + reachable"), "but the gating is the same as every other route").toContain(
+    expect(await readout(page, "reachable"), "but the gating is the same as every other route").toContain(
         "activations: 0",
     );
 });
@@ -177,7 +173,7 @@ test("a press held on the track confirms without any dragging at all", async ({ 
     await page.waitForTimeout(HOLD_DURATION_MS + HOLD_SLACK_MS);
     await page.mouse.up();
 
-    expect(await readout(page, "Default"), "holding still is the whole gesture").toContain("activations: 1");
+    expect(await readout(page, "default"), "holding still is the whole gesture").toContain("activations: 1");
 });
 
 test("a press let go before the hold completes confirms nothing", async ({ page }) => {
@@ -188,7 +184,7 @@ test("a press let go before the hold completes confirms nothing", async ({ page 
     await page.waitForTimeout(HOLD_DURATION_MS / 2);
     await page.mouse.up();
 
-    expect(await readout(page, "Default"), "letting go early is how a hold is abandoned").toContain("activations: 0");
+    expect(await readout(page, "default"), "letting go early is how a hold is abandoned").toContain("activations: 0");
 });
 
 /**
@@ -201,19 +197,19 @@ test("the keyboard route is a held Enter, and a tap of it does nothing", async (
     await element.focus();
     await page.keyboard.press("Enter");
 
-    expect(await readout(page, "Default"), "a tap is not a hold").toContain("activations: 0");
+    expect(await readout(page, "default"), "a tap is not a hold").toContain("activations: 0");
 
     await page.keyboard.down("Enter");
     await page.waitForTimeout(HOLD_DURATION_MS + HOLD_SLACK_MS);
     await page.keyboard.up("Enter");
 
-    expect(await readout(page, "Default"), "holding it is").toContain("activations: 1");
+    expect(await readout(page, "default"), "holding it is").toContain("activations: 1");
 
     await page.keyboard.down(" ");
     await page.waitForTimeout(HOLD_DURATION_MS + HOLD_SLACK_MS);
     await page.keyboard.up(" ");
 
-    expect(await readout(page, "Default"), "and Space is the same key as far as this is concerned").toContain(
+    expect(await readout(page, "default"), "and Space is the same key as far as this is concerned").toContain(
         "activations: 2",
     );
 });
@@ -229,7 +225,7 @@ test("focus leaving the control abandons a hold it was in the middle of", async 
     await page.waitForTimeout(HOLD_DURATION_MS);
 
     expect(
-        await readout(page, "Default"),
+        await readout(page, "default"),
         "the keyup would otherwise never arrive and the hold would run on unattended",
     ).toContain("activations: 0");
 });

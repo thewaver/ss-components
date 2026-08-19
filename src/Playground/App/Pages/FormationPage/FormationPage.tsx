@@ -63,6 +63,7 @@ export const FormationPage = () => {
 
         return [
             {
+                key: "default",
                 name: "Default",
                 component: () => <DefaultExampleWrapper {...commonProps} />,
                 path: `${EXAMPLES_ROOT}/Default.tsx`,
@@ -73,7 +74,7 @@ export const FormationPage = () => {
     return (
         <>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Items"}>
+                <PageProp getKey={() => "itemCount"} getLabel={() => "Items"}>
                     <PageNumberField
                         getValue={getItemCount}
                         getMin={() => MIN_ITEM_COUNT}
@@ -85,7 +86,7 @@ export const FormationPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Arrangement"}>
+                <PageProp getKey={() => "layoutKey"} getLabel={() => "Arrangement"}>
                     <PageSelectField
                         getValue={getLayoutKey}
                         getValues={() => FormationLayouts.SAMPLE_KEYS}
@@ -95,7 +96,7 @@ export const FormationPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Earlier items in front"}>
+                <PageProp getKey={() => "isStackedInReverse"} getLabel={() => "Earlier items in front"}>
                     <PageCheckField
                         getValue={getIsStackedInReverse}
                         getAriaLabel={() => "Earlier items in front"}
@@ -103,7 +104,7 @@ export const FormationPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Item shape"}>
+                <PageProp getKey={() => "shapeKind"} getLabel={() => "Item shape"}>
                     <PageSelectField
                         getValue={getShapeKind}
                         getValues={() => ShapeConst.DEFAULT_SHAPES}

@@ -173,7 +173,7 @@ const StressTestWrapper = (props: ScanlineAnimationExampleProps) => {
 
 const SmoothnessInput = (props: { getter: () => number; setter: (value: number) => void }) => {
     return (
-        <PageProp getLabel={() => "Smoothness (0-1)"}>
+        <PageProp getKey={() => "smoothness01"} getLabel={() => "Smoothness (0-1)"}>
             <PageNumberField
                 getValue={props.getter}
                 getMin={() => MIN_SMOOTHNESS}
@@ -191,7 +191,7 @@ const DirInput = (props: {
     setter: (value: CellAnimationBreakpoints.Direction) => void;
 }) => {
     return (
-        <PageProp getLabel={() => "Direction"}>
+        <PageProp getKey={() => "direction"} getLabel={() => "Direction"}>
             <PageSelectField
                 getValue={props.getter}
                 getValues={() => CellAnimationBreakpoints.DIRECTIONS}
@@ -216,7 +216,7 @@ const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
             </PageMeasureBox>
 
             <PagePropsPanel getScope={() => "local"}>
-                <PageProp getLabel={() => "Count"}>
+                <PageProp getKey={() => "count"} getLabel={() => "Count"}>
                     <PageNumberField
                         getValue={() => keyframeOpts.count!}
                         getMin={() => MIN_GLITCH_COUNT}
@@ -227,7 +227,7 @@ const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Max shift (%)"}>
+                <PageProp getKey={() => "maxShift"} getLabel={() => "Max shift (%)"}>
                     <PageNumberField
                         getValue={() => keyframeOpts.shiftPercent!}
                         getMin={() => MIN_SHIFT_PERCENT}
@@ -238,7 +238,7 @@ const GlitchExampleWrapper = (props: ScanlineAnimationExampleProps) => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Chunkyness (0-1)"}>
+                <PageProp getKey={() => "chunkyness01"} getLabel={() => "Chunkyness (0-1)"}>
                     <PageNumberField
                         getValue={() => keyframeOpts.chunkyness}
                         getMin={() => MIN_CHUNKYNESS}
@@ -273,7 +273,7 @@ const SurgeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
             </PageMeasureBox>
 
             <PagePropsPanel getScope={() => "local"}>
-                <PageProp getLabel={() => "Peak Scale (%)"}>
+                <PageProp getKey={() => "peakScale"} getLabel={() => "Peak Scale (%)"}>
                     <PageNumberField
                         getValue={() => keyframeOpts.peakScalePercent!}
                         getMin={() => MIN_PEAK_SCALE_PERCENT}
@@ -314,7 +314,7 @@ const SnakeExampleWrapper = (props: ScanlineAnimationExampleProps) => {
             </PageMeasureBox>
 
             <PagePropsPanel getScope={() => "local"}>
-                <PageProp getLabel={() => "Shift (%)"}>
+                <PageProp getKey={() => "shift"} getLabel={() => "Shift (%)"}>
                     <PageNumberField
                         getValue={() => keyframeOpts.shiftPercent!}
                         getMin={() => MIN_SHIFT_PERCENT}
@@ -355,7 +355,7 @@ const SplitExampleWrapper = (props: ScanlineAnimationExampleProps) => {
             </PageMeasureBox>
 
             <PagePropsPanel getScope={() => "local"}>
-                <PageProp getLabel={() => "Shift (%)"}>
+                <PageProp getKey={() => "shift"} getLabel={() => "Shift (%)"}>
                     <PageNumberField
                         getValue={() => keyframeOpts.shiftPercent!}
                         getMin={() => MIN_SHIFT_PERCENT}
@@ -481,48 +481,56 @@ export const ScanlineAnimationPage = () => {
 
         return [
             {
+                key: "glitch",
                 name: "Glitch",
                 component: () => <GlitchExampleWrapper {...commonProps} />,
                 path: `${EXAMPLES_ROOT}/Glitch.tsx`,
                 sampleKeys: () => [getWeightType()],
             },
             {
+                key: "surge",
                 name: "Surge",
                 component: () => <SurgeExampleWrapper {...commonProps} />,
                 path: `${EXAMPLES_ROOT}/Surge.tsx`,
                 sampleKeys: () => [getWeightType()],
             },
             {
+                key: "snake",
                 name: "Snake",
                 component: () => <SnakeExampleWrapper {...commonProps} />,
                 path: `${EXAMPLES_ROOT}/Snake.tsx`,
                 sampleKeys: () => [getWeightType()],
             },
             {
+                key: "split",
                 name: "Split",
                 component: () => <SplitExampleWrapper {...commonProps} />,
                 path: `${EXAMPLES_ROOT}/Split.tsx`,
                 sampleKeys: () => [getWeightType()],
             },
             {
+                key: "brightness",
                 name: "Brightness",
                 component: () => <BrightnessExampleWrapper {...commonProps} />,
                 path: `${EXAMPLES_ROOT}/Brightness.tsx`,
                 sampleKeys: () => [getWeightType()],
             },
             {
+                key: "grayscale",
                 name: "Grayscale",
                 component: () => <GrayscaleExampleWrapper {...commonProps} />,
                 path: `${EXAMPLES_ROOT}/Grayscale.tsx`,
                 sampleKeys: () => [getWeightType()],
             },
             {
+                key: "hue",
                 name: "Hue",
                 component: () => <HueExampleWrapper {...commonProps} />,
                 path: `${EXAMPLES_ROOT}/Hue.tsx`,
                 sampleKeys: () => [getWeightType()],
             },
             {
+                key: "stressTest",
                 name: "Stress Test",
                 component: () => <StressTestWrapper {...commonProps} />,
             },
@@ -532,11 +540,11 @@ export const ScanlineAnimationPage = () => {
     return (
         <div class={styles.root}>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Image"}>
+                <PageProp getKey={() => "image"} getLabel={() => "Image"}>
                     <PageFileField getAccept={() => "image/*"} getAriaLabel={() => "Image"} onPick={handleFile} />
                 </PageProp>
 
-                <PageProp getLabel={() => "Weight"}>
+                <PageProp getKey={() => "weightType"} getLabel={() => "Weight"}>
                     <PageGroupedSelectField
                         getValue={getWeightType}
                         getGroups={() => GROUPPED_WEIGHTS}
@@ -545,7 +553,7 @@ export const ScanlineAnimationPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Line count"}>
+                <PageProp getKey={() => "lineCount"} getLabel={() => "Line count"}>
                     <PageNumberField
                         getValue={getLineCount}
                         getMin={() => MIN_LINE_COUNT}
@@ -556,7 +564,7 @@ export const ScanlineAnimationPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Animation duration (ms)"}>
+                <PageProp getKey={() => "animationDurationMs"} getLabel={() => "Animation duration (ms)"}>
                     <PageNumberField
                         getValue={getAnimationDurationMs}
                         getMin={() => MIN_DURATION_MS}
@@ -567,7 +575,7 @@ export const ScanlineAnimationPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Iteration delay (ms)"}>
+                <PageProp getKey={() => "animationIterationDelayMs"} getLabel={() => "Iteration delay (ms)"}>
                     <PageNumberField
                         getValue={getAnimationIterationDelayMs}
                         getMin={() => MIN_ITERATION_DELAY_MS}

@@ -171,12 +171,14 @@ export const CellAnimationPage = () => {
 
         return [
             {
+                key: "default",
                 name: "Default",
                 component: () => <DefaultExampleWrapper {...commonProps} />,
                 path: DEFAULT_EXAMPLE_PATH,
                 sampleKeys: () => [getAnimationType(), getWeightType()],
             },
             {
+                key: "stressTest",
                 name: "Stress Test",
                 component: () => <StressTestWrapper {...commonProps} />,
             },
@@ -186,11 +188,11 @@ export const CellAnimationPage = () => {
     return (
         <div class={styles.root}>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Image"}>
+                <PageProp getKey={() => "image"} getLabel={() => "Image"}>
                     <PageFileField getAccept={() => "image/*"} getAriaLabel={() => "Image"} onPick={handleFile} />
                 </PageProp>
 
-                <PageProp getLabel={() => "Cell count (cols x rows)"}>
+                <PageProp getKey={() => "cellCountCols"} getLabel={() => "Cell count (cols x rows)"}>
                     <div class={styles.valueList}>
                         <PageNumberField
                             getValue={() => cellCount.x}
@@ -211,7 +213,7 @@ export const CellAnimationPage = () => {
                     </div>
                 </PageProp>
 
-                <PageProp getLabel={() => "Origin"}>
+                <PageProp getKey={() => "originType"} getLabel={() => "Origin"}>
                     <PageSelectField
                         getValue={getOriginType}
                         getValues={() => CellAnimationOrigins.ORIGIN_TYPES}
@@ -221,7 +223,7 @@ export const CellAnimationPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Weight"}>
+                <PageProp getKey={() => "weightType"} getLabel={() => "Weight"}>
                     <PageGroupedSelectField
                         getValue={getWeightType}
                         getGroups={() => GROUPPED_WEIGHTS}
@@ -230,7 +232,7 @@ export const CellAnimationPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Unique weights"}>
+                <PageProp getKey={() => "uniqueWeights"} getLabel={() => "Unique weights"}>
                     <PageCheckField
                         getValue={() => !!weightOpts.shouldMakeUnique}
                         getAriaLabel={() => "Unique weights"}
@@ -238,7 +240,7 @@ export const CellAnimationPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Normalize weights"}>
+                <PageProp getKey={() => "normalizeWeights"} getLabel={() => "Normalize weights"}>
                     <PageCheckField
                         getValue={() => !!weightOpts.shouldNormalize}
                         getAriaLabel={() => "Normalize weights"}
@@ -246,7 +248,7 @@ export const CellAnimationPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Animation"}>
+                <PageProp getKey={() => "animationType"} getLabel={() => "Animation"}>
                     <PageGroupedSelectField
                         getValue={getAnimationType}
                         getGroups={() => GROUPPED_ANIMATIONS}
@@ -255,7 +257,7 @@ export const CellAnimationPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Direction"}>
+                <PageProp getKey={() => "direction"} getLabel={() => "Direction"}>
                     <PageSelectField
                         getValue={() => breakpointOpts.dir!}
                         getValues={() => CellAnimationBreakpoints.DIRECTIONS}
@@ -264,7 +266,7 @@ export const CellAnimationPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Smoothness (0-1)"}>
+                <PageProp getKey={() => "smoothness01"} getLabel={() => "Smoothness (0-1)"}>
                     <PageNumberField
                         getValue={() => breakpointOpts.smoothness!}
                         getMin={() => MIN_SMOOTHNESS}
@@ -275,7 +277,7 @@ export const CellAnimationPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Animation duration (ms)"}>
+                <PageProp getKey={() => "animationDurationMs"} getLabel={() => "Animation duration (ms)"}>
                     <PageNumberField
                         getValue={getAnimationDurationMs}
                         getMin={() => MIN_DURATION_MS}
@@ -286,7 +288,7 @@ export const CellAnimationPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Iteration delay (ms)"}>
+                <PageProp getKey={() => "animationIterationDelayMs"} getLabel={() => "Iteration delay (ms)"}>
                     <PageNumberField
                         getValue={getAnimationIterationDelayMs}
                         getMin={() => MIN_ITERATION_DELAY_MS}

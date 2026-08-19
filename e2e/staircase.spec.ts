@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { example } from "./helpers";
+import { example, prop } from "./helpers";
 
 /**
  * One staircase sits on the page and the panel's direction knob turns it over. That pairing is the point of
@@ -12,12 +12,12 @@ import { example } from "./helpers";
  * because the measure box around the demo pads itself inline too — but it sets all four sides at once, which
  * the browser serialises as the shorthand, while a step sets only two and keeps the longhands.
  */
-const STAIRCASE = example("Default");
+const STAIRCASE = example("default");
 
 const step = (scope: string) => `${scope} div[style*="padding-left"]`;
 
-const numberField = (label: string) => `[data-prop="${label}"] input`;
-const selectField = (label: string) => `[data-prop="${label}"] [role="combobox"]`;
+const numberField = (key: string) => `${prop(key)} input`;
+const selectField = (key: string) => `${prop(key)} [role="combobox"]`;
 
 const option = '[role="listbox"] [role="option"]';
 
@@ -30,13 +30,13 @@ const indents = (page: import("@playwright/test").Page, scope: string) =>
         step(scope),
     );
 
-const setField = async (page: import("@playwright/test").Page, label: string, value: string) => {
-    await page.locator(numberField(label)).fill(value);
-    await page.locator(numberField(label)).blur();
+const setField = async (page: import("@playwright/test").Page, key: string, value: string) => {
+    await page.locator(numberField(key)).fill(value);
+    await page.locator(numberField(key)).blur();
 };
 
-const pick = async (page: import("@playwright/test").Page, label: string, name: string) => {
-    await page.locator(selectField(label)).click();
+const pick = async (page: import("@playwright/test").Page, key: string, name: string) => {
+    await page.locator(selectField(key)).click();
     await page.locator(option, { hasText: name }).click();
 };
 
@@ -46,8 +46,8 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("a step is indented by the function's answer for its own index", async ({ page }) => {
-    await setField(page, "Steps", "5");
-    await setField(page, "Indent (px)", "20");
+    await setField(page, "stepCount", "5");
+    await setField(page, "indent", "20");
 
     await expect
         .poll(() => indents(page, STAIRCASE), { message: "the default function is one indent per step" })
@@ -66,11 +66,11 @@ test("both sides of a step are indented, so the content narrows rather than shif
 });
 
 test("the direction hands the steps back to front rather than changing the function", async ({ page }) => {
-    await setField(page, "Steps", "5");
+    await setField(page, "stepCount", "5");
 
     const down = await indents(page, STAIRCASE);
 
-    await pick(page, "Direction", "up");
+    await pick(page, "dir", "up");
 
     const up = await indents(page, STAIRCASE);
 
@@ -78,10 +78,10 @@ test("the direction hands the steps back to front rather than changing the funct
 });
 
 test("a different indent function reshapes the staircase", async ({ page }) => {
-    await setField(page, "Steps", "5");
-    await setField(page, "Indent (px)", "20");
+    await setField(page, "stepCount", "5");
+    await setField(page, "indent", "20");
 
-    await pick(page, "Indent function", "hourglass");
+    await pick(page, "indentKey", "hourglass");
 
     await expect
         .poll(() => indents(page, STAIRCASE), {
@@ -91,7 +91,7 @@ test("a different indent function reshapes the staircase", async ({ page }) => {
 });
 
 test("the gap between steps is the consumer's number and nothing else", async ({ page }) => {
-    await setField(page, "Gap (px)", "24");
+    await setField(page, "gap", "24");
 
     const gap = await page.evaluate((selector) => {
         const first = document.querySelector(selector) as HTMLElement;

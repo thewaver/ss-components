@@ -1,8 +1,8 @@
 import { type Page, expect, test } from "@playwright/test";
 
-import { computedStyle } from "./helpers";
+import { computedStyle, prop } from "./helpers";
 
-const REGION = '[role="region"][aria-label="Notifications"]';
+const REGION = '[role="region"]';
 const TOASTS = `${REGION} > *`;
 const COUNTDOWN = "[data-countdown]";
 const QUEUED = "[data-readout]";
@@ -16,14 +16,12 @@ const DISMISS_TIMEOUT_MS = 10_000;
  * half way through gets its remaining half rather than a fresh full duration — is not in the DOM at any
  * moment, and is driven with a fake clock instead; see the last test in this file.
  */
-const prop = (label: string) => `[data-prop="${label}"]`;
-
 const DURATION_MS = 4_000;
 const TRANSITION_MS = 300;
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/toasts");
-    await expect(page.locator("button", { hasText: "Info" })).toBeVisible();
+    await expect(page.locator("#raiseInfo")).toBeVisible();
 });
 
 test("the live region exists before there is anything to announce", async ({ page }) => {
@@ -36,7 +34,7 @@ test("the live region exists before there is anything to announce", async ({ pag
 });
 
 test("raising one puts the consumer's own message inside the region", async ({ page }) => {
-    await page.locator("button", { hasText: "Success" }).click();
+    await page.locator("#raiseSuccess").click();
 
     await expect(page.locator(TOASTS), "raising a toast mounts one entry").toHaveCount(1);
     await expect(
@@ -47,7 +45,7 @@ test("raising one puts the consumer's own message inside the region", async ({ p
 });
 
 test("a duration elapsing empties both the queue and the region", async ({ page }) => {
-    await page.locator("button", { hasText: "Info" }).click();
+    await page.locator("#raiseInfo").click();
     await expect(page.locator(TOASTS)).toHaveCount(1);
 
     await expect(page.locator(QUEUED), "the component removes the entry from the consumer's list").toContainText(
@@ -60,10 +58,10 @@ test("a duration elapsing empties both the queue and the region", async ({ page 
 });
 
 test("an entry stays mounted while it plays its exit, after leaving the consumer's list", async ({ page }) => {
-    await page.locator("button", { hasText: "Info" }).click();
+    await page.locator("#raiseInfo").click();
     await expect(page.locator(TOASTS)).toHaveCount(1);
 
-    await page.locator(TOASTS).first().locator("button", { hasText: "Close" }).click();
+    await page.locator(TOASTS).first().locator("button").click();
 
     await expect(page.locator(QUEUED), "closing removes it from the list the consumer owns").toContainText("queued: 0");
     await expect(page.locator(TOASTS), "while the component holds it mounted for the transition").toHaveCount(1);
@@ -73,7 +71,7 @@ test("an entry stays mounted while it plays its exit, after leaving the consumer
 });
 
 test("hovering the stack holds the countdown the painter draws", async ({ page }) => {
-    await page.locator("button", { hasText: "Info" }).click();
+    await page.locator("#raiseInfo").click();
     await expect(page.locator(COUNTDOWN)).toHaveCount(1);
 
     expect(await computedStyle(page.locator(COUNTDOWN), "animation-play-state"), "it runs to begin with").toBe(
@@ -96,7 +94,7 @@ test("hovering the stack holds the countdown the painter draws", async ({ page }
 });
 
 test("dismiss-oldest trims the consumer's list to the limit", async ({ page }) => {
-    await page.locator("button", { hasText: "Raise 5" }).click();
+    await page.locator("#raiseBurst").click();
 
     await expect(page.locator(QUEUED), "the component writes the overflow out of the consumer's list").toContainText(
         "queued: 3",
@@ -107,10 +105,10 @@ test("dismiss-oldest trims the consumer's list to the limit", async ({ page }) =
 });
 
 test("hold-newest keeps the overflow queued rather than dropping it", async ({ page }) => {
-    await page.locator(`${prop("Overflow")} [role="combobox"]`).click();
+    await page.locator(`${prop("overflow")} [role="combobox"]`).click();
     await page.locator(OPTION, { hasText: "hold-newest" }).first().click();
 
-    await page.locator("button", { hasText: "Raise 5" }).click();
+    await page.locator("#raiseBurst").click();
 
     await expect(page.locator(QUEUED), "nothing is dropped from the consumer's list").toContainText("queued: 5");
     await expect(page.locator(TOASTS), "and only the limit is rendered, so the rest run no clock").toHaveCount(3);
@@ -128,11 +126,11 @@ test.describe("the pause arithmetic", () => {
     test.beforeEach(async ({ page }) => {
         await page.clock.install();
         await page.goto("/toasts");
-        await expect(page.locator("button", { hasText: "Info" })).toBeVisible();
+        await expect(page.locator("#raiseInfo")).toBeVisible();
     });
 
     test("a toast paused half way through gets its remaining half, not a fresh duration", async ({ page }) => {
-        await page.locator("button", { hasText: "Info" }).click();
+        await page.locator("#raiseInfo").click();
         await expect(page.locator(TOASTS)).toHaveCount(1);
 
         await page.clock.runFor(DURATION_MS / 2);
@@ -164,7 +162,7 @@ test.describe("the pause arithmetic", () => {
     });
 
     test("a toast released early keeps the whole of its remaining time", async ({ page }) => {
-        await page.locator("button", { hasText: "Info" }).click();
+        await page.locator("#raiseInfo").click();
         await expect(page.locator(TOASTS)).toHaveCount(1);
 
         await page.locator(TOASTS).first().hover();
@@ -198,11 +196,11 @@ test.describe("a hidden tab", () => {
     test.beforeEach(async ({ page }) => {
         await page.clock.install();
         await page.goto("/toasts");
-        await expect(page.locator("button", { hasText: "Info" })).toBeVisible();
+        await expect(page.locator("#raiseInfo")).toBeVisible();
     });
 
     test("holds every countdown, so a burst raised in the background is still there on return", async ({ page }) => {
-        await page.locator("button", { hasText: "Info" }).click();
+        await page.locator("#raiseInfo").click();
         await expect(page.locator(TOASTS)).toHaveCount(1);
 
         await setHidden(page, true);
@@ -220,7 +218,7 @@ test.describe("a hidden tab", () => {
     });
 
     test("pauses the countdown the painter draws, the same way hovering does", async ({ page }) => {
-        await page.locator("button", { hasText: "Info" }).click();
+        await page.locator("#raiseInfo").click();
         await expect(page.locator(COUNTDOWN)).toHaveCount(1);
 
         await setHidden(page, true);

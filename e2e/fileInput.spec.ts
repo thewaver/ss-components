@@ -2,12 +2,12 @@ import { expect, test } from "@playwright/test";
 
 import { activeMatches, clickIsAllowed, inputValue, pickFiles, readout, tabIndex, variant } from "./helpers";
 
-const DEFAULT = `${variant("Default")} input`;
-const MULTIPLE = `${variant("Multiple")} input`;
-const IMAGES = `${variant("Accepting images only")} input`;
-const REJECTING = `${variant("Rejecting setter")} input`;
-const DISABLED = `${variant("Disabled")} input`;
-const REACHABLE = `${variant("Disabled + reachable")} input`;
+const DEFAULT = `${variant("default")} input`;
+const MULTIPLE = `${variant("multiple")} input`;
+const IMAGES = `${variant("images")} input`;
+const REJECTING = `${variant("rejectingSetter")} input`;
+const DISABLED = `${variant("disabled")} input`;
+const REACHABLE = `${variant("reachable")} input`;
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/file-input");
@@ -24,9 +24,9 @@ test("the control is a real file input and passes its attributes through", async
 test("a pick reaches the owner and is drawn by the painter", async ({ page }) => {
     await pickFiles(page.locator(DEFAULT), [{ name: "notes.txt", size: 10, type: "text/plain" }]);
 
-    expect(await readout(page, "Default"), "a pick reaches the owner's signal").toContain("files: notes.txt");
+    expect(await readout(page, "default"), "a pick reaches the owner's signal").toContain("files: notes.txt");
     await expect(
-        page.locator(`${variant("Default")} [aria-hidden]`).first(),
+        page.locator(`${variant("default")} [aria-hidden]`).first(),
         "and the painter draws it from the flags, since the native rendering is suppressed",
     ).toContainText("notes.txt");
 });
@@ -34,7 +34,7 @@ test("a pick reaches the owner and is drawn by the painter", async ({ page }) =>
 test("a rejecting owner can refuse a pick and the input is cleared to match", async ({ page }) => {
     await pickFiles(page.locator(REJECTING), [{ name: "huge.bin", size: 4096, type: "application/octet-stream" }]);
 
-    expect(await readout(page, "Rejecting setter"), "a rejecting owner can refuse a pick").toContain(
+    expect(await readout(page, "rejectingSetter"), "a rejecting owner can refuse a pick").toContain(
         "huge.bin is too big",
     );
     expect(
@@ -44,7 +44,7 @@ test("a rejecting owner can refuse a pick and the input is cleared to match", as
     await expect(page.locator(REJECTING), "with the field announced invalid").toHaveAttribute("aria-invalid", "true");
 
     await pickFiles(page.locator(REJECTING), [{ name: "tiny.txt", size: 10, type: "text/plain" }]);
-    expect(await readout(page, "Rejecting setter"), "and an accepted pick lands").toContain("files: tiny.txt");
+    expect(await readout(page, "rejectingSetter"), "and an accepted pick lands").toContain("files: tiny.txt");
 });
 
 test("a disabled field cancels the click that would open the OS dialog", async ({ page }) => {

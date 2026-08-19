@@ -2,9 +2,9 @@ import { type Page, expect, test } from "@playwright/test";
 
 import { inputValue, readout, variant } from "./helpers";
 
-const DEFAULT = variant("Default");
-const SNAPPING = variant("Snapping setter");
-const DISABLED = variant("Disabled");
+const DEFAULT = variant("default");
+const SNAPPING = variant("snapping");
+const DISABLED = variant("disabled");
 const POPUP = '[role="dialog"]';
 
 const field = (scope: string) => `${scope} button[aria-haspopup="dialog"]`;
@@ -60,7 +60,7 @@ test("opening it points the field at the popup and back", async ({ page }) => {
  * somewhere other than the middle. `viewport.spec.ts` waits for the same reason.
  */
 test("dragging the surface writes a hex value to the owner", async ({ page }) => {
-    const before = await readout(page, "Default");
+    const before = await readout(page, "default");
 
     await page.locator(field(DEFAULT)).click();
     await expect(page.locator(POPUP)).toBeVisible();
@@ -68,7 +68,7 @@ test("dragging the surface writes a hex value to the owner", async ({ page }) =>
 
     await dragAcross(page, `${POPUP} [role="group"]`, [0.5, 0.5], [0.9, 0.1]);
 
-    const after = await readout(page, "Default");
+    const after = await readout(page, "default");
 
     expect(after, "the value changed").not.toBe(before);
     expect(after, "and it is still a six digit hex, since nothing asked for alpha").toMatch(/#[0-9a-f]{6}/);
@@ -115,7 +115,7 @@ test("a snapping owner rewrites the value and the field follows", async ({ page 
     await dragAcross(page, `${POPUP} [role="group"]`, [0.5, 0.5], [0.1, 0.9]);
 
     expect(
-        await readout(page, "Snapping setter"),
+        await readout(page, "snapping"),
         "the owner's own value wins, because the field reads the signal back",
     ).toMatch(/#(ff0055|00d1b2|ffb400|7a5cff)/);
 });

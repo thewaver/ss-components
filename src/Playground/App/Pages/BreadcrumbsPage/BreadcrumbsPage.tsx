@@ -67,6 +67,7 @@ export const BreadcrumbsPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () =>
                     `pressed: ${getPressed() ?? "nothing yet"} — pressing a crumb moves the page there, so the trail behind it is the whole trail; Reset puts it back`,
@@ -89,6 +90,7 @@ export const BreadcrumbsPage = () => {
                 ),
             },
             {
+                key: "bare",
                 name: "No separator",
                 readout: () => "a trail with nothing between the crumbs, since the separator slot is optional",
                 component: () => (
@@ -105,6 +107,7 @@ export const BreadcrumbsPage = () => {
                 ),
             },
             {
+                key: "linked",
                 name: "Crumbs that are links",
                 readout: () => `pressed: ${getLinkPressed() ?? "nothing yet"} — an href makes a crumb an anchor`,
                 component: () => (
@@ -126,6 +129,7 @@ export const BreadcrumbsPage = () => {
                 ),
             },
             {
+                key: "linkComponent",
                 name: "Links through a component",
                 readout: () => "the same links rendered by a consumer's own link component",
                 component: () => (
@@ -149,7 +153,7 @@ export const BreadcrumbsPage = () => {
     return (
         <>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Depth"}>
+                <PageProp getKey={() => "depth"} getLabel={() => "Depth"}>
                     <PageNumberField
                         getValue={getDepth}
                         getMin={() => MIN_DEPTH}
@@ -161,11 +165,11 @@ export const BreadcrumbsPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Disabled"}>
+                <PageProp getKey={() => "isDisabled"} getLabel={() => "Disabled"}>
                     <PageCheckField getValue={getIsDisabled} getAriaLabel={() => "Disabled"} onChange={setIsDisabled} />
                 </PageProp>
 
-                <PageProp getLabel={() => "Trail"}>
+                <PageProp getKey={() => "trail"} getLabel={() => "Trail"}>
                     <Button
                         renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Reset</PageButtonContent>}
                         onClick={async () => {

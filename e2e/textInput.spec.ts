@@ -2,13 +2,13 @@ import { expect, test } from "@playwright/test";
 
 import { computedStyle, inputValue, isReadOnly, readout, selectionRange, setSelectionRange, variant } from "./helpers";
 
-const DEFAULT = `${variant("Default")} input`;
-const COUPON = `${variant("Transforming setter")} input`;
-const PIN = `${variant("Refusing setter")} input`;
-const NUMBER = `${variant("Number")} input`;
-const READ_ONLY = `${variant("Read-only")} input`;
-const DISABLED = `${variant("Disabled")} input`;
-const EMAIL = `${variant("Error")} input`;
+const DEFAULT = `${variant("default")} input`;
+const COUPON = `${variant("transformingSetter")} input`;
+const PIN = `${variant("refusingSetter")} input`;
+const NUMBER = `${variant("number")} input`;
+const READ_ONLY = `${variant("readOnly")} input`;
+const DISABLED = `${variant("disabled")} input`;
+const EMAIL = `${variant("errored")} input`;
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/text-input");
@@ -22,13 +22,13 @@ test("no field uses the native disabled attribute", async ({ page }) => {
 test("typing reports each keystroke", async ({ page }) => {
     await page.locator(DEFAULT).focus();
     await page.keyboard.type("Ada");
-    expect(await readout(page, "Default"), "typing reports each keystroke").toContain('value: "Ada"');
+    expect(await readout(page, "default"), "typing reports each keystroke").toContain('value: "Ada"');
 });
 
 test("a transforming setter rewrites the value and keeps the caret", async ({ page }) => {
     await page.locator(COUPON).focus();
     await page.keyboard.type("ab");
-    expect(await readout(page, "Transforming setter"), "a transforming setter is applied").toContain('value: "AB"');
+    expect(await readout(page, "transformingSetter"), "a transforming setter is applied").toContain('value: "AB"');
     expect(await inputValue(page.locator(COUPON)), "and the DOM is corrected to match it").toBe("AB");
 
     await setSelectionRange(page.locator(COUPON), 1, 1);
@@ -55,7 +55,7 @@ test("a number field is a type rather than a component", async ({ page }) => {
 
     await page.locator(NUMBER).focus();
     await page.keyboard.press("ArrowUp");
-    expect(await readout(page, "Number"), "so an arrow steps by the step").toContain('value: "15"');
+    expect(await readout(page, "number"), "so an arrow steps by the step").toContain('value: "15"');
 });
 
 test("a read-only field refuses a keystroke and a paste alike", async ({ page }) => {
@@ -120,12 +120,12 @@ test("a composition is left alone until it is committed", async ({ page }) => {
         selectionEnd: 2,
     });
     expect(
-        await readout(page, "Default"),
+        await readout(page, "default"),
         "a value mid-composition is not reported, so the IME's own buffer is left alone",
     ).toContain('value: "Ada"');
 
     await session.send("Input.insertText", { text: "日本" });
-    expect(await readout(page, "Default"), "committing the composition reports it").toContain("Ada日本");
+    expect(await readout(page, "default"), "committing the composition reports it").toContain("Ada日本");
     expect(
         await inputValue(page.locator(DEFAULT)),
         "and the resync that follows does not write stale state over what the IME just committed",

@@ -72,6 +72,7 @@ export const StaircasePage = () => {
 
         return [
             {
+                key: "default",
                 name: "Default",
                 component: () => <DefaultExampleWrapper {...commonProps} />,
                 path: `${EXAMPLES_ROOT}/Default.tsx`,
@@ -82,7 +83,7 @@ export const StaircasePage = () => {
     return (
         <>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Steps"}>
+                <PageProp getKey={() => "stepCount"} getLabel={() => "Steps"}>
                     <PageNumberField
                         getValue={getStepCount}
                         getMin={() => MIN_STEP_COUNT}
@@ -94,7 +95,7 @@ export const StaircasePage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Indent (px)"}>
+                <PageProp getKey={() => "indent"} getLabel={() => "Indent (px)"}>
                     <PageNumberField
                         getValue={getIndent}
                         getMin={() => MIN_INDENT}
@@ -106,7 +107,7 @@ export const StaircasePage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Gap (px)"}>
+                <PageProp getKey={() => "gap"} getLabel={() => "Gap (px)"}>
                     <PageNumberField
                         getValue={getGap}
                         getMin={() => MIN_GAP}
@@ -118,7 +119,7 @@ export const StaircasePage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Direction"}>
+                <PageProp getKey={() => "dir"} getLabel={() => "Direction"}>
                     <PageSelectField
                         getValue={getDir}
                         getValues={() => DIRS}
@@ -128,7 +129,7 @@ export const StaircasePage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Indent function"}>
+                <PageProp getKey={() => "indentKey"} getLabel={() => "Indent function"}>
                     <PageSelectField
                         getValue={getIndentKey}
                         getValues={() => StaircaseIndents.SAMPLE_KEYS}

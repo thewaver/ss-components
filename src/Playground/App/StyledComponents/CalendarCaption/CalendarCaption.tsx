@@ -115,6 +115,7 @@ export const PageCalendarCaption = (props: PageCalendarCaptionProps) => {
     return (
         <PageCalendarHeader>
             <Button
+                getId={() => `${props.getKey()}PreviousMonth`}
                 getAriaLabel={() => "Previous month"}
                 renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>◀</PageButtonContent>}
                 onClick={() => page(-1)}
@@ -125,6 +126,7 @@ export const PageCalendarCaption = (props: PageCalendarCaptionProps) => {
                 fallback={
                     <Button
                         ref={setTitleRef}
+                        getId={() => `${props.getKey()}MonthTitle`}
                         getAriaLabel={() => `${getTitle()}, pick a month and year`}
                         renderContent={(getFlags) => (
                             <PageCalendarTitle getFlags={getFlags}>{getTitle()}</PageCalendarTitle>
@@ -173,6 +175,7 @@ export const PageCalendarCaption = (props: PageCalendarCaptionProps) => {
             </Show>
 
             <Button
+                getId={() => `${props.getKey()}NextMonth`}
                 getAriaLabel={() => "Next month"}
                 renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>▶</PageButtonContent>}
                 onClick={() => page(1)}

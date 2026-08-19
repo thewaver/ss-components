@@ -1,6 +1,6 @@
 import { type Page, expect, test } from "@playwright/test";
 
-import { example } from "./helpers";
+import { example, prop } from "./helpers";
 
 /**
  * All three wheels on this page take their rotation from the same abstract, so most of what is checked here is
@@ -24,18 +24,18 @@ import { example } from "./helpers";
  * scoped to the example rather than to the wheel, and why the button's disabled state is checked here at all:
  * it is now the page reading `getIsSpinnable` off the handle rather than the library disabling its own control.
  */
-const FLAT = example("Flat, topside");
-const SIDEWAYS = example("Drum, turning sideways");
-const REEL = example("Drum, turning over");
+const FLAT = example("flat");
+const SIDEWAYS = example("sideways");
+const REEL = example("reel");
 
 const wheel = (scope: string) => `${scope} [aria-roledescription="wheel"]`;
 const wedge = (scope: string) => `${scope} [aria-roledescription="wedge"]`;
-const spin = (scope: string) => `${scope} button[aria-label="Spin the wheel"]`;
+const spin = (key: string) => `#${key}Spin`;
 
 const ANNOUNCER = '[role="log"][aria-live="polite"]';
 
-const numberField = (label: string) => `[data-prop="${label}"] input`;
-const checkField = (label: string) => `[data-prop="${label}"] input`;
+const numberField = (key: string) => `${prop(key)} input`;
+const checkField = (key: string) => `${prop(key)} input`;
 
 const DURATION_MS = 500;
 const IDLE_DELAY_MS = 1000;
@@ -55,18 +55,18 @@ const transformOf = (page: import("@playwright/test").Page, scope: string) =>
         .first()
         .evaluate((element) => (element as HTMLElement).style.transform);
 
-const setField = async (page: import("@playwright/test").Page, label: string, value: string) => {
-    await page.locator(numberField(label)).fill(value);
-    await page.locator(numberField(label)).blur();
+const setField = async (page: import("@playwright/test").Page, key: string, value: string) => {
+    await page.locator(numberField(key)).fill(value);
+    await page.locator(numberField(key)).blur();
 };
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/wheel");
     await expect(page.locator(wheel(FLAT))).toBeVisible();
-    await setField(page, "Spin duration (ms)", String(DURATION_MS));
-    await setField(page, "Settle duration (ms)", String(DURATION_MS));
-    await setField(page, "Idle step delay (ms)", String(IDLE_DELAY_MS));
-    await setField(page, "Rest after a spin (ms)", String(LONG_REST_MS));
+    await setField(page, "spinDurationMs", String(DURATION_MS));
+    await setField(page, "settleDurationMs", String(DURATION_MS));
+    await setField(page, "idleDelayMs", String(IDLE_DELAY_MS));
+    await setField(page, "restDurationMs", String(LONG_REST_MS));
     await page.mouse.move(0, 0);
 });
 
@@ -82,16 +82,16 @@ test("the wheel and every wedge say what they are, beyond what their roles conve
 });
 
 test("the wheel renders no button, and the page's own is a real button with a real name", async ({ page }) => {
-    await expect(page.locator(spin(FLAT))).toHaveAttribute("type", "button");
+    await expect(page.locator(spin("flat"))).toHaveAttribute("type", "button");
     await expect(page.locator(`${wheel(FLAT)} button`), "no wheel renders a button of its own").toHaveCount(0);
     await expect(page.locator(`${wheel(SIDEWAYS)} button`)).toHaveCount(0);
 
-    await expect(page.locator(spin(FLAT)), "each page control sits outside its wheel and drives it").toHaveCount(1);
-    await expect(page.locator(spin(SIDEWAYS))).toHaveCount(1);
+    await expect(page.locator(spin("flat")), "each page control sits outside its wheel and drives it").toHaveCount(1);
+    await expect(page.locator(spin("sideways"))).toHaveCount(1);
 });
 
 test("spinning lands on a wedge and says which one", async ({ page }) => {
-    await page.locator(spin(FLAT)).click();
+    await page.locator(spin("flat")).click();
     await page.mouse.move(0, 0);
 
     await expect.poll(() => transformOf(page, FLAT), { timeout: SPIN_TOTAL_MS * 2 }).toContain("rotate(");
@@ -103,15 +103,15 @@ test("spinning lands on a wedge and says which one", async ({ page }) => {
 });
 
 test("a spin cannot be asked for twice, because the second request has nowhere to go", async ({ page }) => {
-    await page.locator(spin(FLAT)).click();
+    await page.locator(spin("flat")).click();
 
     await expect(
-        page.locator(spin(FLAT)),
+        page.locator(spin("flat")),
         "the control says so rather than quietly ignoring the press",
     ).toHaveAttribute("aria-disabled", "true");
 
     await expect
-        .poll(() => page.locator(spin(FLAT)).getAttribute("aria-disabled"), { timeout: SPIN_TOTAL_MS * 2 })
+        .poll(() => page.locator(spin("flat")).getAttribute("aria-disabled"), { timeout: SPIN_TOTAL_MS * 2 })
         .toBe(null);
 });
 
@@ -122,7 +122,7 @@ test("the wheel turns by itself while it waits to be spun", async ({ page }) => 
 });
 
 test("a spin buys the prize a rest, so the wheel stays on it long enough to be read", async ({ page }) => {
-    await page.locator(spin(FLAT)).click();
+    await page.locator(spin("flat")).click();
     await page.mouse.move(0, 0);
     await page.waitForTimeout(SPIN_TOTAL_MS);
 
@@ -142,9 +142,9 @@ test("a spin buys the prize a rest, so the wheel stays on it long enough to be r
  * spec would spend doing nothing on every run.
  */
 test("and the rest is only a rest, so the wheel picks up again once it has run out", async ({ page }) => {
-    await setField(page, "Rest after a spin (ms)", String(SHORT_REST_MS));
+    await setField(page, "restDurationMs", String(SHORT_REST_MS));
 
-    await page.locator(spin(FLAT)).click();
+    await page.locator(spin("flat")).click();
     await page.mouse.move(0, 0);
     await page.waitForTimeout(SPIN_TOTAL_MS);
 
@@ -185,7 +185,7 @@ test("a visitor who has asked for less motion gets a wheel that waits to be spun
 
     expect(await transformOf(page, FLAT), "nothing turns until it is asked to").toBe(before);
 
-    await page.locator(spin(FLAT)).click();
+    await page.locator(spin("flat")).click();
 
     await expect
         .poll(() => transformOf(page, FLAT), {
@@ -196,9 +196,9 @@ test("a visitor who has asked for less motion gets a wheel that waits to be spun
 });
 
 test("a disabled wheel neither spins nor turns", async ({ page }) => {
-    await page.locator(checkField("Disabled")).check();
+    await page.locator(checkField("isDisabled")).check();
 
-    await expect(page.locator(spin(FLAT))).toHaveAttribute("aria-disabled", "true");
+    await expect(page.locator(spin("flat"))).toHaveAttribute("aria-disabled", "true");
 
     const before = await transformOf(page, FLAT);
 
@@ -239,9 +239,9 @@ test("the two drums turn about different axes, which is the whole of what separa
  * component reserves against the boxes the faces actually occupy, which is what these do.
  */
 
-const worstOverflow = (page: Page, wheelLabel: string) =>
-    page.evaluate((label) => {
-        const wheel = document.querySelector(`[aria-label="${label}"]`) as HTMLElement;
+const worstOverflow = (page: Page, wheelSelector: string) =>
+    page.evaluate((selector) => {
+        const wheel = document.querySelector(selector) as HTMLElement;
         const faces = [...wheel.querySelectorAll('[aria-roledescription="wedge"]')] as HTMLElement[];
         const reserved = (wheel.firstElementChild as HTMLElement).getBoundingClientRect();
         const boxes = faces
@@ -254,20 +254,22 @@ const worstOverflow = (page: Page, wheelLabel: string) =>
             reserved.top - Math.min(...boxes.map((box) => box.top)),
             Math.max(...boxes.map((box) => box.bottom)) - reserved.bottom,
         );
-    }, wheelLabel);
+    }, wheelSelector);
 
-const DRUM_LABELS = ["Prize drum, turning sideways", "Prize drum, turning over"];
+const DRUMS = [
+    { name: "the sideways drum", scope: SIDEWAYS },
+    { name: "the reel", scope: REEL },
+];
 
 test("a drum paints inside the room it reserves, at every count it can be given", async ({ page }) => {
-    await page.locator('[data-prop="Turns by itself"] input').uncheck();
+    await page.locator(checkField("isIdlingAllowed")).uncheck();
 
     for (const count of ["2", "3", "6", "9", "12"]) {
-        await page.locator('[data-prop="Wedges"] input').fill(count);
-        await page.locator('[data-prop="Wedges"] input').blur();
+        await setField(page, "wedgeCount", count);
         await page.waitForTimeout(FRAME_SETTLE_MS);
 
-        for (const label of DRUM_LABELS) {
-            expect(await worstOverflow(page, label), `${label} at ${count} wedges`).toBeLessThanOrEqual(
+        for (const drum of DRUMS) {
+            expect(await worstOverflow(page, wheel(drum.scope)), `${drum.name} at ${count} wedges`).toBeLessThanOrEqual(
                 OVERFLOW_TOLERANCE_PX,
             );
         }
@@ -278,8 +280,8 @@ test("and keeps inside it all the way round, not only where it comes to rest", a
     await page.waitForTimeout(IDLE_DELAY_MS);
 
     for (let sample = 0; sample < TURN_SAMPLE_COUNT; sample++) {
-        for (const label of DRUM_LABELS) {
-            expect(await worstOverflow(page, label), `${label} while turning`).toBeLessThanOrEqual(
+        for (const drum of DRUMS) {
+            expect(await worstOverflow(page, wheel(drum.scope)), `${drum.name} while turning`).toBeLessThanOrEqual(
                 OVERFLOW_TOLERANCE_PX,
             );
         }

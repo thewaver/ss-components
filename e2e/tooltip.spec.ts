@@ -2,8 +2,8 @@ import { expect, test } from "@playwright/test";
 
 import { variant } from "./helpers";
 
-const ANCHOR = `${variant("Decorated")} button`;
-const OTHER = `${variant("Default")} button`;
+const ANCHOR = `${variant("decorated")} button`;
+const OTHER = `${variant("default")} button`;
 const TOOLTIP = '[role="tooltip"]';
 
 /**

@@ -87,12 +87,14 @@ export const ColorAreaPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "bare",
                 name: "The surface alone",
                 readout: () =>
                     `hsv: ${Math.round(bareSignal[0]().h)}° ${Math.round(bareSignal[0]().s * PERCENT)}% ${Math.round(bareSignal[0]().v * PERCENT)}% — hex: ${Color.HSV.toHex(bareSignal[0]())}`,
                 component: () => renderArea(bareSignal),
             },
             {
+                key: "dropdown",
                 name: "In a dropdown, replacing the OS dialog",
                 readout: () => `${getHexa()} — open: ${getIsOpen()}`,
                 component: () => (
@@ -140,6 +142,7 @@ export const ColorAreaPage = () => {
                                             getSizing={() => "fill"}
                                             getMax={() => HUE_MAX}
                                             getStep={() => 1}
+                                            getId={() => "hueSlider"}
                                             getAriaLabel={() => "Hue"}
                                             getThumbSize={() => HUE_THUMB_SIZE}
                                             renderContent={(getFlags) => <PageHueSlider getFlags={getFlags} />}
@@ -154,6 +157,7 @@ export const ColorAreaPage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled",
                 readout: () => "the drag is not attached at all, so nothing moves",
                 component: () => renderArea(disabledSignal, true),

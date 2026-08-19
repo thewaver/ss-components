@@ -2,9 +2,9 @@ import { type ConsoleMessage, expect, test } from "@playwright/test";
 
 import { isChecked, readout, variant } from "./helpers";
 
-const CHECKBOX = variant("Checkbox");
-const SUPPRESSED = variant("Suppressed aria-label");
-const DISABLED = variant("Disabled");
+const CHECKBOX = variant("checkbox");
+const SUPPRESSED = variant("suppressed");
+const DISABLED = variant("disabled");
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/label");
@@ -16,8 +16,8 @@ test("a Label wraps caption and control, and the caption activates it", async ({
         1,
     );
 
-    await page.locator(`${CHECKBOX} label div`, { hasText: "Remember me" }).first().click();
-    expect(await readout(page, "Checkbox"), "clicking the caption reaches the control").toContain("checked: true");
+    await page.locator("#rememberCaption").click();
+    expect(await readout(page, "checkbox"), "clicking the caption reaches the control").toContain("checked: true");
 });
 
 /**
@@ -43,12 +43,9 @@ test("an aria-label inside a Label warns and is dropped", async ({ page }) => {
 });
 
 test("a caption click on a disabled control is stopped", async ({ page }) => {
-    await page
-        .locator(`${DISABLED} label div`, { hasText: "Caption clicks must do nothing" })
-        .first()
-        .click({ force: true });
+    await page.locator("#disabledCaption").click({ force: true });
 
-    expect(await readout(page, "Disabled"), "a caption click on a disabled control is stopped").toContain(
+    expect(await readout(page, "disabled"), "a caption click on a disabled control is stopped").toContain(
         "checked: true",
     );
     expect(

@@ -328,6 +328,7 @@ export const SelectPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () => `value: ${defaultSignal[0]() ?? "undefined"}`,
                 component: () => (
@@ -348,6 +349,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "preselected",
                 name: "Preselected",
                 readout: () => `value: ${preselectedSignal[0]() ?? "undefined"} — reopening highlights it`,
                 component: () => (
@@ -368,6 +370,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "recordValues",
                 name: "Record values",
                 readout: () => `value: ${recordSignal[0]()?.code ?? "undefined"}`,
                 component: () => (
@@ -390,6 +393,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "titleDescription",
                 name: "Title and description",
                 readout: () =>
                     `value: ${deliverySignal[0]()?.name ?? "undefined"} — the descriptions wrap, so no two rows are the same height`,
@@ -416,6 +420,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "optionGroups",
                 name: "Option groups",
                 readout: () =>
                     `value: ${groupedSignal[0]() ?? "undefined"} — arrows cross group boundaries and skip Finland`,
@@ -438,6 +443,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "disabledOptions",
                 name: "Disabled options",
                 readout: () => `value: ${disabledOptionSignal[0]() ?? "undefined"} — arrows skip Denmark and Finland`,
                 component: () => (
@@ -458,6 +464,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "disabledOptionsReachable",
                 name: "Disabled options + reachable",
                 readout: () =>
                     `value: ${reachableOptionSignal[0]() ?? "undefined"} — arrows stop on them, hover explains why`,
@@ -479,6 +486,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "scrollingList",
                 name: "Scrolling list",
                 readout: () => `value: ${longSignal[0]() ?? "undefined"} — Home and End reach both ends`,
                 component: () => (
@@ -499,6 +507,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "virtualized",
                 name: "Virtualized",
                 readout: () =>
                     `${getStressCount().toLocaleString("en-GB")} options — ${
@@ -538,7 +547,7 @@ export const SelectPage = () => {
                         />
 
                         <PagePropsPanel getScope={() => "local"}>
-                            <PageProp getLabel={() => "Option count"}>
+                            <PageProp getKey={() => "stressCount"} getLabel={() => "Option count"}>
                                 <PageNumberField
                                     getValue={getStressCount}
                                     getMin={() => MIN_STRESS_COUNT}
@@ -557,6 +566,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "onDemand",
                 name: "Loaded on demand",
                 readout: () =>
                     `${getPagedRoutes().length} of ${PAGED_TOTAL} routes fetched${
@@ -599,6 +609,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "autocomplete",
                 name: "Autocomplete",
                 readout: () =>
                     `value: ${filterSignal[0]()?.code ?? "undefined"} | query: "${filterQuerySignal[0]()}" — ${getFilteredAirports().length} of ${AIRPORTS.length} shown; the page matches on city or code, which only it knows about`,
@@ -642,6 +653,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "autocompleteOnDemand",
                 name: "Autocomplete, loaded on demand",
                 readout: () =>
                     `value: ${searchSignal[0]()?.name ?? "undefined"} | query: "${searchQuerySignal[0]()}" — ${getSearchResults().length} of ${getSearchTotal()} matches held${
@@ -700,6 +712,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "multiSelect",
                 name: "Multi-select",
                 readout: () => `values: [${multiSignal[0]().join(", ")}] — picking keeps the list open`,
                 component: () => (
@@ -724,6 +737,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "multiSelectGrouped",
                 name: "Multi-select, grouped, autocomplete",
                 readout: () =>
                     `values: [${everythingSignal[0]().join(", ")}] | query: "${everythingQuerySignal[0]()}" — the page drops groups it has emptied`,
@@ -766,6 +780,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "errored",
                 name: "Error",
                 readout: () => `value: ${erroredSignal[0]() ?? "undefined"} — required, nothing picked yet`,
                 component: () => (
@@ -787,6 +802,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled",
                 readout: () => `value: ${disabledSignal[0]() ?? "undefined"}`,
                 component: () => (
@@ -808,6 +824,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "reachable",
                 name: "Disabled + reachable",
                 readout: () => `value: ${reachableSignal[0]() ?? "undefined"}`,
                 component: () => (
@@ -842,6 +859,7 @@ export const SelectPage = () => {
                 ),
             },
             {
+                key: "label",
                 name: "In a Label",
                 readout: () => `value: ${labelledSignal[0]() ?? "undefined"} — the caption opens the list`,
                 component: () => (

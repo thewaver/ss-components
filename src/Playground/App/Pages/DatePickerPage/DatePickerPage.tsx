@@ -87,6 +87,7 @@ export const DatePickerPage = () => {
     });
 
     const renderPicker = (
+        key: string,
         valueSignal: ReturnType<typeof createSignal<DateValue | undefined>>,
         bounds?: { minDate: DateValue; maxDate: DateValue },
     ) => (
@@ -98,12 +99,14 @@ export const DatePickerPage = () => {
             getAriaLabel={() => "Date"}
             getCalendarLabel={() => "Choose a date"}
             getLocale={() => LOCALE}
-            renderTrigger={(getIsOpen, onToggle) => <PageDatePickerTrigger getIsOpen={getIsOpen} onToggle={onToggle} />}
+            renderTrigger={(getIsOpen, onToggle) => (
+                <PageDatePickerTrigger getKey={() => key} getIsOpen={getIsOpen} onToggle={onToggle} />
+            )}
             renderDay={(_, getFlags) => <PageCalendarDay getFlags={getFlags} />}
             renderWeekday={(name) => <PageCalendarWeekday>{name}</PageCalendarWeekday>}
             renderPopup={(renderCalendar, monthSignal) => (
                 <PageCalendarFrame>
-                    <PageCalendarCaption monthSignal={monthSignal} getLocale={() => LOCALE} />
+                    <PageCalendarCaption monthSignal={monthSignal} getKey={() => key} getLocale={() => LOCALE} />
 
                     {renderCalendar()}
                 </PageCalendarFrame>
@@ -114,6 +117,7 @@ export const DatePickerPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "typed",
                 name: "Typed only",
                 readout: () => `value: ${describe(typedSignal[0]())} — a half-typed date reports nothing`,
                 component: () => (
@@ -121,6 +125,7 @@ export const DatePickerPage = () => {
                 ),
             },
             {
+                key: "locale",
                 name: "Day first",
                 readout: () =>
                     `value: ${describe(localeSignal[0]())} — dd/mm/yyyy, and the separators are the mask's rather than yours to type`,
@@ -134,6 +139,7 @@ export const DatePickerPage = () => {
                 ),
             },
             {
+                key: "era",
                 name: "Before the common era",
                 readout: () =>
                     `value: ${describe(eraSignal[0]())} — the era is a control in the leading slot, offering whatever the calendar reports`,
@@ -142,17 +148,20 @@ export const DatePickerPage = () => {
                 ),
             },
             {
+                key: "picked",
                 name: "With a calendar",
                 readout: () => `value: ${describe(pickedSignal[0]())} — typing and picking write the same signal`,
-                component: () => renderPicker(pickedSignal),
+                component: () => renderPicker("picked", pickedSignal),
             },
             {
+                key: "bounded",
                 name: "Bounded",
                 readout: () =>
                     `value: ${describe(boundedSignal[0]())} — ${DateValueUtils.toIso(MIN_DATE)} to ${DateValueUtils.toIso(MAX_DATE)}, typed or picked`,
-                component: () => renderPicker(boundedSignal, { minDate: MIN_DATE, maxDate: MAX_DATE }),
+                component: () => renderPicker("bounded", boundedSignal, { minDate: MIN_DATE, maxDate: MAX_DATE }),
             },
             {
+                key: "time",
                 name: "A time, typed or stepped",
                 readout: () =>
                     `value: ${describeTime(timeSignal[0]())} — the arrows step whichever segment the caret is in`,
@@ -161,6 +170,7 @@ export const DatePickerPage = () => {
                 ),
             },
             {
+                key: "twelve",
                 name: "Twelve hour",
                 readout: () =>
                     `value: ${describeTime(twelveHourSignal[0]())} — the value stays 24-hour, the field reads it as 12`,
@@ -181,6 +191,7 @@ export const DatePickerPage = () => {
                 ),
             },
             {
+                key: "precise",
                 name: "To the second",
                 readout: () => `value: ${describeTime(preciseSignal[0]())} — three segments instead of two`,
                 component: () => (
@@ -193,6 +204,7 @@ export const DatePickerPage = () => {
                 ),
             },
             {
+                key: "shift",
                 name: "Within opening hours",
                 readout: () =>
                     `value: ${describeTime(shiftSignal[0]())} — ${TimeUtils.toIso(OPENING_TIME)} to ${TimeUtils.toIso(CLOSING_TIME)}`,
@@ -212,7 +224,7 @@ export const DatePickerPage = () => {
     return (
         <>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Calendar"}>
+                <PageProp getKey={() => "calendarId"} getLabel={() => "Calendar"}>
                     <PageSelectField
                         getValue={getCalendarId}
                         getValues={DateValueUtils.getCalendarIds}

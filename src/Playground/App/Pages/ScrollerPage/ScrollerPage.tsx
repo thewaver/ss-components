@@ -50,6 +50,7 @@ export const ScrollerPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "split",
                 name: "One button at each end",
                 readout: () =>
                     `${getItemCount()} items — the buttons stop at the ends rather than wrapping round, and leave altogether once everything fits`,
@@ -70,6 +71,7 @@ export const ScrollerPage = () => {
                 ),
             },
             {
+                key: "bothButtonsEnd",
                 name: "Both buttons at the end",
                 readout: () => "the same control with its buttons together instead of split",
                 component: () => (
@@ -90,6 +92,7 @@ export const ScrollerPage = () => {
                 ),
             },
             {
+                key: "bothButtonsStart",
                 name: "Both buttons at the start",
                 readout: () => "and the same pair on the other side",
                 component: () => (
@@ -110,6 +113,7 @@ export const ScrollerPage = () => {
                 ),
             },
             {
+                key: "tabbed",
                 name: "Focus reveals what it lands on",
                 readout: () =>
                     `selected: ${getSelectedMonth()} — a tab already fully in view does not move the strip, and one cut off by the edge scrolls into view whole`,
@@ -152,6 +156,7 @@ export const ScrollerPage = () => {
                 ),
             },
             {
+                key: "focusableChildren",
                 name: "Focusable children of any kind",
                 readout: () => "the track holds whatever it is given, and tabbing through pulls the strip along",
                 component: () => (
@@ -180,7 +185,7 @@ export const ScrollerPage = () => {
     return (
         <div class={styles.root}>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Item count"}>
+                <PageProp getKey={() => "itemCount"} getLabel={() => "Item count"}>
                     <PageNumberField
                         getValue={getItemCount}
                         getMin={() => MIN_ITEM_COUNT}

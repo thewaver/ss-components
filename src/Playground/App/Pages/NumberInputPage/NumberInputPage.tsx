@@ -37,6 +37,7 @@ export const NumberInputPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () => `value: ${defaultSignal[0]()} — an empty field has no value at all`,
                 component: () => (
@@ -59,6 +60,7 @@ export const NumberInputPage = () => {
                 ),
             },
             {
+                key: "steppedClamped",
                 name: "Stepped and clamped",
                 readout: () =>
                     `value: ${quantitySignal[0]()} — steps of ${QUANTITY_STEP} counted from ${QUANTITY_MIN}, typed values are clamped on blur`,
@@ -82,6 +84,7 @@ export const NumberInputPage = () => {
                 ),
             },
             {
+                key: "fractionalStep",
                 name: "Fractional step",
                 readout: () => `value: ${ratingSignal[0]()} — a step of ${RATING_STEP} must not drift`,
                 component: () => (
@@ -104,6 +107,7 @@ export const NumberInputPage = () => {
                 ),
             },
             {
+                key: "unit",
                 name: "With a unit",
                 readout: () => `value: ${unitSignal[0]()} — one slot holds both the unit and the stepper`,
                 component: () => (
@@ -128,6 +132,7 @@ export const NumberInputPage = () => {
                 ),
             },
             {
+                key: "readOnly",
                 name: "Read-only",
                 readout: () => `value: ${readOnlySignal[0]()} — the stepper is refused along with the keyboard`,
                 component: () => (
@@ -148,6 +153,7 @@ export const NumberInputPage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled",
                 readout: () => `value: ${disabledSignal[0]()}`,
                 component: () => (
@@ -168,6 +174,7 @@ export const NumberInputPage = () => {
                 ),
             },
             {
+                key: "reachable",
                 name: "Disabled + reachable",
                 readout: () => `value: ${reachableSignal[0]()}`,
                 component: () => (
@@ -202,6 +209,7 @@ export const NumberInputPage = () => {
                 ),
             },
             {
+                key: "errored",
                 name: "Error",
                 readout: () => `value: ${erroredSignal[0]()} — anything but a positive count is an error`,
                 component: () => (
@@ -223,6 +231,7 @@ export const NumberInputPage = () => {
                 ),
             },
             {
+                key: "label",
                 name: "In a Label",
                 readout: () => `value: ${labelledSignal[0]()}`,
                 component: () => (

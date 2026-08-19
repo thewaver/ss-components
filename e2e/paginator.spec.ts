@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { accessibleText, readout, tagName, variant } from "./helpers";
+import { accessibleText, prop, readout, tagName, variant } from "./helpers";
 
 /**
  * Every list on the page reads the same three knobs — page count, sibling count and boundary count — so
@@ -11,10 +11,10 @@ import { accessibleText, readout, tagName, variant } from "./helpers";
  * the visible text and the accessible name are deliberately different things here: `accessibleText` on a
  * page item is empty, and the name a screen reader would read comes from `aria-label`.
  */
-const STEPS = variant("Previous and next");
-const ENDS = variant("Jumps to either end");
-const LINKS = variant("Pages that are links");
-const LINK_COMPONENT = variant("Links through a component");
+const STEPS = variant("steps");
+const ENDS = variant("ends");
+const LINKS = variant("links");
+const LINK_COMPONENT = variant("linkComponent");
 
 const nav = (scope: string) => `${scope} nav`;
 const item = (scope: string) => `${scope} nav a, ${scope} nav button`;
@@ -22,7 +22,7 @@ const pageItem = (scope: string, number: number) => `${scope} nav [aria-label="P
 const step = (scope: string, name: string) => `${scope} nav [aria-label="${name} page"]`;
 const gap = (scope: string) => `${scope} nav [aria-hidden="true"] [title]`;
 
-const prop = (label: string) => `[data-prop="${label}"] input`;
+const field = (key: string) => `${prop(key)} input`;
 
 test.beforeEach(async ({ page: browserPage }) => {
     await browserPage.goto("/paginator");
@@ -71,10 +71,10 @@ test("stepping stops at each end rather than wrapping, and says so before it is 
     await expect(page.locator(step(STEPS, "Next"))).not.toHaveAttribute("aria-disabled");
 
     await page.locator(step(STEPS, "Previous")).click({ force: true });
-    expect(await readout(page, "Previous and next"), "and pressing it does nothing").toContain("page 1 of 20");
+    expect(await readout(page, "steps"), "and pressing it does nothing").toContain("page 1 of 20");
 
     await page.locator(step(STEPS, "Next")).click();
-    expect(await readout(page, "Previous and next")).toContain("page 2 of 20");
+    expect(await readout(page, "steps")).toContain("page 2 of 20");
 });
 
 test("the end jumps are a separate pair, and go quiet alongside their neighbours", async ({ page }) => {
@@ -82,7 +82,7 @@ test("the end jumps are a separate pair, and go quiet alongside their neighbours
     await expect(page.locator(step(ENDS, "Last"))).not.toHaveAttribute("aria-disabled");
 
     await page.locator(step(ENDS, "Last")).click();
-    expect(await readout(page, "Jumps to either end")).toContain("page 20 of 20");
+    expect(await readout(page, "ends")).toContain("page 20 of 20");
 
     await expect(page.locator(step(ENDS, "Last")), "which is where that pair falls silent").toHaveAttribute(
         "aria-disabled",
@@ -95,15 +95,15 @@ test("the end jumps are a separate pair, and go quiet alongside their neighbours
 test("the sibling and boundary knobs widen the window and pin the ends", async ({ page }) => {
     const before = await page.locator(item(STEPS)).count();
 
-    await page.locator(prop("Sibling count")).fill("3");
-    await page.locator(prop("Sibling count")).blur();
+    await page.locator(field("siblingCount")).fill("3");
+    await page.locator(field("siblingCount")).blur();
 
     await expect
         .poll(() => page.locator(item(STEPS)).count(), { message: "more siblings means more pages on show" })
         .toBeGreaterThan(before);
 
-    await page.locator(prop("Boundary count")).fill("3");
-    await page.locator(prop("Boundary count")).blur();
+    await page.locator(field("boundaryCount")).fill("3");
+    await page.locator(field("boundaryCount")).blur();
 
     await expect(page.locator(pageItem(STEPS, 18)), "three pinned at the end means page 18 is one of them").toHaveCount(
         1,
@@ -127,7 +127,7 @@ test("an href makes a page an anchor, and a link component replaces the element"
 });
 
 test("the disabled knob reaches every control in every list", async ({ page }) => {
-    await page.locator(prop("Disabled")).click();
+    await page.locator(field("isDisabled")).click();
 
     await expect(page.locator(`${STEPS} nav [aria-disabled="true"]`)).toHaveCount(
         await page.locator(item(STEPS)).count(),
@@ -137,5 +137,5 @@ test("the disabled knob reaches every control in every list", async ({ page }) =
     );
 
     await page.locator(pageItem(STEPS, 3)).click({ force: true });
-    expect(await readout(page, "Previous and next"), "and nothing moves the page").toContain("page 1 of 20");
+    expect(await readout(page, "steps"), "and nothing moves the page").toContain("page 1 of 20");
 });

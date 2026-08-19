@@ -2,9 +2,9 @@ import { expect, test } from "@playwright/test";
 
 import { activeText, offsetHeight, readout, tabIndex, variant } from "./helpers";
 
-const MULTI = variant("Many open at once");
-const SINGLE = variant("One at a time");
-const GROWING = variant("Content that grows while open");
+const MULTI = variant("multi");
+const SINGLE = variant("single");
+const GROWING = variant("growing");
 
 /**
  * The panel is measured through two boxes on purpose: the one carrying `role="region"` is the constrained
@@ -68,25 +68,22 @@ test("many stay open at once, and the owner's list says which", async ({ page })
     await page.locator(header(MULTI)).nth(1).click();
     await page.locator(header(MULTI)).nth(2).click();
 
-    expect(await readout(page, "Many open at once"), "every opened section is in the list").toContain(
+    expect(await readout(page, "multi"), "every opened section is in the list").toContain(
         '["Shipping","Returns","Warranty"]',
     );
 
     await page.locator(header(MULTI)).nth(0).click();
-    expect(await readout(page, "Many open at once"), "and closing one removes only that one").toContain(
-        '["Returns","Warranty"]',
-    );
+    expect(await readout(page, "multi"), "and closing one removes only that one").toContain('["Returns","Warranty"]');
 });
 
 test("single-expand mode closes the previous section itself", async ({ page }) => {
     await page.locator(header(SINGLE)).nth(0).click();
-    expect(await readout(page, "One at a time")).toContain('["Shipping"]');
+    expect(await readout(page, "single")).toContain('["Shipping"]');
 
     await page.locator(header(SINGLE)).nth(1).click();
-    expect(
-        await readout(page, "One at a time"),
-        "the component drops the previous value rather than the consumer",
-    ).toContain('["Returns"]');
+    expect(await readout(page, "single"), "the component drops the previous value rather than the consumer").toContain(
+        '["Returns"]',
+    );
 
     await expect
         .poll(() => offsetHeight(page.locator(panel(SINGLE)).nth(0)), { timeout: TRANSITION_TIMEOUT_MS })
@@ -96,7 +93,7 @@ test("single-expand mode closes the previous section itself", async ({ page }) =
 test("an open panel follows content that appears after it opened", async ({ page }) => {
     const before = await offsetHeight(page.locator(panel(GROWING)).first());
 
-    await page.locator(`${GROWING} button`, { hasText: "Add a line" }).click();
+    await page.locator("#addALine").click();
 
     await expect
         .poll(() => offsetHeight(page.locator(panel(GROWING)).first()), { timeout: TRANSITION_TIMEOUT_MS })
@@ -141,7 +138,7 @@ test("a disabled header carries no native attribute and cannot open its panel", 
  * claims about a section belonging to a set. A "show more" in the middle of a paragraph is none of those
  * things, so it must be able to have none of them — which is what these assert.
  */
-const SINGLE_PANEL = variant("A single panel, no heading");
+const SINGLE_PANEL = variant("singlePanel");
 
 test("a lone Collapsible is a trigger and a panel and nothing else", async ({ page }) => {
     const trigger = page.locator(`${SINGLE_PANEL} button`);
@@ -165,14 +162,12 @@ test("it opens and closes itself, writing the boolean its owner handed over", as
     await trigger.click();
 
     await expect(trigger).toHaveAttribute("aria-expanded", "true");
-    expect(await readout(page, "A single panel, no heading"), "the owner's own signal is what moved").toContain(
-        "expanded: true",
-    );
+    expect(await readout(page, "singlePanel"), "the owner's own signal is what moved").toContain("expanded: true");
 
     await trigger.click();
 
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
-    expect(await readout(page, "A single panel, no heading")).toContain("expanded: false");
+    expect(await readout(page, "singlePanel")).toContain("expanded: false");
 });
 
 test("the panel animates to its content's measured height, and is inert while closed", async ({ page }) => {

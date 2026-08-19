@@ -21,7 +21,7 @@ const clickOverlayCorner = async (page: Page) => {
 test.describe("Modal", () => {
     test.beforeEach(async ({ page }) => {
         await page.goto("/modal");
-        await expect(page.locator("button", { hasText: "Open Modal" })).toBeVisible();
+        await expect(page.locator("#openModal")).toBeVisible();
     });
 
     test("a closed modal is not in the tree", async ({ page }) => {
@@ -29,7 +29,7 @@ test.describe("Modal", () => {
     });
 
     test("opening mounts a dialog named by the consumer's own heading", async ({ page }) => {
-        await page.locator("button", { hasText: "Open Modal" }).click();
+        await page.locator("#openModal").click();
 
         await expect(page.locator(DIALOG), "opening one mounts a modal dialog").toHaveAttribute("aria-modal", "true");
         await expect(
@@ -39,7 +39,7 @@ test.describe("Modal", () => {
     });
 
     test("focus is trapped and wraps both ways", async ({ page }) => {
-        await page.locator("button", { hasText: "Open Modal" }).click();
+        await page.locator("#openModal").click();
         await expect(page.locator(DIALOG)).toBeVisible();
 
         expect(await activeText(page), "focus lands on the first focusable child").toContain("Focus 1");
@@ -61,7 +61,7 @@ test.describe("Modal", () => {
     });
 
     test("Escape closes it and returns focus to the trigger", async ({ page }) => {
-        await page.locator("button", { hasText: "Open Modal" }).click();
+        await page.locator("#openModal").click();
         await expect(page.locator(DIALOG)).toBeVisible();
 
         await page.keyboard.press("Escape");
@@ -74,7 +74,7 @@ test.describe("Modal", () => {
 });
 
 test.describe("Drawer", () => {
-    const TRIGGER = `${variant("Edge: left")} button`;
+    const TRIGGER = `${variant("left")} button`;
 
     test.beforeEach(async ({ page }) => {
         await page.goto("/drawer");
@@ -129,7 +129,7 @@ test.describe("Drawer", () => {
      * stick to the top *and* fill the width, so it is the one worth driving.
      */
     test("a top drawer sticks to its edge and fills the other axis", async ({ page }) => {
-        await page.locator(`${variant("Edge: top")} button`).click();
+        await page.locator(`${variant("top")} button`).click();
 
         await expect(page.locator(DIALOG)).toHaveAttribute("aria-label", "top drawer");
 
@@ -145,7 +145,7 @@ test.describe("Drawer", () => {
     test("the far edges are honoured too, so all four are the same grid stating different corners", async ({
         page,
     }) => {
-        await page.locator(`${variant("Edge: right")} button`).click();
+        await page.locator(`${variant("right")} button`).click();
 
         const right = await layoutBox(page);
 
@@ -155,7 +155,7 @@ test.describe("Drawer", () => {
         await page.keyboard.press("Escape");
         await expect(page.locator(DIALOG)).toHaveCount(0);
 
-        await page.locator(`${variant("Edge: bottom")} button`).click();
+        await page.locator(`${variant("bottom")} button`).click();
 
         const bottom = await layoutBox(page);
 
@@ -169,7 +169,7 @@ test.describe("Drawer", () => {
 
         await page.keyboard.press("Escape");
         await expect(page.locator(DIALOG), "Escape closes it").toHaveCount(0);
-        expect(await readout(page, "Edge: left"), "and the owner's signal says so").toContain("open: false");
+        expect(await readout(page, "left"), "and the owner's signal says so").toContain("open: false");
 
         await page.locator(TRIGGER).click();
         await expect(page.locator(DIALOG)).toBeVisible();
@@ -179,7 +179,7 @@ test.describe("Drawer", () => {
 });
 
 test.describe("Modal in its alert mode", () => {
-    const TRIGGER = `${variant("Destructive confirmation")} button`;
+    const TRIGGER = `${variant("destructiveConfirmation")} button`;
 
     test.beforeEach(async ({ page }) => {
         await page.goto("/modal");
@@ -212,7 +212,7 @@ test.describe("Modal in its alert mode", () => {
 
         await page.keyboard.press("Escape");
         await expect(page.locator(ALERT), "Escape still closes it, as every dialog must").toHaveCount(0);
-        expect(await readout(page, "Destructive confirmation"), "with no outcome").toContain("nothing decided yet");
+        expect(await readout(page, "destructiveConfirmation"), "with no outcome").toContain("nothing decided yet");
     });
 
     test("the initial focus target can be activated straight away", async ({ page }) => {
@@ -221,7 +221,7 @@ test.describe("Modal in its alert mode", () => {
 
         await page.keyboard.press("Enter");
         await expect(page.locator(ALERT), "the initial focus target can be activated straight away").toHaveCount(0);
-        expect(await readout(page, "Destructive confirmation"), "and reports what was answered").toContain(
+        expect(await readout(page, "destructiveConfirmation"), "and reports what was answered").toContain(
             "outcome: cancelled",
         );
     });
@@ -234,11 +234,10 @@ test.describe("Modal in its alert mode", () => {
  * it.
  */
 test.describe("A popup inside a modal", () => {
-    const LAYERED = variant("A popup inside it");
     const LISTBOX = '[role="listbox"]';
 
     const openBoth = async (page: Page) => {
-        await page.locator(`${LAYERED} button`, { hasText: "Open layers" }).click();
+        await page.locator("#openLayers").click();
         await expect(page.locator(DIALOG)).toBeVisible();
 
         await page.locator(`${DIALOG} [role="combobox"]`).click();
@@ -247,7 +246,7 @@ test.describe("A popup inside a modal", () => {
 
     test.beforeEach(async ({ page }) => {
         await page.goto("/modal");
-        await expect(page.locator(`${LAYERED} button`, { hasText: "Open layers" })).toBeVisible();
+        await expect(page.locator("#openLayers")).toBeVisible();
     });
 
     test("Escape closes the innermost layer and leaves the one around it", async ({ page }) => {
@@ -278,6 +277,6 @@ test.describe("A popup inside a modal", () => {
         await expect(page.locator(DIALOG), "picking from a list inside a modal does not dismiss the modal").toHaveCount(
             1,
         );
-        expect(await readout(page, "A popup inside it")).toContain("country: Portugal");
+        expect(await readout(page, "layered")).toContain("country: Portugal");
     });
 });

@@ -27,6 +27,7 @@ export const TogglePage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () => `on: ${defaultSignal[0]()}`,
                 component: () => (
@@ -38,6 +39,7 @@ export const TogglePage = () => {
                 ),
             },
             {
+                key: "decorated",
                 name: "Decorated",
                 readout: () => `on: ${decoratedSignal[0]()}`,
                 component: () => (
@@ -57,6 +59,7 @@ export const TogglePage = () => {
                 ),
             },
             {
+                key: "mixed",
                 name: "Mixed",
                 readout: () =>
                     `mixed: ${getIsAllMixed()} | all: ${allSignal[0]()} | children: ${firstChildSignal[0]()}, ${secondChildSignal[0]()}`,
@@ -65,6 +68,7 @@ export const TogglePage = () => {
                         <Toggle
                             checkedSignal={allSignal}
                             getIsMixed={getIsAllMixed}
+                            getId={() => "allSettings"}
                             getAriaLabel={() => "All settings"}
                             renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
                             getTooltipDefs={() => ({
@@ -94,6 +98,7 @@ export const TogglePage = () => {
 
                         <Toggle
                             checkedSignal={firstChildSignal}
+                            getId={() => "firstSetting"}
                             getAriaLabel={() => "First setting"}
                             renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
                         />
@@ -107,6 +112,7 @@ export const TogglePage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled",
                 readout: () => `on: ${disabledSignal[0]()}`,
                 component: () => (
@@ -119,6 +125,7 @@ export const TogglePage = () => {
                 ),
             },
             {
+                key: "reachable",
                 name: "Disabled + reachable",
                 readout: () => `on: ${reachableSignal[0]()}`,
                 component: () => (
@@ -145,6 +152,7 @@ export const TogglePage = () => {
                 ),
             },
             {
+                key: "errored",
                 name: "Error",
                 readout: () => `on: ${erroredSignal[0]()}`,
                 component: () => (

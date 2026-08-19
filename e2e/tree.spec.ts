@@ -2,11 +2,11 @@ import { expect, test } from "@playwright/test";
 
 import { activeMatches, activeText, readout, tabIndex, variant } from "./helpers";
 
-const DEFAULT = variant("Default");
-const COLLAPSED = variant("Everything collapsed");
-const DISABLED = variant("Disabled nodes");
-const REACHABLE = variant("Disabled nodes + reachable");
-const OUTSIDE = variant("Collapsed from outside");
+const DEFAULT = variant("default");
+const COLLAPSED = variant("collapsed");
+const DISABLED = variant("disabled");
+const REACHABLE = variant("reachable");
+const OUTSIDE = variant("outside");
 
 const OUTSIDE_COLLAPSE_DELAY_MS = 500;
 
@@ -56,13 +56,13 @@ test("clicking a branch opens it and selects it, and clicking it again closes it
         "aria-expanded",
         "false",
     );
-    expect(await readout(page, "Default"), "and the same click selects it").toContain("value: src");
-    expect(await readout(page, "Default")).toContain("expanded: []");
+    expect(await readout(page, "default"), "and the same click selects it").toContain("value: src");
+    expect(await readout(page, "default")).toContain("expanded: []");
 
     await branch.click();
 
     await expect(branch).toHaveAttribute("aria-expanded", "true");
-    expect(await readout(page, "Default")).toContain('expanded: ["src"]');
+    expect(await readout(page, "default")).toContain('expanded: ["src"]');
 });
 
 test("only one node is in the tab order, and it is the selected one once there is a selection", async ({ page }) => {
@@ -120,16 +120,14 @@ test("the asterisk opens every branch at the level focus is on", async ({ page }
     await page.locator(node(COLLAPSED)).first().focus();
     await page.keyboard.press("*");
 
-    expect(await readout(page, "Everything collapsed"), "src is the only branch at the top level").toContain(
-        'expanded: ["src"]',
-    );
+    expect(await readout(page, "collapsed"), "src is the only branch at the top level").toContain('expanded: ["src"]');
 
     await page.keyboard.press("ArrowDown");
     await page.keyboard.press("ArrowDown");
     await page.keyboard.press("*");
 
     expect(
-        await readout(page, "Everything collapsed"),
+        await readout(page, "collapsed"),
         "and inside src it opens Lib and Playground together, leaving the leaf alone",
     ).toContain('["src","Lib","Playground"]');
 });
@@ -146,7 +144,7 @@ test("a disabled node is skipped by the arrows while what is inside it stays rea
 
     await page.locator(node(DISABLED)).nth(2).dispatchEvent("click");
 
-    expect(await readout(page, "Disabled nodes"), "clicking the disabled branch selects nothing").toContain(
+    expect(await readout(page, "disabled"), "clicking the disabled branch selects nothing").toContain(
         "value: undefined",
     );
     await expect(
@@ -169,9 +167,7 @@ test("a reachable disabled node takes focus, explains itself and still refuses t
     ).toHaveAttribute("aria-expanded", "false");
 
     await page.keyboard.press("Enter");
-    expect(await readout(page, "Disabled nodes + reachable"), "nor does it become the selection").toContain(
-        "value: undefined",
-    );
+    expect(await readout(page, "reachable"), "nor does it become the selection").toContain("value: undefined");
 
     await page.locator(node(REACHABLE)).nth(2).hover();
     await expect(page.locator('[role="tooltip"]'), "hovering it says why").toContainText("Not indexed");

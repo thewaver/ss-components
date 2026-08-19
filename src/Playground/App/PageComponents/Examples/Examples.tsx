@@ -22,11 +22,12 @@ export const PageExamples = (props: ExamplesProps) => {
             <div class={styles.examplesRoot}>
                 <For each={props.getItems()}>
                     {(example, getExampleIndex) => (
-                        <div class={styles.exampleContainer} data-example={example.name}>
+                        <div class={styles.exampleContainer} data-example data-testid={example.key}>
                             <div class={styles.exampleTitle}>
                                 {`${example.name}:`}
                                 {example.path && (
                                     <Button
+                                        getId={() => `${example.key}Source`}
                                         getTooltipDefs={() => ({
                                             getPlacement: () => ({ x: "center", y: "top-out" }),
                                             getOffset: () => ({ x: 0, y: 5 }),

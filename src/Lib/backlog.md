@@ -1252,51 +1252,6 @@ by something only the consumer knows — which argues for the offset, with the r
 
 ---
 
-## Accepted limits
-
-Faults that have been looked at and consciously left alone. Not outstanding work, not numbered, and not part
-of the answer to "what is left" — see the note at the top of this file. Each one records what it is, how to
-reach it, and why it was accepted, so that nobody has to re-derive the argument in order to leave it alone
-again. An entry moves back up into the numbered items only if the user says so, or if something changes that
-makes the reasoning wrong.
-
-**Converting a date into a calendar that cannot hold it clamps, silently.** Accepted **2026-08-11**.
-`DateValueUtils.withCalendar` is `toCalendar`, and 15 March 44 BC asked for in the Japanese calendar comes back
-as Meiji 1 — 15 September 1868 — because that calendar's first era begins there. Nothing reports that the value
-moved. Reachable in the Playground in two clicks: hold the Date picker page's historical date and switch the
-calendar knob to `japanese`.
-
-This is the same class of fault as a mask laying too many digits into too few slots, and it is the one place the
-_"never approximate a value"_ rule in `conventions.md` is still broken — so the rule is stated there with this
-exception, rather than pretending to be absolute. The fix itself is cheap, a round-trip comparison; what made it
-not worth taking is that it forces `withCalendar` to return `undefined`, and then each of `Calendar`,
-`DateInput` and the Playground's knob has to decide separately what to show instead. Three judgment calls and a
-non-null assertion in `toIso`, to close a case only a deliberate calendar switch on an out-of-era date reaches.
-The clamp is also `Intl`'s own behaviour, so what ships is at least consistent with the platform.
-
-**Screenshot baselines, and with them any automated check on appearance.** Accepted **2026-08-11**, by the
-user, on two grounds: style in this project is far too fluid for a baseline image to mean anything for long,
-and appearance is **not the library's responsibility** in the first place — `src/Lib` paints nothing, every
-painter lives in the Playground, so a committed image would be asserting the demo's taste rather than the
-package's contract.
-
-What this permanently gives up is worth naming so nobody re-proposes it as a gap: the `aria-disabled`-parity
-rule — that disabled and disabled-but-reachable look identical — is checked by eye and only by eye, and
-`CellAnimation`, `ScanlineAnimation` and `ScreenWiper` will keep their Playground pages and no specs, because
-motion over time is the one thing a DOM-reading suite cannot see. Item 10 records the blind spot; this is the
-decision not to close it.
-
-For the record, since it was researched and would otherwise be re-researched: there are two published
-arrangements and they differ on where the image lives. Playwright's own screenshot assertion commits the
-baseline beside the spec, one file per browser and platform, re-blessed with `--update-snapshots` — and its docs
-are explicit that rendering varies with the host operating system, the browser build, headless mode, hardware
-and even whether the machine is on battery, so a committed image is only stable in the environment that
-produced it. The hosted services (Chromatic, Argos) keep baselines off the repo entirely and put the diff in the
-pull request for approval, which is what libraries with a design system to protect generally use. Neither
-arrangement survives the two grounds above.
-
----
-
 ## 27. The four components ported from React — one thing to retest, one deliberately not built
 
 `Satellite`, `Staircase`, `Formation`, `FlatWheel` and `DrumWheel` came in from a React codebase; what the port
@@ -1378,48 +1333,45 @@ is bumped.
 
 ---
 
-## 29. The suite finds things by strings a person is free to reword
+## Accepted limits
 
-**What happens.** A spec goes red on a change that broke nothing, because a caption moved. `wheel.spec.ts`
-looked for its flat example at `[data-example="Flat"]` while the page had come to call it `Flat, topside`, so all
-thirteen of its tests failed in `beforeEach` — none of them for a reason to do with a wheel. The user reports
-this is not the first time a reworded label has done it.
+Faults that have been looked at and consciously left alone. Not outstanding work, not numbered, and not part
+of the answer to "what is left" — see the note at the top of this file. Each one records what it is, how to
+reach it, and why it was accepted, so that nobody has to re-derive the argument in order to leave it alone
+again. An entry moves back up into the numbered items only if the user says so, or if something changes that
+makes the reasoning wrong.
 
-**Why this is worse than one broken selector.** A suite is supposed to answer one question: did the behaviour
-change. A locator built out of editorial text answers a different one as well — has anybody edited the copy —
-and mixes the two answers into the same red. The failure also lands nowhere near the edit: whoever renamed the
-example was on a Playground page, and what broke was thirteen assertions about rotation. That is expensive to
-read and it trains everyone to distrust a red run, which is the thing that makes a suite worthless.
+**Converting a date into a calendar that cannot hold it clamps, silently.** Accepted **2026-08-11**.
+`DateValueUtils.withCalendar` is `toCalendar`, and 15 March 44 BC asked for in the Japanese calendar comes back
+as Meiji 1 — 15 September 1868 — because that calendar's first era begins there. Nothing reports that the value
+moved. Reachable in the Playground in two clicks: hold the Date picker page's historical date and switch the
+calendar knob to `japanese`.
 
-**The three kinds of locator in use, and only one of them is sound.**
+This is the same class of fault as a mask laying too many digits into too few slots, and it is the one place the
+_"never approximate a value"_ rule in `conventions.md` is still broken — so the rule is stated there with this
+exception, rather than pretending to be absolute. The fix itself is cheap, a round-trip comparison; what made it
+not worth taking is that it forces `withCalendar` to return `undefined`, and then each of `Calendar`,
+`DateInput` and the Playground's knob has to decide separately what to show instead. Three judgment calls and a
+non-null assertion in `toIso`, to close a case only a deliberate calendar switch on an out-of-era date reaches.
+The clamp is also `Intl`'s own behaviour, so what ships is at least consistent with the platform.
 
-- **A role, a role description, or a state attribute** — `[aria-roledescription="wedge"]`, `[role="log"]`,
-  `[aria-disabled]`, `[inert]`. These are the component's published contract; a spec is _meant_ to break when
-  one changes, because that is the change. **Sound, and they stay.**
-- **A display string** — `[data-example="Flat, topside"]`, `[data-prop="Wedges"]`, `[data-variant="…"]`, and
-  `button[aria-label="Spin the wheel"]` where the button is merely being **found** rather than being the
-  subject. Editorial: anybody may reword any of it, at any time, without touching a behaviour. **This is the
-  fault.**
-- **An accessible name that is itself the assertion** — a test whose point is that a control is named, or named
-  a particular way. **Sound, and it stays**, since there the string is the thing under test.
+**Screenshot baselines, and with them any automated check on appearance.** Accepted **2026-08-11**, by the
+user, on two grounds: style in this project is far too fluid for a baseline image to mean anything for long,
+and appearance is **not the library's responsibility** in the first place — `src/Lib` paints nothing, every
+painter lives in the Playground, so a committed image would be asserting the demo's taste rather than the
+package's contract.
 
-**The shape of the fix.** A stable key attribute — `data-testid` — on the Playground's example containers,
-its props rows, its variant sections and the demo controls a spec drives; the specs find things by that and
-stop reading captions. The key is chosen once, never displayed, and is not a caption, so nothing about
-rewording a label can reach it.
+What this permanently gives up is worth naming so nobody re-proposes it as a gap: the `aria-disabled`-parity
+rule — that disabled and disabled-but-reachable look identical — is checked by eye and only by eye, and
+`CellAnimation`, `ScanlineAnimation` and `ScreenWiper` will keep their Playground pages and no specs, because
+motion over time is the one thing a DOM-reading suite cannot see. Item 10 records the blind spot; this is the
+decision not to close it.
 
-**Where the keys come from, and the scale.** `ExampleDefs` and `VariantDefs` gain a key field beside `name`,
-and `PageProp` gains one beside its label; a demo control that a spec drives takes one where it is rendered.
-Measured across `e2e/`: 146 uses of `variant(…)`, 53 `aria-label` locators, 19 of `data-prop` and 13 of
-`example(…)`. Every page that declares a variant, an example or a prop is touched. It is mechanical work, but
-it is not small, and it is the sort of change that can only be verified by the suite it is rewriting — so it
-wants doing in one pass, per page, with the run green at each step.
-
-**What must not be done along the way.** Do not convert the accessible-name assertions into key lookups. The
-tests that check a control is properly named are the ones justifying every `aria-label` in the library, and a
-suite that finds everything by key and asserts nothing about names has quietly stopped covering the thing this
-library is most careful about.
-
-**One structural oddity, noticed while writing this and not acted on.** The _Accepted limits_ section sits
-before items 27 to 29 rather than at the end of the file, which is where this file's own preamble says it
-lives.
+For the record, since it was researched and would otherwise be re-researched: there are two published
+arrangements and they differ on where the image lives. Playwright's own screenshot assertion commits the
+baseline beside the spec, one file per browser and platform, re-blessed with `--update-snapshots` — and its docs
+are explicit that rendering varies with the host operating system, the browser build, headless mode, hardware
+and even whether the machine is on battery, so a committed image is only stable in the environment that
+produced it. The hosted services (Chromatic, Argos) keep baselines off the repo entirely and put the diff in the
+pull request for approval, which is what libraries with a design system to protect generally use. Neither
+arrangement survives the two grounds above.

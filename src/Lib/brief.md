@@ -11,7 +11,7 @@ outstanding work. They are at the end of `backlog.md`.
 | ------------------------------------------------------- | ----: |
 | [Missing components](#missing-components)               |     8 |
 | [Pending abstractions](#pending-abstractions)           |    12 |
-| [Blockers and known issues](#blockers-and-known-issues) |    19 |
+| [Blockers and known issues](#blockers-and-known-issues) |    18 |
 | [Accessibility gaps](#accessibility-gaps)               |     5 |
 | [Planned projects](#planned-projects)                   |     2 |
 
@@ -73,7 +73,6 @@ Ordered by the user on 2026-08-15. A toolbar, a segmented control, a rating inpu
 | 27     | **`DrumWheel`**                 | Girth arithmetic replaced a tuned constant; the user recalls it misbehaving and will retest |
 | 28     | **`Typewriter`**                | Cannot render a blank line; a break-collapsing bug in `ss-utils`, fix parked in-repo        |
 | 27     | **`FlatWheel`**                 | Hit-tests up to 70px outside its circle; nothing visible, a trap for a control in a wedge   |
-| 29     | **`e2e/`, every page**          | Specs find things by captions, so rewording a label reddens tests that broke nothing        |
 
 ## Accessibility gaps
 

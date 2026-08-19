@@ -38,6 +38,7 @@ export const RadioPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () => `value: ${defaultSignal[0]()}`,
                 component: () => (
@@ -61,6 +62,7 @@ export const RadioPage = () => {
                 ),
             },
             {
+                key: "segmented",
                 name: "Segmented",
                 readout: () => `value: ${segmentedSignal[0]()}`,
                 component: () => (
@@ -95,6 +97,7 @@ export const RadioPage = () => {
                 ),
             },
             {
+                key: "rating",
                 name: "Rating",
                 readout: () => `value: ${ratingSignal[0]()}`,
                 component: () => (
@@ -130,6 +133,7 @@ export const RadioPage = () => {
                 ),
             },
             {
+                key: "decorated",
                 name: "Decorated",
                 readout: () => `value: ${decoratedSignal[0]()}`,
                 component: () => (
@@ -162,6 +166,7 @@ export const RadioPage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled",
                 readout: () => `value: ${disabledSignal[0]()}`,
                 component: () => (
@@ -186,6 +191,7 @@ export const RadioPage = () => {
                 ),
             },
             {
+                key: "reachable",
                 name: "Disabled + reachable",
                 readout: () => `value: ${reachableSignal[0]()}`,
                 component: () => (
@@ -229,6 +235,7 @@ export const RadioPage = () => {
                 ),
             },
             {
+                key: "errored",
                 name: "Error",
                 readout: () => `value: ${erroredSignal[0]()}`,
                 component: () => (

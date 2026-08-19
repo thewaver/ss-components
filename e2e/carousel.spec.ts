@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { readout, variant } from "./helpers";
+import { prop, readout, variant } from "./helpers";
 
 /**
  * The rotation delay is a panel knob, so the spec turns it down to its floor rather than waiting out the
@@ -10,14 +10,14 @@ import { readout, variant } from "./helpers";
  * Three carousels sit on the page and only one of them rotates, which is what makes the holds testable:
  * a hold that leaked would show up as the other two behaving differently from the one under the pointer.
  */
-const MANUAL = variant("Stepped by hand");
-const ROTATING = variant("Rotating on its own");
+const MANUAL = variant("manual");
+const ROTATING = variant("rotating");
 
 const region = (scope: string) => `${scope} [aria-roledescription="carousel"]`;
 const slide = (scope: string) => `${scope} [aria-roledescription="slide"]`;
 const control = (scope: string, name: string) => `${scope} button[aria-label="${name}"]`;
 
-const prop = (label: string) => `[data-prop="${label}"] input`;
+const field = (key: string) => `${prop(key)} input`;
 
 const DELAY_MS = 500;
 const SETTLE_MS = 900;
@@ -28,8 +28,8 @@ const currentSlide = (page: import("@playwright/test").Page, scope: string) =>
 test.beforeEach(async ({ page }) => {
     await page.goto("/carousel");
     await expect(page.locator(region(MANUAL))).toBeVisible();
-    await page.locator(prop("Rotation delay")).fill(String(DELAY_MS));
-    await page.locator(prop("Rotation delay")).blur();
+    await page.locator(field("delayMs")).fill(String(DELAY_MS));
+    await page.locator(field("delayMs")).blur();
     await page.mouse.move(0, 0);
 });
 
@@ -146,7 +146,7 @@ test("the stop control halts it outright and renames itself for the way back", a
 });
 
 test("the disabled knob stops the rotation as well as the controls", async ({ page }) => {
-    await page.locator(prop("Disabled")).click();
+    await page.locator(field("isDisabled")).click();
 
     const stopped = await currentSlide(page, ROTATING);
 
@@ -155,5 +155,5 @@ test("the disabled knob stops the rotation as well as the controls", async ({ pa
     expect(await currentSlide(page, ROTATING), "a disabled carousel does not move itself either").toBe(stopped);
 
     await page.locator(control(MANUAL, "Next slide")).click({ force: true });
-    expect(await readout(page, "Stepped by hand"), "and nothing steps it").toContain("slide 1 of");
+    expect(await readout(page, "manual"), "and nothing steps it").toContain("slide 1 of");
 });

@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-import { example } from "./helpers";
+import { example, prop } from "./helpers";
 
-const COMPLEX = example("Complex");
+const COMPLEX = example("complex");
 const MEASURE_COPY = `${COMPLEX} [inert]`;
 
 const SOURCE_TEXT = "This is a bit of text that appearsonesingle text character at a time,and hasescaped characters.";
@@ -75,7 +75,7 @@ test("structure survives the split but presentation is flattened onto the spans"
 });
 
 test("re-laying out the container leaves the text intact", async ({ page }) => {
-    const width = page.locator('[data-panel="global"] input[aria-label="Container width"]');
+    const width = page.locator(`${prop("textContainerWidth")} input`);
 
     await width.fill("320");
     await width.blur();

@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-import { inlineStyle, readout, variant } from "./helpers";
+import { inlineStyle, prop, readout, variant } from "./helpers";
 
-const PAIR = variant("Two panes");
-const BOUNDED = variant("Bounded panes");
-const TRIPLE = variant("Three panes");
-const STACKED = variant("Stacked");
-const CRAMPED = variant("Minimums that do not fit");
+const PAIR = variant("pair");
+const BOUNDED = variant("bounded");
+const TRIPLE = variant("triple");
+const STACKED = variant("stacked");
+const CRAMPED = variant("cramped");
 
 const root = (scope: string) => `${scope} [role="group"]`;
 const gutter = (scope: string) => `${scope} [role="separator"]`;
@@ -61,11 +61,11 @@ test("a gutter is a separator with a value, and arrows move it", async ({ page }
     await first.focus();
     await page.keyboard.press("ArrowRight");
 
-    expect(await readout(page, "Two panes"), "an arrow moves the boundary by a step").toContain("ratios: 32% / 68%");
+    expect(await readout(page, "pair"), "an arrow moves the boundary by a step").toContain("ratios: 32% / 68%");
 
     await page.keyboard.press("ArrowLeft");
     await page.keyboard.press("ArrowLeft");
-    expect(await readout(page, "Two panes"), "and back the other way").toContain("ratios: 28% / 72%");
+    expect(await readout(page, "pair"), "and back the other way").toContain("ratios: 28% / 72%");
 });
 
 test("a stacked split takes the other pair of arrows", async ({ page }) => {
@@ -75,10 +75,10 @@ test("a stacked split takes the other pair of arrows", async ({ page }) => {
 
     await first.focus();
     await page.keyboard.press("ArrowRight");
-    expect(await readout(page, "Stacked"), "the cross-axis arrows do nothing").toContain("ratios: 40% / 60%");
+    expect(await readout(page, "stacked"), "the cross-axis arrows do nothing").toContain("ratios: 40% / 60%");
 
     await page.keyboard.press("ArrowDown");
-    expect(await readout(page, "Stacked"), "and its own axis moves it").toContain("ratios: 42% / 58%");
+    expect(await readout(page, "stacked"), "and its own axis moves it").toContain("ratios: 42% / 58%");
 });
 
 /**
@@ -92,13 +92,13 @@ test("a gutter moves its two neighbours and leaves the rest alone", async ({ pag
     await page.locator(gutter(TRIPLE)).first().focus();
     await page.keyboard.press("ArrowRight");
 
-    expect(await readout(page, "Three panes"), "the first pair trade and the third is untouched").toContain(
+    expect(await readout(page, "triple"), "the first pair trade and the third is untouched").toContain(
         "ratios: 27% / 48% / 25%",
     );
 });
 
 test("a disabled split is out of the tab order and refuses the keyboard", async ({ page }) => {
-    await page.getByLabel("Disabled").check();
+    await page.locator(`${prop("isDisabled")} input`).check();
 
     const first = page.locator(gutter(PAIR));
 
@@ -113,7 +113,7 @@ test("a disabled split is out of the tab order and refuses the keyboard", async 
 
     await first.evaluate((element) => (element as HTMLElement).focus());
     await page.keyboard.press("ArrowRight");
-    expect(await readout(page, "Two panes"), "so the arrows move nothing").toContain("ratios: 30% / 70%");
+    expect(await readout(page, "pair"), "so the arrows move nothing").toContain("ratios: 30% / 70%");
 });
 
 /**

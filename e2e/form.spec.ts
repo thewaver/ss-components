@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { readout, variant } from "./helpers";
 
-const FORM = `${variant("A form that reports its own validity")} form`;
+const FORM = `${variant("reportsValidity")} form`;
 const submit = `${FORM} button[type="submit"]`;
 const reset = `${FORM} button[type="reset"]`;
 
@@ -63,11 +63,11 @@ test("submit and reset run without the page reloading", async ({ page }) => {
 
     await page.locator(submit).click();
 
-    expect(await readout(page, "A form that reports its own validity")).toContain("submitted as me@example.com");
+    expect(await readout(page, "reportsValidity")).toContain("submitted as me@example.com");
 
     await page.locator(reset).click();
 
-    expect(await readout(page, "A form that reports its own validity")).toContain("not submitted");
+    expect(await readout(page, "reportsValidity")).toContain("not submitted");
 });
 
 test("a message that empties takes the description reference with it", async ({ page }) => {

@@ -13,16 +13,19 @@ export const SurfacePage = () => {
     const getExamples = createMemo(() => {
         return [
             {
+                key: "avatar",
                 name: "Avatar",
                 component: () => <AvatarExample />,
                 path: `${EXAMPLES_ROOT}/Avatar/Avatar.tsx`,
             },
             {
+                key: "banner",
                 name: "Banner",
                 component: () => <BannerExample />,
                 path: `${EXAMPLES_ROOT}/Banner/Banner.tsx`,
             },
             {
+                key: "card",
                 name: "Card",
                 component: () => <CardExample />,
                 path: `${EXAMPLES_ROOT}/Card/Card.tsx`,

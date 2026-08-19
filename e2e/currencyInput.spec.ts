@@ -1,18 +1,17 @@
 import { expect, test } from "@playwright/test";
 
-import { inputValue, readout, variant } from "./helpers";
+import { inputValue, prop, readout, variant } from "./helpers";
 
-const DEFAULT = variant("Default");
-const EMPTY = variant("Empty");
-const BOUNDED = variant("Bounded");
-const BIG = variant("Many groups");
+const DEFAULT = variant("default");
+const EMPTY = variant("empty");
+const BOUNDED = variant("bounded");
+const BIG = variant("big");
 
 const field = (scope: string) => `${scope} input`;
-const prop = (label: string) => `[data-prop="${label}"]`;
 const option = '[role="listbox"] [role="option"]';
 
-const chooseProp = async (page: import("@playwright/test").Page, label: string, text: string) => {
-    await page.locator(`${prop(label)} [role="combobox"]`).click();
+const chooseProp = async (page: import("@playwright/test").Page, key: string, text: string) => {
+    await page.locator(`${prop(key)} [role="combobox"]`).click();
     await page.locator(option, { hasText: text }).first().click();
 };
 
@@ -43,7 +42,7 @@ test("fills the fraction from the right as digits arrive", async ({ page }) => {
     await page.keyboard.type("3", { delay: 15 });
     expect(await inputValue(page.locator(field(EMPTY)))).toBe("1.23");
 
-    expect(await readout(page, "Empty"), "and the owner is given a number, not the text").toContain("value: 1.23");
+    expect(await readout(page, "empty"), "and the owner is given a number, not the text").toContain("value: 1.23");
 });
 
 test("grows a separator as the value crosses a group, which a fixed pattern cannot do", async ({ page }) => {
@@ -79,13 +78,13 @@ test("takes the digit with the separator when the separator is backspaced", asyn
 
 test("an emptied field has no value rather than a zero", async ({ page }) => {
     await typeInto(page, field(EMPTY), "123");
-    expect(await readout(page, "Empty")).toContain("value: 1.23");
+    expect(await readout(page, "empty")).toContain("value: 1.23");
 
     await page.locator(field(EMPTY)).press("ControlOrMeta+a");
     await page.locator(field(EMPTY)).press("Delete");
 
     expect(await inputValue(page.locator(field(EMPTY)))).toBe("");
-    expect(await readout(page, "Empty"), "an empty field is not worth nothing, it holds nothing").toContain(
+    expect(await readout(page, "empty"), "an empty field is not worth nothing, it holds nothing").toContain(
         "value: none",
     );
 });
@@ -94,11 +93,11 @@ test("a bound refuses a value as it is typed rather than nudging it", async ({ p
     await typeInto(page, field(BOUNDED), "600000");
 
     expect(await inputValue(page.locator(field(BOUNDED))), "the text is what was typed").toBe("6,000.00");
-    expect(await readout(page, "Bounded"), "but a value over the maximum is not a value").toContain("value: none");
+    expect(await readout(page, "bounded"), "but a value over the maximum is not a value").toContain("value: none");
 
     await typeInto(page, field(BOUNDED), "400000");
 
-    expect(await readout(page, "Bounded"), "and one inside it is").toContain("value: 4000");
+    expect(await readout(page, "bounded"), "and one inside it is").toContain("value: 4000");
 });
 
 test("reads a pasted amount in punctuation it does not use", async ({ page }) => {
@@ -117,16 +116,16 @@ test.describe("the locale owns the separators", () => {
     test("swaps both of them for a locale that writes numbers the other way round", async ({ page }) => {
         expect(await inputValue(page.locator(field(DEFAULT)))).toBe("1,234.56");
 
-        await chooseProp(page, "Locale", "de-DE");
+        await chooseProp(page, "locale", "de-DE");
 
         expect(await inputValue(page.locator(field(DEFAULT))), "the group and decimal marks trade places").toBe(
             "1.234,56",
         );
-        expect(await readout(page, "Default"), "and the value itself has not moved").toContain("value: 1234.56");
+        expect(await readout(page, "default"), "and the value itself has not moved").toContain("value: 1234.56");
     });
 
     test("a different decimal count re-reads the same digits", async ({ page }) => {
-        await chooseProp(page, "Decimals", "0");
+        await chooseProp(page, "decimals", "0");
 
         expect(await inputValue(page.locator(field(DEFAULT))), "no fraction, so every digit is a whole unit").toBe(
             "1,235",
@@ -134,9 +133,9 @@ test.describe("the locale owns the separators", () => {
     });
 
     test("a different group size regroups without touching the value", async ({ page }) => {
-        await chooseProp(page, "Group size", "4");
+        await chooseProp(page, "groupSize", "4");
 
         expect(await inputValue(page.locator(field(BIG)))).toBe("98,7654,3210.12");
-        expect(await readout(page, "Many groups")).toContain("value: 9876543210.12");
+        expect(await readout(page, "big")).toContain("value: 9876543210.12");
     });
 });

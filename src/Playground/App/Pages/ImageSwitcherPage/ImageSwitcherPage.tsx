@@ -64,6 +64,7 @@ export const ImageSwitcherPage = () => {
 
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () => `loads: ${getLoadCount()} | last loaded: ${getLoadedName()}`,
                 component: () => <DefaultExampleWrapper {...commonProps} />,
@@ -75,7 +76,7 @@ export const ImageSwitcherPage = () => {
     return (
         <div class={styles.root}>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Source"}>
+                <PageProp getKey={() => "sourceType"} getLabel={() => "Source"}>
                     <PageSelectField
                         getValue={getSourceType}
                         getValues={() => SOURCE_TYPES}
@@ -84,7 +85,7 @@ export const ImageSwitcherPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Transition duration (ms)"}>
+                <PageProp getKey={() => "transitionDurationMs"} getLabel={() => "Transition duration (ms)"}>
                     <PageNumberField
                         getValue={getTransitionDurationMs}
                         getMin={() => MIN_DURATION_MS}

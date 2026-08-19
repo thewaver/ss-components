@@ -123,16 +123,19 @@ export const WheelPage = () => {
 
         return [
             {
+                key: "flat",
                 name: "Flat, top",
                 component: () => <FlatExampleWrapper {...commonProps} indexSignal={flatIndexSignal} />,
                 path: `${EXAMPLES_ROOT}/Flat.tsx`,
             },
             {
+                key: "sideways",
                 name: "Drum, horizontal",
                 component: () => <DrumSidewaysExampleWrapper {...commonProps} indexSignal={sidewaysIndexSignal} />,
                 path: `${EXAMPLES_ROOT}/DrumSideways.tsx`,
             },
             {
+                key: "reel",
                 name: "Drum, vertical",
                 component: () => <DrumOverExampleWrapper {...commonProps} indexSignal={reelIndexSignal} />,
                 path: `${EXAMPLES_ROOT}/DrumOver.tsx`,
@@ -143,7 +146,7 @@ export const WheelPage = () => {
     return (
         <>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Wedges"}>
+                <PageProp getKey={() => "wedgeCount"} getLabel={() => "Wedges"}>
                     <PageNumberField
                         getValue={getWedgeCount}
                         getMin={() => MIN_WEDGE_COUNT}
@@ -155,7 +158,7 @@ export const WheelPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Spin duration (ms)"}>
+                <PageProp getKey={() => "spinDurationMs"} getLabel={() => "Spin duration (ms)"}>
                     <PageNumberField
                         getValue={getSpinDurationMs}
                         getMin={() => MIN_DURATION_MS}
@@ -167,7 +170,7 @@ export const WheelPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Settle duration (ms)"}>
+                <PageProp getKey={() => "settleDurationMs"} getLabel={() => "Settle duration (ms)"}>
                     <PageNumberField
                         getValue={getSettleDurationMs}
                         getMin={() => MIN_DURATION_MS}
@@ -179,7 +182,7 @@ export const WheelPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Turns again after a spin"}>
+                <PageProp getKey={() => "doesResume"} getLabel={() => "Turns again after a spin"}>
                     <PageCheckField
                         getValue={getDoesResume}
                         getAriaLabel={() => "Turns again after a spin"}
@@ -187,7 +190,7 @@ export const WheelPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Rest after a spin (ms)"}>
+                <PageProp getKey={() => "restDurationMs"} getLabel={() => "Rest after a spin (ms)"}>
                     <PageNumberField
                         getValue={getRestDurationMs}
                         getMin={() => MIN_DURATION_MS}
@@ -200,7 +203,7 @@ export const WheelPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Turns by itself"}>
+                <PageProp getKey={() => "isIdlingAllowed"} getLabel={() => "Turns by itself"}>
                     <PageCheckField
                         getValue={getIsIdlingAllowed}
                         getAriaLabel={() => "Turns by itself"}
@@ -208,7 +211,7 @@ export const WheelPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Idle step delay (ms)"}>
+                <PageProp getKey={() => "idleDelayMs"} getLabel={() => "Idle step delay (ms)"}>
                     <PageNumberField
                         getValue={getIdleDelayMs}
                         getMin={() => MIN_IDLE_DELAY_MS}
@@ -221,7 +224,7 @@ export const WheelPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Spin style"}>
+                <PageProp getKey={() => "spinStyleKey"} getLabel={() => "Spin style"}>
                     <PageSelectField
                         getValue={getSpinStyleKey}
                         getValues={() => SPIN_STYLE_KEYS}
@@ -231,7 +234,7 @@ export const WheelPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Disabled"}>
+                <PageProp getKey={() => "isDisabled"} getLabel={() => "Disabled"}>
                     <PageCheckField getValue={getIsDisabled} getAriaLabel={() => "Disabled"} onChange={setIsDisabled} />
                 </PageProp>
             </PagePropsPanel>

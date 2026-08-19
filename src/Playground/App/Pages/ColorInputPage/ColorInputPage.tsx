@@ -34,6 +34,7 @@ export const ColorInputPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () => `value: ${defaultSignal[0]()} — the swatch is the painter's, not the browser's`,
                 component: () => (
@@ -46,6 +47,7 @@ export const ColorInputPage = () => {
                 ),
             },
             {
+                key: "compact",
                 name: "Compact",
                 readout: () => `value: ${compactSignal[0]()} — swatch only, no hex readout`,
                 component: () => (
@@ -60,6 +62,7 @@ export const ColorInputPage = () => {
                 ),
             },
             {
+                key: "snapping",
                 name: "Snapping setter",
                 readout: () => `value: ${snappingSignal[0]()} — snapped to the nearest of four`,
                 component: () => (
@@ -75,6 +78,7 @@ export const ColorInputPage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled",
                 readout: () => `value: ${disabledSignal[0]()}`,
                 component: () => (
@@ -88,6 +92,7 @@ export const ColorInputPage = () => {
                 ),
             },
             {
+                key: "reachable",
                 name: "Disabled + reachable",
                 readout: () => `value: ${reachableSignal[0]()}`,
                 component: () => (
@@ -114,6 +119,7 @@ export const ColorInputPage = () => {
                 ),
             },
             {
+                key: "errored",
                 name: "Error",
                 readout: () => `value: ${erroredSignal[0]()} — black is not a brand colour`,
                 component: () => (
@@ -127,6 +133,7 @@ export const ColorInputPage = () => {
                 ),
             },
             {
+                key: "label",
                 name: "In a Label",
                 readout: () => `value: ${labelledSignal[0]()} — the caption opens the picker`,
                 component: () => (

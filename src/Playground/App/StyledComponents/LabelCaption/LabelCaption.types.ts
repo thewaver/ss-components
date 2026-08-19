@@ -2,9 +2,8 @@ import type { ParentProps } from "solid-js";
 
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
-export type PagePropProps = ParentProps<
+export type PageLabelCaptionProps = ParentProps<
     AccessorProps<{
-        key: string;
-        label: string;
+        id?: string;
     }>
 >;

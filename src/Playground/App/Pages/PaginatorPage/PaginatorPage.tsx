@@ -42,6 +42,7 @@ export const PaginatorPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "steps",
                 name: "Previous and next",
                 readout: () =>
                     `page ${getStepPage()} of ${getPageCount()} — the gaps name the pages they stand for, and a gap standing for one page is spelled as that page instead`,
@@ -62,6 +63,7 @@ export const PaginatorPage = () => {
                 ),
             },
             {
+                key: "ends",
                 name: "Jumps to either end",
                 readout: () =>
                     `page ${getEndPage()} of ${getPageCount()} — first and previous go quiet together on page one, and next and last on the final page`,
@@ -83,6 +85,7 @@ export const PaginatorPage = () => {
                 ),
             },
             {
+                key: "links",
                 name: "Pages that are links",
                 readout: () =>
                     `page ${getLinkPage()} of ${getPageCount()} — the consumer knows the address shape, so it computes the href from the page the library worked out`,
@@ -104,6 +107,7 @@ export const PaginatorPage = () => {
                 ),
             },
             {
+                key: "linkComponent",
                 name: "Links through a component",
                 readout: () =>
                     `page ${getCustomLinkPage()} of ${getPageCount()} — the same links rendered by a consumer's own link component`,
@@ -131,7 +135,7 @@ export const PaginatorPage = () => {
     return (
         <>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Page count"}>
+                <PageProp getKey={() => "pageCount"} getLabel={() => "Page count"}>
                     <PageNumberField
                         getValue={getPageCount}
                         getMin={() => MIN_PAGE_COUNT}
@@ -143,7 +147,7 @@ export const PaginatorPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Sibling count"}>
+                <PageProp getKey={() => "siblingCount"} getLabel={() => "Sibling count"}>
                     <PageNumberField
                         getValue={getSiblingCount}
                         getMin={() => MIN_COUNT}
@@ -155,7 +159,7 @@ export const PaginatorPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Boundary count"}>
+                <PageProp getKey={() => "boundaryCount"} getLabel={() => "Boundary count"}>
                     <PageNumberField
                         getValue={getBoundaryCount}
                         getMin={() => MIN_COUNT}
@@ -167,7 +171,7 @@ export const PaginatorPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Disabled"}>
+                <PageProp getKey={() => "isDisabled"} getLabel={() => "Disabled"}>
                     <PageCheckField getValue={getIsDisabled} getAriaLabel={() => "Disabled"} onChange={setIsDisabled} />
                 </PageProp>
             </PagePropsPanel>

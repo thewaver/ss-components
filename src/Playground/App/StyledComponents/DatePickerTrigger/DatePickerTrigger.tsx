@@ -5,6 +5,7 @@ import * as styles from "./DatePickerTrigger.css";
 
 export const PageDatePickerTrigger = (props: DatePickerTriggerProps) => (
     <Button
+        getId={() => `${props.getKey()}Trigger`}
         getIsDisabled={props.getIsDisabled}
         getAriaLabel={() => "Open the calendar"}
         onClick={props.onToggle}

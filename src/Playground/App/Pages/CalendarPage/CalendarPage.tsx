@@ -59,11 +59,12 @@ export const CalendarPage = () => {
     const weekdaysMonth = makeMonthSignal();
 
     const renderFrame = (
+        key: string,
         month: ReturnType<typeof createSignal<DateValue>>,
         calendar: () => ReturnType<typeof Calendar>,
     ) => (
         <PageCalendarFrame>
-            <PageCalendarCaption monthSignal={month} getLocale={() => LOCALE} />
+            <PageCalendarCaption monthSignal={month} getKey={() => key} getLocale={() => LOCALE} />
 
             {calendar()}
         </PageCalendarFrame>
@@ -72,10 +73,11 @@ export const CalendarPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () => `value: ${describe(defaultValue[0]())} — month: ${describe(defaultMonth[0]())}`,
                 component: () =>
-                    renderFrame(defaultMonth, () => (
+                    renderFrame("default", defaultMonth, () => (
                         <Calendar
                             valueSignal={defaultValue}
                             monthSignal={defaultMonth}
@@ -89,11 +91,12 @@ export const CalendarPage = () => {
                     )),
             },
             {
+                key: "bounded",
                 name: "Bounded",
                 readout: () =>
                     `min ${describe(MIN_DATE)}, max ${describe(MAX_DATE)} — value: ${describe(rangedValue[0]())}`,
                 component: () =>
-                    renderFrame(rangedMonth, () => (
+                    renderFrame("bounded", rangedMonth, () => (
                         <Calendar
                             valueSignal={rangedValue}
                             monthSignal={rangedMonth}
@@ -109,11 +112,12 @@ export const CalendarPage = () => {
                     )),
             },
             {
+                key: "weekdays",
                 name: "Weekdays only",
                 readout: () =>
                     `week starts on ${WEEK_START_LABELS[getWeekStartsOn()]} — value: ${describe(weekdaysValue[0]())}`,
                 component: () =>
-                    renderFrame(weekdaysMonth, () => (
+                    renderFrame("weekdays", weekdaysMonth, () => (
                         <Calendar
                             valueSignal={weekdaysValue}
                             monthSignal={weekdaysMonth}
@@ -133,7 +137,7 @@ export const CalendarPage = () => {
     return (
         <>
             <PagePropsPanel getScope={() => "global"}>
-                <PageProp getLabel={() => "Calendar"}>
+                <PageProp getKey={() => "calendarId"} getLabel={() => "Calendar"}>
                     <PageSelectField
                         getValue={getCalendarId}
                         getValues={DateValueUtils.getCalendarIds}
@@ -143,7 +147,7 @@ export const CalendarPage = () => {
                     />
                 </PageProp>
 
-                <PageProp getLabel={() => "Week starts on"}>
+                <PageProp getKey={() => "weekStartsOn"} getLabel={() => "Week starts on"}>
                     <PageSelectField
                         getValue={getWeekStartsOn}
                         getValues={() => [...WEEK_STARTS]}

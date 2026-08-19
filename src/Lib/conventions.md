@@ -4972,6 +4972,44 @@ compute the pie-slice path, because a wedge could be a card, an image or a label
 needs to know. That is the same line `Paginator` draws from the other side: its entries are arithmetic the
 component needs to render, so it owns them.
 
+**A wedge's content is sized from the slice it sits in, in container query units, and nothing is measured.**
+The original's wedge content was authored against a 600px wheel: it watched the wheel with a `ResizeObserver`,
+divided the measured height by that base size, and multiplied the content's `scale` by the result — then
+multiplied again by `min(12 / wedgeCount, 1)` so the content shrank once the wedges outnumbered twelve. Both
+multiplications are gone, replaced the way `Formation`'s insets were and for the same reasons: the label's box
+and its type size are fractions of the wheel's own width written as `cqw`, so the browser resolves them and
+there is no observer, no base size, and no frame of wrong layout on mount. `wheelWedge` carries
+`container-type: inline-size`, which makes one `cqw` a hundredth of the wheel's width — the same unit the
+wedge path's `viewBox` is drawn in, which is why one geometry function returns numbers that serve both the
+path and the label.
+
+**The room a label has is the width of the slice at the radius where the label starts, bounded twice.** The
+two straight edges bound it as `radius × tan(halfAngle)`, and the arc bounds it as
+`√(wheelRadius² − radius²)`; the narrower of the two is the one that applies. Taking only the first puts the
+label's top corners outside the circle at low counts — at four wedges the straight edges are 45° off vertical
+and give a half-width larger than the circle has left at that radius. Taking only the second is the
+original's `paintedSize.width`, the chord between the slice's two rim corners, which is wider than the slice
+is anywhere the label actually sits. The half-angle is clamped to a right angle so that two wedges, where the
+edges are parallel and the tangent is unbounded, fall to the arc bound rather than to infinity.
+
+**The count-based shrink was inert on the page, which is why the labels collided.** `min(12 / wedgeCount, 1)`
+is exactly 1 at every count the props panel offers, since the panel stops at twelve — so the mechanism the
+original had could never be seen, and the label box was the full width of the wheel rather than the width of
+the slice, so at twelve wedges each label ran across its neighbours. Sizing the type from the slice bites at
+every count instead of only past a threshold, and it needs no reference count to be kept in step with the
+length of the prize list.
+
+**Two paint constants carry it, and they are ratios rather than sizes.** `LABEL_RADIUS` is how far out from
+the middle the label's top edge sits, in `viewBox` units, and `LABEL_TYPE_RATIO` is the type size as a
+fraction of the slice's width there. Both are the consumer's half — a wedge could be a card or an image, and
+the library never sees either number.
+
+**Type size rather than a `scale` transform, which is what the original used.** A scaled box lays out at its
+unscaled width and paints at the scaled one, so clamping the box to the slice and then scaling it down leaves
+the paint narrower than the slice — the room would have to be divided back out by the same factor to come out
+even. Setting the type size instead keeps layout and paint in one space, and the gap between lines is in `em`
+so it follows without a second rule.
+
 **The girth is the diameter after perspective, and the constant it replaced was a fudge that broke.**
 Foreshortening means the barrel needs less room than the circle it turns in, and the original took a flat 1% off
 per wedge to approximate that. Within the counts it was written for — eight to twelve portrait faces — it lands
@@ -5136,3 +5174,71 @@ and collapses to nothing inside a box that only grants appetite. That is the box
 the way. What it forces is that **the page has to state the width it is demonstrating at**, which is what
 `getWidth` is for and what `CellAnimationPage` already used it for. Worth naming because the symptom is a demo
 that renders and measures as zero rather than one that errors.
+
+### The suite finds a demo by a key it was given, never by the caption it displays
+
+The fault `backlog.md` item 29 describes, for the part of it that is now closed. A locator built out of
+editorial text answers two questions in one red — did the behaviour change, and has anybody edited the
+copy — and the second answer is worthless. Every variant, example and props row on a Playground page now
+carries a key that is chosen once and never displayed.
+
+**A container states the kind it is as a bare attribute and its key in `data-testid`.** `data-variant`,
+`data-example` and `data-prop` survive with no value at all; the key is separate. Two reasons, and the first
+is the one that decided it: several specs read `[data-variant]` for presence — "the page has rendered
+something" in a `beforeEach` — and `surface.spec.ts` counts `[data-example]` to prove a page renders three
+examples, so a page that had no kind attribute left would have nothing honest to count. The second is that a
+lookup is then only ever made among things of one kind, which is what lets `SplitPanePage` key a variant
+`pair` while some other page keys a props row the same word without either lookup becoming ambiguous.
+
+**`variant`, `example` and `prop` in `e2e/helpers.ts` are the only three spellings of it**, and each pairs
+the kind with the key. A props row is `[data-prop][data-testid="…"]` rather than being scoped to the panel
+it sits in, because a local panel repeats the same row inside every variant that owns one — `ScanLineAnimationPage`
+has two rows keyed `shift`, one per variant — so a row key is unique within its panel and not across the page.
+Scoping by panel would have found both; scoping by variant is what the specs already do.
+
+**Where the keys came from, since "chosen once" is only honest if the first choice was not a slug of the
+caption.** A variant's key is the name the spec had already given it — `const MULTI = variant("Many open at
+once")` becomes `variant("multi")` — because a spec's own const is a name for the demo written by somebody who
+was thinking about what it demonstrates. Where no spec had named one, the key is a short reduction of the
+caption, which is a starting value rather than a derivation: nothing re-derives it, so rewording the caption
+afterwards cannot reach it. A props row's key is **the signal the row drives** — `getKey={() => "spinDurationMs"}`
+beside `getLabel={() => "Spin duration (ms)"}` — which is the page's own state rather than anything editorial,
+and reads as the prop it stands for.
+
+**The key is required on `VariantDefs`, `ExampleDefs` and `PageProp`, and that is the mechanism rather than a
+formality.** An optional key would let the next variant arrive without one, and the first spec to want it would
+reach for the caption again because that is what is there. Required means the compiler names every site, which
+is also how all 218 variants and 103 props rows were found rather than by grepping for `name:`.
+
+**A demo control a spec drives carries an `id`, and the spec finds it by `#key`.** The user's call, over two
+alternatives: wrapping each control in a keyed element, rejected because every wrapped demo grows a box and a
+few of them sit in layouts where that is not free; and adding a test-attribute pass-through to the library,
+rejected because the library would grow a prop that exists only for the suite. An `id` needs nothing new at
+all — `Button`, `Range`, `BinarySwitch`, `Select`, `TextField` and the rest already take `getId`, and each puts
+it on the element a spec actually wants: the `<input>`, the `<button>`, the combobox. Their reason for
+preferring it: an id is multipurpose and far more stable than a caption.
+
+**The one real consequence is that an id must be unique in the document, so a control rendered more than once
+composes its id.** A control that appears once per variant cannot carry a literal, and this is why
+`PageCalendarCaption` and `PageDatePickerTrigger` take a `key`: three calendars sit on `CalendarPage` at once,
+so their paging buttons are `defaultNextMonth`, `boundedNextMonth`, `weekdaysNextMonth`. `PageExamples` keys its
+own source-code button after the example it belongs to for the same reason, and each wheel example names its
+spin button in its own file. Where the id had nowhere to land, the Playground component gained the prop rather
+than the library: `PageNumberField` and `PageLabelCaption` pass one through.
+
+**Two locators were better off structural than keyed.** A toast's close button is the only button inside a
+toast, so it is `${TOASTS} button` rather than a keyed control that would have to compose an id per toast; and
+the toasts region is `[role="region"]`, since a role is the sound kind and nothing else on that page is one.
+
+**A control rendered once per datum keeps its name, because the datum is what the spec is reasoning about.**
+A radio named `Small`, a tag named `solid`, a menu item named `Paste`, an option named `Denmark`, a props
+select's value `hourglass` — the string is the fixture the test chose, not furniture somebody may reword for
+prose reasons, and there is no single control to key. This is the line worth being exact about: what was
+converted is a control the page **names**, and what stays is a control the page **lists**.
+
+**Three kinds of locator are sound and stay**: a role, a role description or a state attribute
+(`[aria-roledescription="wedge"]`, `[role="log"]`, `[aria-disabled]`, `[inert]`) is the component's published
+contract, so a spec is meant to break when one changes; an accessible name that **is** the assertion stays,
+because there the string is the thing under test; and a name the **library** owns rather than a page —
+`ColorInput`'s own default hue label, for instance — is contract too. Between those and the keys, no locator in `e2e/` now
+reads a string the Playground wrote as furniture.

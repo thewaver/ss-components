@@ -20,6 +20,7 @@ export const SlideButtonPage = () => {
     const getVariants = createMemo(() => {
         return [
             {
+                key: "default",
                 name: "Default",
                 readout: () => `activations: ${getSends()}`,
                 component: () => (
@@ -35,6 +36,7 @@ export const SlideButtonPage = () => {
                 ),
             },
             {
+                key: "held",
                 name: "Held at the end by the owner",
                 readout: () => `armed: ${getIsArmed()}`,
                 component: () => (
@@ -65,6 +67,7 @@ export const SlideButtonPage = () => {
                 ),
             },
             {
+                key: "disabled",
                 name: "Disabled",
                 readout: () => `activations: ${getDisabledSends()}`,
                 component: () => (
@@ -81,6 +84,7 @@ export const SlideButtonPage = () => {
                 ),
             },
             {
+                key: "reachable",
                 name: "Disabled + reachable",
                 readout: () => `activations: ${getReachableSends()}`,
                 component: () => (
@@ -111,6 +115,7 @@ export const SlideButtonPage = () => {
                 ),
             },
             {
+                key: "errored",
                 name: "Error",
                 readout: () => `hasError: ${getHasError()}`,
                 component: () => (
