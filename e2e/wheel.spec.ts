@@ -5,17 +5,26 @@ import { example } from "./helpers";
 /**
  * All three wheels on this page take their rotation from the same abstract, so most of what is checked here is
  * checked once against the flat one. The drums get the tests about what they alone do differently: hiding the
- * faces that have turned away, and — for the one that turns over — carrying each prize round more than once.
+ * faces that have turned away, and turning about the axis each was given.
  *
  * Everything timed is turned down to the panel's floor first. The spin is a fixed sequence — the page
  * pretends to fetch a prize for 400ms, then the wheel turns for the spin duration, then settles back over
  * the settle duration — so the spec waits on the state the page reports rather than on a frame count.
  *
- * The idle turn has no button of its own — it is part of what the control is, and it ends when the wheel is
- * spun. So what the last four tests pin is every way it can be brought to rest: a spin, a pointer resting on
- * it, a disabled wheel, and a visitor who has asked their system for less motion.
+ * The idle turn has no button of its own — it is part of what the control is — and it no longer stops for
+ * anything a visitor does with the pointer. A spin pauses it for the rest duration and then it picks up again,
+ * `-1` resting for good. So the only two things that bring the wheel to a standstill are a disabled wheel and a
+ * visitor who has asked their system for less motion, and a consumer who wants a pause on hover builds one
+ * against `autoSpinSignal` over their own box. The three tests in the middle pin that arrangement: it keeps
+ * turning under the pointer, it rests after a spin, and it comes back once the rest has run out.
+ *
+ * No wheel renders a button any more: the page builds its own and drives it through the handle the wheel hands
+ * over at mount. The flat one sits in the hub, which is the only slot the wheel still offers, and each drum's
+ * sits in a bar the page puts under the barrel — outside the wheel altogether. That is why the spin locator is
+ * scoped to the example rather than to the wheel, and why the button's disabled state is checked here at all:
+ * it is now the page reading `getIsSpinnable` off the handle rather than the library disabling its own control.
  */
-const FLAT = example("Flat");
+const FLAT = example("Flat, topside");
 const SIDEWAYS = example("Drum, turning sideways");
 const REEL = example("Drum, turning over");
 
@@ -35,6 +44,9 @@ const OVERFLOW_TOLERANCE_PX = 1;
 const TURN_SAMPLE_COUNT = 16;
 const TURN_SAMPLE_GAP_MS = 150;
 const FETCH_MS = 400;
+const LONG_REST_MS = 6000;
+const SHORT_REST_MS = 500;
+const OFF_HUB_POINT = { x: 20, y: 170 };
 const SPIN_TOTAL_MS = FETCH_MS + DURATION_MS * 2 + 600;
 
 const transformOf = (page: import("@playwright/test").Page, scope: string) =>
@@ -54,6 +66,7 @@ test.beforeEach(async ({ page }) => {
     await setField(page, "Spin duration (ms)", String(DURATION_MS));
     await setField(page, "Settle duration (ms)", String(DURATION_MS));
     await setField(page, "Idle step delay (ms)", String(IDLE_DELAY_MS));
+    await setField(page, "Rest after a spin (ms)", String(LONG_REST_MS));
     await page.mouse.move(0, 0);
 });
 
@@ -68,9 +81,13 @@ test("the wheel and every wedge say what they are, beyond what their roles conve
     ).toHaveAttribute("aria-label", "Free spin, 1 of 8");
 });
 
-test("the library owns the button, so it is a real button with a real name", async ({ page }) => {
+test("the wheel renders no button, and the page's own is a real button with a real name", async ({ page }) => {
     await expect(page.locator(spin(FLAT))).toHaveAttribute("type", "button");
-    await expect(page.locator(`${wheel(FLAT)} button`), "and it is the only one the wheel renders").toHaveCount(1);
+    await expect(page.locator(`${wheel(FLAT)} button`), "no wheel renders a button of its own").toHaveCount(0);
+    await expect(page.locator(`${wheel(SIDEWAYS)} button`)).toHaveCount(0);
+
+    await expect(page.locator(spin(FLAT)), "each page control sits outside its wheel and drives it").toHaveCount(1);
+    await expect(page.locator(spin(SIDEWAYS))).toHaveCount(1);
 });
 
 test("spinning lands on a wedge and says which one", async ({ page }) => {
@@ -104,7 +121,7 @@ test("the wheel turns by itself while it waits to be spun", async ({ page }) => 
     await expect.poll(() => transformOf(page, FLAT), { timeout: IDLE_DELAY_MS * 3 }).not.toBe(before);
 });
 
-test("a spin ends the idle turn for good, which is what stops it instead of a button", async ({ page }) => {
+test("a spin buys the prize a rest, so the wheel stays on it long enough to be read", async ({ page }) => {
     await page.locator(spin(FLAT)).click();
     await page.mouse.move(0, 0);
     await page.waitForTimeout(SPIN_TOTAL_MS);
@@ -113,26 +130,50 @@ test("a spin ends the idle turn for good, which is what stops it instead of a bu
 
     await page.waitForTimeout(IDLE_DELAY_MS * 2);
 
-    expect(await transformOf(page, FLAT), "it has come to rest on the prize rather than drifting off it").toBe(settled);
+    expect(
+        await transformOf(page, FLAT),
+        "two idle steps' worth into a six-second rest, it has not moved off the prize",
+    ).toBe(settled);
 });
 
-test("it holds while the pointer is over it, without being stopped", async ({ page }) => {
-    await page.locator(wheel(FLAT)).hover();
+/**
+ * The rest is turned down to its floor here rather than left at the value `beforeEach` sets, because the point
+ * of this one is what happens *after* it runs out — and a six-second wait to find that out is six seconds this
+ * spec would spend doing nothing on every run.
+ */
+test("and the rest is only a rest, so the wheel picks up again once it has run out", async ({ page }) => {
+    await setField(page, "Rest after a spin (ms)", String(SHORT_REST_MS));
 
-    const held = await transformOf(page, FLAT);
-
-    await page.waitForTimeout(IDLE_DELAY_MS * 2);
-
-    expect(await transformOf(page, FLAT), "the hold is what keeps it still").toBe(held);
-
+    await page.locator(spin(FLAT)).click();
     await page.mouse.move(0, 0);
+    await page.waitForTimeout(SPIN_TOTAL_MS);
+
+    const settled = await transformOf(page, FLAT);
 
     await expect
         .poll(() => transformOf(page, FLAT), {
-            message: "and the hold is only a hold, so it picks up again once the pointer leaves",
+            message: "the rest ends and the idle turn resumes without anyone asking",
+            timeout: SHORT_REST_MS + IDLE_DELAY_MS * 4,
+        })
+        .not.toBe(settled);
+});
+
+/**
+ * Hovering lands away from the middle on purpose: the page's spin button now sits over the hub, and it is a
+ * neighbour of the wheel rather than something nested inside it, so a press at the centre would not reach the
+ * wheel at all. Away from the hub the pointer is unambiguously on the wheel — and it still does not stop it.
+ */
+test("it keeps turning under the pointer, because stopping for one is the consumer's to build", async ({ page }) => {
+    await page.locator(wheel(FLAT)).hover({ position: OFF_HUB_POINT });
+
+    const hovered = await transformOf(page, FLAT);
+
+    await expect
+        .poll(() => transformOf(page, FLAT), {
+            message: "the wheel has no hold of its own any more",
             timeout: IDLE_DELAY_MS * 3,
         })
-        .not.toBe(held);
+        .not.toBe(hovered);
 });
 
 test("a visitor who has asked for less motion gets a wheel that waits to be spun", async ({ page }) => {
@@ -187,16 +228,6 @@ test("the two drums turn about different axes, which is the whole of what separa
 
     expect(sideways, "faces travelling left and right turn about the upright axis").toContain("rotateY");
     expect(reel, "faces travelling up and over turn about the level one").toContain("rotateX");
-});
-
-test("a drum can carry the same prizes round more than once", async ({ page }) => {
-    await expect(page.locator(wedge(REEL)), "eight prizes twice over, front and back").toHaveCount(32);
-
-    const labels = await page
-        .locator(`${wedge(REEL)}`)
-        .evaluateAll((elements) => elements.map((element) => element.getAttribute("aria-label")));
-
-    expect(labels.filter((label) => label === "Free spin, 1 of 8").length, "so each prize is named twice").toBe(4);
 });
 
 /**

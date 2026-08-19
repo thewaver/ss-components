@@ -4884,36 +4884,70 @@ promise, because the real case fetches a prize from a server. While it is outsta
 spinnable and says so, or a second press would start a second fetch — the original guarded this with a
 `canSpin` flag and the guard has to be reactive, since the spin control's disabled state is drawn from it.
 
-**A spin is a command, not a state.** `spin()` arrives through the `onMount` controller, per _"Playback is a
+**A spin is a command, not a state.** `spin()` arrives through the `onMount` handle, per _"Playback is a
 signal; a rewind is a command"_. Whether the wheel is turning by itself **is** state, so it is
-`playingSignal`, and so is the settled index.
+`autoSpinSignal`, and so is the settled index.
 
-**The idle turn has no control of its own, and that is the user's call.** A play/pause button was built first
-and removed: it is not what this control is, the turning is part of its design, and `CellAnimation` and
-`ScanlineAnimation` offer no such button either. Three things bring it to rest instead. **A spin ends it** — the
-wheel comes to rest on the prize and stays there, which is `setIsPlaying(false)` on settling. **The holds** stop
-it while the pointer is over it, while anything inside it has focus, and while the tab is in the background.
-And **`prefers-reduced-motion: reduce` stops it outright**, the only place in the library where that query is
-read in script rather than in CSS.
+**The abstract publishes no handle of its own.** `RotationController` existed and was passed straight
+through by `Wheel`; it is gone, and `WheelController` is the only one. An abstract with no DOM has no
+consumer to hand anything to — the component that owns the element owns the handle, and one handle in wheel
+vocabulary beats two in two vocabularies for the same thing.
 
-**Checked WCAG 2.2.2 Pause, Stop, Hide (Level A) against that arrangement, and it is worth being exact about
-what it covers.** The normative line: _"For any moving, blinking or scrolling information that (1) starts
+**The idle turn runs indefinitely, and rests only after a spin. This replaced an arrangement built on holds,
+and the replacement is the user's.** The first build stopped turning whenever the pointer was over the wheel,
+whenever anything inside it had focus, and for good once a spin had settled. All of that is gone. The wheel now
+turns by itself for as long as it is on the page, with two exceptions: `prefers-reduced-motion: reduce` stops it
+outright, and a hidden tab stops it.
+
+**After a user spin settles, the wheel rests for `restDurationMs` and then picks up again; `-1` rests for
+good.** The rest is its own private state, deliberately not the same thing as the auto-spin switch, because the
+two have different owners — the rest is the component saying "let them read the prize", the switch is the
+consumer saying "not now". Folding them into one flag meant a consumer's pause being cancelled by a rest timer
+they never started. `DEFAULT_REST_DURATION_MS` is 3000 and is mine, not measured; change it freely.
+
+**A pause on hover is now the consumer's to build, and `autoSpinSignal` is the door.** This is the settled
+`playbackSignal` rule applied again — whether the passive turn is running is state a consumer can read and
+write, so it is a two-way signal rather than a `pause()` on the mount handle. A consumer wanting the old
+behaviour writes `false` on pointer enter and `true` on leave, over their own box, which is also the only way
+to cover a control that sits **on top of** the wheel rather than inside it. The library cannot do that for
+them: the hold it used to keep listened for the pointer arriving on the wheel's own element, and a button
+overlapping the wheel is a neighbour rather than something nested inside, so it took the pointer away from the
+wheel instead of holding it.
+
+**`getIsHeld` is gone from the handle, and `getIsPlaying` is now two getters.** `isHeld` existed for one
+purpose — deciding whether to suspend the idle turn — and with the holds gone it had no consumer. The
+playing flag was doing two jobs at once, so it is split at the seam the user named: `getIsAutoSpinning` is true
+while the wheel turns by itself, `getIsUserSpinning` while it is fetching a target, spinning to it or settling
+on it. Both are views of `getPhase`, which remains for anyone wanting the four states apart.
+
+**`createRotation` no longer takes an element.** The hold was its only use for one, so the abstract is now what
+its own heading claimed: a state machine with no DOM whatsoever. `InteractionUtils.trackPageHidden` was split
+out of `trackHold` so the page-visibility half could be used without the pointer and focus halves; `trackHold`
+composes it and is unchanged for `Carousel` and `Toasts`.
+
+**WCAG 2.2.2 Pause, Stop, Hide (Level A), and the user's answer to it.** The normative line: _"For any moving, blinking or scrolling information that (1) starts
 automatically, (2) lasts more than five seconds, and (3) is presented in parallel with other content, there is a
 mechanism for the user to pause, stop, or hide it unless the movement, blinking, or scrolling is part of an
-activity where it is essential"_. Two notes follow. The author-side switch — leaving `idleDelayMs` unset — is
-**not** a mechanism for the user, so it does not discharge the criterion on its own; and the reduced-motion
-query is a real user-side control but is not among the listed sufficient techniques. So what is left is a
-visitor who has not asked for less motion, watching a wheel turn until they spin it. **The user's position is
-that the motion is essential to the control**, which is the exemption the criterion itself carries; recorded as
-their reading rather than as a settled one.
+activity where it is essential"_. All three conditions now hold with nothing to answer them. The earlier reading
+recorded here — that the motion is essential to the control — was written when the wheel came to rest on a spin
+and stopped under the pointer; an attract-mode turn that never ends is a harder thing to call essential, since
+the essential activity is the spin and this is what happens while nobody is spinning. What is left is
+`prefers-reduced-motion`, which is a real user-side control but is not among the criterion's sufficient
+techniques, and `autoSpinSignal`, which is a capability handed to the author rather than a mechanism offered to
+the visitor.
+
+**The user's position is that the criterion's own exemption applies: the motion is essential, because spinning
+is what a wheel is, and "essential" is a subjective qualifier the criterion leaves to judgement.** Put to them
+with the analysis above and answered directly; recorded as their reading, which is the standing the earlier
+version of this note had too. A consumer who wants a pause control still has `autoSpinSignal` to build one
+against.
 
 The user-initiated spin is outside the criterion in any case — it does not start automatically — and it is the
 essential activity, which is what 2.3.3 Animation from Interactions exempts at AAA. That is why reduced motion
 suppresses the idle turn and leaves the spin alone.
 
-`getIsHeld` is `hovered || focus within || page hidden`, which is `Carousel`'s expression and `Toasts`' before
-it. The expression itself is no longer written here — see _"The hold is one function"_ below. Every route to a
-still wheel is pinned in `wheel.spec.ts`, including the reduced-motion one, which Playwright can emulate.
+`Carousel` and `Toasts` keep the three-part hold; the wheel no longer has one at all, so what they share now is
+only `trackPageHidden`.
 
 **The result is announced through `LiveAnnouncer`, only on settling.** Same argument as `Carousel`: the wedges
 are all still on the page, so a live region over them announces nothing, and narrating an idle wheel every few
@@ -4968,8 +5002,48 @@ is zero below two wedges rather than the infinity the tangent gives.
 axis so the faces travel left and right — the original's arrangement — and `axis: "column"` rotates about the
 level one so they travel up and over, which is a reel. The extent the geometry works from is the wedge's width
 in the first case and its height in the second, which is why a landscape face makes a compact reel and a wide
-drum: the same card is the small dimension one way round and the large one the other. The reel also carries each
-prize round twice, to show that a wheel's wedges need not be one per option.
+drum: the same card is the small dimension one way round and the large one the other. **The reel carried each
+prize round twice at first, and the user took that out** — nothing on the page now demonstrates that a wheel's
+wedges need not be one per option, and the component still allows it.
+
+**The wheel renders no control at all, and hands out a handle instead. This reverses `Carousel`, and the
+reversal is the user's.** `renderSpin`, `renderControls`, `computeSpinLabel` and the `<button>` behind them are
+gone. What replaces them is `onMount(controller)`, carrying `spin()` plus `getIndex`, `getPhase`,
+`getIsSpinnable`, `getIsAutoSpinning` and `getIsUserSpinning` — so a control **anywhere on the page** can spin
+the wheel and can disable itself while a spin is outstanding, which is the whole of what the built-in button
+knew.
+
+**Nothing the consumer already holds is on the handle.** A `getWedgeCount` was there and the user took it off:
+the wedge array is the consumer's own prop, so its length is theirs to read and the wheel repeating it back is
+a second source for one fact. The test for a member is whether the wheel is the only place it can be
+known — `getPhase` and its two derived spinning flags are internal outright, and `getIndex` stays private when
+no `indexSignal` is passed.
+
+**`Carousel`'s argument does not carry over, and it is worth being exact about why, since the two now sit on
+opposite sides.** There the library owns every button because the rotation is automatic and WCAG 2.2.2 requires
+a stop mechanism that is not the author's to omit — a carousel with no controls is one nobody can stop. A wheel
+has nothing to stop: the idle turn is ended by the spin, by the holds and by reduced motion, all recorded above,
+and the spin itself only ever happens because someone asked for it. So the button the wheel rendered was
+carrying no conformance load, and what is left is `Scroller`'s trade — the consumer renders the button, inherits
+naming and the focus ring and the disabled treatment from `Button`, and the library keeps only what nobody else
+can know.
+
+**The cost is stated rather than mitigated: a library that renders no button cannot promise one is reachable or
+named.** A consumer who wires up no control has a wheel that can only be driven from elsewhere through
+`indexSignal`, exactly as `Carousel` with no `renderControls` has no keyboard route. That is the same exposure
+item 23 records for `Scroller` and it is now the wheel's too.
+
+**No slot survives either, and the one that briefly did was kept for a bad reason.** A `renderHub` was left on
+the flat wheel out of deference to the choice `backlog.md` item 27 records — that a flat wheel has one control
+slot and it is the hub. The user axed it. That choice was about where a **button** goes and there is no button
+now; intrinsically the slot contributed one number, `inset: 35%`, which is paint, and a consumer who wraps the
+wheel in a positioned box writes it themselves. The Playground does exactly that. `FlatWheel` renders wedges
+and nothing else, `DrumWheel` renders a barrel and nothing else.
+
+**The handle arrives after the first render, which is a real consequence rather than a wrinkle.** A control
+reading `getController()?.getIsSpinnable()` sees `undefined` for the first tick and paints as disabled, because
+`onMount` fires after the tree is built. `Typewriter`'s `getController()?.update(…)` has the same shape and the
+same tick. Nothing on screen has moved by then, so no consumer has yet been able to press anything.
 
 **The flat wheel exposes every wedge; the drum hides the ones that have turned away.** All of a flat wheel's
 wedges are painted at once, so all of them are real content. A drum's are not — `backface-visibility` removes

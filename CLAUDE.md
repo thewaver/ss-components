@@ -125,6 +125,13 @@ which is easy to misread as support.
 
 ## Running things
 
+**A failing test is not evidence the code is wrong — ask before changing either.** Stated by the user after a
+`wheel.spec.ts` assertion about a doubled prize list was made to pass by putting the doubling back: they had
+removed it deliberately and do not update specs when they change behaviour. So a red spec has two readings —
+the code regressed, or the spec is describing something they decided against — and the two are not
+distinguishable from the failure. Say which assertion fails and what it expects, and let them say which it is.
+This is the exception to _"fix on sight"_: a spec disagreeing with the code is not a defect on sight.
+
 **Never kill the user's processes.** No `pkill`, no killing a dev server, no stopping anything you did not
 start. They keep `npm start` running while working, and losing it interrupts them. `npm run verify:dom`
 serves a production preview on its own port and `reuseExistingServer` handles a stale one, so it never

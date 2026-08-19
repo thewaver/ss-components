@@ -1,7 +1,8 @@
 import type { Accessor, ParentProps } from "solid-js";
 
 import type { InteractionFlags } from "../../../../Lib/Abstracts/Interaction/Interaction.types";
-import type { WheelSpinFlags, WheelWedgeState } from "../../../../Lib/Exotics/Wheel/Wheel.types";
+import type { RotationPhase } from "../../../../Lib/Abstracts/Rotation/Rotation.types";
+import type { WheelWedgeState } from "../../../../Lib/Exotics/Wheel/Wheel.types";
 
 export type PageWheelWedgeProps = ParentProps<{
     getState: Accessor<WheelWedgeState>;
@@ -13,5 +14,6 @@ export type PageWheelCardProps = ParentProps<{
 }>;
 
 export type PageWheelSpinProps = {
-    getFlags: () => InteractionFlags<WheelSpinFlags>;
+    getFlags: () => InteractionFlags;
+    getPhase: Accessor<RotationPhase | undefined>;
 };

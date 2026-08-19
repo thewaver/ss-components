@@ -53,6 +53,7 @@ reading.
 26. A gesture `Abstract`, and the components that would consume it — _open_
 27. The four components ported from React — one thing to retest, one deliberately not built — _open_
 28. `Typewriter` cannot render a blank line, and the fix is in `ss-utils` — _open_
+29. The suite finds things by strings a person is free to reword — _open_
 
 ### Build order
 
@@ -1374,3 +1375,51 @@ came across verbatim, so the only change was the two explicit sites gaining a co
 `Typewriter` is handed the list. The corrected file is parked at `src/Lib/JSXTextParser.utils.ts`, commented out —
 see _"A file in transit"_ in `conventions.md` — and this item closes when `ss-utils` ships it and the dependency
 is bumped.
+
+---
+
+## 29. The suite finds things by strings a person is free to reword
+
+**What happens.** A spec goes red on a change that broke nothing, because a caption moved. `wheel.spec.ts`
+looked for its flat example at `[data-example="Flat"]` while the page had come to call it `Flat, topside`, so all
+thirteen of its tests failed in `beforeEach` — none of them for a reason to do with a wheel. The user reports
+this is not the first time a reworded label has done it.
+
+**Why this is worse than one broken selector.** A suite is supposed to answer one question: did the behaviour
+change. A locator built out of editorial text answers a different one as well — has anybody edited the copy —
+and mixes the two answers into the same red. The failure also lands nowhere near the edit: whoever renamed the
+example was on a Playground page, and what broke was thirteen assertions about rotation. That is expensive to
+read and it trains everyone to distrust a red run, which is the thing that makes a suite worthless.
+
+**The three kinds of locator in use, and only one of them is sound.**
+
+- **A role, a role description, or a state attribute** — `[aria-roledescription="wedge"]`, `[role="log"]`,
+  `[aria-disabled]`, `[inert]`. These are the component's published contract; a spec is _meant_ to break when
+  one changes, because that is the change. **Sound, and they stay.**
+- **A display string** — `[data-example="Flat, topside"]`, `[data-prop="Wedges"]`, `[data-variant="…"]`, and
+  `button[aria-label="Spin the wheel"]` where the button is merely being **found** rather than being the
+  subject. Editorial: anybody may reword any of it, at any time, without touching a behaviour. **This is the
+  fault.**
+- **An accessible name that is itself the assertion** — a test whose point is that a control is named, or named
+  a particular way. **Sound, and it stays**, since there the string is the thing under test.
+
+**The shape of the fix.** A stable key attribute — `data-testid` — on the Playground's example containers,
+its props rows, its variant sections and the demo controls a spec drives; the specs find things by that and
+stop reading captions. The key is chosen once, never displayed, and is not a caption, so nothing about
+rewording a label can reach it.
+
+**Where the keys come from, and the scale.** `ExampleDefs` and `VariantDefs` gain a key field beside `name`,
+and `PageProp` gains one beside its label; a demo control that a spec drives takes one where it is rendered.
+Measured across `e2e/`: 146 uses of `variant(…)`, 53 `aria-label` locators, 19 of `data-prop` and 13 of
+`example(…)`. Every page that declares a variant, an example or a prop is touched. It is mechanical work, but
+it is not small, and it is the sort of change that can only be verified by the suite it is rewriting — so it
+wants doing in one pass, per page, with the run green at each step.
+
+**What must not be done along the way.** Do not convert the accessible-name assertions into key lookups. The
+tests that check a control is properly named are the ones justifying every `aria-label` in the library, and a
+suite that finds everything by key and asserts nothing about names has quietly stopped covering the thing this
+library is most careful about.
+
+**One structural oddity, noticed while writing this and not acted on.** The _Accepted limits_ section sits
+before items 27 to 29 rather than at the end of the file, which is where this file's own preamble says it
+lives.

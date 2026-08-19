@@ -58,6 +58,8 @@ export const PageWheelCard = (props: PageWheelCardProps) => (
     </div>
 );
 
+export const PageWheelStack = (props: ParentProps) => <div class={styles.wheelStack}>{props.children}</div>;
+
 export const PageWheelHub = (props: ParentProps) => <div class={styles.wheelHub}>{props.children}</div>;
 
 export const PageWheelBar = (props: ParentProps) => <div class={styles.wheelBar}>{props.children}</div>;
@@ -72,6 +74,6 @@ export const PageWheelSpin = (props: PageWheelSpinProps) => (
         }}
         aria-hidden
     >
-        {props.getFlags().phase === "still" || props.getFlags().phase === "idling" ? "Spin" : "…"}
+        {props.getPhase() === "spinning" || props.getPhase() === "settling" ? "…" : "Spin"}
     </div>
 );

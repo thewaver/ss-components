@@ -172,10 +172,27 @@ export namespace InteractionUtils {
         return { getFlags };
     };
 
+    export const trackPageHidden = () => {
+        const [getIsPageHidden, setIsPageHidden] = createSignal(document.hidden);
+
+        const onVisibilityChange = () => setIsPageHidden(document.hidden);
+
+        createEffect(() => {
+            document.addEventListener("visibilitychange", onVisibilityChange);
+
+            onCleanup(() => {
+                document.removeEventListener("visibilitychange", onVisibilityChange);
+            });
+        });
+
+        return getIsPageHidden;
+    };
+
     export const trackHold = (getRef: () => HTMLElement | undefined) => {
         const [getIsHovered, setIsHovered] = createSignal(false);
         const [getHasFocusWithin, setHasFocusWithin] = createSignal(false);
-        const [getIsPageHidden, setIsPageHidden] = createSignal(document.hidden);
+
+        const getIsPageHidden = trackPageHidden();
 
         const onMouseEnter = () => setIsHovered(true);
         const onMouseLeave = () => setIsHovered(false);
@@ -185,7 +202,6 @@ export namespace InteractionUtils {
 
             setHasFocusWithin(false);
         };
-        const onVisibilityChange = () => setIsPageHidden(document.hidden);
 
         createEffect(() => {
             const ref = getRef();
@@ -202,14 +218,6 @@ export namespace InteractionUtils {
                 ref.removeEventListener("mouseleave", onMouseLeave);
                 ref.removeEventListener("focusin", onFocusIn);
                 ref.removeEventListener("focusout", onFocusOut);
-            });
-        });
-
-        createEffect(() => {
-            document.addEventListener("visibilitychange", onVisibilityChange);
-
-            onCleanup(() => {
-                document.removeEventListener("visibilitychange", onVisibilityChange);
             });
         });
 

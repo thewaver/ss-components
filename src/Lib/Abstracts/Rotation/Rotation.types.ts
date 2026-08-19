@@ -11,20 +11,17 @@ export type RotationSpinDefs = {
     jitterRatio: number;
 };
 
-export type RotationController = {
-    spin: () => void;
-};
-
 export type RotationDefs = AccessorProps<{
     stepCount: number;
     spinDurationMs?: number;
     settleDurationMs?: number;
+    restDurationMs?: number;
     computeSpinTarget: () => number | Promise<number>;
     computeSpinDefs?: (index: number, stepCount: number) => RotationSpinDefs;
     computeStepLabel?: (index: number, stepCount: number) => string;
 }> & {
     getIdleDelayMs?: Accessor<number | undefined>;
     indexSignal?: Signal<number>;
-    playingSignal?: Signal<boolean>;
+    autoSpinSignal?: Signal<boolean>;
     onSpinEnd?: (index: number) => void;
 };

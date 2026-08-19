@@ -25,6 +25,8 @@ const EXAMPLES_ROOT = "/src/Playground/App/Pages/WheelPage/Examples";
 const STARTING_WEDGE_COUNT = 8;
 const STARTING_SPIN_DURATION_MS = 3000;
 const STARTING_SETTLE_DURATION_MS = 1500;
+const STARTING_REST_DURATION_MS = 3000;
+const INDEFINITE_REST_DURATION_MS = -1;
 const STARTING_IDLE_DELAY_MS = 3000;
 
 const FLAT_WHEEL_SIZE = 340;
@@ -91,6 +93,8 @@ export const WheelPage = () => {
     const [getWedgeCount, setWedgeCount] = createSignal(STARTING_WEDGE_COUNT);
     const [getSpinDurationMs, setSpinDurationMs] = createSignal(STARTING_SPIN_DURATION_MS);
     const [getSettleDurationMs, setSettleDurationMs] = createSignal(STARTING_SETTLE_DURATION_MS);
+    const [getRestDurationMs, setRestDurationMs] = createSignal(STARTING_REST_DURATION_MS);
+    const [getDoesResume, setDoesResume] = createSignal(true);
     const [getIdleDelayMs, setIdleDelayMs] = createSignal(STARTING_IDLE_DELAY_MS);
     const [getSpinStyleKey, setSpinStyleKey] = createSignal<SpinStyleKey>(STARTING_SPIN_STYLE_KEY);
     const [getIsDisabled, setIsDisabled] = createSignal(false);
@@ -104,29 +108,32 @@ export const WheelPage = () => {
 
     const getIdleDelay = () => (getIsIdlingAllowed() ? getIdleDelayMs() : undefined);
 
+    const getRestDuration = () => (getDoesResume() ? getRestDurationMs() : INDEFINITE_REST_DURATION_MS);
+
     const getExamples = createMemo(() => {
         const commonProps = {
             getWedges,
             getIsDisabled,
             getSpinDurationMs,
             getSettleDurationMs,
+            getRestDurationMs: getRestDuration,
             getIdleDelayMs: getIdleDelay,
             computeSpinDefs: (index: number, wedgeCount: number) => SPIN_STYLES[getSpinStyleKey()](index, wedgeCount),
         };
 
         return [
             {
-                name: "Flat, topside",
+                name: "Flat, top",
                 component: () => <FlatExampleWrapper {...commonProps} indexSignal={flatIndexSignal} />,
                 path: `${EXAMPLES_ROOT}/Flat.tsx`,
             },
             {
-                name: "Drum, turning sideways",
+                name: "Drum, horizontal",
                 component: () => <DrumSidewaysExampleWrapper {...commonProps} indexSignal={sidewaysIndexSignal} />,
                 path: `${EXAMPLES_ROOT}/DrumSideways.tsx`,
             },
             {
-                name: "Drum, turning over",
+                name: "Drum, vertical",
                 component: () => <DrumOverExampleWrapper {...commonProps} indexSignal={reelIndexSignal} />,
                 path: `${EXAMPLES_ROOT}/DrumOver.tsx`,
             },
@@ -169,6 +176,27 @@ export const WheelPage = () => {
                         getWidth={() => FIELD_WIDTH}
                         getAriaLabel={() => "Settle duration"}
                         onInput={setSettleDurationMs}
+                    />
+                </PageProp>
+
+                <PageProp getLabel={() => "Turns again after a spin"}>
+                    <PageCheckField
+                        getValue={getDoesResume}
+                        getAriaLabel={() => "Turns again after a spin"}
+                        onChange={setDoesResume}
+                    />
+                </PageProp>
+
+                <PageProp getLabel={() => "Rest after a spin (ms)"}>
+                    <PageNumberField
+                        getValue={getRestDurationMs}
+                        getMin={() => MIN_DURATION_MS}
+                        getMax={() => MAX_DURATION_MS}
+                        getStep={() => DURATION_STEP_MS}
+                        getWidth={() => FIELD_WIDTH}
+                        getIsDisabled={() => !getDoesResume()}
+                        getAriaLabel={() => "Rest after a spin"}
+                        onInput={setRestDurationMs}
                     />
                 </PageProp>
 

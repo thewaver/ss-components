@@ -1,15 +1,11 @@
 import { style } from "@vanilla-extract/css";
 
-import { buttonElement } from "../../Fundamentals/Button/Button.css";
-
 const wheelWedge = style({
     position: "absolute",
     inset: 0,
     transformOrigin: "center center",
     transitionProperty: "transform",
 });
-
-export const wheelControl = style([buttonElement, {}]);
 
 export const flatWheelRoot = style({
     position: "relative",
@@ -18,12 +14,6 @@ export const flatWheelRoot = style({
 });
 
 export const flatWheelWedge = style([wheelWedge]);
-
-export const flatWheelHub = style({
-    position: "absolute",
-    inset: "35%",
-    overflow: "visible",
-});
 
 export const drumWheelRoot = style({
     display: "flex",
@@ -56,8 +46,3 @@ export const drumWheelWedge = style([
         backfaceVisibility: "hidden",
     },
 ]);
-
-export const drumWheelControls = style({
-    flexGrow: 0,
-    flexShrink: 0,
-});

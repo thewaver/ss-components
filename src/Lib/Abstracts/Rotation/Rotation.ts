@@ -9,6 +9,7 @@ import { RotationUtils } from "./Rotation.utils";
 
 const DEFAULT_SPIN_DURATION_MS = 3000;
 const DEFAULT_SETTLE_DURATION_MS = 1500;
+const DEFAULT_REST_DURATION_MS = 3000;
 const DEFAULT_SPIN_DEFS: RotationSpinDefs = { turns: 3, jitterRatio: 0 };
 const MIN_ROTATABLE_STEP_COUNT = 2;
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -16,18 +17,15 @@ const SETTLED_TIMING_FUNCTION: RotationTimingFunction = "ease";
 const IDLING_TIMING_FUNCTION: RotationTimingFunction = "linear";
 
 export namespace Rotation {
-    export const createRotation = (
-        getRef: Accessor<HTMLElement | undefined>,
-        getIsDisabled: Accessor<boolean>,
-        defs: RotationDefs,
-    ) => {
+    export const createRotation = (getIsDisabled: Accessor<boolean>, defs: RotationDefs) => {
         const [getAngle, setAngle] = createSignal(0);
         const [getSpinPhase, setSpinPhase] = createSignal<Exclude<RotationPhase, "idling">>("still");
         const [getIsAwaitingTarget, setIsAwaitingTarget] = createSignal(false);
         const [getPrefersReducedMotion, setPrefersReducedMotion] = createSignal(false);
+        const [getIsResting, setIsResting] = createSignal(false);
 
         const [getIndex, setIndex] = SignalMirror.createOptional(() => defs.indexSignal, 0);
-        const [getIsPlaying, setIsPlaying] = SignalMirror.createOptional(() => defs.playingSignal, true);
+        const [getIsAutoSpinEnabled] = SignalMirror.createOptional(() => defs.autoSpinSignal, true);
 
         let targetIndex: number | undefined;
         let jitterAngle = 0;
@@ -40,11 +38,13 @@ export namespace Rotation {
 
         const getSettleDurationMs = createMemo(() => defs.getSettleDurationMs?.() ?? DEFAULT_SETTLE_DURATION_MS);
 
+        const getRestDurationMs = createMemo(() => defs.getRestDurationMs?.() ?? DEFAULT_REST_DURATION_MS);
+
         const getIdleDelayMs = createMemo(() => defs.getIdleDelayMs?.());
 
         const getIsRotatable = createMemo(() => !getIsDisabled() && getStepCount() >= MIN_ROTATABLE_STEP_COUNT);
 
-        const getIsHeld = InteractionUtils.trackHold(getRef);
+        const getIsPageHidden = InteractionUtils.trackPageHidden();
 
         const getIsSpinnable = createMemo(
             () => getIsRotatable() && getSpinPhase() === "still" && !getIsAwaitingTarget(),
@@ -57,8 +57,9 @@ export namespace Rotation {
 
             const isIdling =
                 getIdleDelayMs() !== undefined &&
-                getIsPlaying() &&
-                !getIsHeld() &&
+                getIsAutoSpinEnabled() &&
+                !getIsResting() &&
+                !getIsPageHidden() &&
                 !getPrefersReducedMotion() &&
                 getIsRotatable();
 
@@ -96,7 +97,7 @@ export namespace Rotation {
             jitterAngle = 0;
 
             setSpinPhase("still");
-            setIsPlaying(false);
+            setIsResting(true);
             setIndex(index);
 
             void defs.onSpinEnd?.(index);
@@ -107,6 +108,7 @@ export namespace Rotation {
         const spin = () => {
             if (!getIsSpinnable()) return;
 
+            setIsResting(false);
             setIsAwaitingTarget(true);
 
             void Promise.resolve(defs.computeSpinTarget())
@@ -163,6 +165,18 @@ export namespace Rotation {
         });
 
         createEffect(() => {
+            const restDurationMs = getRestDurationMs();
+
+            if (!getIsResting() || restDurationMs < 0) return;
+
+            const handle = setTimeout(() => setIsResting(false), restDurationMs);
+
+            onCleanup(() => {
+                clearTimeout(handle);
+            });
+        });
+
+        createEffect(() => {
             if (getPhase() !== "idling") return;
 
             const fromAngle = getAngle();
@@ -182,11 +196,9 @@ export namespace Rotation {
             getStepCount,
             getTransitionDurationMs,
             getTimingFunction,
-            getIsHeld,
-            getIsPlaying,
-            setIsPlaying,
             getIsRotatable,
             getIsSpinnable,
+            getIsAwaitingTarget,
             spin,
         };
     };

@@ -10,6 +10,7 @@ export type WheelExampleProps = AccessorProps<{
     isDisabled: boolean;
     spinDurationMs: number;
     settleDurationMs: number;
+    restDurationMs: number;
     indexSignal: Signal<number>;
     computeSpinDefs: WheelSpinStyleFn;
 }> & {

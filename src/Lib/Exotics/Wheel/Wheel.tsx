@@ -1,19 +1,10 @@
-import type { Accessor, JSX } from "solid-js";
-import { Index, Show, createMemo, createSignal, onMount } from "solid-js";
+import type { Accessor } from "solid-js";
+import { Index, Show, createMemo, onMount } from "solid-js";
 
 import type { Size2d } from "@thewaver/ss-utils";
 
 import { Rotation } from "../../Abstracts/Rotation/Rotation";
-import { InteractionWrapper } from "../../Fundamentals/InteractionWrapper/InteractionWrapper";
-import type {
-    WheelAxis,
-    WheelControlProps,
-    WheelControls,
-    WheelFace,
-    WheelProps,
-    WheelSpinFlags,
-    WheelWedgeState,
-} from "./Wheel.types";
+import type { WheelAxis, WheelController, WheelFace, WheelProps, WheelWedgeState } from "./Wheel.types";
 import { DRUM_PERSPECTIVE_PX, WheelUtils } from "./Wheel.utils";
 
 import * as styles from "./Wheel.css";
@@ -24,32 +15,7 @@ const DEFAULT_WHEEL_WEDGE_SIZE: Size2d = { width: 0, height: 0 };
 const WHEEL_ROLE_DESCRIPTION = "wheel";
 const WEDGE_ROLE_DESCRIPTION = "wedge";
 
-const SPIN_LABEL = "Spin the wheel";
-
-const WheelControl = (props: WheelControlProps) => {
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
-
-    return (
-        <button
-            ref={(element) => props.ref?.(element)}
-            type="button"
-            class={styles.wheelControl}
-            aria-label={props.getAriaLabel()}
-            aria-disabled={getIsDisabled() || undefined}
-            onClick={() => {
-                if (getIsDisabled()) return;
-
-                props.onActivate();
-            }}
-        >
-            {props.renderContent(props.getFlags)}
-        </button>
-    );
-};
-
 export const Wheel = <T,>(props: WheelProps<T>) => {
-    const [getRootRef, setRootRef] = createSignal<HTMLElement>();
-
     const getWedgeCount = createMemo(() => props.getWedges().length);
 
     const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
@@ -58,16 +24,17 @@ export const Wheel = <T,>(props: WheelProps<T>) => {
 
     const getWedgeSize = createMemo(() => props.getWedgeSize?.() ?? DEFAULT_WHEEL_WEDGE_SIZE);
 
-    const rotation = Rotation.createRotation(getRootRef, getIsDisabled, {
+    const rotation = Rotation.createRotation(getIsDisabled, {
         getStepCount: getWedgeCount,
         getSpinDurationMs: props.getSpinDurationMs,
         getSettleDurationMs: props.getSettleDurationMs,
+        getRestDurationMs: props.getRestDurationMs,
         getIdleDelayMs: props.getIdleDelayMs,
         computeSpinTarget: props.computeSpinTarget,
         computeSpinDefs: props.computeSpinDefs,
         computeStepLabel: props.computeWedgeLabel,
         indexSignal: props.indexSignal,
-        playingSignal: props.playingSignal,
+        autoSpinSignal: props.autoSpinSignal,
         onSpinEnd: props.onSpinEnd,
     });
 
@@ -94,29 +61,14 @@ export const Wheel = <T,>(props: WheelProps<T>) => {
         isSelected: index === rotation.getIndex(),
     });
 
-    const renderSpinControl = (): JSX.Element => (
-        <InteractionWrapper<WheelSpinFlags>
-            getIsDisabled={() => !rotation.getIsSpinnable()}
-            getExtraFlags={() => ({ phase: rotation.getPhase(), isSpinnable: rotation.getIsSpinnable() })}
-            renderControl={(setElementRef, getFlags) => (
-                <WheelControl
-                    ref={setElementRef}
-                    getAriaLabel={() => props.computeSpinLabel?.() ?? SPIN_LABEL}
-                    getFlags={getFlags}
-                    renderContent={() => props.renderSpin?.(getFlags)}
-                    onActivate={rotation.spin}
-                />
-            )}
-        />
-    );
-
-    const controls: WheelControls = {
+    const controller: WheelController = {
         getIndex: rotation.getIndex,
-        getWedgeCount,
         getPhase: rotation.getPhase,
-        getIsPlaying: rotation.getIsPlaying,
-        getIsHeld: rotation.getIsHeld,
-        renderSpin: renderSpinControl,
+        getIsSpinnable: rotation.getIsSpinnable,
+        getIsAutoSpinning: () => rotation.getPhase() === "idling",
+        getIsUserSpinning: () =>
+            rotation.getIsAwaitingTarget() || rotation.getPhase() === "spinning" || rotation.getPhase() === "settling",
+        spin: rotation.spin,
     };
 
     const renderWedgeFace = (getWedge: Accessor<T>, index: number, face: WheelFace) => {
@@ -145,7 +97,7 @@ export const Wheel = <T,>(props: WheelProps<T>) => {
     };
 
     onMount(() => {
-        props.onMount?.({ spin: rotation.spin });
+        props.onMount?.(controller);
     });
 
     return (
@@ -153,7 +105,6 @@ export const Wheel = <T,>(props: WheelProps<T>) => {
             when={props.getVariant() === "flat"}
             fallback={
                 <div
-                    ref={setRootRef}
                     class={styles.drumWheelRoot}
                     role="group"
                     aria-roledescription={WHEEL_ROLE_DESCRIPTION}
@@ -186,21 +137,16 @@ export const Wheel = <T,>(props: WheelProps<T>) => {
                             </div>
                         </div>
                     </div>
-
-                    <div class={styles.drumWheelControls}>{props.renderControls?.(controls)}</div>
                 </div>
             }
         >
             <div
-                ref={setRootRef}
                 class={styles.flatWheelRoot}
                 role="group"
                 aria-roledescription={WHEEL_ROLE_DESCRIPTION}
                 aria-label={props.getAriaLabel()}
             >
                 <Index each={props.getWedges()}>{(getWedge, index) => renderWedgeFace(getWedge, index, "front")}</Index>
-
-                <div class={styles.flatWheelHub}>{props.renderControls?.(controls)}</div>
             </div>
         </Show>
     );

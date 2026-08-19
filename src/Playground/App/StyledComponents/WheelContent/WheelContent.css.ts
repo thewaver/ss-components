@@ -52,13 +52,18 @@ export const wheelWedgeLabel = style({
     whiteSpace: "nowrap",
 });
 
+export const wheelStack = style({
+    position: "relative",
+});
+
 export const wheelHub = style({
+    position: "absolute",
+    inset: "35%",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    width: "100%",
-    height: "100%",
+    overflow: "visible",
 });
 
 export const wheelBar = style({
@@ -66,7 +71,7 @@ export const wheelBar = style({
     justifyContent: "center",
     alignItems: "center",
     gap: themeVars.spacing.full,
-    paddingTop: themeVars.spacing.full,
+    padding: themeVars.spacing.double,
 });
 
 const controlBase = style({
