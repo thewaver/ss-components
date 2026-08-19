@@ -308,3 +308,43 @@ test.describe("an open state the consumer owns", () => {
         expect(await readout(page, "driven"), "the trigger writes the same variable").toContain("the menu is open");
     });
 });
+
+/**
+ * A menu has no autocomplete to offer instead, so typeahead is the only way to reach an item by name. The
+ * text comes off the item element by default — the painter's submenu arrow is `aria-hidden` and drops out,
+ * while the shortcut beside the name is real text and stays, which costs nothing because a query is matched
+ * from the start of the name.
+ */
+test.describe("typeahead", () => {
+    test("moves the highlight to the next item starting with what was typed", async ({ page }) => {
+        await openedWithHighlight(page, "default");
+
+        await page.keyboard.press("p");
+
+        expect(await highlightAt(page, 0)).toContain("Paste");
+    });
+
+    test("cycles through the items sharing a letter when the letter is repeated", async ({ page }) => {
+        await openedWithHighlight(page, "default");
+
+        await page.keyboard.press("c");
+        expect(await highlightAt(page, 0), "Cut is already highlighted, so c moves on to Copy").toContain("Copy");
+
+        await page.keyboard.press("c");
+        expect(await highlightAt(page, 0), "and again wraps back").toContain("Cut");
+    });
+
+    /**
+     * Space activates the highlighted item, so it can only join a query once there is one. This checks the
+     * dangerous half: a space typed mid-query must not run the item the highlight happens to be on.
+     */
+    test("takes a space into the query rather than activating", async ({ page }) => {
+        await openedWithHighlight(page, "default");
+
+        await page.keyboard.press("d");
+        await page.keyboard.press("Space");
+
+        await expect(page.locator(MENU), "the menu is still open, so nothing was activated").toHaveCount(1);
+        expect(await readout(page, "default"), "and nothing reached the owner").toContain("nothing run yet");
+    });
+});

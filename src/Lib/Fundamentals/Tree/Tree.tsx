@@ -4,6 +4,8 @@ import { Dynamic } from "solid-js/web";
 
 import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
 import { NavigationUtils } from "../../Abstracts/Navigation/Navigation.utils";
+import { Typeahead } from "../../Abstracts/Typeahead/Typeahead";
+import { TypeaheadUtils } from "../../Abstracts/Typeahead/Typeahead.utils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import type { TreeNodeItemProps, TreeProps, TreeRow } from "./Tree.types";
 import { TreeUtils } from "./Tree.utils";
@@ -77,6 +79,8 @@ export const Tree = <T,>(props: TreeProps<T>) => {
 
     const [getFocusedValue, setFocusedValue] = createSignal<T | undefined>();
 
+    const typeahead = Typeahead.createBuffer();
+
     const getRows = createMemo(() =>
         TreeUtils.getVisibleRows(props.getNodes(), (value) => props.expandedSignal[0]().includes(value)),
     );
@@ -117,6 +121,9 @@ export const Tree = <T,>(props: TreeProps<T>) => {
     const getRowId = (row: TreeRow<T>) => `${treeId}-node-${row.index}`;
 
     const findRowById = (id: string | undefined) => getNavigableRows().find((row) => getRowId(row) === id);
+
+    const computeRowText = (row: TreeRow<T>) =>
+        props.computeCustomText?.(row.node) ?? TypeaheadUtils.getElementText(document.getElementById(getRowId(row)));
 
     let lastFocusedValue: T | undefined;
     let lastExpanded: T[] = [];
@@ -216,6 +223,31 @@ export const Tree = <T,>(props: TreeProps<T>) => {
 
         if (!current) return;
 
+        if (e.key === EXPAND_SIBLINGS_KEY) {
+            e.preventDefault();
+
+            expandSiblings(current);
+
+            return;
+        }
+
+        const query = typeahead.push(e);
+
+        if (query !== undefined) {
+            e.preventDefault();
+
+            const position = TypeaheadUtils.computeNextIndex(
+                query,
+                navigable.indexOf(current),
+                navigable.length,
+                (index) => computeRowText(navigable[index]),
+            );
+
+            if (position !== undefined) focusRow(navigable[position]);
+
+            return;
+        }
+
         if (e.key === "Enter" || e.key === " ") {
             if (current.node.href) {
                 if (e.key === "Enter") return;
@@ -230,14 +262,6 @@ export const Tree = <T,>(props: TreeProps<T>) => {
             e.preventDefault();
 
             activate(current);
-
-            return;
-        }
-
-        if (e.key === EXPAND_SIBLINGS_KEY) {
-            e.preventDefault();
-
-            expandSiblings(current);
 
             return;
         }

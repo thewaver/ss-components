@@ -18,6 +18,9 @@ const OPTION = '[role="listbox"] [role="option"]';
 
 const field = (key: string) => `${demo(key)} [role="combobox"]`;
 
+/** Long enough for the typeahead query to have been forgotten, which the library puts at a second. */
+const QUERY_TIMEOUT_MS = 1200;
+
 /**
  * Opening is not instant: the list mounts and only then does the field point at a highlighted option.
  * An arrow pressed before that lands nowhere, so every keyboard case waits on the highlight rather than
@@ -354,4 +357,104 @@ test("an autocomplete field filters through the consumer's matcher", async ({ pa
     expect(await readout(page, "autocomplete"), "Enter picks the highlighted match").toContain("value: LIS");
     expect(await readout(page, "autocomplete"), "and closing clears the query").toContain('query: ""');
     expect(await inputValue(page.locator(field("autocomplete"))), "leaving the field's own text empty").toBe("");
+});
+
+/**
+ * Typeahead moves the highlight without changing the list, which is what separates it from the
+ * autocomplete above: the filter shortens the list and typeahead walks it. The library has no text of its
+ * own for an option, so by default it reads the accessible text back off the option element — the same
+ * text a screen reader announces, with the painter's `aria-hidden` tick excluded.
+ */
+test.describe("typeahead", () => {
+    test("jumps the highlight to the next option starting with what was typed", async ({ page }) => {
+        await openedWithHighlight(page, "default");
+
+        await page.keyboard.press("e");
+
+        expect(await activeDescendantText(page, field("default"))).toBe("Estonia");
+    });
+
+    /**
+     * Keystrokes join into one query while they keep coming, and only a pause ends it — so the same two
+     * letters mean "Denmark" pressed together and "Estonia, then Portugal" pressed a second apart.
+     */
+    test("starts a new query once typing stops", async ({ page }) => {
+        await openedWithHighlight(page, "default");
+
+        await page.keyboard.press("e");
+
+        expect(await activeDescendantText(page, field("default"))).toBe("Estonia");
+
+        await page.waitForTimeout(QUERY_TIMEOUT_MS);
+        await page.keyboard.press("p");
+
+        expect(await activeDescendantText(page, field("default")), "p on its own rather than ep").toBe("Portugal");
+    });
+
+    test("takes a longer query as one word rather than as separate jumps", async ({ page }) => {
+        await openedWithHighlight(page, "default");
+
+        await page.keyboard.type("de", { delay: 30 });
+
+        expect(
+            await activeDescendantText(page, field("default")),
+            "d then e reads as Denmark, not as d and then Estonia",
+        ).toBe("Denmark");
+    });
+
+    /**
+     * The scrolling list is twenty-four hours, ten of which start with a zero, so the same key pressed again
+     * is the only way to reach the second one. It starts highlighting 13:00, so the first press has to wrap
+     * past the end of the list to find a zero at all.
+     */
+    test("cycles through the options sharing a letter when the letter is repeated", async ({ page }) => {
+        await openedWithHighlight(page, "scrollingList");
+
+        await page.keyboard.press("0");
+        expect(await activeDescendantText(page, field("scrollingList")), "wrapping past 23:00").toBe("00:00");
+
+        await page.keyboard.press("0");
+        expect(await activeDescendantText(page, field("scrollingList"))).toBe("01:00");
+
+        await page.keyboard.press("0");
+        expect(await activeDescendantText(page, field("scrollingList"))).toBe("02:00");
+    });
+
+    test("leaves the highlight alone when nothing matches", async ({ page }) => {
+        await openedWithHighlight(page, "default");
+
+        const before = await activeDescendantText(page, field("default"));
+
+        await page.keyboard.press("z");
+
+        expect(await activeDescendantText(page, field("default"))).toBe(before);
+    });
+
+    /**
+     * A field with a query signal is a real text input, so every keystroke belongs to the filter. Typeahead
+     * would otherwise eat the letters before the consumer's matcher ever saw them.
+     */
+    test("stays out of the way of an autocomplete field", async ({ page }) => {
+        await page.locator(field("autocomplete")).focus();
+        await page.keyboard.type("lis", { delay: 30 });
+
+        expect(await inputValue(page.locator(field("autocomplete"))), "the letters went into the field").toBe("lis");
+        await expect(page.locator(OPTION), "and filtered the list rather than walking it").toHaveCount(1);
+    });
+
+    /**
+     * A windowed list only mounts the rows in view, so there is no element to read text off for the rest of
+     * it. That is what `computeCustomText` is for, and the virtualized example supplies it — without it,
+     * typing would reach only the handful of routes currently on screen.
+     */
+    test("reaches an option that is not mounted, when the consumer supplies the text", async ({ page }) => {
+        await openedWithHighlight(page, "virtualized");
+
+        await page.keyboard.type("route 12", { delay: 30 });
+
+        expect(
+            await activeDescendantText(page, field("virtualized")),
+            "a route far below the window is reachable by name",
+        ).toContain("Route 12");
+    });
 });

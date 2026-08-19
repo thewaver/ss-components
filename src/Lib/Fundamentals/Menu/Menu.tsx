@@ -5,6 +5,8 @@ import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
 import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
 import { NavigationUtils } from "../../Abstracts/Navigation/Navigation.utils";
 import { SignalMirror } from "../../Abstracts/SignalMirror/SignalMirror";
+import { Typeahead } from "../../Abstracts/Typeahead/Typeahead";
+import { TypeaheadUtils } from "../../Abstracts/Typeahead/Typeahead.utils";
 import { LabelUtils } from "../Input/Label/Label.utils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import { Popover } from "../Popover/Popover";
@@ -94,6 +96,8 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
     const [getHighlightedValue, setHighlightedValue] = createSignal<T | undefined>();
     const [getOpenValue, setOpenValue] = createSignal<T | undefined>();
 
+    const typeahead = Typeahead.createBuffer();
+
     const getNavigableIndexes = createMemo(() =>
         props.getItems().reduce<number[]>((acc, item, index) => {
             const isReachable = InteractionUtils.computeIsReachable(
@@ -131,6 +135,10 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
     });
 
     const getItemId = (index: number) => `${props.getId()}-item-${index}`;
+
+    const computeItemText = (index: number) =>
+        props.computeCustomText?.(props.getItems()[index]) ??
+        TypeaheadUtils.getElementText(document.getElementById(getItemId(index)));
 
     const getSubmenuId = (index: number) => `${props.getId()}-submenu-${index}`;
 
@@ -189,6 +197,21 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
         if (e.key === "Tab") {
             e.preventDefault();
             props.onDismiss();
+
+            return;
+        }
+
+        const query = typeahead.push(e);
+
+        if (query !== undefined) {
+            e.preventDefault();
+
+            const navigableFrom = navigable.indexOf(highlightedIndex ?? -1);
+            const position = TypeaheadUtils.computeNextIndex(query, navigableFrom, navigable.length, (index) =>
+                computeItemText(navigable[index]),
+            );
+
+            if (position !== undefined) highlightIndex(navigable[position]);
 
             return;
         }
@@ -280,6 +303,7 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
                                         getReservedScreenSize={props.getReservedScreenSize}
                                         getTransitionDurationMs={props.getTransitionDurationMs}
                                         getOpenerFlags={getFlags}
+                                        computeCustomText={props.computeCustomText}
                                         renderItem={props.renderItem}
                                         renderPopup={props.renderPopup}
                                         onActivate={props.onActivate}
@@ -406,6 +430,7 @@ export const Menu = <T,>(props: MenuProps<T>) => {
                         getReservedScreenSize={props.getReservedScreenSize}
                         getTransitionDurationMs={props.getTransitionDurationMs}
                         getOpenerFlags={getFlags}
+                        computeCustomText={props.computeCustomText}
                         renderItem={props.renderItem}
                         renderPopup={props.renderPopup}
                         onActivate={(value) => {

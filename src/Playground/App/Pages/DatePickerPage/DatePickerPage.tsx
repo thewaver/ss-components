@@ -9,15 +9,20 @@ import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { PageSelectField } from "../../StyledComponents/Field/Field";
-import { CAESAR, CLOSING_TIME, MAX_DATE, MIN_DATE, OPENING_TIME, TODAY } from "./DatePickerPage.const";
+import { BOOKING_STEPS, CAESAR, CLOSING_TIME, MAX_DATE, MIN_DATE, OPENING_TIME, TODAY } from "./DatePickerPage.const";
+import { ClockedExample } from "./Examples/Clocked";
 import { PickedExample } from "./Examples/Picked";
 import { TimeExample } from "./Examples/Time";
 import { TypedExample } from "./Examples/Typed";
 
 const CALENDAR_FIELD_WIDTH = 180;
+const WEEK_STARTS_ON_MONDAY = 1;
+const WEEKEND_OFFSET = 5;
 const EXAMPLES_ROOT = "/src/Playground/App/Pages/DatePickerPage/Examples";
 
 const describe = (value: DateValue | undefined) => (value ? DateValueUtils.toIso(value) : "none");
+
+const getIsWeekend = (day: DateValue) => DateValueUtils.getWeekdayOffset(day, WEEK_STARTS_ON_MONDAY) >= WEEKEND_OFFSET;
 
 const describeTime = (value: TimeValue | undefined) => (value ? TimeUtils.toIso(value) : "none");
 
@@ -28,11 +33,15 @@ export const DatePickerPage = () => {
     const localeSignal = createSignal<DateValue | undefined>(TODAY);
     const pickedSignal = createSignal<DateValue | undefined>();
     const boundedSignal = createSignal<DateValue | undefined>();
+    const weekdaySignal = createSignal<DateValue | undefined>();
     const eraSignal = createSignal<DateValue | undefined>(CAESAR);
     const timeSignal = createSignal<TimeValue | undefined>({ hour: 9, minute: 30 });
     const preciseSignal = createSignal<TimeValue | undefined>({ hour: 9, minute: 30, second: 0 });
     const twelveHourSignal = createSignal<TimeValue | undefined>({ hour: 14, minute: 30 });
     const shiftSignal = createSignal<TimeValue | undefined>();
+    const clockedSignal = createSignal<TimeValue | undefined>({ hour: 9, minute: 30 });
+    const clockedTwelveSignal = createSignal<TimeValue | undefined>({ hour: 14, minute: 30 });
+    const bookingSignal = createSignal<TimeValue | undefined>({ hour: 10, minute: 15 });
 
     const getExamples = createMemo(() => [
         {
@@ -99,6 +108,21 @@ export const DatePickerPage = () => {
             path: `${EXAMPLES_ROOT}/Picked.tsx`,
         },
         {
+            key: "weekdays",
+            name: "Weekdays only",
+            readout: () =>
+                `value: ${describe(weekdaySignal[0]())} — the calendar refuses a weekend, and typing one reports it as an error`,
+            component: () => (
+                <PickedExample
+                    valueSignal={weekdaySignal}
+                    getCalendar={getCalendarId}
+                    getKey={() => "weekdays"}
+                    computeIsDayDisabled={getIsWeekend}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Picked.tsx`,
+        },
+        {
             key: "time",
             name: "A time, typed or stepped",
             readout: () =>
@@ -143,6 +167,52 @@ export const DatePickerPage = () => {
                 />
             ),
             path: `${EXAMPLES_ROOT}/Time.tsx`,
+        },
+        {
+            key: "clocked",
+            name: "With a clock",
+            readout: () =>
+                `value: ${describeTime(clockedSignal[0]())} — one column per unit, so typing and picking cover the same times`,
+            component: () => (
+                <ClockedExample
+                    valueSignal={clockedSignal}
+                    getKey={() => "clocked"}
+                    getAriaLabel={() => "Appointment time"}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Clocked.tsx`,
+        },
+        {
+            key: "clockedTwelve",
+            name: "Twelve hour, with a clock",
+            readout: () =>
+                `value: ${describeTime(clockedTwelveSignal[0]())} — the am/pm control and the clock trigger share the trailing slot`,
+            component: () => (
+                <ClockedExample
+                    valueSignal={clockedTwelveSignal}
+                    getKey={() => "clockedTwelve"}
+                    getIsTwelveHour={() => true}
+                    getAriaLabel={() => "Call time"}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Clocked.tsx`,
+        },
+        {
+            key: "booking",
+            name: "Every fifteen minutes",
+            readout: () =>
+                `value: ${describeTime(bookingSignal[0]())} — a coarser minute column, still inside ${TimeUtils.toIso(OPENING_TIME)} to ${TimeUtils.toIso(CLOSING_TIME)}`,
+            component: () => (
+                <ClockedExample
+                    valueSignal={bookingSignal}
+                    getKey={() => "booking"}
+                    getClockSteps={() => BOOKING_STEPS}
+                    getMinTime={() => OPENING_TIME}
+                    getMaxTime={() => CLOSING_TIME}
+                    getAriaLabel={() => "Booking time"}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Clocked.tsx`,
         },
     ]);
 

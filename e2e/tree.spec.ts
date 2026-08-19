@@ -198,3 +198,51 @@ test("a branch collapsed from outside hands focus back rather than dropping it o
         "Lib",
     );
 });
+
+/**
+ * The published tree pattern lists typeahead as a keyboard requirement rather than an extra, and a deep
+ * tree is where arrowing is worst. Focus is real here — a tree row is a tab stop, not an
+ * `aria-activedescendant` — so the check is which element holds focus.
+ *
+ * The default text source is the row's accessible text, which matters more here than anywhere else: the
+ * painter draws a "▶" marker before the name and marks it `aria-hidden`, so reading raw text would leave
+ * every branch starting with an arrow and matching nothing.
+ */
+test.describe("typeahead", () => {
+    test("moves focus to the next visible node starting with what was typed", async ({ page }) => {
+        await page.locator(node(DEFAULT)).first().focus();
+
+        await page.keyboard.press("p");
+
+        expect(await activeText(page), "the marker glyph is hidden, so the name is what matches").toContain(
+            "Playground",
+        );
+    });
+
+    /**
+     * Only the rows on screen are walked, which is what a collapsed branch means — so this crosses out of
+     * the open `src` subtree to a sibling at the top level rather than reaching a name hidden inside `Lib`.
+     * It also shows the second letter narrowing the query: `p` alone lands on Playground.
+     */
+    test("walks the rows that are shown, crossing out of an open branch", async ({ page }) => {
+        await page.locator(node(DEFAULT)).first().focus();
+
+        await page.keyboard.type("pa", { delay: 30 });
+
+        expect(await activeText(page)).toContain("package.json");
+    });
+
+    /**
+     * Asterisk opens every branch at the current level, and it is a printable character like any other — so
+     * it has to be claimed before the query ever sees it, or the tree loses the shortcut the pattern names.
+     */
+    test("leaves the expand-siblings key alone", async ({ page }) => {
+        const rows = page.locator(node(COLLAPSED));
+        const before = await rows.count();
+
+        await rows.first().focus();
+        await page.keyboard.press("*");
+
+        expect(await rows.count(), "the branches opened rather than a query starting").toBeGreaterThan(before);
+    });
+});

@@ -54,6 +54,7 @@ export const DatePicker = (props: DatePickerProps) => {
             getLocale={props.getLocale}
             getWeekStartsOn={props.getWeekStartsOn}
             getAriaLabel={() => props.getCalendarLabel?.() ?? DEFAULT_DATE_PICKER_CALENDAR_LABEL}
+            computeIsDayDisabled={props.computeIsDayDisabled}
             renderDay={props.renderDay}
             renderWeekday={props.renderWeekday}
         />

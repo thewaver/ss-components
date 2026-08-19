@@ -8,6 +8,8 @@ import { InteractionUtils } from "../../../Abstracts/Interaction/Interaction.uti
 import { NavigationUtils } from "../../../Abstracts/Navigation/Navigation.utils";
 import { SignalMirror } from "../../../Abstracts/SignalMirror/SignalMirror";
 import { TextSync } from "../../../Abstracts/TextSync/TextSync";
+import { Typeahead } from "../../../Abstracts/Typeahead/Typeahead";
+import { TypeaheadUtils } from "../../../Abstracts/Typeahead/Typeahead.utils";
 import { Virtualizer } from "../../../Abstracts/Virtualizer/Virtualizer";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { Popover } from "../../Popover/Popover";
@@ -162,6 +164,8 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
     const [getHasPopoverSettled, setHasPopoverSettled] = createSignal(true);
     const [getHighlightedValue, setHighlightedValue] = createSignal<T | undefined>();
 
+    const typeahead = Typeahead.createBuffer();
+
     const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
 
     const getIsMultiple = createMemo(() => props.getIsMultiple?.() ?? false);
@@ -263,12 +267,18 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
         },
     });
 
+    const getOptionId = (index: number) => `${listboxId}-option-${index}`;
+
+    const computeOptionText = (index: number) =>
+        props.computeCustomText?.(getFlatOptions()[index]) ??
+        TypeaheadUtils.getElementText(document.getElementById(getOptionId(index)));
+
     const getActiveOptionId = createMemo(() => {
         const highlightedIndex = getHighlightedIndex();
 
         if (!getIsOpen() || highlightedIndex === undefined) return;
 
-        return `${listboxId}-option-${highlightedIndex}`;
+        return getOptionId(highlightedIndex);
     });
 
     const open = () => {
@@ -333,6 +343,24 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
             return;
         }
 
+        const query = getIsFilterable() ? undefined : typeahead.push(e);
+
+        if (query !== undefined) {
+            e.preventDefault();
+            open();
+
+            const from = navigable.indexOf(getHighlightedIndex() ?? -1);
+            const position = TypeaheadUtils.computeNextIndex(query, from, navigable.length, (index) =>
+                computeOptionText(navigable[index]),
+            );
+
+            if (position === undefined) return;
+
+            setHighlightedValue(() => options[navigable[position]].value);
+
+            return;
+        }
+
         if (e.key === "Enter" || (e.key === " " && !getIsFilterable())) {
             e.preventDefault();
 
@@ -392,7 +420,7 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
             renderControl={(setElementRef, getFlags) => (
                 <SelectOptionItem
                     ref={setElementRef}
-                    getId={() => `${listboxId}-option-${getFlatIndex()}`}
+                    getId={() => getOptionId(getFlatIndex())}
                     getIsSelfScrolling={() => !getIsVirtualized()}
                     getFlags={getFlags}
                     renderContent={(getOptionFlags) => props.renderOption(getOption, getOptionFlags)}

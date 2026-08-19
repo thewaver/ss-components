@@ -1,6 +1,7 @@
 import type { TimeValue } from "@thewaver/ss-utils";
 
 import { DateValueUtils } from "../../../../Lib/Abstracts/DateValue/DateValue.utils";
+import type { ClockSteps } from "../../../../Lib/Fundamentals/Input/Clock/Clock.types";
 
 export const FIELD_WIDTH = 220;
 export const LOCALE = "en-GB";
@@ -12,3 +13,5 @@ export const CAESAR = DateValueUtils.fromIso("-000043-03-15")!;
 
 export const OPENING_TIME: TimeValue = { hour: 9, minute: 0 };
 export const CLOSING_TIME: TimeValue = { hour: 17, minute: 30 };
+
+export const BOOKING_STEPS: ClockSteps = { minute: 15 };

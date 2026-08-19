@@ -80,6 +80,7 @@ export type MenuLevelProps<T> = AccessorProps<{
     openerFlags: InteractionFlags<MenuFlags>;
 }> & {
     getItems: Accessor<MenuItem<T>[]>;
+    computeCustomText?: (item: MenuItem<T>) => string;
     renderItem: MenuRenderItem<T>;
     renderPopup: MenuRenderPopup;
     onActivate: (value: T) => void;
@@ -101,6 +102,7 @@ export type MenuProps<T> = Omit<InteractionWrapperProps<MenuFlags>, "renderContr
         visibilitySignal?: Signal<boolean>;
         getAnchorRef?: () => HTMLElement | undefined;
         getItems: Accessor<MenuItem<T>[]>;
+        computeCustomText?: (item: MenuItem<T>) => string;
         renderContent: (getFlags: () => InteractionFlags<MenuFlags>) => JSX.Element;
         renderItem: MenuRenderItem<T>;
         renderPopup: MenuRenderPopup;

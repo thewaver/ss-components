@@ -9,7 +9,7 @@ outstanding work. They are at the end of `backlog.md`.
 
 | Section                                                 | Count |
 | ------------------------------------------------------- | ----: |
-| [Missing components](#missing-components)               |     8 |
+| [Missing components](#missing-components)               |     7 |
 | [Pending abstractions](#pending-abstractions)           |    11 |
 | [Blockers and known issues](#blockers-and-known-issues) |    17 |
 | [Accessibility gaps](#accessibility-gaps)               |     5 |
@@ -24,7 +24,6 @@ Ordered by the user on 2026-08-15. A toolbar, a segmented control, a rating inpu
 
 | #     | What                                                     | Standing                                                                                                            |
 | ----- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| 7     | **`TimePicker`**                                         | A time popup; unresolved whether it is a mode on `TimeInput` or its own control                                     |
 | 7     | **A date-and-time value**                                | Nothing composes the two fields, and which signal owns the pair is undecided                                        |
 | 7, 14 | **Range variants**                                       | `RangeCalendar`, `DateRangePicker`; decide once for both                                                            |
 | 9     | **A field section / fieldset**                           | Nothing groups fields into sections with their own validity; `Stepper` sidesteps it by being told each step's state |
@@ -35,20 +34,19 @@ Ordered by the user on 2026-08-15. A toolbar, a segmented control, a rating inpu
 
 ## Pending abstractions
 
-| #        | What                                          | What it would serve                                          |
-| -------- | --------------------------------------------- | ------------------------------------------------------------ |
-| 2, 9     | **One-shot pointer geometry**                 | Where a single activation landed, for ripples                |
-| 13       | **A shared measuring abstract**               | Neighbour heights for a toast pile, auto-height elsewhere    |
-| 19       | **One flattener instead of two**              | `SelectUtils.getFlatOptions` and `TreeUtils.getVisibleRows`  |
-| 11       | **Geometry split out of markup**              | Three SVG defs files, ~950 lines currently untestable        |
-| 5, 6, 19 | **A per-item text source**                    | The missing half of typeahead in `Select`, `Menu` and `Tree` |
-| 5, 19    | **Shared `CheckedState`**                     | `Select`'s group header and a multi-select `Tree`            |
-| 5, 19    | **Windowing over nested lists**               | A group box straddling the window edge, unanswered for both  |
-| 20, 23   | **Outward position signals**                  | `SlideButton`'s progress, `Scroller`'s scroll position       |
-| 9        | **Getter-plus-setter on controls**            | Today a consumer wraps one in a `SignalMirror` first         |
-| 4        | **Easing on the cell timeline**               | Cell animation is linear-only                                |
-| 7        | **A typed sign, a non-uniform group pattern** | No negative currency; `en-IN` groups wrong today             |
-| 7        | **`TextSyncUtils` exported**                  | Three in-library consumers now argue for it                  |
+| #      | What                                          | What it would serve                                         |
+| ------ | --------------------------------------------- | ----------------------------------------------------------- |
+| 2, 9   | **One-shot pointer geometry**                 | Where a single activation landed, for ripples               |
+| 13     | **A shared measuring abstract**               | Neighbour heights for a toast pile, auto-height elsewhere   |
+| 19     | **One flattener instead of two**              | `SelectUtils.getFlatOptions` and `TreeUtils.getVisibleRows` |
+| 11     | **Geometry split out of markup**              | Three SVG defs files, ~950 lines currently untestable       |
+| 5, 19  | **Shared `CheckedState`**                     | `Select`'s group header and a multi-select `Tree`           |
+| 5, 19  | **Windowing over nested lists**               | A group box straddling the window edge, unanswered for both |
+| 20, 23 | **Outward position signals**                  | `SlideButton`'s progress, `Scroller`'s scroll position      |
+| 9      | **Getter-plus-setter on controls**            | Today a consumer wraps one in a `SignalMirror` first        |
+| 4      | **Easing on the cell timeline**               | Cell animation is linear-only                               |
+| 7      | **A typed sign, a non-uniform group pattern** | No negative currency; `en-IN` groups wrong today            |
+| 7      | **`TextSyncUtils` exported**                  | Three in-library consumers now argue for it                 |
 
 ## Blockers and known issues
 
@@ -81,7 +79,7 @@ They cluster, and no single item owns them.
 | 20, 21, 14 | **`SlideButton`, `Spotlight`, `Calendar`** | Nothing announces progress, a step change or a month change; `LiveAnnouncer` exists, the wording is undecided |
 | 13         | **`Toasts`**                               | No keyboard route into the stack; urgency is per region, not per toast                                        |
 | 21         | **`Spotlight`**                            | `prompt` cannot hide the page from a screen reader — `inert` cannot be lifted off a descendant                |
-| 17, 19     | **`Tabs`, `Tree`**                         | No automatic activation; no typeahead, which departs from the published pattern                               |
+| 17         | **`Tabs`**                                 | No automatic activation; arrows move focus and only Enter or Space selects                                    |
 | 24         | **`Carousel`**                             | With no `renderControls` there is no keyboard route at all                                                    |
 
 ## Planned projects

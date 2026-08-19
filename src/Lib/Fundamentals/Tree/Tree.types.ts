@@ -51,6 +51,7 @@ export type TreeProps<T> = AccessorProps<{
     getNodes: Accessor<TreeNode<T>[]>;
     valueSignal: Signal<T | undefined>;
     expandedSignal: Signal<T[]>;
+    computeCustomText?: (node: TreeNode<T>) => string;
     renderNode: (getNode: Accessor<TreeNode<T>>, getFlags: () => InteractionFlags<TreeNodeFlags>) => JSX.Element;
     onSelectionChange?: (value: T) => void;
 };

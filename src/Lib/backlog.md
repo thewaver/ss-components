@@ -29,8 +29,8 @@ reading.
 2. One-shot positioned effects still have nowhere to go — _open_
 3. Neither animation component can paint its own background — _open_
 4. Cell animation timing is linear-only — _open_
-5. `Select` — six things deliberately not built — _open_
-6. `Menu` — five things deliberately not built — _open_
+5. `Select` — seven things deliberately not built — _open_
+6. `Menu` — four things deliberately not built — _open_
 7. What the date and time family still lacks — _open_
 8. Other core controls the library does not have — _open, ordered by the user_
 9. Machinery those controls need, none of which exists — _open_
@@ -43,7 +43,7 @@ reading.
 16. `Accordion` — four things deliberately not built — _open_
 17. `Tabs` — no automatic activation, and a pairing the consumer can still skip — _open_
 18. `Viewport` as a region: what is settled and what is not — _open_
-19. `Tree` — five things deliberately not built, and one extraction to decide — _open_
+19. `Tree` — four things deliberately not built, and one extraction to decide — _open_
 20. `SlideButton` — five things deliberately not built — _open_
 21. `Spotlight` — three things deliberately not built — _open_
 22. `Scroller` — five things deliberately not built — _open_
@@ -187,16 +187,11 @@ sampler — the same result reached from the other end.
 
 ---
 
-## 5. `Select` — six things deliberately not built
+## 5. `Select` — seven things deliberately not built
 
 The decisions behind what exists are in `conventions.md` under the three `Select` headings. These are
 the gaps, each with the reason it is still a gap.
 
-- **Typeahead is absent, and consumer-owned filtering did not solve it after all.** Filtering changes
-  the list; typeahead moves the highlight without changing it, so it cannot reuse the consumer's
-  filter. It still needs either a string per option — a second source for text the painter already
-  renders — or a consumer predicate duplicating the matcher they already wrote. The honest answer for
-  anyone who wants it today is to turn on autocomplete instead.
 - **A consumer whose filter injects a non-matching option can see the highlight land on it.** While
   filtering, the highlight goes to the first option rather than to the selection, because the component
   knows which options are _present_, not which ones _matched_. The fix belongs in the consumer's
@@ -232,9 +227,9 @@ the gaps, each with the reason it is still a gap.
   Radix's `Select.Item` takes an optional `textValue`, and when it is absent typeahead uses the item's
   own rendered text content. React Aria's list items take `textValue` and require it only when the
   children are not plain text. Kobalte takes `optionTextValue`, a field name or getter on the option
-  record, documented as being for typeahead. So the "second source for text the painter already
-  renders" is what two of them avoid by reading the rendered text back out of the element — and the
-  option element is the library's here, so its `textContent` is reachable without a prop.
+  record, documented as being for typeahead. This is the reading that closed the gap: the option element
+  is the library's here, so its text is reachable without a prop, and `computeCustomText` is the way out
+  for the cases that need one. See `conventions.md`.
 - **A filterable list is a separate component everywhere.** Radix has no autocomplete primitive at all,
   so the injected-non-matching-option case cannot arise there; and where a library does own the filter
   it necessarily knows which options matched, which is the knowledge this design trades away by
@@ -259,7 +254,7 @@ the gaps, each with the reason it is still a gap.
 
 ---
 
-## 6. `Menu` — five things deliberately not built
+## 6. `Menu` — four things deliberately not built
 
 The decisions behind what exists are in `conventions.md` under _"`Popover` extracted, and `Menu` as the
 second consumer"_ and _"`Menu` submenus: a level per popup, focus moving between them"_. These are the
@@ -275,9 +270,6 @@ gaps, each with the reason it is still a gap.
   to the next element after the trigger. The menu is portalled to the end of the document, so letting
   `Tab` through lands focus wherever the portal sits, which is worse than not moving. The cost is one
   extra `Tab`; fixing it properly means computing the trigger's next tab stop by hand.
-- **There is no typeahead**, for the same reason `Select` has none — it needs a string per item that
-  the painter already renders, or a consumer predicate. Unlike `Select` there is no autocomplete to
-  offer instead.
 - **The opener is solved; a right-click menu still needs a point to open at.** `Menu` takes a `visibilitySignal`
   and a `getAnchorRef`, and because `Popover` already builds its dismiss roots as the popup **plus its anchor**, a
   consumer's own button becomes part of the layer and a press on it no longer closes the menu before the handler
@@ -330,11 +322,6 @@ doing:
   `chinese` and `dangi` report no era and no plain year, only a `relatedYear`, and `createCalendar` answers a
   request for either with a **Gregorian** calendar rather than refusing it. Nothing here is outstanding; it is
   recorded because from outside the omission reads as an oversight.
-- **No time popup.** A list of times in a `Popover` is a `Select` over generated options; whether that
-  belongs inside `TimeInput` as a mode or beside it as a `TimePicker` is the decision, and nothing blocks it now
-  that a popup's open state can be shared. Note the trailing slot is now spoken
-  for on a 12-hour field, so a picker trigger and an am/pm control would have to share it — which is what
-  that slot taking `(getFlags, meridiem)` already allows, since the painter draws both or neither.
 - **No date-and-time value.** The two fields exist side by side and nothing composes them. Which signal
   owns the pair is the question — one `{ date, time }` record, or two signals a consumer keeps in step.
   The former is a new value type; the latter is the mirror problem again.
@@ -357,11 +344,11 @@ doing:
   swapping the inner input for a third-party one — `react-imask`, `react-number-format` — which is
   where the formatted-number half of this would land, and it is a dependency rather than a component
   everywhere it appears.
-- **A time popup is a separate component beside the field, and it is a list.** MUI's `TimePicker`
+- **A time popup is a separate component beside the field, and MUI ships both shapes.** Its `TimePicker`
   composes a `TimeField` for typing with a `DigitalClock` for pointing, which its docs describe as
   behaving like a select over generated times; it swaps in a `MultiSectionDigitalClock` — a column per
-  unit — when the granularity is finer, and an analogue `TimeClock` on mobile. The guess in this bullet
-  is what `DigitalClock` is.
+  unit — when the granularity is finer, and an analogue `TimeClock` on mobile. `Clock` here is the
+  column-per-unit shape unconditionally, for the reason in `conventions.md`.
 - **Date-and-time is one value whose _type_ carries the answer.** React Aria has `CalendarDate`,
   `CalendarDateTime` and `ZonedDateTime`, and a `granularity` prop choosing the smallest unit shown —
   defaulting to day for a date and minute for a date-time. One field component reads all three, so the
@@ -923,14 +910,11 @@ that roams one of them at a scale you can change, and an anchor inside a scrolli
 
 ---
 
-## 19. `Tree` — five things deliberately not built, and one extraction to decide
+## 19. `Tree` — four things deliberately not built, and one extraction to decide
 
 The decisions behind what exists are in `conventions.md` under _"Controls: `Tree`, and the group box that
 could not be a child"_. These are the gaps, each with the reason it is still one.
 
-- **There is no typeahead**, for the third time and for the same reason as `Select` and `Menu`: it needs a
-  string per node that the painter already renders, or a consumer predicate. A tree is the place the absence
-  is felt most, because a deep tree is exactly where nobody wants to arrow.
 - **A branch whose children have not arrived yet cannot be spelled.** A branch is a node with at least one
   child, so an empty list reads as a leaf and there is nothing that shows a closed, openable, not-yet-fetched
   folder. Two things would be needed and only the first is obvious: a way to say "this has children" without
@@ -972,8 +956,7 @@ having before a third consumer asks.
 - **Typeahead is in the pattern itself, not just in the libraries.** The published tree pattern lists it as a
   keyboard requirement — type a character, focus moves to the next node whose name starts with it. Ark UI has
   it on by **default** behind a `typeahead` prop; React Aria drives it off the same `textValue` its lists use.
-  So of the three controls here that skip it, this is the one where skipping it departs from the spec rather
-  than from a convention.
+  This is what made the tree the strongest of the three arguments for building it.
 - **Lazy branches are a named feature with a completion callback.** Ark UI takes `loadChildren` plus
   `onLoadChildrenComplete`; React Aria has a `TreeLoadMoreItem` element and a `renderEmptyState` for the
   spinner. Both answer the second half this item calls hard — where "loading" is painted — by making it an

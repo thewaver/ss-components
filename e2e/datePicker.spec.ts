@@ -406,3 +406,22 @@ test.describe("eras and other calendar systems", () => {
         );
     });
 });
+
+/**
+ * The bounds a picker takes are a range, and a range cannot say "not on a Sunday". `Calendar` has always
+ * taken a predicate for that; `DatePicker` now passes it through rather than making a consumer drop down to
+ * `Calendar` and build the popup themselves.
+ *
+ * The count is what makes this checkable without pinning a month: the grid is always six weeks of seven
+ * days, so whichever month is showing, exactly twelve of the forty-two cells are a Saturday or a Sunday.
+ */
+test("a picker can refuse individual days, not only a range of them", async ({ page }) => {
+    await page.locator(trigger("weekdays")).click();
+    await expect(page.locator(POPUP)).toBeVisible();
+
+    await expect(page.locator(`${POPUP} [role="gridcell"]`)).toHaveCount(42);
+    await expect(
+        page.locator(`${POPUP} [role="gridcell"][aria-disabled="true"]`),
+        "six weekends, whichever month is showing",
+    ).toHaveCount(12);
+});

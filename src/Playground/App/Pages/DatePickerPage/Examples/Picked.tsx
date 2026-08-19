@@ -25,6 +25,7 @@ type Props = DateExampleProps & {
     getKey: () => string;
     getMinDate?: () => DateValue;
     getMaxDate?: () => DateValue;
+    computeIsDayDisabled?: (day: DateValue) => boolean;
 };
 
 export const PickedExample = (props: Props) => (
@@ -33,6 +34,7 @@ export const PickedExample = (props: Props) => (
         getCalendar={props.getCalendar}
         getMinDate={props.getMinDate}
         getMaxDate={props.getMaxDate}
+        computeIsDayDisabled={props.computeIsDayDisabled}
         getAriaLabel={() => "Date"}
         getCalendarLabel={() => "Choose a date"}
         getLocale={() => LOCALE}

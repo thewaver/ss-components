@@ -35,6 +35,7 @@ export const VirtualizedExample = (props: Props) => (
             getOptions={props.getOptions}
             getAriaLabel={() => "Route"}
             computeEstimatedOptionHeight={() => STRESS_OPTION_HEIGHT}
+            computeCustomText={(option) => option.value.name}
             renderContent={(getSelectedOption, getFlags) => (
                 <PageSelectContent getFlags={getFlags}>
                     {getSelectedOption()?.value.name ?? PLACEHOLDER}

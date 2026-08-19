@@ -79,6 +79,7 @@ export type SelectCompositeProps<T> = Omit<InteractionWrapperProps<SelectFlags>,
         getSelectedOptions: Accessor<SelectOption<T>[]>;
         querySignal?: Signal<string>;
         computeIsSelected: (value: T) => boolean;
+        computeCustomText?: (option: SelectOption<T>) => string;
         computeEstimatedOptionHeight?: (index: number) => number;
         renderContent: (
             getSelectedOptions: Accessor<SelectOption<T>[]>,
