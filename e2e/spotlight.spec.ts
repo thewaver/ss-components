@@ -1,10 +1,10 @@
 import { type Page, expect, test } from "@playwright/test";
 
-import { activeText, readout, variant } from "./helpers";
+import { activeText, demo, readout } from "./helpers";
 
-const HINT = variant("hint");
-const PROMPT = variant("prompt");
-const GUIDE = variant("guide");
+const HINT = demo("hint");
+const PROMPT = demo("prompt");
+const GUIDE = demo("guide");
 
 const SETTLE_MS = 300;
 

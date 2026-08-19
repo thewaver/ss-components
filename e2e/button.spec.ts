@@ -1,17 +1,17 @@
 import { expect, test } from "@playwright/test";
 
-import { activeMatches, readout, tabIndex, variant } from "./helpers";
+import { activeMatches, demo, readout, tabIndex } from "./helpers";
 
-const DEFAULT = `${variant("default")} button`;
-const DECORATED = `${variant("decorated")} button`;
-const DISABLED = `${variant("disabled")} button`;
-const REACHABLE = `${variant("reachable")} button`;
-const ERROR = `${variant("errored")} button`;
+const DEFAULT = `${demo("default")} button`;
+const DECORATED = `${demo("decorated")} button`;
+const DISABLED = `${demo("disabled")} button`;
+const REACHABLE = `${demo("reachable")} button`;
+const ERROR = `${demo("errored")} button`;
 const TOOLTIP = '[role="tooltip"]';
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/button");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 test("no control uses the native disabled attribute", async ({ page }) => {

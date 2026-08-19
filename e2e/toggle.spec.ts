@@ -1,14 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-import { isIndeterminate, variant } from "./helpers";
+import { demo, isIndeterminate } from "./helpers";
 
-const DEFAULT = `${variant("default")} input`;
+const DEFAULT = `${demo("default")} input`;
 const SUMMARY = "#allSettings";
 const FIRST_SETTING = "#firstSetting";
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/toggle");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 test("a plain toggle is a switch over a native checkbox", async ({ page }) => {

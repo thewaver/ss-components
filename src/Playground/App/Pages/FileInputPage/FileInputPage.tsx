@@ -1,13 +1,17 @@
 import { createMemo, createSignal } from "solid-js";
 
-import { FileInput } from "../../../../Lib/Fundamentals/Input/FileInput/FileInput";
-import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
-import { PageFileInputContent } from "../../StyledComponents/FileInputContent/FileInputContent";
-import { PageLabelCaption } from "../../StyledComponents/LabelCaption/LabelCaption";
-import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
+import { DefaultExample } from "./Examples/Default";
+import { DisabledExample } from "./Examples/Disabled";
+import { ErroredExample } from "./Examples/Errored";
+import { ImagesExample } from "./Examples/Images";
+import { LabelledExample } from "./Examples/Labelled";
+import { MultipleExample } from "./Examples/Multiple";
+import { ReachableExample } from "./Examples/Reachable";
+import { RejectingSetterExample } from "./Examples/RejectingSetter";
+import { MAX_ATTACHMENT_BYTES } from "./FileInputPage.const";
 
-const MAX_ATTACHMENT_BYTES = 1024;
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/FileInputPage/Examples";
 
 const describe = (files: File[]) => (files.length ? files.map((file) => file.name).join(", ") : "none");
 
@@ -23,136 +27,71 @@ export const FileInputPage = () => {
 
     const [getRejection, setRejection] = createSignal("");
 
-    const getVariants = createMemo(() => {
-        return [
-            {
-                key: "default",
-                name: "Default",
-                readout: () => `files: ${describe(defaultSignal[0]())}`,
-                component: () => (
-                    <FileInput
-                        filesSignal={defaultSignal}
-                        getAriaLabel={() => "Attachment"}
-                        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "multiple",
-                name: "Multiple",
-                readout: () => `files: ${describe(multipleSignal[0]())}`,
-                component: () => (
-                    <FileInput
-                        filesSignal={multipleSignal}
-                        getIsMultiple={() => true}
-                        getAriaLabel={() => "Attachments"}
-                        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "images",
-                name: "Accepting images only",
-                readout: () => `files: ${describe(imagesSignal[0]())} — accept is a filter, never a guarantee`,
-                component: () => (
-                    <FileInput
-                        filesSignal={imagesSignal}
-                        getAccept={() => "image/*"}
-                        getAriaLabel={() => "Avatar"}
-                        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "rejectingSetter",
-                name: "Rejecting setter",
-                readout: () =>
-                    `files: ${describe(rejectingSignal[0]())}${getRejection() ? ` — ${getRejection()}` : ` — anything over ${MAX_ATTACHMENT_BYTES} bytes is refused`}`,
-                component: () => (
-                    <FileInput
-                        filesSignal={rejectingSignal}
-                        getHasError={() => getRejection() !== ""}
-                        getAriaLabel={() => "Small attachment"}
-                        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
-                        onChange={(files) => {
-                            const tooBig = files.filter((file) => file.size > MAX_ATTACHMENT_BYTES);
+    const getExamples = createMemo(() => [
+        {
+            key: "default",
+            name: "Default",
+            readout: () => `files: ${describe(defaultSignal[0]())}`,
+            component: () => <DefaultExample filesSignal={defaultSignal} />,
+            path: `${EXAMPLES_ROOT}/Default.tsx`,
+        },
+        {
+            key: "multiple",
+            name: "Multiple",
+            readout: () => `files: ${describe(multipleSignal[0]())}`,
+            component: () => <MultipleExample filesSignal={multipleSignal} />,
+            path: `${EXAMPLES_ROOT}/Multiple.tsx`,
+        },
+        {
+            key: "images",
+            name: "Accepting images only",
+            readout: () => `files: ${describe(imagesSignal[0]())} — accept is a filter, never a guarantee`,
+            component: () => <ImagesExample filesSignal={imagesSignal} />,
+            path: `${EXAMPLES_ROOT}/Images.tsx`,
+        },
+        {
+            key: "rejectingSetter",
+            name: "Rejecting setter",
+            readout: () =>
+                `files: ${describe(rejectingSignal[0]())}${getRejection() ? ` — ${getRejection()}` : ` — anything over ${MAX_ATTACHMENT_BYTES} bytes is refused`}`,
+            component: () => (
+                <RejectingSetterExample
+                    filesSignal={rejectingSignal}
+                    getRejection={getRejection}
+                    onRejectionChange={setRejection}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/RejectingSetter.tsx`,
+        },
+        {
+            key: "disabled",
+            name: "Disabled",
+            readout: () => `files: ${describe(disabledSignal[0]())}`,
+            component: () => <DisabledExample filesSignal={disabledSignal} />,
+            path: `${EXAMPLES_ROOT}/Disabled.tsx`,
+        },
+        {
+            key: "reachable",
+            name: "Disabled + reachable",
+            readout: () => `files: ${describe(reachableSignal[0]())}`,
+            component: () => <ReachableExample filesSignal={reachableSignal} />,
+            path: `${EXAMPLES_ROOT}/Reachable.tsx`,
+        },
+        {
+            key: "errored",
+            name: "Error",
+            readout: () => `files: ${describe(erroredSignal[0]())} — required, nothing picked yet`,
+            component: () => <ErroredExample filesSignal={erroredSignal} />,
+            path: `${EXAMPLES_ROOT}/Errored.tsx`,
+        },
+        {
+            key: "label",
+            name: "In a Label",
+            readout: () => `files: ${describe(labelledSignal[0]())} — the caption opens the dialog`,
+            component: () => <LabelledExample filesSignal={labelledSignal} />,
+            path: `${EXAMPLES_ROOT}/Labelled.tsx`,
+        },
+    ]);
 
-                            setRejection(tooBig.length ? `${tooBig[0].name} is too big, pick again` : "");
-
-                            if (tooBig.length) rejectingSignal[1]([]);
-                        }}
-                    />
-                ),
-            },
-            {
-                key: "disabled",
-                name: "Disabled",
-                readout: () => `files: ${describe(disabledSignal[0]())}`,
-                component: () => (
-                    <FileInput
-                        filesSignal={disabledSignal}
-                        getIsDisabled={() => true}
-                        getAriaLabel={() => "Disabled attachment"}
-                        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "reachable",
-                name: "Disabled + reachable",
-                readout: () => `files: ${describe(reachableSignal[0]())}`,
-                component: () => (
-                    <FileInput
-                        filesSignal={reachableSignal}
-                        getIsDisabled={() => true}
-                        getIsReachableWhenDisabled={() => true}
-                        getAriaLabel={() => "Disabled but reachable attachment"}
-                        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
-                        getTooltipDefs={() => ({
-                            getPlacement: () => ({ x: "center", y: "top-out" }),
-                            getOffset: () => ({ x: 0, y: 5 }),
-                            renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                                <PageTooltipContent
-                                    getVisibilityTarget={getVisibilityTarget}
-                                    getTransitionDurationMs={getTransitionDurationMs}
-                                >
-                                    Focusable so this tooltip can be read, but the file dialog must not open.
-                                </PageTooltipContent>
-                            ),
-                        })}
-                    />
-                ),
-            },
-            {
-                key: "errored",
-                name: "Error",
-                readout: () => `files: ${describe(erroredSignal[0]())} — required, nothing picked yet`,
-                component: () => (
-                    <FileInput
-                        filesSignal={erroredSignal}
-                        getHasError={() => erroredSignal[0]().length < 1}
-                        getAriaLabel={() => "Required attachment"}
-                        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "label",
-                name: "In a Label",
-                readout: () => `files: ${describe(labelledSignal[0]())} — the caption opens the dialog`,
-                component: () => (
-                    <Label getDir={() => "column"} getGap={() => 5}>
-                        <PageLabelCaption>Contract</PageLabelCaption>
-
-                        <FileInput
-                            filesSignal={labelledSignal}
-                            renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
-                        />
-                    </Label>
-                ),
-            },
-        ];
-    });
-
-    return <PageVariants getItems={getVariants} />;
+    return <PageExamples getItems={getExamples} />;
 };

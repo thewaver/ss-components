@@ -1,18 +1,13 @@
 import { createMemo, createSignal } from "solid-js";
 
-import { Carousel } from "../../../../Lib/Fundamentals/Carousel/Carousel";
-import type { CarouselControls } from "../../../../Lib/Fundamentals/Carousel/Carousel.types";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
-import {
-    PageCarouselBar,
-    PageCarouselPick,
-    PageCarouselRotation,
-    PageCarouselSlide,
-    PageCarouselStep,
-} from "../../StyledComponents/CarouselContent/CarouselContent";
 import { PageCheckField, PageNumberField } from "../../StyledComponents/Field/Field";
+import type { CarouselExampleProps } from "./CarouselPage.types";
+import { NoControlsExample } from "./Examples/NoControls";
+import { RotatingExample } from "./Examples/Rotating";
+import { SteppedExample } from "./Examples/Stepped";
 
 const MIN_SLIDE_COUNT = 1;
 const MAX_SLIDE_COUNT = 8;
@@ -22,8 +17,8 @@ const MIN_DELAY_MS = 500;
 const MAX_DELAY_MS = 10_000;
 const DELAY_STEP_MS = 500;
 const STARTING_DELAY_MS = 2000;
-const CAROUSEL_GAP = 10;
 const FIELD_WIDTH = 110;
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/CarouselPage/Examples";
 
 const TITLES = ["Aurora", "Basalt", "Cinder", "Drift", "Ember", "Fathom", "Glimmer", "Hollow"];
 
@@ -39,37 +34,21 @@ export const CarouselPage = () => {
 
     const getSlides = createMemo(() => TITLES.slice(0, getSlideCount()));
 
-    const makeBar = (hasRotation: boolean) => (controls: CarouselControls) => (
-        <PageCarouselBar>
-            {hasRotation && controls.renderRotationControl()}
-            {controls.renderStep("previous")}
-            {Array.from({ length: controls.getCount() }, (_, index) => controls.renderPick(index))}
-            {controls.renderStep("next")}
-        </PageCarouselBar>
-    );
+    const getExamples = createMemo(() => {
+        const commonProps: CarouselExampleProps = {
+            getSlides,
+            getIsDisabled,
+            indexSignal: manualIndexSignal,
+        };
 
-    const getVariants = createMemo(() => {
         return [
             {
                 key: "manual",
                 name: "Stepped by hand",
                 readout: () =>
                     `slide ${manualIndexSignal[0]() + 1} of ${getSlideCount()} — stepping past either end wraps round, which is what separates this from the scroller`,
-                component: () => (
-                    <Carousel
-                        getSlides={getSlides}
-                        indexSignal={manualIndexSignal}
-                        getIsDisabled={getIsDisabled}
-                        getGap={() => CAROUSEL_GAP}
-                        getAriaLabel={() => "Sampler"}
-                        renderSlide={(getSlide, getState) => (
-                            <PageCarouselSlide getState={getState}>{getSlide()}</PageCarouselSlide>
-                        )}
-                        renderStep={(_getStep, getFlags) => <PageCarouselStep getFlags={getFlags} />}
-                        renderPick={(_getIndex, getFlags) => <PageCarouselPick getFlags={getFlags} />}
-                        renderControls={makeBar(false)}
-                    />
-                ),
+                component: () => <SteppedExample {...commonProps} />,
+                path: `${EXAMPLES_ROOT}/Stepped.tsx`,
             },
             {
                 key: "rotating",
@@ -77,40 +56,22 @@ export const CarouselPage = () => {
                 readout: () =>
                     `slide ${rotatingIndexSignal[0]() + 1} of ${getSlideCount()} | ${rotatingPlayingSignal[0]() ? "playing" : "stopped"} — it holds while the pointer is over it, while anything inside it has focus, and while the tab is in the background`,
                 component: () => (
-                    <Carousel
-                        getSlides={getSlides}
+                    <RotatingExample
+                        {...commonProps}
                         indexSignal={rotatingIndexSignal}
                         playingSignal={rotatingPlayingSignal}
-                        getIsDisabled={getIsDisabled}
                         getAutoplayDelayMs={getDelayMs}
-                        getGap={() => CAROUSEL_GAP}
-                        getAriaLabel={() => "Rotating sampler"}
-                        renderSlide={(getSlide, getState) => (
-                            <PageCarouselSlide getState={getState}>{getSlide()}</PageCarouselSlide>
-                        )}
-                        renderStep={(_getStep, getFlags) => <PageCarouselStep getFlags={getFlags} />}
-                        renderPick={(_getIndex, getFlags) => <PageCarouselPick getFlags={getFlags} />}
-                        renderRotationControl={(getFlags) => <PageCarouselRotation getFlags={getFlags} />}
-                        renderControls={makeBar(true)}
                     />
                 ),
+                path: `${EXAMPLES_ROOT}/Rotating.tsx`,
             },
             {
                 key: "noControls",
                 name: "No controls at all",
                 readout: () =>
                     `slide ${barelessIndexSignal[0]() + 1} of ${getSlideCount()} — nothing is drawn beside the slides, so the surrounding page owns the buttons through the signal it shares`,
-                component: () => (
-                    <Carousel
-                        getSlides={getSlides}
-                        indexSignal={barelessIndexSignal}
-                        getIsDisabled={getIsDisabled}
-                        getAriaLabel={() => "Bare sampler"}
-                        renderSlide={(getSlide, getState) => (
-                            <PageCarouselSlide getState={getState}>{getSlide()}</PageCarouselSlide>
-                        )}
-                    />
-                ),
+                component: () => <NoControlsExample {...commonProps} indexSignal={barelessIndexSignal} />,
+                path: `${EXAMPLES_ROOT}/NoControls.tsx`,
             },
         ];
     });
@@ -147,7 +108,7 @@ export const CarouselPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageVariants getItems={getVariants} />
+            <PageExamples getItems={getExamples} />
         </>
     );
 };

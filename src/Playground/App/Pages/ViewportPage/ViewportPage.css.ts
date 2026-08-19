@@ -4,11 +4,16 @@ import { themeVars } from "../../Theme.css";
 
 export const HOST_SIZE = 400;
 
+const CARD_PADDING = 20;
+const MIN_COLUMN_WIDTH = HOST_SIZE + CARD_PADDING * 2;
+
 export const root = style({
-    display: "flex",
-    flexDirection: "row",
-    flexWrap: "wrap",
+    display: "grid",
+    gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, ${MIN_COLUMN_WIDTH}px), 1fr))`,
+    alignItems: "stretch",
     gap: themeVars.spacing.double,
+    width: "100%",
+    minWidth: 0,
 });
 
 export const section = style({
@@ -20,7 +25,7 @@ export const section = style({
     boxShadow: themeVars.shadow.medium,
     borderRadius: themeVars.borderRadius.full,
     padding: themeVars.spacing.double,
-    maxWidth: `calc(${HOST_SIZE}px + ${themeVars.spacing.double} * 2)`,
+    minWidth: 0,
 });
 
 export const sectionTitle = style({
@@ -45,6 +50,7 @@ export const controls = style({
 });
 
 export const host = style({
+    alignSelf: "center",
     width: HOST_SIZE,
     height: HOST_SIZE,
     borderRadius: themeVars.borderRadius.half,

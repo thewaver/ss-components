@@ -1,22 +1,15 @@
-import { For, createMemo, createSignal } from "solid-js";
+import { createMemo, createSignal } from "solid-js";
 
-import { Checkbox } from "../../../../Lib/Fundamentals/Input/Checkbox/Checkbox";
-import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
-import { Radio } from "../../../../Lib/Fundamentals/Input/Radio/Radio";
-import { RadioGroup } from "../../../../Lib/Fundamentals/Input/RadioGroup/RadioGroup";
-import { Toggle } from "../../../../Lib/Fundamentals/Input/Toggle/Toggle";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
-import { PageCheckboxContent } from "../../StyledComponents/CheckboxContent/CheckboxContent";
-import { PageLabelCaption } from "../../StyledComponents/LabelCaption/LabelCaption";
-import { PageRadioContent } from "../../StyledComponents/RadioContent/RadioContent";
-import { PageToggleContent } from "../../StyledComponents/ToggleContent/ToggleContent";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
+import { CaptionFirstExample } from "./Examples/CaptionFirst";
+import { CheckboxLabelExample } from "./Examples/CheckboxLabel";
+import { ColumnExample } from "./Examples/Column";
+import { DisabledExample } from "./Examples/Disabled";
+import { LabelPerRadioExample } from "./Examples/LabelPerRadio";
+import { SuppressedExample } from "./Examples/Suppressed";
+import type { PlanValue } from "./LabelPage.types";
 
-type PlanValue = "free" | "pro";
-
-const PLAN_OPTIONS: { value: PlanValue; label: string }[] = [
-    { value: "free", label: "Free" },
-    { value: "pro", label: "Pro" },
-];
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/LabelPage/Examples";
 
 export const LabelPage = () => {
     const checkboxSignal = createSignal(false);
@@ -26,110 +19,50 @@ export const LabelPage = () => {
     const suppressedSignal = createSignal(false);
     const planSignal = createSignal<PlanValue>("free");
 
-    const getVariants = createMemo(() => {
-        return [
-            {
-                key: "checkbox",
-                name: "Checkbox",
-                readout: () => `checked: ${checkboxSignal[0]()}`,
-                component: () => (
-                    <Label>
-                        <Checkbox
-                            checkedSignal={checkboxSignal}
-                            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
-                        />
+    const getExamples = createMemo(() => [
+        {
+            key: "checkbox",
+            name: "Checkbox",
+            readout: () => `checked: ${checkboxSignal[0]()}`,
+            component: () => <CheckboxLabelExample checkedSignal={checkboxSignal} />,
+            path: `${EXAMPLES_ROOT}/CheckboxLabel.tsx`,
+        },
+        {
+            key: "toggleCaptionFirst",
+            name: "Toggle, caption first",
+            readout: () => `on: ${toggleSignal[0]()}`,
+            component: () => <CaptionFirstExample checkedSignal={toggleSignal} />,
+            path: `${EXAMPLES_ROOT}/CaptionFirst.tsx`,
+        },
+        {
+            key: "column",
+            name: "Column",
+            readout: () => `checked: ${columnSignal[0]()}`,
+            component: () => <ColumnExample checkedSignal={columnSignal} />,
+            path: `${EXAMPLES_ROOT}/Column.tsx`,
+        },
+        {
+            key: "labelPerRadio",
+            name: "One label per radio",
+            readout: () => `value: ${planSignal[0]()}`,
+            component: () => <LabelPerRadioExample valueSignal={planSignal} />,
+            path: `${EXAMPLES_ROOT}/LabelPerRadio.tsx`,
+        },
+        {
+            key: "suppressed",
+            name: "Suppressed aria-label",
+            readout: () => `checked: ${suppressedSignal[0]()} — the caption wins, and the console says so`,
+            component: () => <SuppressedExample checkedSignal={suppressedSignal} />,
+            path: `${EXAMPLES_ROOT}/Suppressed.tsx`,
+        },
+        {
+            key: "disabled",
+            name: "Disabled",
+            readout: () => `checked: ${disabledSignal[0]()}`,
+            component: () => <DisabledExample checkedSignal={disabledSignal} />,
+            path: `${EXAMPLES_ROOT}/Disabled.tsx`,
+        },
+    ]);
 
-                        <PageLabelCaption getId={() => "rememberCaption"}>Remember me</PageLabelCaption>
-                    </Label>
-                ),
-            },
-            {
-                key: "toggleCaptionFirst",
-                name: "Toggle, caption first",
-                readout: () => `on: ${toggleSignal[0]()}`,
-                component: () => (
-                    <Label>
-                        <PageLabelCaption>Send notifications</PageLabelCaption>
-
-                        <Toggle
-                            checkedSignal={toggleSignal}
-                            renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
-                        />
-                    </Label>
-                ),
-            },
-            {
-                key: "column",
-                name: "Column",
-                readout: () => `checked: ${columnSignal[0]()}`,
-                component: () => (
-                    <Label getDir={() => "column"} getGap={() => 5}>
-                        <PageLabelCaption>Stacked</PageLabelCaption>
-
-                        <Checkbox
-                            checkedSignal={columnSignal}
-                            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
-                        />
-                    </Label>
-                ),
-            },
-            {
-                key: "labelPerRadio",
-                name: "One label per radio",
-                readout: () => `value: ${planSignal[0]()}`,
-                component: () => (
-                    <RadioGroup valueSignal={planSignal} getAriaLabel={() => "Plan"} getGap={() => 20}>
-                        <For each={PLAN_OPTIONS}>
-                            {(option) => (
-                                <Label>
-                                    <Radio
-                                        getValue={() => option.value}
-                                        renderContent={(getFlags) => <PageRadioContent getFlags={getFlags} />}
-                                    />
-
-                                    <PageLabelCaption>{option.label}</PageLabelCaption>
-                                </Label>
-                            )}
-                        </For>
-                    </RadioGroup>
-                ),
-            },
-            {
-                key: "suppressed",
-                name: "Suppressed aria-label",
-                readout: () => `checked: ${suppressedSignal[0]()} — the caption wins, and the console says so`,
-                component: () => (
-                    <Label>
-                        <Checkbox
-                            checkedSignal={suppressedSignal}
-                            getAriaLabel={() => "Announced as something else"}
-                            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
-                        />
-
-                        <PageLabelCaption>Subscribe to the newsletter</PageLabelCaption>
-                    </Label>
-                ),
-            },
-            {
-                key: "disabled",
-                name: "Disabled",
-                readout: () => `checked: ${disabledSignal[0]()}`,
-                component: () => (
-                    <Label>
-                        <Checkbox
-                            checkedSignal={disabledSignal}
-                            getIsDisabled={() => true}
-                            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
-                        />
-
-                        <PageLabelCaption getId={() => "disabledCaption"}>
-                            Caption clicks must do nothing
-                        </PageLabelCaption>
-                    </Label>
-                ),
-            },
-        ];
-    });
-
-    return <PageVariants getItems={getVariants} />;
+    return <PageExamples getItems={getExamples} />;
 };

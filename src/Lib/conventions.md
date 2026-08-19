@@ -1911,6 +1911,14 @@ on.
 its state machine on a single frame are both invisible in markup. `backlog.md` #11 carries what the suite
 still cannot see.
 
+**A touch gesture is driven through the DevTools protocol, and `drawerTouch.spec.ts` is the only file that
+does it.** Playwright's touch API taps and nothing else, and synthetic touch events dispatched from page
+script are ignored by the browser's own scrolling — so neither can answer whether a real finger scrolls a
+sheet or dismisses it. `Input.dispatchTouchEvent` produces a gesture the browser treats as one. The file is
+separate from `drawer.spec.ts` because the touch context is per-file, and because the two are asking
+different questions: one is about the gesture's arithmetic, the other about who wins when the browser wants
+the same finger.
+
 ### Unit tests: `vitest`, colocated, and only for functions
 
 `e2e/` can only reach what a click can reach. A function taking rectangles and returning a placement has no
@@ -2017,6 +2025,14 @@ which hands the dialog role a viewport-sized box and breaks the margin-derived `
 `justify-items: stretch`, so a top-edge drawer could stick to the top or fill the width but not both.
 `modalContainer` is `display: flex; flex-direction: column` with `flex-grow: 1` on its child so the painter
 fills whichever axis the grid stretched. The absolutely positioned overlay is unaffected.
+
+**That grid states its single track as `100%`, and without it a dialog taller than the screen escaped the
+screen.** An implicit grid track is auto-sized, so a container holding more than fits grew the track with it;
+the container's own `max-height: calc(100% - margins)` then resolved against that grown track and capped
+nothing, and the dialog ran off the bottom with the overflow unreachable — no scrollbar, because nothing had
+been asked to scroll. Stating `grid-template-rows: 100%` and `grid-template-columns: 100%` pins the area to
+the root, the `max-height` and `max-width` become real limits again, and a painter with `overflow: auto`
+scrolls inside them. Found when every drawer on the Playground page was given more content than fits.
 
 **`ModalAlignment`, not `ModalPlacement`** — `AnchorPlacement` already names `{ x, y }` collision placement,
 and one prop meaning a string union on one component and a record on another is the two-contracts-one-name
@@ -3021,6 +3037,130 @@ away.
 
 **`pointerdown` reports immediately**, so a click positions the value without a drag — what a colour surface
 and any track-clicking slider need.
+
+### The swipe: one gesture over the drag machinery, an axis it claims, and a verdict at the end
+
+Settled, closing the gesture `Abstract` `backlog.md` #26 asked for. `InteractionUtils.trackSwipe(ref,
+disabled, opts)` reports how far a pointer has pushed an element along one axis, and at the release says
+whether that push counts. `Drawer` and `Carousel` are its two consumers.
+
+**Both gestures sit on one private `trackPointer`, and the public pair stay separate.** `trackPointer` owns
+the pointer bookkeeping — which pointer is being followed, capture, the four listeners, and whether a release
+was a release or a cancel. `trackDrag` reports position from it and `trackSwipe` reports travel from it, and
+neither has a way to express the other's report. The item argued for exactly this: a drag reports **state**
+for as long as it lasts, a swipe reports **an event** with a verdict, and the argument survived the later
+decision that a swipe also reports progress in flight, because the verdict is still a thing a drag has no
+word for.
+
+**`trackDrag` now says why a drag ended, which closes `SlideButton`'s cancelled-pointer gap in the same
+change.** `onDragEnd` receives `"release"` or `"cancel"`; `SlideButton` activates only on the first, so a
+drag the browser or the OS takes over with the thumb already at the end no longer confirms. A swipe must
+never commit on a cancel, and that consumer is what made the change to a shipped `Abstract` worth making —
+recorded in the item as the condition for doing it.
+
+**Travel is a ratio of the element's own box, not a distance in pixels.** Same insight as `trackDrag`'s:
+pointer coordinates and the element's rect are both client-space, so a `Viewport` scale divides out of the
+fraction exactly. It also answers the question the item left open — whether in-flight progress should be a
+raw offset or a ratio — without taking either horn. A ratio **of the commit threshold** would mean the
+`Abstract` dividing by a number only the consumer knows, which is why the item leaned towards the offset; a
+ratio **of the element** is neither, and it is the space `trackDrag` already reports in. A consumer wanting
+the fraction-of-threshold reading divides at the call site, where the threshold lives.
+
+**The box is the one the gesture started in, and this is load-bearing rather than tidy.** A drawer that
+follows the finger moves the very element the ratio is measured against, so a live `getBoundingClientRect`
+feeds the element's own displacement back into the travel: pushing a left-edge drawer leftwards halves every
+reading, and pushing a right-edge one rightwards runs away to a commit on the first move. Freezing the rect
+at `pointerdown` removes the loop. `trackDrag` keeps measuring live, because its two consumers do not move
+under the pointer and a page scrolling during a drag would strand a frozen rect.
+
+**A swipe takes the pointer over only once it has travelled, and a drag takes it immediately.** `trackDrag`
+captures and calls `preventDefault` on `pointerdown`, which is right for a colour surface — a click there
+sets a value. A swipe cannot: the elements it watches are a dialog and a carousel viewport, both full of
+buttons and links, and capturing every press inside them would break all of them. So `trackSwipe` waits until
+the travel passes a small slop, then captures, and swallows the one `click` that follows an engaged gesture
+so a swipe that began over a button does not also press it. The slop is a ratio of the element like everything
+else here, which does mean a wide carousel tolerates more jitter than a narrow drawer; a constant in pixels
+would be the truer reading of finger jitter, and was not worth reintroducing the scale question for.
+
+**The `Abstract` writes `touch-action` itself, from the axis it was given.** A horizontal swipe sets `pan-y`
+and a vertical one `pan-x`, so the browser keeps the axis the gesture does not want and the page still
+scrolls. Leaving this to the consumer's stylesheet is the silent-failure case the item warned about: get it
+wrong and the browser claims the gesture, the handler never fires, and it happens only on touch hardware.
+Since the axis and the CSS have to agree, the `Abstract` owns both ends rather than documenting the pairing.
+
+**`Modal` moves the container, and no painter had to change.** The swipe offset is a `transform` on
+`modalContainer` while the painter keeps its own slide off `getVisibilityTarget` — two elements, two
+transforms, composing. This follows the rule already recorded for the edges: **placement is geometry and the
+slide is paint**, and where the dialog box sits is placement. It also means every existing `Modal` consumer
+gets the gesture without touching `renderContent`, which a third argument handing out the offset would not
+have.
+
+**A committed swipe keeps its offset and lets the exit run from there.** Resetting the transform on commit
+would snap the panel back to fully open for one frame before the painter slid it out. The offset is cleared
+when the fader stops being visible, which is after the exit has finished and the whole layer has unmounted.
+
+**Where the gesture is offered is derived, never configured — SC 2.5.1 Pointer Gestures, Level A.** A swipe
+is path-based, so anything operable by one must also be operable with a single pointer and no path. `Modal`
+attaches it only when the alignment is an edge, and only when overlay-click dismissal is still on: `Escape`
+is the path-free route, and a consumer who has already turned off casual dismissal is not handed a more
+casual one. `Carousel` attaches it only when `renderControls` was passed, since a carousel without controls
+has no keyboard route at all — the same shape as the floater observers running only when `renderFloater` is
+passed. A consumer cannot ask for the conformance failure because there is no prop with which to ask.
+
+**A swiping carousel does not rotate, for the same reason a hovered one does not.** WCAG 2.2.2 asks that
+self-moving content not move under the pointer; a finger on the track is a pointer on it. `getIsHeld` keeps
+its recorded meaning — hovered, focus within, page hidden — and the swipe joins the rotation predicate beside
+it rather than being folded into the flag the consumer reads.
+
+**The commit thresholds are per component, not one constant here.** `trackSwipe` takes `getCommitRatio` and
+has no default; `Modal` and `Carousel` each name their own. The item recorded that shape, and it is the same
+rule as merging two implementations that disagree on a constant. Neither number is a public prop, for the
+reason `SlideButton` has no threshold prop: a tuned value with no consumer behind it is a guess.
+
+**A threshold is a fraction of the drawer, so the four edges commit at the same fraction and different
+distances.** The travel is measured against the dialog box along the swipe axis, and how thick a drawer is
+belongs to the painter — on the Playground a side drawer is 320px wide and a sheet 400px deep, so the same
+0.35 asks for 112px sideways and 140px vertically. The alternative readings are a fraction of the viewport,
+which would make a narrow drawer need a push most of the way across the screen, and a distance in pixels,
+which would make a thin drawer commit almost at once and a thick one feel stuck. Proportional to the thing
+being pushed is the reading that holds at every size, and it is the one a person's hand is already using —
+the drawer under the finger is the whole of what they can see moving.
+
+**A sheet whose content scrolls needs a second mechanism, and `touch-action` alone cannot be it.** The first
+build left top and bottom edges out on the reasoning that `touch-action: pan-x` on the dialog would disable
+touch scrolling inside it. That reasoning was wrong in both directions, and the correction is the useful part.
+
+`touch-action` is **not** simply inherited down the tree. A gesture resolves it by walking from the touched
+element up to the nearest ancestor that would handle the gesture — the first containing scroll container —
+and intersecting only that stretch. Anything above that scroller is never consulted. So `pan-x` on the dialog
+does not reach a scrolling panel inside it, and the panel keeps scrolling normally. What actually happens is
+the reverse of the fear: over a scrolling panel the browser takes the vertical gesture and the swipe never
+fires, and over a panel that does not scroll the swipe works. A gesture that silently works in some places
+and not others is worse than one that does not exist, which is why the limit was worth removing rather than
+documenting.
+
+**So the gesture is claimed on the first touch move, and held for the whole gesture.** `trackSwipe` listens
+to `touchmove` non-passively and, on the first move that has a direction, walks the scroll chain from the
+touch target up to the tracked element asking whether anything there could still scroll the way the finger is
+pushing. If something can, the gesture is the browser's and the swipe stays out of it; if nothing can — the
+sheet is at the top of its content and the finger is pushing down — `preventDefault` claims it. This is the
+iOS sheet rule: reading scrolls, and pushing from the top dismisses.
+
+**Holding it for the whole gesture is the part that is easy to get wrong.** Preventing only the first move
+stops that one scroll, and then the browser claims the _next_ move and sends `pointercancel` — the pointer
+stream ends mid-swipe and nothing commits. Measured in Chromium: preventing every move keeps `pointermove`
+flowing to the end with no cancel and no scrolling; preventing none scrolls and cancels at the second move;
+preventing only the first scrolls nothing but still cancels. So the decision is taken once per gesture and
+then applied to every move of it.
+
+**`touch-action` still carries the axis, because it is the up-front declaration.** It is what tells the
+browser the intent before any listener runs, and it is what keeps the page from panning across a drawer in
+the areas that have no scroller of their own. The `touchmove` guard is the second half, not a replacement.
+
+**This is the only place in the library that listens to touch events rather than pointer events.** Pointer
+events cannot express it: by the time `pointercancel` arrives the browser has already taken the gesture, and
+there is no pointer-level way to say "not this one". The guard is therefore touch-only and the mouse path
+never reaches it.
 
 ### Controls: `ColorArea`, and the value form a picker has to hold
 
@@ -4683,6 +4823,93 @@ buttons inside the whole card to prove the wheel renders exactly one, and an exa
 button too, so the count is now scoped to the element carrying `aria-roledescription="wheel"`. That is the
 honest reading of what the test was always claiming.
 
+### Every Playground page is examples now, and two things had to change to finish it
+
+The rollout `backlog.md` item 21 described is done: all thirty-three pages that still used `PageVariants`
+carry the source-code button, and `PageVariants` itself has no consumers left. What the four `Exotics` pages
+settled held for the rest; two things they never exercised did not.
+
+**An example card now marks its demo, because the source button is a button in the card.** `PageExamples`
+wraps the demo in a `data-demo` element and `e2e/helpers.ts` gains `demo(key)` beside `example(key)`. Without
+a marker a spec asking for "the first button in this card" found the `</>` button and opened the source viewer
+instead of the control it meant — which is how a colour-dropdown test came to assert against a code listing.
+
+**That marker is `display: contents`, and the first attempt at it broke six pages.** It was given
+`PageVariants`' demo box — a centred flex row — which changed how every card lays its own contents out: the
+pages that were already on `PageExamples` had always put a demo's children straight into the card's column, so
+`CellAnimation` and `ScanlineAnimation` suddenly showed their local props panels **beside** their demos rather
+than below. A marker exists to be found by a selector, not to lay anything out, so it generates no box at all.
+Nothing inside a card can then move because of it, which is a guarantee rather than something to re-check per
+page. The cost is that the element has no box to measure: `stepper.spec.ts` asked its parent how wide it was
+and got zero, and now asks the card's content box instead.
+
+**`readout` sits outside that box, and a spec that builds its selector from `demo(key)` finds nothing.** The
+card holds the title, the demo and the readout as siblings, so a readout lookup is scoped to `example(key)`
+and a control lookup to `demo(key)`. Both spellings are correct and they are not interchangeable.
+
+**A spec belongs to the route it visits, not to the file it is named after.** `tooltip.spec.ts` exercises
+tooltips on the **button** page and `modal.spec.ts` covers both the modal and the drawer — so converting a
+page turns specs red that carry another component's name, and converting one half of a two-page spec means
+renaming only that half. The check before touching a page is `grep` for the route, never the filename.
+
+**Demos kept their readouts, against what the four `Exotics` pages chose.** Those four set none, and
+`ExampleDefs.readout` stays optional — but dropping the readouts here would have taken the fact each spec
+reads with them, so every converted page still sets one. Whether they go is a separate pass.
+
+**Every demo was carried across one-to-one, and the deduplication is deliberately not done.** Where two demos
+differ by a single prop they now share one example file with two entries — `Accordion`'s two expand modes,
+`Select`'s eleven country lists — which is the rule those four pages settled. What has **not** happened is
+collapsing two demos into one plus a panel knob, because that removes demos and the specs covering them; the
+user holds that as a separate pass.
+
+**One demo needed pinning down rather than converting.** `SplitPane`'s bounded demo stretched until a pane's
+160px floor stopped being reachable — with a wide enough frame the neighbour never reaches it, so the spec
+proving the floor is honoured had nothing to bump into. `PageSplitPaneFrame` now caps at 380px, which is the
+width it used to get. The alternative was to weaken the assertion.
+
+### `PageExamples` lays out on a grid, with the column width per page and a span per example
+
+Asked for by the user after the rollout: the cards went back to `PageVariants`' grid rather than the
+wrapping flex row, since a row leaves cards of different heights sitting unevenly and gives a page no way to
+say how wide its demos want to be.
+
+**The root has to state `width: 100%`, which the flex row it replaced did not need.** Several page roots are
+flex columns with `align-items: start`, which sizes a child to its content — so an auto-filling grid resolved
+to a single column and stacked cards that had room to sit side by side. `CellAnimation` showed two rows in a
+1280px area with two 630px columns available. A wrapping flex row hid this by sizing itself to max-content.
+
+**The column floor is the page's, because it follows from the demo rather than from the layout.**
+`getMinColumnWidth` defaults to the 320 `PageVariants` used, and a page that states a width for its demo
+states a floor of that width plus the card's own padding — `Formation` 420 for its 380px measure box,
+`ImageSwitcher` 520 for its 480px image, `SplitPane` 420 for its 380px frame. Where a page's demos have no
+declared width the default stands. It is a prop rather than something derived because the demo's own width is
+often inside a styled component the page never names.
+
+**An example may take more than one column, and the grid's floor is divided by the widest span on the page.**
+`ExampleDefs.span` is a column count; `Tabs`' two demos that carry a panel and `Select`'s virtualized demo
+with its own props panel take two. The floor becomes `min(100% / widest span, floor)` — so a page with a
+two-column example never resolves to a single column, and the spanning card therefore never needs a track the
+grid has not got.
+
+**Two pages had been getting their sizes from the old row, and both showed it.** A wrapping row sizes a card
+to its content, which had been hiding two things. `Shape`'s demo is a fixed, resizable 320px box with a `Shape`
+around it tracing its outline — and `Shape`'s own root has no width, so under a card that stretches its
+children it grew to the column while the box it traces stayed 320: the outline and the content came apart. The
+box is what the demo is about, so the page now wraps it in a `width: fit-content` host and the `Shape` hugs it
+again. `ViewportPage` builds its own cards rather than using `PageExamples`, and had capped them at the host's
+width; it now uses the same grid, with a floor of the host plus the card's padding, and its fixed-size hosts
+centre inside a column that can be wider.
+
+**Which is the general lesson: a card stretches its children, so a demo that must match a fixed-size child has
+to say so.** The old row let a demo of unstated width agree with a fixed-size sibling by accident, because
+both ended up as wide as the card. Nothing about the grid makes that true.
+
+**That division is what keeps a span from overflowing, and it was measured rather than assumed.** With the
+plain `min(100%, floor)` a two-column card in a one-column grid lands one gap wider than the row: the grid
+allocates a zero-width implicit track and the gap before it is still spent. Halving the floor removes the case
+entirely — checked at container widths from 280px up, the row now overflows by nothing at any of them, and the
+column count at ordinary widths is unchanged.
+
 ### Controls: `Spotlight`, and three presets because a mode cannot move at runtime
 
 Settled with the user, renaming `ElementHighlight` on the way. A spotlight cuts a hole in an
@@ -5087,6 +5314,32 @@ same tick. Nothing on screen has moved by then, so no consumer has yet been able
 wedges are painted at once, so all of them are real content. A drum's are not — `backface-visibility` removes
 them from the picture — and `Carousel`'s rule applies: a control nobody can see is still in the tab order, so
 the faces that are not at the marker are `aria-hidden` and `inert`, and the back faces always are.
+
+**The marker is drawn by the Playground, not by the wheel, and it needs no arithmetic at all.** All three
+demos put a `PageWheelPip` — a filled triangle — against the edge of the box that the wedge at rest fills, so
+whatever the wheel has stopped on has the pip touching it. The wheel never has to say where that is, because
+the resting position is fixed by the geometry already recorded above: `getIndexAngle` turns the chosen wedge
+to zero degrees, and at zero degrees a flat wheel's wedge is drawn straight up and a drum's face is the one
+squarely in front. So the pip is a static piece of paint at a known edge, and nothing about it moves or is
+measured.
+
+**Which edge it sits on follows the direction of travel, not the variant.** Faces that travel sideways — a
+flat wheel's rim and a drum on the upright axis — take the pip above, pointing down; the reel's faces travel
+up and over, so it takes the pip at the left, pointing in. `PageWheelPip` accepts that as `getSide`, one of
+`"top"` or `"left"`, and the same class both places the box and turns the glyph. It hangs 70% of its own size
+outside the edge, so the tip crosses onto the wedge and the body reads as sitting outside it.
+
+**The drums needed a box of their own to be measured against, and `PageWheelStack` could not be it.** The flat
+demo's stack is a full-width block because `FlatWheel` is `width: 100%` inside it, and a box that shrinks to
+its content cannot give a percentage width anything to resolve against. A drum's own girth box is definite
+pixels, so `PageWheelMount` is `width: fit-content` with automatic side margins: it ends up exactly the girth
+box, whose top edge is the front face's top edge and whose left edge is the front face's left edge. That is
+the whole difference between the two wrappers, and it is why there are two.
+
+**The pip is outside the wheel's element, which is what keeps the drum's geometry assertion honest.** The
+Playwright check compares the box a drum reserves against the boxes its faces occupy, reading both from inside
+`[aria-roledescription="wheel"]`. The pip is a sibling of that element rather than a child, so it can hang over
+the edge without the check reading the overhang as a drum painting outside its room.
 
 ### `ElementObserver` reports a size, and the height observer is a view of it
 

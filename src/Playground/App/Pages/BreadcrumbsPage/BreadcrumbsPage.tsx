@@ -1,37 +1,25 @@
 import { createMemo, createSignal } from "solid-js";
 
-import { Breadcrumbs } from "../../../../Lib/Fundamentals/Breadcrumbs/Breadcrumbs";
 import type { Breadcrumb } from "../../../../Lib/Fundamentals/Breadcrumbs/Breadcrumbs.types";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
-import type { TabLinkProps } from "../../../../Lib/Fundamentals/Tabs/Tabs.types";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
-import {
-    PageBreadcrumbContent,
-    PageBreadcrumbSeparator,
-} from "../../StyledComponents/BreadcrumbContent/BreadcrumbContent";
 import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import { PageCheckField, PageNumberField } from "../../StyledComponents/Field/Field";
-
-type CrumbValue = "home" | "library" | "inputs" | "text" | "field";
-
-const TRAIL: { value: CrumbValue; label: string }[] = [
-    { value: "home", label: "Home" },
-    { value: "library", label: "Library" },
-    { value: "inputs", label: "Inputs" },
-    { value: "text", label: "Text" },
-    { value: "field", label: "Field" },
-];
+import { TRAIL } from "./BreadcrumbsPage.const";
+import type { BreadcrumbsExampleProps, CrumbValue } from "./BreadcrumbsPage.types";
+import { BareExample } from "./Examples/Bare";
+import { LinkComponentExample } from "./Examples/LinkComponent";
+import { LinkedExample } from "./Examples/Linked";
+import { TrailExample } from "./Examples/Trail";
 
 const MIN_DEPTH = 1;
 const MAX_DEPTH = 5;
 const DEPTH_STEP = 1;
 const STARTING_DEPTH = 4;
-const BREADCRUMBS_GAP = 0;
 const DEPTH_FIELD_WIDTH = 90;
-
-const PageBreadcrumbLink = (props: TabLinkProps) => <a {...props} data-link-component />;
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/BreadcrumbsPage/Examples";
 
 export const BreadcrumbsPage = () => {
     const [getDepth, setDepth] = createSignal(STARTING_DEPTH);
@@ -52,8 +40,6 @@ export const BreadcrumbsPage = () => {
         })),
     );
 
-    const labelOf = (value: CrumbValue) => TRAIL.find((entry) => entry.value === value)!.label;
-
     const navigate = (value: CrumbValue) => {
         setDepth(TRAIL.findIndex((entry) => entry.value === value) + 1);
     };
@@ -64,7 +50,9 @@ export const BreadcrumbsPage = () => {
         setLinkPressed(undefined);
     };
 
-    const getVariants = createMemo(() => {
+    const getExamples = createMemo(() => {
+        const commonProps: BreadcrumbsExampleProps = { getCrumbs };
+
         return [
             {
                 key: "default",
@@ -72,80 +60,44 @@ export const BreadcrumbsPage = () => {
                 readout: () =>
                     `pressed: ${getPressed() ?? "nothing yet"} — pressing a crumb moves the page there, so the trail behind it is the whole trail; Reset puts it back`,
                 component: () => (
-                    <Breadcrumbs
-                        getCrumbs={getCrumbs}
-                        getGap={() => BREADCRUMBS_GAP}
-                        getAriaLabel={() => "Trail"}
+                    <TrailExample
+                        {...commonProps}
                         onSelect={(value) => {
                             setPressed(value);
                             navigate(value);
                         }}
-                        renderCrumb={(getCrumb, getFlags) => (
-                            <PageBreadcrumbContent getFlags={getFlags}>
-                                {labelOf(getCrumb().value)}
-                            </PageBreadcrumbContent>
-                        )}
-                        renderSeparator={() => <PageBreadcrumbSeparator />}
                     />
                 ),
+                path: `${EXAMPLES_ROOT}/Trail.tsx`,
             },
             {
                 key: "bare",
                 name: "No separator",
                 readout: () => "a trail with nothing between the crumbs, since the separator slot is optional",
-                component: () => (
-                    <Breadcrumbs
-                        getCrumbs={getCrumbs}
-                        getGap={() => BREADCRUMBS_GAP}
-                        getAriaLabel={() => "Trail without separators"}
-                        renderCrumb={(getCrumb, getFlags) => (
-                            <PageBreadcrumbContent getFlags={getFlags}>
-                                {labelOf(getCrumb().value)}
-                            </PageBreadcrumbContent>
-                        )}
-                    />
-                ),
+                component: () => <BareExample {...commonProps} />,
+                path: `${EXAMPLES_ROOT}/Bare.tsx`,
             },
             {
                 key: "linked",
                 name: "Crumbs that are links",
                 readout: () => `pressed: ${getLinkPressed() ?? "nothing yet"} — an href makes a crumb an anchor`,
                 component: () => (
-                    <Breadcrumbs
+                    <LinkedExample
                         getCrumbs={getLinkCrumbs}
-                        getGap={() => BREADCRUMBS_GAP}
-                        getAriaLabel={() => "Linked trail"}
                         onSelect={(value) => {
                             setLinkPressed(value);
                             navigate(value);
                         }}
-                        renderCrumb={(getCrumb, getFlags) => (
-                            <PageBreadcrumbContent getFlags={getFlags}>
-                                {labelOf(getCrumb().value)}
-                            </PageBreadcrumbContent>
-                        )}
-                        renderSeparator={() => <PageBreadcrumbSeparator />}
                     />
                 ),
+                path: `${EXAMPLES_ROOT}/Linked.tsx`,
             },
             {
                 key: "linkComponent",
                 name: "Links through a component",
                 readout: () => "the same links rendered by a consumer's own link component",
-                component: () => (
-                    <Breadcrumbs
-                        getCrumbs={getLinkCrumbs}
-                        getGap={() => BREADCRUMBS_GAP}
-                        getAriaLabel={() => "Routed trail"}
-                        linkComponent={PageBreadcrumbLink}
-                        renderCrumb={(getCrumb, getFlags) => (
-                            <PageBreadcrumbContent getFlags={getFlags}>
-                                {labelOf(getCrumb().value)}
-                            </PageBreadcrumbContent>
-                        )}
-                        renderSeparator={() => <PageBreadcrumbSeparator />}
-                    />
-                ),
+                component: () => <LinkComponentExample getCrumbs={getLinkCrumbs} />,
+                path: `${EXAMPLES_ROOT}/LinkComponent.tsx`,
             },
         ];
     });
@@ -179,7 +131,7 @@ export const BreadcrumbsPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageVariants getItems={getVariants} />
+            <PageExamples getItems={getExamples} />
         </>
     );
 };

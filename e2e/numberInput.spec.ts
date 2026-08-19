@@ -1,19 +1,19 @@
 import { expect, test } from "@playwright/test";
 
-import { accessibleText, inputValue, isReadOnly, readout, variant } from "./helpers";
+import { accessibleText, demo, inputValue, isReadOnly, readout } from "./helpers";
 
-const DEFAULT = `${variant("default")} input`;
-const QUANTITY = `${variant("steppedClamped")} input`;
-const QUANTITY_UP = `${variant("steppedClamped")} button:has-text("Increase")`;
-const QUANTITY_DOWN = `${variant("steppedClamped")} button:has-text("Decrease")`;
-const RATING = `${variant("fractionalStep")} input`;
-const READ_ONLY = `${variant("readOnly")} input`;
-const READ_ONLY_UP = `${variant("readOnly")} button:has-text("Increase")`;
-const DISABLED = `${variant("disabled")} input`;
+const DEFAULT = `${demo("default")} input`;
+const QUANTITY = `${demo("steppedClamped")} input`;
+const QUANTITY_UP = `${demo("steppedClamped")} button:has-text("Increase")`;
+const QUANTITY_DOWN = `${demo("steppedClamped")} button:has-text("Decrease")`;
+const RATING = `${demo("fractionalStep")} input`;
+const READ_ONLY = `${demo("readOnly")} input`;
+const READ_ONLY_UP = `${demo("readOnly")} button:has-text("Increase")`;
+const DISABLED = `${demo("disabled")} input`;
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/number-input");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 test("the field is a text input announcing itself as a spin button", async ({ page }) => {

@@ -1,12 +1,12 @@
 import { type Page, expect, test } from "@playwright/test";
 
-import { activeDescendantText, activeMatches, readout, tabIndex, tagName, variant } from "./helpers";
+import { activeDescendantText, activeMatches, demo, readout, tabIndex, tagName } from "./helpers";
 
 const MENU = '[role="menu"]';
 const ITEM_ROLE = '[role="menuitem"]';
 const ITEM = `${MENU} ${ITEM_ROLE}`;
 
-const trigger = (key: string) => `${variant(key)} [aria-haspopup="menu"]`;
+const trigger = (key: string) => `${demo(key)} [aria-haspopup="menu"]`;
 
 /**
  * Opening is not instant, and the two things that have to land do so in either order: the menu points at
@@ -35,7 +35,7 @@ const itemAt = (page: Page, depth: number, name: string) =>
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/menu");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 test("the trigger is a real button that starts closed", async ({ page }) => {

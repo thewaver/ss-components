@@ -1,10 +1,10 @@
 import { type Page, expect, test } from "@playwright/test";
 
-import { inputValue, readout, variant } from "./helpers";
+import { demo, inputValue, readout } from "./helpers";
 
-const DEFAULT = variant("default");
-const SNAPPING = variant("snapping");
-const DISABLED = variant("disabled");
+const DEFAULT = demo("default");
+const SNAPPING = demo("snapping");
+const DISABLED = demo("disabled");
 const POPUP = '[role="dialog"]';
 
 const field = (scope: string) => `${scope} button[aria-haspopup="dialog"]`;

@@ -1,10 +1,10 @@
 import { type Page, expect, test } from "@playwright/test";
 
-import { attributesOf, inputValue, readout, tabIndex, variant } from "./helpers";
+import { attributesOf, demo, inputValue, readout, tabIndex } from "./helpers";
 
-const BARE = variant("bare");
-const DROPDOWN = variant("dropdown");
-const DISABLED = variant("disabled");
+const BARE = demo("bare");
+const DROPDOWN = demo("dropdown");
+const DISABLED = demo("disabled");
 
 const surface = (scope: string) => `${scope} [role="group"]`;
 const axis = (scope: string) => `${scope} input[type="range"]`;

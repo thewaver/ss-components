@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { prop, readout, tabIndex, variant } from "./helpers";
+import { demo, prop, readout, tabIndex } from "./helpers";
 
-const DEFAULT = variant("default");
-const BOUNDED = variant("bounded");
-const WEEKDAYS = variant("weekdays");
+const DEFAULT = demo("default");
+const BOUNDED = demo("bounded");
+const WEEKDAYS = demo("weekdays");
 
 /**
  * Days are located by their accessible name rather than by their text, because the painter draws a bare

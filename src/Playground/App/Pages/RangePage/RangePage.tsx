@@ -1,180 +1,91 @@
 import { createMemo, createSignal } from "solid-js";
 
-import { Range } from "../../../../Lib/Fundamentals/Input/Range/Range";
 import type { RangeValues } from "../../../../Lib/Fundamentals/Input/Range/Range.types";
-import { PageControlRow, PageControlRowLabel } from "../../PageComponents/ControlRow/ControlRow";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
-import { PageRangeContent } from "../../StyledComponents/RangeContent/RangeContent";
-import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
+import { DefaultExample } from "./Examples/Default";
+import { DisabledExample } from "./Examples/Disabled";
+import { DisabledPairExample } from "./Examples/DisabledPair";
+import { ErroredExample } from "./Examples/Errored";
+import { PairExample } from "./Examples/Pair";
+import { ReachableExample } from "./Examples/Reachable";
+import { SteppedExample } from "./Examples/Stepped";
+import { VerticalExample } from "./Examples/Vertical";
 
-import { RANGE_THUMB_SIZE } from "../../StyledComponents/RangeContent/RangeContent.css";
-
-const VERTICAL_LENGTH = 160;
+const STEP_COUNT = 5;
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/RangePage/Examples";
 
 export const RangePage = () => {
-    const [getVolume, setVolume] = createSignal(40);
-    const [getSteps, setSteps] = createSignal(3);
-    const [getVertical, setVertical] = createSignal(60);
-    const [getDisabled, setDisabled] = createSignal(25);
-    const [getReachable, setReachable] = createSignal(75);
-    const [getErrored, setErrored] = createSignal(90);
+    const volumeSignal = createSignal(40);
+    const stepsSignal = createSignal(3);
+    const verticalSignal = createSignal(60);
+    const disabledSignal = createSignal(25);
+    const reachableSignal = createSignal(75);
+    const erroredSignal = createSignal(90);
 
     const priceSignal = createSignal<RangeValues>({ start: 20, end: 80 });
     const verticalPairSignal = createSignal<RangeValues>({ start: 30, end: 70 });
     const disabledPairSignal = createSignal<RangeValues>({ start: 35, end: 65 });
 
-    const getVariants = createMemo(() => {
-        return [
-            {
-                key: "default",
-                name: "Default",
-                readout: () => `value: ${getVolume()}`,
-                component: () => (
-                    <Range
-                        valueSignal={[getVolume, setVolume]}
-                        getAriaLabel={() => "Volume"}
-                        getThumbSize={() => RANGE_THUMB_SIZE}
-                        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "stepped",
-                name: "Stepped",
-                readout: () => `value: ${getSteps()} of 5`,
-                component: () => (
-                    <Range
-                        valueSignal={[getSteps, setSteps]}
-                        getAriaLabel={() => "Difficulty"}
-                        getMin={() => 1}
-                        getMax={() => 5}
-                        getStep={() => 1}
-                        getThumbSize={() => RANGE_THUMB_SIZE}
-                        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "pair",
-                name: "Pair",
-                readout: () => `start: ${priceSignal[0]().start} | end: ${priceSignal[0]().end}`,
-                component: () => (
-                    <Range
-                        rangeSignal={priceSignal}
-                        getAriaLabel={() => "Price range"}
-                        getThumbLabels={() => ["Lowest price", "Highest price"]}
-                        getThumbSize={() => RANGE_THUMB_SIZE}
-                        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "vertical",
-                name: "Vertical",
-                readout: () =>
-                    `single: ${getVertical()} | pair: ${verticalPairSignal[0]().start}–${verticalPairSignal[0]().end}`,
-                component: () => (
-                    <PageControlRow>
-                        <Range
-                            valueSignal={[getVertical, setVertical]}
-                            getId={() => "verticalVolume"}
-                            getAriaLabel={() => "Vertical volume"}
-                            getOrientation={() => "vertical"}
-                            getThumbSize={() => RANGE_THUMB_SIZE}
-                            renderContent={(getFlags) => (
-                                <PageRangeContent getFlags={getFlags} getLength={() => VERTICAL_LENGTH} />
-                            )}
-                        />
+    const getExamples = createMemo(() => [
+        {
+            key: "default",
+            name: "Default",
+            readout: () => `value: ${volumeSignal[0]()}`,
+            component: () => <DefaultExample valueSignal={volumeSignal} />,
+            path: `${EXAMPLES_ROOT}/Default.tsx`,
+        },
+        {
+            key: "stepped",
+            name: "Stepped",
+            readout: () => `value: ${stepsSignal[0]()} of ${STEP_COUNT}`,
+            component: () => <SteppedExample valueSignal={stepsSignal} />,
+            path: `${EXAMPLES_ROOT}/Stepped.tsx`,
+        },
+        {
+            key: "pair",
+            name: "Pair",
+            readout: () => `start: ${priceSignal[0]().start} | end: ${priceSignal[0]().end}`,
+            component: () => <PairExample rangeSignal={priceSignal} />,
+            path: `${EXAMPLES_ROOT}/Pair.tsx`,
+        },
+        {
+            key: "vertical",
+            name: "Vertical",
+            readout: () =>
+                `single: ${verticalSignal[0]()} | pair: ${verticalPairSignal[0]().start}–${verticalPairSignal[0]().end}`,
+            component: () => <VerticalExample valueSignal={verticalSignal} rangeSignal={verticalPairSignal} />,
+            path: `${EXAMPLES_ROOT}/Vertical.tsx`,
+        },
+        {
+            key: "disabled",
+            name: "Disabled",
+            readout: () => `value: ${disabledSignal[0]()}`,
+            component: () => <DisabledExample valueSignal={disabledSignal} />,
+            path: `${EXAMPLES_ROOT}/Disabled.tsx`,
+        },
+        {
+            key: "disabledPair",
+            name: "Disabled pair",
+            readout: () =>
+                `start: ${disabledPairSignal[0]().start} | end: ${disabledPairSignal[0]().end} — both thumbs must be out of the tab order`,
+            component: () => <DisabledPairExample rangeSignal={disabledPairSignal} />,
+            path: `${EXAMPLES_ROOT}/DisabledPair.tsx`,
+        },
+        {
+            key: "reachable",
+            name: "Disabled + reachable",
+            readout: () => `value: ${reachableSignal[0]()}`,
+            component: () => <ReachableExample valueSignal={reachableSignal} />,
+            path: `${EXAMPLES_ROOT}/Reachable.tsx`,
+        },
+        {
+            key: "errored",
+            name: "Error",
+            readout: () => `value: ${erroredSignal[0]()}`,
+            component: () => <ErroredExample valueSignal={erroredSignal} />,
+            path: `${EXAMPLES_ROOT}/Errored.tsx`,
+        },
+    ]);
 
-                        <PageControlRowLabel>and a pair</PageControlRowLabel>
-
-                        <Range
-                            rangeSignal={verticalPairSignal}
-                            getAriaLabel={() => "Vertical band"}
-                            getThumbLabels={() => ["Band floor", "Band ceiling"]}
-                            getOrientation={() => "vertical"}
-                            getThumbSize={() => RANGE_THUMB_SIZE}
-                            renderContent={(getFlags) => (
-                                <PageRangeContent getFlags={getFlags} getLength={() => VERTICAL_LENGTH} />
-                            )}
-                        />
-                    </PageControlRow>
-                ),
-            },
-            {
-                key: "disabled",
-                name: "Disabled",
-                readout: () => `value: ${getDisabled()}`,
-                component: () => (
-                    <Range
-                        valueSignal={[getDisabled, setDisabled]}
-                        getAriaLabel={() => "Disabled range"}
-                        getIsDisabled={() => true}
-                        getThumbSize={() => RANGE_THUMB_SIZE}
-                        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "disabledPair",
-                name: "Disabled pair",
-                readout: () =>
-                    `start: ${disabledPairSignal[0]().start} | end: ${disabledPairSignal[0]().end} — both thumbs must be out of the tab order`,
-                component: () => (
-                    <Range
-                        rangeSignal={disabledPairSignal}
-                        getAriaLabel={() => "Locked band"}
-                        getThumbLabels={() => ["Locked floor", "Locked ceiling"]}
-                        getIsDisabled={() => true}
-                        getThumbSize={() => RANGE_THUMB_SIZE}
-                        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "reachable",
-                name: "Disabled + reachable",
-                readout: () => `value: ${getReachable()}`,
-                component: () => (
-                    <Range
-                        valueSignal={[getReachable, setReachable]}
-                        getAriaLabel={() => "Disabled but reachable range"}
-                        getIsDisabled={() => true}
-                        getIsReachableWhenDisabled={() => true}
-                        getThumbSize={() => RANGE_THUMB_SIZE}
-                        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
-                        getTooltipDefs={() => ({
-                            getPlacement: () => ({ x: "center", y: "top-out" }),
-                            getOffset: () => ({ x: 0, y: 5 }),
-                            renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                                <PageTooltipContent
-                                    getVisibilityTarget={getVisibilityTarget}
-                                    getTransitionDurationMs={getTransitionDurationMs}
-                                >
-                                    Focusable so this tooltip can be read, but arrow keys and dragging must leave the
-                                    value where it is.
-                                </PageTooltipContent>
-                            ),
-                        })}
-                    />
-                ),
-            },
-            {
-                key: "errored",
-                name: "Error",
-                readout: () => `value: ${getErrored()}`,
-                component: () => (
-                    <Range
-                        valueSignal={[getErrored, setErrored]}
-                        getAriaLabel={() => "Errored range"}
-                        getHasError={() => getErrored() > 80}
-                        getThumbSize={() => RANGE_THUMB_SIZE}
-                        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-        ];
-    });
-
-    return <PageVariants getItems={getVariants} />;
+    return <PageExamples getItems={getExamples} />;
 };

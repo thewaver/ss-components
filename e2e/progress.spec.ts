@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-import { inlineStyle, variant } from "./helpers";
+import { demo, inlineStyle } from "./helpers";
 
-const bar = (key: string) => `${variant(key)} [role="progressbar"]`;
+const bar = (key: string) => `${demo(key)} [role="progressbar"]`;
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/progress");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 test("a determinate bar carries its value and both ends of its range", async ({ page }) => {

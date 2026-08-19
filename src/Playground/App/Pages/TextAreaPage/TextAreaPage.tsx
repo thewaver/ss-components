@@ -1,24 +1,18 @@
 import { createMemo, createSignal } from "solid-js";
 
-import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
-import { TextArea } from "../../../../Lib/Fundamentals/Input/TextArea/TextArea";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
-import { PageLabelCaption } from "../../StyledComponents/LabelCaption/LabelCaption";
-import {
-    PageTextFieldContent,
-    computePageTextFieldTextStyle,
-} from "../../StyledComponents/TextFieldContent/TextFieldContent";
-import { PageTextFieldPlaceholder } from "../../StyledComponents/TextFieldPlaceholder/TextFieldPlaceholder";
-import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
+import { AutoSizingExample } from "./Examples/AutoSizing";
+import { AutoSizingCappedExample } from "./Examples/AutoSizingCapped";
+import { DisabledExample } from "./Examples/Disabled";
+import { ErroredExample } from "./Examples/Errored";
+import { FixedHeightExample } from "./Examples/FixedHeight";
+import { LabelledExample } from "./Examples/Labelled";
+import { ReachableExample } from "./Examples/Reachable";
+import { ReadOnlyExample } from "./Examples/ReadOnly";
+import { LONG_TEXT, MAX_ROWS, MIN_ROWS, REVIEW_LIMIT } from "./TextAreaPage.const";
 
-import { FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/TextFieldContent/TextFieldContent.css";
-
-const FIELD_WIDTH = 300;
-const FIXED_HEIGHT = 110;
-const MIN_ROWS = 2;
-const MAX_ROWS = 8;
-const LONG_TEXT = "One line.\nTwo lines.\nThree lines, and the box has to have grown by now.";
-const REVIEW_LIMIT = 80;
+const MIN_COLUMN_WIDTH = 340;
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/TextAreaPage/Examples";
 
 export const TextAreaPage = () => {
     const fixedSignal = createSignal("");
@@ -30,223 +24,65 @@ export const TextAreaPage = () => {
     const erroredSignal = createSignal("Too short");
     const labelledSignal = createSignal("");
 
-    const getVariants = createMemo(() => {
-        return [
-            {
-                key: "fixedHeight",
-                name: "Fixed height",
-                readout: () => `length: ${fixedSignal[0]().length} — the painter sizes the box and it stays put`,
-                component: () => (
-                    <TextArea
-                        valueSignal={fixedSignal}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getAriaLabel={() => "Notes"}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => (
-                            <PageTextFieldContent
-                                getFlags={getFlags}
-                                getWidth={() => FIELD_WIDTH}
-                                getHeight={() => FIXED_HEIGHT}
-                            />
-                        )}
-                        renderPlaceholder={(getFlags) => (
-                            <PageTextFieldPlaceholder getFlags={getFlags} getIsTopAligned={() => true}>
-                                Notes
-                            </PageTextFieldPlaceholder>
-                        )}
-                    />
-                ),
-            },
-            {
-                key: "autoSizing",
-                name: "Auto-sizing",
-                readout: () =>
-                    `length: ${growingSignal[0]().length} — grows from ${MIN_ROWS} rows with no ceiling, so it never scrolls`,
-                component: () => (
-                    <TextArea
-                        valueSignal={growingSignal}
-                        getIsAutoSizing={() => true}
-                        getMinRows={() => MIN_ROWS}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getAriaLabel={() => "Message"}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => (
-                            <PageTextFieldContent
-                                getFlags={getFlags}
-                                getWidth={() => FIELD_WIDTH}
-                                getIsStretched={() => true}
-                            />
-                        )}
-                        renderPlaceholder={(getFlags) => (
-                            <PageTextFieldPlaceholder getFlags={getFlags} getIsTopAligned={() => true}>
-                                Type across several lines
-                            </PageTextFieldPlaceholder>
-                        )}
-                    />
-                ),
-            },
-            {
-                key: "autoSizingCapped",
-                name: "Auto-sizing, capped",
-                readout: () => `length: ${cappedSignal[0]().length} — stops growing at ${MAX_ROWS} rows and scrolls`,
-                component: () => (
-                    <TextArea
-                        valueSignal={cappedSignal}
-                        getIsAutoSizing={() => true}
-                        getMinRows={() => MIN_ROWS}
-                        getMaxRows={() => MAX_ROWS}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getAriaLabel={() => "Description"}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => (
-                            <PageTextFieldContent
-                                getFlags={getFlags}
-                                getWidth={() => FIELD_WIDTH}
-                                getIsStretched={() => true}
-                            />
-                        )}
-                    />
-                ),
-            },
-            {
-                key: "readOnly",
-                name: "Read-only",
-                readout: () => `length: ${readOnlySignal[0]().length} — selectable and copyable, never editable`,
-                component: () => (
-                    <TextArea
-                        valueSignal={readOnlySignal}
-                        getIsReadOnly={() => true}
-                        getIsAutoSizing={() => true}
-                        getMinRows={() => MIN_ROWS}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getAriaLabel={() => "Read-only notes"}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => (
-                            <PageTextFieldContent
-                                getFlags={getFlags}
-                                getWidth={() => FIELD_WIDTH}
-                                getIsStretched={() => true}
-                            />
-                        )}
-                    />
-                ),
-            },
-            {
-                key: "disabled",
-                name: "Disabled",
-                readout: () => `length: ${disabledSignal[0]().length}`,
-                component: () => (
-                    <TextArea
-                        valueSignal={disabledSignal}
-                        getIsDisabled={() => true}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getAriaLabel={() => "Disabled notes"}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => (
-                            <PageTextFieldContent
-                                getFlags={getFlags}
-                                getWidth={() => FIELD_WIDTH}
-                                getHeight={() => FIXED_HEIGHT}
-                            />
-                        )}
-                    />
-                ),
-            },
-            {
-                key: "reachable",
-                name: "Disabled + reachable",
-                readout: () => `length: ${reachableSignal[0]().length}`,
-                component: () => (
-                    <TextArea
-                        valueSignal={reachableSignal}
-                        getIsDisabled={() => true}
-                        getIsReachableWhenDisabled={() => true}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getAriaLabel={() => "Disabled but reachable notes"}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => (
-                            <PageTextFieldContent
-                                getFlags={getFlags}
-                                getWidth={() => FIELD_WIDTH}
-                                getHeight={() => FIXED_HEIGHT}
-                            />
-                        )}
-                        getTooltipDefs={() => ({
-                            getPlacement: () => ({ x: "center", y: "top-out" }),
-                            getOffset: () => ({ x: 0, y: 5 }),
-                            renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                                <PageTooltipContent
-                                    getVisibilityTarget={getVisibilityTarget}
-                                    getTransitionDurationMs={getTransitionDurationMs}
-                                >
-                                    Focusable so this tooltip can be read, but typing must leave the value alone.
-                                </PageTooltipContent>
-                            ),
-                        })}
-                    />
-                ),
-            },
-            {
-                key: "errored",
-                name: "Error",
-                readout: () =>
-                    `length: ${erroredSignal[0]().length} — fewer than ${REVIEW_LIMIT} characters is an error`,
-                component: () => (
-                    <TextArea
-                        valueSignal={erroredSignal}
-                        getIsAutoSizing={() => true}
-                        getMinRows={() => MIN_ROWS}
-                        getMaxRows={() => MAX_ROWS}
-                        getHasError={() => erroredSignal[0]().length < REVIEW_LIMIT}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getAriaLabel={() => "Review"}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => (
-                            <PageTextFieldContent
-                                getFlags={getFlags}
-                                getWidth={() => FIELD_WIDTH}
-                                getIsStretched={() => true}
-                            />
-                        )}
-                    />
-                ),
-            },
-            {
-                key: "label",
-                name: "In a Label",
-                readout: () => `length: ${labelledSignal[0]().length}`,
-                component: () => (
-                    <Label getDir={() => "column"} getGap={() => 5}>
-                        <PageLabelCaption>Bio</PageLabelCaption>
+    const getExamples = createMemo(() => [
+        {
+            key: "fixedHeight",
+            name: "Fixed height",
+            readout: () => `length: ${fixedSignal[0]().length} — the painter sizes the box and it stays put`,
+            component: () => <FixedHeightExample valueSignal={fixedSignal} />,
+            path: `${EXAMPLES_ROOT}/FixedHeight.tsx`,
+        },
+        {
+            key: "autoSizing",
+            name: "Auto-sizing",
+            readout: () =>
+                `length: ${growingSignal[0]().length} — grows from ${MIN_ROWS} rows with no ceiling, so it never scrolls`,
+            component: () => <AutoSizingExample valueSignal={growingSignal} />,
+            path: `${EXAMPLES_ROOT}/AutoSizing.tsx`,
+        },
+        {
+            key: "autoSizingCapped",
+            name: "Auto-sizing, capped",
+            readout: () => `length: ${cappedSignal[0]().length} — stops growing at ${MAX_ROWS} rows and scrolls`,
+            component: () => <AutoSizingCappedExample valueSignal={cappedSignal} />,
+            path: `${EXAMPLES_ROOT}/AutoSizingCapped.tsx`,
+        },
+        {
+            key: "readOnly",
+            name: "Read-only",
+            readout: () => `length: ${readOnlySignal[0]().length} — selectable and copyable, never editable`,
+            component: () => <ReadOnlyExample valueSignal={readOnlySignal} />,
+            path: `${EXAMPLES_ROOT}/ReadOnly.tsx`,
+        },
+        {
+            key: "disabled",
+            name: "Disabled",
+            readout: () => `length: ${disabledSignal[0]().length}`,
+            component: () => <DisabledExample valueSignal={disabledSignal} />,
+            path: `${EXAMPLES_ROOT}/Disabled.tsx`,
+        },
+        {
+            key: "reachable",
+            name: "Disabled + reachable",
+            readout: () => `length: ${reachableSignal[0]().length}`,
+            component: () => <ReachableExample valueSignal={reachableSignal} />,
+            path: `${EXAMPLES_ROOT}/Reachable.tsx`,
+        },
+        {
+            key: "errored",
+            name: "Error",
+            readout: () => `length: ${erroredSignal[0]().length} — fewer than ${REVIEW_LIMIT} characters is an error`,
+            component: () => <ErroredExample valueSignal={erroredSignal} />,
+            path: `${EXAMPLES_ROOT}/Errored.tsx`,
+        },
+        {
+            key: "label",
+            name: "In a Label",
+            readout: () => `length: ${labelledSignal[0]().length}`,
+            component: () => <LabelledExample valueSignal={labelledSignal} />,
+            path: `${EXAMPLES_ROOT}/Labelled.tsx`,
+        },
+    ]);
 
-                        <TextArea
-                            valueSignal={labelledSignal}
-                            getIsAutoSizing={() => true}
-                            getMinRows={() => MIN_ROWS}
-                            getMaxRows={() => MAX_ROWS}
-                            getPadding={() => FIELD_PADDING}
-                            getGap={() => FIELD_GAP}
-                            computeTextStyle={computePageTextFieldTextStyle}
-                            renderContent={(getFlags) => (
-                                <PageTextFieldContent
-                                    getFlags={getFlags}
-                                    getWidth={() => FIELD_WIDTH}
-                                    getIsStretched={() => true}
-                                />
-                            )}
-                        />
-                    </Label>
-                ),
-            },
-        ];
-    });
-
-    return <PageVariants getItems={getVariants} />;
+    return <PageExamples getItems={getExamples} getMinColumnWidth={() => MIN_COLUMN_WIDTH} />;
 };

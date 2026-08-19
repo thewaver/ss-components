@@ -1,43 +1,24 @@
 import { createMemo, createSignal } from "solid-js";
 
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
-import { Stepper } from "../../../../Lib/Fundamentals/Stepper/Stepper";
 import type { Step } from "../../../../Lib/Fundamentals/Stepper/Stepper.types";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import { PageCheckField } from "../../StyledComponents/Field/Field";
-import { PageStepConnector, PageStepContent } from "../../StyledComponents/StepContent/StepContent";
 import type { PageStepState } from "../../StyledComponents/StepContent/StepContent.types";
-import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
+import { BareExample } from "./Examples/Bare";
+import { FailedExample } from "./Examples/Failed";
+import { LinearExample } from "./Examples/Linear";
+import { StackedExample } from "./Examples/Stacked";
+import { LABELS, ORDER, STATE_WORDS } from "./StepperPage.const";
+import type { StepValue } from "./StepperPage.types";
 
-type StepValue = "details" | "address" | "payment" | "review";
-
-const LABELS: Record<StepValue, string> = {
-    details: "Details",
-    address: "Address",
-    payment: "Payment",
-    review: "Review",
-};
-
-const ORDER: StepValue[] = ["details", "address", "payment", "review"];
-
-const STATE_WORDS: Record<PageStepState, string> = {
-    done: "completed",
-    current: "current step",
-    failed: "needs attention",
-    skipped: "skipped",
-    ahead: "not started",
-};
-
-const FAILURE_REASON = "The card was declined, so this step has to be repeated before the order can be reviewed.";
-const LOCKED_REASON = "Review opens once payment succeeds, so there is nothing to look at here yet.";
-
-const STEPPER_GAP = 5;
 const STARTING_LINEAR: StepValue = "address";
 const STARTING_FAILED: StepValue = "payment";
 const STARTING_STACKED: StepValue = "address";
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/StepperPage/Examples";
 
 export const StepperPage = () => {
     const [getIsFreeNavigation, setIsFreeNavigation] = createSignal(false);
@@ -75,139 +56,66 @@ export const StepperPage = () => {
     const describe = (step: Step<StepValue, PageStepState>, index: number) =>
         `Step ${index + 1} of ${ORDER.length}, ${LABELS[step.value]}, ${STATE_WORDS[step.state]}`;
 
-    const getVariants = createMemo(() => {
-        return [
-            {
-                key: "linear",
-                name: "Linear",
-                readout: () =>
-                    `current: ${getLinearCurrent()} — only the steps behind you can be pressed, unless free navigation is on`,
-                component: () => (
-                    <Stepper
-                        getSteps={() => buildSteps(getLinearCurrent())}
-                        getCurrentValue={getLinearCurrent}
-                        getGap={() => STEPPER_GAP}
-                        getAriaLabel={() => "Checkout"}
-                        computeStepAriaLabel={describe}
-                        onCurrentChange={setLinearCurrent}
-                        renderStep={(getStep, getFlags) => (
-                            <PageStepContent
-                                getFlags={getFlags}
-                                getState={() => getStep().state}
-                                getOrdinal={() => ORDER.indexOf(getStep().value) + 1}
-                                getDir={() => "row"}
-                            >
-                                {LABELS[getStep().value]}
-                            </PageStepContent>
-                        )}
-                        renderConnector={() => <PageStepConnector getDir={() => "row"} />}
-                    />
-                ),
-            },
-            {
-                key: "failed",
-                name: "A step that failed",
-                readout: () =>
-                    `current: ${getFailedCurrent()} — the failed step is reachable by keyboard so its tooltip can be read, and its name carries the state as words`,
-                component: () => (
-                    <Stepper
-                        getSteps={() => buildSteps(getFailedCurrent(), { address: "failed", details: "skipped" })}
-                        getCurrentValue={getFailedCurrent}
-                        getGap={() => STEPPER_GAP}
-                        getAriaLabel={() => "Checkout with a failure"}
-                        computeStepAriaLabel={describe}
-                        computeTooltipDefs={(step) => {
-                            const reason =
-                                step.state === "failed"
-                                    ? FAILURE_REASON
-                                    : step.state === "ahead"
-                                      ? LOCKED_REASON
-                                      : undefined;
-
-                            if (!reason) return undefined;
-
-                            return {
-                                getPlacement: () => ({ x: "center", y: "top-out" }),
-                                getOffset: () => ({ x: 0, y: 5 }),
-                                renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                                    <PageTooltipContent
-                                        getVisibilityTarget={getVisibilityTarget}
-                                        getTransitionDurationMs={getTransitionDurationMs}
-                                    >
-                                        {reason}
-                                    </PageTooltipContent>
-                                ),
-                            };
-                        }}
-                        onCurrentChange={setFailedCurrent}
-                        renderStep={(getStep, getFlags) => (
-                            <PageStepContent
-                                getFlags={getFlags}
-                                getState={() => getStep().state}
-                                getOrdinal={() => ORDER.indexOf(getStep().value) + 1}
-                                getDir={() => "row"}
-                            >
-                                {LABELS[getStep().value]}
-                            </PageStepContent>
-                        )}
-                        renderConnector={() => <PageStepConnector getDir={() => "row"} />}
-                    />
-                ),
-            },
-            {
-                key: "stacked",
-                name: "Stacked",
-                readout: () => `current: ${getStackedCurrent()} — the same steps down the page`,
-                component: () => (
-                    <Stepper
-                        getSteps={() => buildSteps(getStackedCurrent())}
-                        getCurrentValue={getStackedCurrent}
-                        getDir={() => "column"}
-                        getGap={() => STEPPER_GAP}
-                        getAriaLabel={() => "Stacked checkout"}
-                        computeStepAriaLabel={describe}
-                        onCurrentChange={setStackedCurrent}
-                        renderStep={(getStep, getFlags) => (
-                            <PageStepContent
-                                getFlags={getFlags}
-                                getState={() => getStep().state}
-                                getOrdinal={() => ORDER.indexOf(getStep().value) + 1}
-                                getDir={() => "column"}
-                            >
-                                {LABELS[getStep().value]}
-                            </PageStepContent>
-                        )}
-                        renderConnector={() => <PageStepConnector getDir={() => "column"} />}
-                    />
-                ),
-            },
-            {
-                key: "bare",
-                name: "No connector",
-                readout: () => "the connector slot is optional, so a bare strip renders nothing between the steps",
-                component: () => (
-                    <Stepper
-                        getSteps={() => buildSteps(getLinearCurrent())}
-                        getCurrentValue={getLinearCurrent}
-                        getGap={() => STEPPER_GAP}
-                        getAriaLabel={() => "Checkout without connectors"}
-                        computeStepAriaLabel={describe}
-                        onCurrentChange={setLinearCurrent}
-                        renderStep={(getStep, getFlags) => (
-                            <PageStepContent
-                                getFlags={getFlags}
-                                getState={() => getStep().state}
-                                getOrdinal={() => ORDER.indexOf(getStep().value) + 1}
-                                getDir={() => "row"}
-                            >
-                                {LABELS[getStep().value]}
-                            </PageStepContent>
-                        )}
-                    />
-                ),
-            },
-        ];
-    });
+    const getExamples = createMemo(() => [
+        {
+            key: "linear",
+            name: "Linear",
+            readout: () =>
+                `current: ${getLinearCurrent()} — only the steps behind you can be pressed, unless free navigation is on`,
+            component: () => (
+                <LinearExample
+                    getSteps={() => buildSteps(getLinearCurrent())}
+                    getCurrentValue={getLinearCurrent}
+                    computeStepAriaLabel={describe}
+                    onCurrentChange={setLinearCurrent}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Linear.tsx`,
+        },
+        {
+            key: "failed",
+            name: "A step that failed",
+            readout: () =>
+                `current: ${getFailedCurrent()} — the failed step is reachable by keyboard so its tooltip can be read, and its name carries the state as words`,
+            component: () => (
+                <FailedExample
+                    getSteps={() => buildSteps(getFailedCurrent(), { address: "failed", details: "skipped" })}
+                    getCurrentValue={getFailedCurrent}
+                    computeStepAriaLabel={describe}
+                    onCurrentChange={setFailedCurrent}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Failed.tsx`,
+        },
+        {
+            key: "stacked",
+            name: "Stacked",
+            readout: () => `current: ${getStackedCurrent()} — the same steps down the page`,
+            component: () => (
+                <StackedExample
+                    getSteps={() => buildSteps(getStackedCurrent())}
+                    getCurrentValue={getStackedCurrent}
+                    computeStepAriaLabel={describe}
+                    onCurrentChange={setStackedCurrent}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Stacked.tsx`,
+        },
+        {
+            key: "bare",
+            name: "No connector",
+            readout: () => "the connector slot is optional, so a bare strip renders nothing between the steps",
+            component: () => (
+                <BareExample
+                    getSteps={() => buildSteps(getLinearCurrent())}
+                    getCurrentValue={getLinearCurrent}
+                    computeStepAriaLabel={describe}
+                    onCurrentChange={setLinearCurrent}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Bare.tsx`,
+        },
+    ]);
 
     return (
         <>
@@ -230,7 +138,7 @@ export const StepperPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageVariants getItems={getVariants} />
+            <PageExamples getItems={getExamples} />
         </>
     );
 };

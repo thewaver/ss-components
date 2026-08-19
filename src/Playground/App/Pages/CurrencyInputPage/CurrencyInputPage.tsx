@@ -1,25 +1,24 @@
 import { createMemo, createSignal } from "solid-js";
 
-import { CurrencyInput } from "../../../../Lib/Fundamentals/Input/CurrencyInput/CurrencyInput";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageSelectField } from "../../StyledComponents/Field/Field";
-import { PageTextFieldAdornment } from "../../StyledComponents/TextFieldAdornment/TextFieldAdornment";
-import {
-    PageTextFieldContent,
-    computePageTextFieldTextStyle,
-} from "../../StyledComponents/TextFieldContent/TextFieldContent";
-import { PageTextFieldPlaceholder } from "../../StyledComponents/TextFieldPlaceholder/TextFieldPlaceholder";
+import { BUDGET_MAX } from "./CurrencyInputPage.const";
+import type { CurrencyInputExampleProps } from "./CurrencyInputPage.types";
+import { BoundedExample } from "./Examples/Bounded";
+import { DefaultExample } from "./Examples/Default";
+import { SymbolExample } from "./Examples/Symbol";
 
-import { FIELD_GAP, FIELD_STEPPER_PADDING } from "../../StyledComponents/TextFieldContent/TextFieldContent.css";
-
-const FIELD_WIDTH = 200;
 const LOCALE_FIELD_WIDTH = 120;
 const LOCALES = ["en-GB", "en-US", "de-DE", "fr-FR", "ja-JP"];
 const DECIMALS = [0, 2, 3];
 const GROUP_SIZES = [3, 4];
-const BUDGET_MAX = 5000;
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/CurrencyInputPage/Examples";
+
+const STARTING_PRICE = 1234.56;
+const STARTING_BUDGET = 4999.99;
+const STARTING_BIG = 9876543210.12;
 
 const describe = (value: number | undefined) => (value === undefined ? "none" : `${value}`);
 
@@ -28,74 +27,47 @@ export const CurrencyInputPage = () => {
     const [getDecimals, setDecimals] = createSignal(2);
     const [getGroupSize, setGroupSize] = createSignal(3);
 
-    const priceSignal = createSignal<number | undefined>(1234.56);
+    const priceSignal = createSignal<number | undefined>(STARTING_PRICE);
     const emptySignal = createSignal<number | undefined>();
-    const budgetSignal = createSignal<number | undefined>(4999.99);
-    const bigSignal = createSignal<number | undefined>(9876543210.12);
+    const budgetSignal = createSignal<number | undefined>(STARTING_BUDGET);
+    const bigSignal = createSignal<number | undefined>(STARTING_BIG);
 
-    const renderField = () => ({
-        getPadding: () => FIELD_STEPPER_PADDING,
-        getGap: () => FIELD_GAP,
-        getLocale,
-        getDecimals,
-        getGroupSize,
-        computeTextStyle: computePageTextFieldTextStyle,
-        renderContent: (getFlags: Parameters<typeof PageTextFieldContent>[0]["getFlags"]) => (
-            <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} />
-        ),
-        renderPlaceholder: (getFlags: Parameters<typeof PageTextFieldPlaceholder>[0]["getFlags"], hint?: string) => (
-            <PageTextFieldPlaceholder getFlags={getFlags}>{hint}</PageTextFieldPlaceholder>
-        ),
-    });
+    const getExamples = createMemo(() => {
+        const commonProps: Omit<CurrencyInputExampleProps, "valueSignal"> = { getLocale, getDecimals, getGroupSize };
 
-    const getVariants = createMemo(() => {
         return [
             {
                 key: "default",
                 name: "Default",
                 readout: () =>
                     `value: ${describe(priceSignal[0]())} — digits fill from the right, and the separators are the field's rather than yours to type`,
-                component: () => (
-                    <CurrencyInput {...renderField()} valueSignal={priceSignal} getAriaLabel={() => "Price"} />
-                ),
+                component: () => <DefaultExample {...commonProps} valueSignal={priceSignal} />,
+                path: `${EXAMPLES_ROOT}/Default.tsx`,
             },
             {
                 key: "empty",
                 name: "Empty",
                 readout: () => `value: ${describe(emptySignal[0]())} — an empty field has no value at all`,
                 component: () => (
-                    <CurrencyInput {...renderField()} valueSignal={emptySignal} getAriaLabel={() => "Amount"} />
+                    <DefaultExample {...commonProps} valueSignal={emptySignal} getAriaLabel={() => "Amount"} />
                 ),
+                path: `${EXAMPLES_ROOT}/Default.tsx`,
             },
             {
                 key: "symbol",
                 name: "With a symbol",
                 readout: () =>
                     `value: ${describe(priceSignal[0]())} — the currency is paint in a slot, since the library holds no currencies`,
-                component: () => (
-                    <CurrencyInput
-                        {...renderField()}
-                        valueSignal={priceSignal}
-                        getAriaLabel={() => "Price with a symbol"}
-                        renderLeading={(getFlags) => (
-                            <PageTextFieldAdornment getFlags={getFlags}>£</PageTextFieldAdornment>
-                        )}
-                    />
-                ),
+                component: () => <SymbolExample {...commonProps} valueSignal={priceSignal} />,
+                path: `${EXAMPLES_ROOT}/Symbol.tsx`,
             },
             {
                 key: "bounded",
                 name: "Bounded",
                 readout: () =>
                     `value: ${describe(budgetSignal[0]())} — at most ${BUDGET_MAX}, and going over is refused as it is typed`,
-                component: () => (
-                    <CurrencyInput
-                        {...renderField()}
-                        valueSignal={budgetSignal}
-                        getMax={() => BUDGET_MAX}
-                        getAriaLabel={() => "Budget"}
-                    />
-                ),
+                component: () => <BoundedExample {...commonProps} valueSignal={budgetSignal} />,
+                path: `${EXAMPLES_ROOT}/Bounded.tsx`,
             },
             {
                 key: "big",
@@ -103,8 +75,9 @@ export const CurrencyInputPage = () => {
                 readout: () =>
                     `value: ${describe(bigSignal[0]())} — the group count grows with the value, which a fixed pattern cannot do`,
                 component: () => (
-                    <CurrencyInput {...renderField()} valueSignal={bigSignal} getAriaLabel={() => "Large amount"} />
+                    <DefaultExample {...commonProps} valueSignal={bigSignal} getAriaLabel={() => "Large amount"} />
                 ),
+                path: `${EXAMPLES_ROOT}/Default.tsx`,
             },
         ];
     });
@@ -141,7 +114,7 @@ export const CurrencyInputPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageVariants getItems={getVariants} />
+            <PageExamples getItems={getExamples} />
         </>
     );
 };

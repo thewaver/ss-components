@@ -1,21 +1,20 @@
 import { createMemo, createSignal } from "solid-js";
 
-import { Button } from "../../../../Lib/Fundamentals/Button/Button";
-import { Label } from "../../../../Lib/Fundamentals/Input/Label/Label";
-import { TextInput } from "../../../../Lib/Fundamentals/Input/TextInput/TextInput";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
-import { PageLabelCaption } from "../../StyledComponents/LabelCaption/LabelCaption";
-import { PageTextFieldAdornment } from "../../StyledComponents/TextFieldAdornment/TextFieldAdornment";
-import {
-    PageTextFieldContent,
-    computePageTextFieldTextStyle,
-} from "../../StyledComponents/TextFieldContent/TextFieldContent";
-import { PageTextFieldPlaceholder } from "../../StyledComponents/TextFieldPlaceholder/TextFieldPlaceholder";
-import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
+import { BothAdornmentsExample } from "./Examples/BothAdornments";
+import { DefaultExample } from "./Examples/Default";
+import { DisabledExample } from "./Examples/Disabled";
+import { ErroredExample } from "./Examples/Errored";
+import { LabelledExample } from "./Examples/Labelled";
+import { NumberFieldExample } from "./Examples/NumberField";
+import { PasswordExample } from "./Examples/Password";
+import { ReachableExample } from "./Examples/Reachable";
+import { ReadOnlyExample } from "./Examples/ReadOnly";
+import { RefusingSetterExample } from "./Examples/RefusingSetter";
+import { TransformingSetterExample } from "./Examples/TransformingSetter";
+import { PIN_LENGTH, QUANTITY_STEP } from "./TextInputPage.const";
 
-import { FIELD_GAP, FIELD_PADDING } from "../../StyledComponents/TextFieldContent/TextFieldContent.css";
-
-const PIN_LENGTH = 6;
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/TextInputPage/Examples";
 
 export const TextInputPage = () => {
     const defaultSignal = createSignal("");
@@ -31,255 +30,85 @@ export const TextInputPage = () => {
     const quantitySignal = createSignal("10");
     const revealSignal = createSignal(false);
 
-    const getVariants = createMemo(() => {
-        return [
-            {
-                key: "default",
-                name: "Default",
-                readout: () => `value: "${defaultSignal[0]()}"`,
-                component: () => (
-                    <TextInput
-                        valueSignal={defaultSignal}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getAriaLabel={() => "Your name"}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
-                        renderPlaceholder={(getFlags) => (
-                            <PageTextFieldPlaceholder getFlags={getFlags}>Your name</PageTextFieldPlaceholder>
-                        )}
-                    />
-                ),
-            },
-            {
-                key: "transformingSetter",
-                name: "Transforming setter",
-                readout: () => `value: "${codeSignal[0]()}" — type lowercase mid-string, the caret must not jump`,
-                component: () => (
-                    <TextInput
-                        valueSignal={codeSignal}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getAriaLabel={() => "Coupon code"}
-                        onInput={(value) => {
-                            codeSignal[1](value.toLocaleUpperCase());
-                        }}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
-                        renderPlaceholder={(getFlags) => (
-                            <PageTextFieldPlaceholder getFlags={getFlags}>
-                                Coupon code (upper-cased)
-                            </PageTextFieldPlaceholder>
-                        )}
-                    />
-                ),
-            },
-            {
-                key: "refusingSetter",
-                name: "Refusing setter",
-                readout: () => `value: "${pinSignal[0]()}" — letters are refused, ${PIN_LENGTH} digits max`,
-                component: () => (
-                    <TextInput
-                        valueSignal={pinSignal}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getAriaLabel={() => "PIN"}
-                        getInputMode={() => "numeric"}
-                        getHasError={() => pinSignal[0]().length > 0 && pinSignal[0]().length < PIN_LENGTH}
-                        onInput={(value) => {
-                            pinSignal[1](value.replace(/\D/g, "").slice(0, PIN_LENGTH));
-                        }}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
-                        renderPlaceholder={(getFlags) => (
-                            <PageTextFieldPlaceholder getFlags={getFlags}>Digits only</PageTextFieldPlaceholder>
-                        )}
-                    />
-                ),
-            },
-            {
-                key: "password",
-                name: "Password",
-                readout: () => `value: "${passwordSignal[0]()}" | revealed: ${revealSignal[0]()}`,
-                component: () => (
-                    <TextInput
-                        valueSignal={passwordSignal}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getType={() => (revealSignal[0]() ? "text" : "password")}
-                        getAriaLabel={() => "Password"}
-                        getAutoComplete={() => "current-password"}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
-                        renderPlaceholder={(getFlags) => (
-                            <PageTextFieldPlaceholder getFlags={getFlags}>Password</PageTextFieldPlaceholder>
-                        )}
-                        renderTrailing={() => (
-                            <Button
-                                onClick={() => {
-                                    revealSignal[1]((prev) => !prev);
-                                }}
-                                renderContent={(getFlags) => (
-                                    <PageTextFieldAdornment getFlags={getFlags}>
-                                        {revealSignal[0]() ? "Hide" : "Show"}
-                                    </PageTextFieldAdornment>
-                                )}
-                            />
-                        )}
-                    />
-                ),
-            },
-            {
-                key: "bothAdornments",
-                name: "Both adornments",
-                readout: () => `value: "${amountSignal[0]()}"`,
-                component: () => (
-                    <TextInput
-                        valueSignal={amountSignal}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getAriaLabel={() => "Amount"}
-                        getInputMode={() => "decimal"}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
-                        renderPlaceholder={(getFlags) => (
-                            <PageTextFieldPlaceholder getFlags={getFlags}>0.00</PageTextFieldPlaceholder>
-                        )}
-                        renderLeading={(getFlags) => (
-                            <PageTextFieldAdornment getFlags={getFlags}>USD</PageTextFieldAdornment>
-                        )}
-                        renderTrailing={() => (
-                            <Button
-                                getIsDisabled={() => amountSignal[0]() === ""}
-                                onClick={() => {
-                                    amountSignal[1]("");
-                                }}
-                                renderContent={(getFlags) => (
-                                    <PageTextFieldAdornment getFlags={getFlags}>Clear</PageTextFieldAdornment>
-                                )}
-                            />
-                        )}
-                    />
-                ),
-            },
-            {
-                key: "number",
-                name: "Number",
-                readout: () => `value: "${quantitySignal[0]()}" — arrows step by 5, no spinner buttons`,
-                component: () => (
-                    <TextInput
-                        valueSignal={quantitySignal}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getType={() => "number"}
-                        getAriaLabel={() => "Quantity"}
-                        getMin={() => 0}
-                        getMax={() => 100}
-                        getStep={() => 5}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "readOnly",
-                name: "Read-only",
-                readout: () => `value: "${readOnlySignal[0]()}" — selectable and copyable, never editable`,
-                component: () => (
-                    <TextInput
-                        valueSignal={readOnlySignal}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getIsReadOnly={() => true}
-                        getAriaLabel={() => "Read-only field"}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "disabled",
-                name: "Disabled",
-                readout: () => `value: "${disabledSignal[0]()}"`,
-                component: () => (
-                    <TextInput
-                        valueSignal={disabledSignal}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getIsDisabled={() => true}
-                        getAriaLabel={() => "Disabled field"}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "reachable",
-                name: "Disabled + reachable",
-                readout: () => `value: "${reachableSignal[0]()}"`,
-                component: () => (
-                    <TextInput
-                        valueSignal={reachableSignal}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getIsDisabled={() => true}
-                        getIsReachableWhenDisabled={() => true}
-                        getAriaLabel={() => "Disabled but reachable field"}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
-                        getTooltipDefs={() => ({
-                            getPlacement: () => ({ x: "center", y: "top-out" }),
-                            getOffset: () => ({ x: 0, y: 5 }),
-                            renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                                <PageTooltipContent
-                                    getVisibilityTarget={getVisibilityTarget}
-                                    getTransitionDurationMs={getTransitionDurationMs}
-                                >
-                                    Focusable so this tooltip can be read, but typing must leave the value alone.
-                                </PageTooltipContent>
-                            ),
-                        })}
-                    />
-                ),
-            },
-            {
-                key: "errored",
-                name: "Error",
-                readout: () => `value: "${erroredSignal[0]()}"`,
-                component: () => (
-                    <TextInput
-                        valueSignal={erroredSignal}
-                        getPadding={() => FIELD_PADDING}
-                        getGap={() => FIELD_GAP}
-                        getType={() => "email"}
-                        getHasError={() => !erroredSignal[0]().includes("@")}
-                        getAriaLabel={() => "Email"}
-                        getAutoComplete={() => "email"}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "label",
-                name: "In a Label",
-                readout: () => `value: "${labelledSignal[0]()}"`,
-                component: () => (
-                    <Label getDir={() => "column"} getGap={() => 5}>
-                        <PageLabelCaption>Display name</PageLabelCaption>
+    const getExamples = createMemo(() => [
+        {
+            key: "default",
+            name: "Default",
+            readout: () => `value: "${defaultSignal[0]()}"`,
+            component: () => <DefaultExample valueSignal={defaultSignal} />,
+            path: `${EXAMPLES_ROOT}/Default.tsx`,
+        },
+        {
+            key: "transformingSetter",
+            name: "Transforming setter",
+            readout: () => `value: "${codeSignal[0]()}" — type lowercase mid-string, the caret must not jump`,
+            component: () => <TransformingSetterExample valueSignal={codeSignal} />,
+            path: `${EXAMPLES_ROOT}/TransformingSetter.tsx`,
+        },
+        {
+            key: "refusingSetter",
+            name: "Refusing setter",
+            readout: () => `value: "${pinSignal[0]()}" — letters are refused, ${PIN_LENGTH} digits max`,
+            component: () => <RefusingSetterExample valueSignal={pinSignal} />,
+            path: `${EXAMPLES_ROOT}/RefusingSetter.tsx`,
+        },
+        {
+            key: "password",
+            name: "Password",
+            readout: () => `value: "${passwordSignal[0]()}" | revealed: ${revealSignal[0]()}`,
+            component: () => <PasswordExample valueSignal={passwordSignal} revealSignal={revealSignal} />,
+            path: `${EXAMPLES_ROOT}/Password.tsx`,
+        },
+        {
+            key: "bothAdornments",
+            name: "Both adornments",
+            readout: () => `value: "${amountSignal[0]()}"`,
+            component: () => <BothAdornmentsExample valueSignal={amountSignal} />,
+            path: `${EXAMPLES_ROOT}/BothAdornments.tsx`,
+        },
+        {
+            key: "number",
+            name: "Number",
+            readout: () => `value: "${quantitySignal[0]()}" — arrows step by ${QUANTITY_STEP}, no spinner buttons`,
+            component: () => <NumberFieldExample valueSignal={quantitySignal} />,
+            path: `${EXAMPLES_ROOT}/NumberField.tsx`,
+        },
+        {
+            key: "readOnly",
+            name: "Read-only",
+            readout: () => `value: "${readOnlySignal[0]()}" — selectable and copyable, never editable`,
+            component: () => <ReadOnlyExample valueSignal={readOnlySignal} />,
+            path: `${EXAMPLES_ROOT}/ReadOnly.tsx`,
+        },
+        {
+            key: "disabled",
+            name: "Disabled",
+            readout: () => `value: "${disabledSignal[0]()}"`,
+            component: () => <DisabledExample valueSignal={disabledSignal} />,
+            path: `${EXAMPLES_ROOT}/Disabled.tsx`,
+        },
+        {
+            key: "reachable",
+            name: "Disabled + reachable",
+            readout: () => `value: "${reachableSignal[0]()}"`,
+            component: () => <ReachableExample valueSignal={reachableSignal} />,
+            path: `${EXAMPLES_ROOT}/Reachable.tsx`,
+        },
+        {
+            key: "errored",
+            name: "Error",
+            readout: () => `value: "${erroredSignal[0]()}"`,
+            component: () => <ErroredExample valueSignal={erroredSignal} />,
+            path: `${EXAMPLES_ROOT}/Errored.tsx`,
+        },
+        {
+            key: "label",
+            name: "In a Label",
+            readout: () => `value: "${labelledSignal[0]()}"`,
+            component: () => <LabelledExample valueSignal={labelledSignal} />,
+            path: `${EXAMPLES_ROOT}/Labelled.tsx`,
+        },
+    ]);
 
-                        <TextInput
-                            valueSignal={labelledSignal}
-                            getPadding={() => FIELD_PADDING}
-                            getGap={() => FIELD_GAP}
-                            computeTextStyle={computePageTextFieldTextStyle}
-                            renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
-                        />
-                    </Label>
-                ),
-            },
-        ];
-    });
-
-    return <PageVariants getItems={getVariants} />;
+    return <PageExamples getItems={getExamples} />;
 };

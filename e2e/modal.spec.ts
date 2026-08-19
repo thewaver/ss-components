@@ -1,6 +1,6 @@
 import { type Page, expect, test } from "@playwright/test";
 
-import { activeText, readout, variant } from "./helpers";
+import { activeText, demo, readout } from "./helpers";
 
 const DIALOG = '[role="dialog"]';
 const ALERT = '[role="alertdialog"]';
@@ -74,11 +74,11 @@ test.describe("Modal", () => {
 });
 
 test.describe("Drawer", () => {
-    const TRIGGER = `${variant("left")} button`;
+    const TRIGGER = `${demo("left")} button`;
 
     test.beforeEach(async ({ page }) => {
         await page.goto("/drawer");
-        await expect(page.locator("[data-variant]").first()).toBeVisible();
+        await expect(page.locator("[data-example]").first()).toBeVisible();
     });
 
     test("a closed drawer is not in the tree", async ({ page }) => {
@@ -129,7 +129,7 @@ test.describe("Drawer", () => {
      * stick to the top *and* fill the width, so it is the one worth driving.
      */
     test("a top drawer sticks to its edge and fills the other axis", async ({ page }) => {
-        await page.locator(`${variant("top")} button`).click();
+        await page.locator(`${demo("top")} button`).click();
 
         await expect(page.locator(DIALOG)).toHaveAttribute("aria-label", "top drawer");
 
@@ -145,7 +145,7 @@ test.describe("Drawer", () => {
     test("the far edges are honoured too, so all four are the same grid stating different corners", async ({
         page,
     }) => {
-        await page.locator(`${variant("right")} button`).click();
+        await page.locator(`${demo("right")} button`).click();
 
         const right = await layoutBox(page);
 
@@ -155,7 +155,7 @@ test.describe("Drawer", () => {
         await page.keyboard.press("Escape");
         await expect(page.locator(DIALOG)).toHaveCount(0);
 
-        await page.locator(`${variant("bottom")} button`).click();
+        await page.locator(`${demo("bottom")} button`).click();
 
         const bottom = await layoutBox(page);
 
@@ -179,11 +179,11 @@ test.describe("Drawer", () => {
 });
 
 test.describe("Modal in its alert mode", () => {
-    const TRIGGER = `${variant("destructiveConfirmation")} button`;
+    const TRIGGER = `${demo("destructiveConfirmation")} button`;
 
     test.beforeEach(async ({ page }) => {
         await page.goto("/modal");
-        await expect(page.locator("[data-variant]").first()).toBeVisible();
+        await expect(page.locator("[data-example]").first()).toBeVisible();
     });
 
     test("it takes the alertdialog role and describes the decision", async ({ page }) => {

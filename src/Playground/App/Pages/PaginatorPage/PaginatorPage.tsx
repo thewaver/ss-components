@@ -1,16 +1,14 @@
 import { createMemo, createSignal } from "solid-js";
 
-import { Paginator } from "../../../../Lib/Fundamentals/Paginator/Paginator";
-import type { PaginatorLinkProps, PaginatorStep } from "../../../../Lib/Fundamentals/Paginator/Paginator.types";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageCheckField, PageNumberField } from "../../StyledComponents/Field/Field";
-import {
-    PagePaginatorGap,
-    PagePaginatorPage,
-    PagePaginatorStep,
-} from "../../StyledComponents/PaginatorContent/PaginatorContent";
+import { EndsExample } from "./Examples/Ends";
+import { LinkComponentExample } from "./Examples/LinkComponent";
+import { LinksExample } from "./Examples/Links";
+import { StepsExample } from "./Examples/Steps";
+import type { PaginatorExampleProps } from "./PaginatorPage.types";
 
 const MIN_PAGE_COUNT = 0;
 const MAX_PAGE_COUNT = 200;
@@ -21,12 +19,8 @@ const STARTING_PAGE_COUNT = 20;
 const STARTING_SIBLING_COUNT = 1;
 const STARTING_BOUNDARY_COUNT = 1;
 const STARTING_PAGE = 1;
-const PAGINATOR_GAP = 5;
 const COUNT_FIELD_WIDTH = 90;
-
-const END_STEPS: PaginatorStep[] = ["first", "previous", "next", "last"];
-
-const PagePaginatorLink = (props: PaginatorLinkProps) => <a {...props} data-link-component />;
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/PaginatorPage/Examples";
 
 export const PaginatorPage = () => {
     const [getPageCount, setPageCount] = createSignal(STARTING_PAGE_COUNT);
@@ -39,72 +33,38 @@ export const PaginatorPage = () => {
     const [getLinkPage, setLinkPage] = createSignal(STARTING_PAGE);
     const [getCustomLinkPage, setCustomLinkPage] = createSignal(STARTING_PAGE);
 
-    const getVariants = createMemo(() => {
+    const getExamples = createMemo(() => {
+        const commonProps: Omit<PaginatorExampleProps, "getPage" | "onPageChange"> = {
+            getPageCount,
+            getSiblingCount,
+            getBoundaryCount,
+            getIsDisabled,
+        };
+
         return [
             {
                 key: "steps",
                 name: "Previous and next",
                 readout: () =>
                     `page ${getStepPage()} of ${getPageCount()} — the gaps name the pages they stand for, and a gap standing for one page is spelled as that page instead`,
-                component: () => (
-                    <Paginator
-                        getPage={getStepPage}
-                        getPageCount={getPageCount}
-                        getSiblingCount={getSiblingCount}
-                        getBoundaryCount={getBoundaryCount}
-                        getIsDisabled={getIsDisabled}
-                        getGap={() => PAGINATOR_GAP}
-                        getAriaLabel={() => "Results"}
-                        onPageChange={setStepPage}
-                        renderPage={(_getEntry, getFlags) => <PagePaginatorPage getFlags={getFlags} />}
-                        renderGap={(getEntry) => <PagePaginatorGap getEntry={getEntry} />}
-                        renderStep={(_getStep, getFlags) => <PagePaginatorStep getFlags={getFlags} />}
-                    />
-                ),
+                component: () => <StepsExample {...commonProps} getPage={getStepPage} onPageChange={setStepPage} />,
+                path: `${EXAMPLES_ROOT}/Steps.tsx`,
             },
             {
                 key: "ends",
                 name: "Jumps to either end",
                 readout: () =>
                     `page ${getEndPage()} of ${getPageCount()} — first and previous go quiet together on page one, and next and last on the final page`,
-                component: () => (
-                    <Paginator
-                        getPage={getEndPage}
-                        getPageCount={getPageCount}
-                        getSiblingCount={getSiblingCount}
-                        getBoundaryCount={getBoundaryCount}
-                        getIsDisabled={getIsDisabled}
-                        getSteps={() => END_STEPS}
-                        getGap={() => PAGINATOR_GAP}
-                        getAriaLabel={() => "Results with end jumps"}
-                        onPageChange={setEndPage}
-                        renderPage={(_getEntry, getFlags) => <PagePaginatorPage getFlags={getFlags} />}
-                        renderGap={(getEntry) => <PagePaginatorGap getEntry={getEntry} />}
-                        renderStep={(_getStep, getFlags) => <PagePaginatorStep getFlags={getFlags} />}
-                    />
-                ),
+                component: () => <EndsExample {...commonProps} getPage={getEndPage} onPageChange={setEndPage} />,
+                path: `${EXAMPLES_ROOT}/Ends.tsx`,
             },
             {
                 key: "links",
                 name: "Pages that are links",
                 readout: () =>
                     `page ${getLinkPage()} of ${getPageCount()} — the consumer knows the address shape, so it computes the href from the page the library worked out`,
-                component: () => (
-                    <Paginator
-                        getPage={getLinkPage}
-                        getPageCount={getPageCount}
-                        getSiblingCount={getSiblingCount}
-                        getBoundaryCount={getBoundaryCount}
-                        getIsDisabled={getIsDisabled}
-                        getGap={() => PAGINATOR_GAP}
-                        getAriaLabel={() => "Linked results"}
-                        computeHref={(page) => `#paginator-page-${page}`}
-                        onPageChange={setLinkPage}
-                        renderPage={(_getEntry, getFlags) => <PagePaginatorPage getFlags={getFlags} />}
-                        renderGap={(getEntry) => <PagePaginatorGap getEntry={getEntry} />}
-                        renderStep={(_getStep, getFlags) => <PagePaginatorStep getFlags={getFlags} />}
-                    />
-                ),
+                component: () => <LinksExample {...commonProps} getPage={getLinkPage} onPageChange={setLinkPage} />,
+                path: `${EXAMPLES_ROOT}/Links.tsx`,
             },
             {
                 key: "linkComponent",
@@ -112,22 +72,13 @@ export const PaginatorPage = () => {
                 readout: () =>
                     `page ${getCustomLinkPage()} of ${getPageCount()} — the same links rendered by a consumer's own link component`,
                 component: () => (
-                    <Paginator
+                    <LinkComponentExample
+                        {...commonProps}
                         getPage={getCustomLinkPage}
-                        getPageCount={getPageCount}
-                        getSiblingCount={getSiblingCount}
-                        getBoundaryCount={getBoundaryCount}
-                        getIsDisabled={getIsDisabled}
-                        getGap={() => PAGINATOR_GAP}
-                        getAriaLabel={() => "Routed results"}
-                        linkComponent={PagePaginatorLink}
-                        computeHref={(page) => `#paginator-routed-${page}`}
                         onPageChange={setCustomLinkPage}
-                        renderPage={(_getEntry, getFlags) => <PagePaginatorPage getFlags={getFlags} />}
-                        renderGap={(getEntry) => <PagePaginatorGap getEntry={getEntry} />}
-                        renderStep={(_getStep, getFlags) => <PagePaginatorStep getFlags={getFlags} />}
                     />
                 ),
+                path: `${EXAMPLES_ROOT}/LinkComponent.tsx`,
             },
         ];
     });
@@ -176,7 +127,7 @@ export const PaginatorPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageVariants getItems={getVariants} />
+            <PageExamples getItems={getExamples} />
         </>
     );
 };

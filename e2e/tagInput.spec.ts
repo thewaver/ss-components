@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-import { activeMatches, offsetHeight, prop, readout, variant } from "./helpers";
+import { activeMatches, demo, offsetHeight, prop, readout } from "./helpers";
 
-const DEFAULT = variant("default");
-const EMPTY = variant("empty");
-const UNIQUE = variant("unique");
-const CROWDED = variant("crowded");
+const DEFAULT = demo("default");
+const EMPTY = demo("empty");
+const UNIQUE = demo("unique");
+const CROWDED = demo("crowded");
 
 const field = (scope: string) => `${scope} input[type="text"]`;
 const tag = (scope: string) => `${scope} [role="group"] button`;
@@ -13,7 +13,7 @@ const tagNamed = (scope: string, label: string) => `${scope} button[aria-label="
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/tag-input");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 test("typing and pressing Enter turns text into a tag, and empties the field", async ({ page }) => {

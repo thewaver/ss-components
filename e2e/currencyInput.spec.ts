@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-import { inputValue, prop, readout, variant } from "./helpers";
+import { demo, inputValue, prop, readout } from "./helpers";
 
-const DEFAULT = variant("default");
-const EMPTY = variant("empty");
-const BOUNDED = variant("bounded");
-const BIG = variant("big");
+const DEFAULT = demo("default");
+const EMPTY = demo("empty");
+const BOUNDED = demo("bounded");
+const BIG = demo("big");
 
 const field = (scope: string) => `${scope} input`;
 const option = '[role="listbox"] [role="option"]';

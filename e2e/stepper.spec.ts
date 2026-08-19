@@ -1,18 +1,18 @@
 import { expect, test } from "@playwright/test";
 
-import { attributesOf, prop, readout, tabIndex, tagName, variant } from "./helpers";
+import { attributesOf, demo, prop, readout, tabIndex, tagName } from "./helpers";
 
-const LINEAR = variant("linear");
-const FAILED = variant("failed");
-const STACKED = variant("stacked");
-const BARE = variant("bare");
+const LINEAR = demo("linear");
+const FAILED = demo("failed");
+const STACKED = demo("stacked");
+const BARE = demo("bare");
 
 const step = (scope: string) => `${scope} ol > li`;
 const TOOLTIP = '[role="tooltip"]';
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/stepper");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 /**
@@ -180,14 +180,22 @@ test("a stacked strip runs its connector under the step, not beside it", async (
  * Four steps with words for names are wider than a narrow column, and the strip had no answer for that:
  * it could neither shrink nor wrap, so it grew past its container in both directions and spilled out of
  * the card. A row strip now wraps, which needs nothing from the painter and truncates no label.
+ *
+ * The box that holds it is the card's content box: an example's demo wrapper is `display: contents` and so
+ * has no box of its own to measure against.
  */
 test("a row strip stays inside the box it is given", async ({ page }) => {
-    const fit = await page.locator(`${LINEAR} ol`).evaluate((element) => ({
-        list: (element as HTMLElement).offsetWidth,
-        content: element.scrollWidth,
-        parent: (element.parentElement as HTMLElement).offsetWidth,
-        left: Math.min(...Array.from(element.children).map((child) => (child as HTMLElement).offsetLeft)),
-    }));
+    const fit = await page.locator(`${LINEAR} ol`).evaluate((element) => {
+        const card = element.closest("[data-example]") as HTMLElement;
+        const padding = getComputedStyle(card);
+
+        return {
+            list: (element as HTMLElement).offsetWidth,
+            content: element.scrollWidth,
+            parent: card.clientWidth - parseFloat(padding.paddingLeft) - parseFloat(padding.paddingRight),
+            left: Math.min(...Array.from(element.children).map((child) => (child as HTMLElement).offsetLeft)),
+        };
+    });
 
     expect(fit.list, "the strip is no wider than what holds it").toBeLessThanOrEqual(fit.parent);
     expect(fit.content, "and nothing inside it reaches past that either").toBeLessThanOrEqual(fit.list);

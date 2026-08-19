@@ -1,6 +1,12 @@
 import { type ParentProps, createMemo } from "solid-js";
 
-import type { PageWheelCardProps, PageWheelSpinProps, PageWheelWedgeProps } from "./WheelContent.types";
+import type {
+    PageWheelCardProps,
+    PageWheelPipProps,
+    PageWheelPipSide,
+    PageWheelSpinProps,
+    PageWheelWedgeProps,
+} from "./WheelContent.types";
 
 import * as styles from "./WheelContent.css";
 
@@ -8,6 +14,12 @@ const WEDGE_RADIUS = 50;
 const WEDGE_CENTRE = 50;
 const LABEL_RADIUS = 44;
 const LABEL_TYPE_RATIO = 0.14;
+const PIP_PATH = "M 2 3 H 22 L 12 21 Z";
+
+const PIP_SIDE_STYLES: Record<PageWheelPipSide, string> = {
+    top: styles.wheelPipTop,
+    left: styles.wheelPipLeft,
+};
 
 const toWheelWidth = (viewBoxUnits: number) => `${viewBoxUnits}cqw`;
 
@@ -79,6 +91,16 @@ export const PageWheelCard = (props: PageWheelCardProps) => (
 );
 
 export const PageWheelStack = (props: ParentProps) => <div class={styles.wheelStack}>{props.children}</div>;
+
+export const PageWheelMount = (props: ParentProps) => <div class={styles.wheelMount}>{props.children}</div>;
+
+export const PageWheelPip = (props: PageWheelPipProps) => (
+    <div class={PIP_SIDE_STYLES[props.getSide()]} aria-hidden>
+        <svg class={styles.wheelPipShape} viewBox="0 0 24 24">
+            <path d={PIP_PATH} />
+        </svg>
+    </div>
+);
 
 export const PageWheelHub = (props: ParentProps) => <div class={styles.wheelHub}>{props.children}</div>;
 

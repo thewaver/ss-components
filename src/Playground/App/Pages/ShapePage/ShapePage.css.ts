@@ -31,6 +31,10 @@ export const stressExample = style({
     padding: 10,
 });
 
+export const exampleHost = style({
+    width: "fit-content",
+});
+
 export const example = style({
     backgroundImage: "linear-gradient(#000000C0, #00000040)",
     resize: "both",

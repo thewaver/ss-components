@@ -10,10 +10,10 @@ outstanding work. They are at the end of `backlog.md`.
 | Section                                                 | Count |
 | ------------------------------------------------------- | ----: |
 | [Missing components](#missing-components)               |     8 |
-| [Pending abstractions](#pending-abstractions)           |    12 |
-| [Blockers and known issues](#blockers-and-known-issues) |    18 |
+| [Pending abstractions](#pending-abstractions)           |    11 |
+| [Blockers and known issues](#blockers-and-known-issues) |    17 |
 | [Accessibility gaps](#accessibility-gaps)               |     5 |
-| [Planned projects](#planned-projects)                   |     2 |
+| [Planned projects](#planned-projects)                   |     1 |
 
 ---
 
@@ -35,21 +35,20 @@ Ordered by the user on 2026-08-15. A toolbar, a segmented control, a rating inpu
 
 ## Pending abstractions
 
-| #        | What                                          | What it would serve                                                                                  |
-| -------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| 26       | **A gesture `Abstract`**                      | Directional swipe for `Drawer`, `Carousel`, maybe `Toasts`; gated off where no keyboard route exists |
-| 2, 9     | **One-shot pointer geometry**                 | Where a single activation landed, for ripples                                                        |
-| 13       | **A shared measuring abstract**               | Neighbour heights for a toast pile, auto-height elsewhere                                            |
-| 19       | **One flattener instead of two**              | `SelectUtils.getFlatOptions` and `TreeUtils.getVisibleRows`                                          |
-| 11       | **Geometry split out of markup**              | Three SVG defs files, ~950 lines currently untestable                                                |
-| 5, 6, 19 | **A per-item text source**                    | The missing half of typeahead in `Select`, `Menu` and `Tree`                                         |
-| 5, 19    | **Shared `CheckedState`**                     | `Select`'s group header and a multi-select `Tree`                                                    |
-| 5, 19    | **Windowing over nested lists**               | A group box straddling the window edge, unanswered for both                                          |
-| 20, 23   | **Outward position signals**                  | `SlideButton`'s progress, `Scroller`'s scroll position                                               |
-| 9        | **Getter-plus-setter on controls**            | Today a consumer wraps one in a `SignalMirror` first                                                 |
-| 4        | **Easing on the cell timeline**               | Cell animation is linear-only                                                                        |
-| 7        | **A typed sign, a non-uniform group pattern** | No negative currency; `en-IN` groups wrong today                                                     |
-| 7        | **`TextSyncUtils` exported**                  | Three in-library consumers now argue for it                                                          |
+| #        | What                                          | What it would serve                                          |
+| -------- | --------------------------------------------- | ------------------------------------------------------------ |
+| 2, 9     | **One-shot pointer geometry**                 | Where a single activation landed, for ripples                |
+| 13       | **A shared measuring abstract**               | Neighbour heights for a toast pile, auto-height elsewhere    |
+| 19       | **One flattener instead of two**              | `SelectUtils.getFlatOptions` and `TreeUtils.getVisibleRows`  |
+| 11       | **Geometry split out of markup**              | Three SVG defs files, ~950 lines currently untestable        |
+| 5, 6, 19 | **A per-item text source**                    | The missing half of typeahead in `Select`, `Menu` and `Tree` |
+| 5, 19    | **Shared `CheckedState`**                     | `Select`'s group header and a multi-select `Tree`            |
+| 5, 19    | **Windowing over nested lists**               | A group box straddling the window edge, unanswered for both  |
+| 20, 23   | **Outward position signals**                  | `SlideButton`'s progress, `Scroller`'s scroll position       |
+| 9        | **Getter-plus-setter on controls**            | Today a consumer wraps one in a `SignalMirror` first         |
+| 4        | **Easing on the cell timeline**               | Cell animation is linear-only                                |
+| 7        | **A typed sign, a non-uniform group pattern** | No negative currency; `en-IN` groups wrong today             |
+| 7        | **`TextSyncUtils` exported**                  | Three in-library consumers now argue for it                  |
 
 ## Blockers and known issues
 
@@ -63,16 +62,15 @@ Ordered by the user on 2026-08-15. A toolbar, a segmented control, a rating inpu
 | 5      | **`Select`, windowed**          | Rows sit a hairline apart under rounding, visible with a per-row background                 |
 | 5      | **`Select`, filtered**          | A filter injecting a non-matching option lands the highlight on it                          |
 | 6      | **`Menu`**                      | `Tab` returns to the trigger rather than moving past it                                     |
-| 20     | **`SlideButton`**               | A `pointercancel` at the end of travel reads as a completed gesture                         |
 | 14     | **`Calendar`**                  | The disabled predicate runs 42 times per render; 42 `InteractionWrapper`s unmeasured        |
-| 16, 25 | **`Accordion`, `Carousel`**     | Every panel and every slide is built; forced by the track width in `Carousel`               |
+| 16, 24 | **`Accordion`, `Carousel`**     | Every panel and every slide is built; forced by the track width in `Carousel`               |
 | 19     | **`Tree`**                      | Cannot express a branch whose children have not loaded                                      |
-| 23     | **`Scroller`**                  | A second press mid-scroll advances less than a page                                         |
+| 22     | **`Scroller`**                  | A second press mid-scroll advances less than a page                                         |
 | 13     | **`Toasts`**                    | An id re-added while leaving fades back in instead of restarting                            |
-| 22, 16 | **`Spotlight`, `Accordion`**    | Nothing scrolls the highlighted element or the newly opened section into view               |
-| 27     | **`DrumWheel`**                 | Girth arithmetic replaced a tuned constant; the user recalls it misbehaving and will retest |
-| 28     | **`Typewriter`**                | Cannot render a blank line; a break-collapsing bug in `ss-utils`, fix parked in-repo        |
-| 27     | **`FlatWheel`**                 | Hit-tests up to 70px outside its circle; nothing visible, a trap for a control in a wedge   |
+| 21, 16 | **`Spotlight`, `Accordion`**    | Nothing scrolls the highlighted element or the newly opened section into view               |
+| 25     | **`DrumWheel`**                 | Girth arithmetic replaced a tuned constant; the user recalls it misbehaving and will retest |
+| 26     | **`Typewriter`**                | Cannot render a blank line; a break-collapsing bug in `ss-utils`, fix parked in-repo        |
+| 25     | **`FlatWheel`**                 | Hit-tests up to 70px outside its circle; nothing visible, a trap for a control in a wedge   |
 
 ## Accessibility gaps
 
@@ -80,15 +78,14 @@ They cluster, and no single item owns them.
 
 | #          | Where                                      | What is missing                                                                                               |
 | ---------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| 20, 22, 14 | **`SlideButton`, `Spotlight`, `Calendar`** | Nothing announces progress, a step change or a month change; `LiveAnnouncer` exists, the wording is undecided |
+| 20, 21, 14 | **`SlideButton`, `Spotlight`, `Calendar`** | Nothing announces progress, a step change or a month change; `LiveAnnouncer` exists, the wording is undecided |
 | 13         | **`Toasts`**                               | No keyboard route into the stack; urgency is per region, not per toast                                        |
-| 22         | **`Spotlight`**                            | `prompt` cannot hide the page from a screen reader — `inert` cannot be lifted off a descendant                |
+| 21         | **`Spotlight`**                            | `prompt` cannot hide the page from a screen reader — `inert` cannot be lifted off a descendant                |
 | 17, 19     | **`Tabs`, `Tree`**                         | No automatic activation; no typeahead, which departs from the published pattern                               |
-| 25         | **`Carousel`**                             | With no `renderControls` there is no keyboard route at all                                                    |
+| 24         | **`Carousel`**                             | With no `renderControls` there is no keyboard route at all                                                    |
 
 ## Planned projects
 
 | #   | What                                          | Standing                                                                                                    |
 | --- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| 21  | **The same source view on `Variants`**        | Shape settled on the four `Exotics` pages; 33 pages and ~200 demos left to extract                          |
 | 12  | **A consumer-facing layer above the library** | **Deferred indefinitely, not a focus, do not raise it.** The `style.css` strip and the theme are both built |

@@ -27,6 +27,8 @@ export const modalRoot = style({
     position: "relative",
 
     display: "grid",
+    gridTemplateColumns: "100%",
+    gridTemplateRows: "100%",
     width: "100%",
     height: "100%",
 });

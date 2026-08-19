@@ -1,11 +1,14 @@
 import { createEffect, createMemo, createSignal } from "solid-js";
 
-import { Corners } from "../../../../Lib/Fundamentals/Corners/Corners";
-import { Toggle } from "../../../../Lib/Fundamentals/Input/Toggle/Toggle";
-import { PageControlRow, PageControlRowLabel } from "../../PageComponents/ControlRow/ControlRow";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
-import { PageToggleContent } from "../../StyledComponents/ToggleContent/ToggleContent";
-import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
+import { DecoratedExample } from "./Examples/Decorated";
+import { DefaultExample } from "./Examples/Default";
+import { DisabledExample } from "./Examples/Disabled";
+import { ErroredExample } from "./Examples/Errored";
+import { MixedExample } from "./Examples/Mixed";
+import { ReachableExample } from "./Examples/Reachable";
+
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/TogglePage/Examples";
 
 export const TogglePage = () => {
     const defaultSignal = createSignal(false);
@@ -24,148 +27,58 @@ export const TogglePage = () => {
         allSignal[1](firstChildSignal[0]() && secondChildSignal[0]());
     });
 
-    const getVariants = createMemo(() => {
-        return [
-            {
-                key: "default",
-                name: "Default",
-                readout: () => `on: ${defaultSignal[0]()}`,
-                component: () => (
-                    <Toggle
-                        checkedSignal={defaultSignal}
-                        getAriaLabel={() => "Default toggle"}
-                        renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "decorated",
-                name: "Decorated",
-                readout: () => `on: ${decoratedSignal[0]()}`,
-                component: () => (
-                    <Toggle
-                        checkedSignal={decoratedSignal}
-                        getAriaLabel={() => "Decorated toggle"}
-                        getIsPressed={decoratedSignal[0]}
-                        renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
-                        renderDecoration={(getFlags) => (
-                            <Corners
-                                getColor={() => (getFlags().isPressed ? "yellow" : "transparent")}
-                                getCornerLength={() => ({ width: 8, height: 8 })}
-                                getStrokeThickness={() => 2}
-                            />
-                        )}
-                    />
-                ),
-            },
-            {
-                key: "mixed",
-                name: "Mixed",
-                readout: () =>
-                    `mixed: ${getIsAllMixed()} | all: ${allSignal[0]()} | children: ${firstChildSignal[0]()}, ${secondChildSignal[0]()}`,
-                component: () => (
-                    <PageControlRow>
-                        <Toggle
-                            checkedSignal={allSignal}
-                            getIsMixed={getIsAllMixed}
-                            getId={() => "allSettings"}
-                            getAriaLabel={() => "All settings"}
-                            renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
-                            getTooltipDefs={() => ({
-                                getPlacement: () => ({ x: "center", y: "top-out" }),
-                                getOffset: () => ({ x: 0, y: 5 }),
-                                renderContent: (
-                                    getVisibilityTarget,
-                                    getTransitionDurationMs,
-                                    _getPlacement,
-                                    getFlags,
-                                ) => (
-                                    <PageTooltipContent
-                                        getVisibilityTarget={getVisibilityTarget}
-                                        getTransitionDurationMs={getTransitionDurationMs}
-                                    >
-                                        {`Mixed while the two toggles on the right disagree, and clicking it sets both. A switch cannot announce "mixed", so this control drops role="switch" and reads as a mixed checkbox exactly while mixed. checkedState: ${String(getFlags().checkedState)}.`}
-                                    </PageTooltipContent>
-                                ),
-                            })}
-                            onChange={(isChecked) => {
-                                firstChildSignal[1](isChecked);
-                                secondChildSignal[1](isChecked);
-                            }}
-                        />
+    const getExamples = createMemo(() => [
+        {
+            key: "default",
+            name: "Default",
+            readout: () => `on: ${defaultSignal[0]()}`,
+            component: () => <DefaultExample checkedSignal={defaultSignal} />,
+            path: `${EXAMPLES_ROOT}/Default.tsx`,
+        },
+        {
+            key: "decorated",
+            name: "Decorated",
+            readout: () => `on: ${decoratedSignal[0]()}`,
+            component: () => <DecoratedExample checkedSignal={decoratedSignal} />,
+            path: `${EXAMPLES_ROOT}/Decorated.tsx`,
+        },
+        {
+            key: "mixed",
+            name: "Mixed",
+            readout: () =>
+                `mixed: ${getIsAllMixed()} | all: ${allSignal[0]()} | children: ${firstChildSignal[0]()}, ${secondChildSignal[0]()}`,
+            component: () => (
+                <MixedExample
+                    allSignal={allSignal}
+                    firstChildSignal={firstChildSignal}
+                    secondChildSignal={secondChildSignal}
+                    getIsMixed={getIsAllMixed}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Mixed.tsx`,
+        },
+        {
+            key: "disabled",
+            name: "Disabled",
+            readout: () => `on: ${disabledSignal[0]()}`,
+            component: () => <DisabledExample checkedSignal={disabledSignal} />,
+            path: `${EXAMPLES_ROOT}/Disabled.tsx`,
+        },
+        {
+            key: "reachable",
+            name: "Disabled + reachable",
+            readout: () => `on: ${reachableSignal[0]()}`,
+            component: () => <ReachableExample checkedSignal={reachableSignal} />,
+            path: `${EXAMPLES_ROOT}/Reachable.tsx`,
+        },
+        {
+            key: "errored",
+            name: "Error",
+            readout: () => `on: ${erroredSignal[0]()}`,
+            component: () => <ErroredExample checkedSignal={erroredSignal} />,
+            path: `${EXAMPLES_ROOT}/Errored.tsx`,
+        },
+    ]);
 
-                        <PageControlRowLabel>controls</PageControlRowLabel>
-
-                        <Toggle
-                            checkedSignal={firstChildSignal}
-                            getId={() => "firstSetting"}
-                            getAriaLabel={() => "First setting"}
-                            renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
-                        />
-
-                        <Toggle
-                            checkedSignal={secondChildSignal}
-                            getAriaLabel={() => "Second setting"}
-                            renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
-                        />
-                    </PageControlRow>
-                ),
-            },
-            {
-                key: "disabled",
-                name: "Disabled",
-                readout: () => `on: ${disabledSignal[0]()}`,
-                component: () => (
-                    <Toggle
-                        checkedSignal={disabledSignal}
-                        getAriaLabel={() => "Disabled toggle"}
-                        getIsDisabled={() => true}
-                        renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-            {
-                key: "reachable",
-                name: "Disabled + reachable",
-                readout: () => `on: ${reachableSignal[0]()}`,
-                component: () => (
-                    <Toggle
-                        checkedSignal={reachableSignal}
-                        getAriaLabel={() => "Disabled but reachable toggle"}
-                        getIsDisabled={() => true}
-                        getIsReachableWhenDisabled={() => true}
-                        renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
-                        getTooltipDefs={() => ({
-                            getPlacement: () => ({ x: "center", y: "top-out" }),
-                            getOffset: () => ({ x: 0, y: 5 }),
-                            renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                                <PageTooltipContent
-                                    getVisibilityTarget={getVisibilityTarget}
-                                    getTransitionDurationMs={getTransitionDurationMs}
-                                >
-                                    Focusable so this tooltip can be read, but clicking and pressing Space must leave it
-                                    on.
-                                </PageTooltipContent>
-                            ),
-                        })}
-                    />
-                ),
-            },
-            {
-                key: "errored",
-                name: "Error",
-                readout: () => `on: ${erroredSignal[0]()}`,
-                component: () => (
-                    <Toggle
-                        checkedSignal={erroredSignal}
-                        getAriaLabel={() => "Errored toggle"}
-                        getHasError={() => !erroredSignal[0]()}
-                        renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
-                    />
-                ),
-            },
-        ];
-    });
-
-    return <PageVariants getItems={getVariants} />;
+    return <PageExamples getItems={getExamples} />;
 };

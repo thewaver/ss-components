@@ -1,11 +1,11 @@
 import { type Locator, type Page, expect, test } from "@playwright/test";
 
-import { activeMatches, readout, tabIndex, variant } from "./helpers";
+import { activeMatches, demo, readout, tabIndex } from "./helpers";
 
-const DEFAULT = variant("default");
-const HELD = variant("held");
-const DISABLED = variant("disabled");
-const REACHABLE = variant("reachable");
+const DEFAULT = demo("default");
+const HELD = demo("held");
+const DISABLED = demo("disabled");
+const REACHABLE = demo("reachable");
 
 const HOLD_DURATION_MS = 1000;
 const HOLD_SLACK_MS = 250;

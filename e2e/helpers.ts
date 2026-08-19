@@ -18,9 +18,15 @@ export const example = (key: string) => `[data-example][data-testid="${key}"]`;
  */
 export const prop = (key: string) => `[data-prop][data-testid="${key}"]`;
 
+/**
+ * The demo itself, without the card around it. An example card carries a source-code button beside its
+ * title, so a lookup for "the button in this card" finds that one first unless it is scoped to the demo.
+ */
+export const demo = (key: string) => `${example(key)} [data-demo]`;
+
 /** The reading the Playground itself displays, so a spec checks state the way the page shows it. */
 export const readout = async (page: Page, key: string) =>
-    ((await page.locator(`${variant(key)} [data-readout]`).textContent()) ?? "").trim();
+    ((await page.locator(`${variant(key)} [data-readout], ${example(key)} [data-readout]`).textContent()) ?? "").trim();
 
 export const tagName = (locator: Locator) => locator.evaluate((element) => element.tagName);
 

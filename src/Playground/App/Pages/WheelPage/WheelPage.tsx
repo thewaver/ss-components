@@ -20,6 +20,7 @@ const MIN_IDLE_DELAY_MS = 1000;
 const MAX_IDLE_DELAY_MS = 8000;
 const IDLE_DELAY_STEP_MS = 500;
 const FIELD_WIDTH = 130;
+const MIN_COLUMN_WIDTH = 380;
 const EXAMPLES_ROOT = "/src/Playground/App/Pages/WheelPage/Examples";
 
 const STARTING_WEDGE_COUNT = 8;
@@ -239,7 +240,7 @@ export const WheelPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} />
+            <PageExamples getItems={getExamples} getMinColumnWidth={() => MIN_COLUMN_WIDTH} />
         </>
     );
 };

@@ -1,4 +1,4 @@
-import { For, createSignal } from "solid-js";
+import { For, createMemo, createSignal } from "solid-js";
 
 import { CSSUtils } from "@thewaver/ss-utils";
 
@@ -12,17 +12,35 @@ import type { ExamplesProps } from "./Examples.types";
 
 import * as styles from "./Examples.css";
 
+const DEFAULT_MIN_COLUMN_WIDTH = 320;
+const SINGLE_SPAN = 1;
+const PERCENT = 100;
+
 export const PageExamples = (props: ExamplesProps) => {
     const [getActiveIndex, setActiveIndex] = createSignal(0);
     const modalVisibility = createSignal(false);
     const [, setIsModalOpen] = modalVisibility;
 
+    const getWidestSpan = createMemo(() =>
+        props.getItems().reduce((widest, example) => Math.max(widest, example.span ?? SINGLE_SPAN), SINGLE_SPAN),
+    );
+
+    const getMinColumnWidth = () => props.getMinColumnWidth?.() ?? DEFAULT_MIN_COLUMN_WIDTH;
+
+    const getColumns = () =>
+        `repeat(auto-fill, minmax(min(${PERCENT / getWidestSpan()}%, ${getMinColumnWidth()}px), 1fr))`;
+
     return (
         <>
-            <div class={styles.examplesRoot}>
+            <div class={styles.examplesRoot} style={{ "grid-template-columns": getColumns() }}>
                 <For each={props.getItems()}>
                     {(example, getExampleIndex) => (
-                        <div class={styles.exampleContainer} data-example data-testid={example.key}>
+                        <div
+                            class={styles.exampleContainer}
+                            style={{ "grid-column": `span ${example.span ?? SINGLE_SPAN}` }}
+                            data-example
+                            data-testid={example.key}
+                        >
                             <div class={styles.exampleTitle}>
                                 {`${example.name}:`}
                                 {example.path && (
@@ -49,7 +67,9 @@ export const PageExamples = (props: ExamplesProps) => {
                                 )}
                             </div>
 
-                            {example.component()}
+                            <div class={styles.exampleDemo} data-demo>
+                                {example.component()}
+                            </div>
 
                             {example.readout && (
                                 <div class={styles.exampleReadout} data-readout>

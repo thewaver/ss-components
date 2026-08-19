@@ -1,19 +1,19 @@
 import { expect, test } from "@playwright/test";
 
-import { inlineStyle, prop, readout, variant } from "./helpers";
+import { demo, inlineStyle, prop, readout } from "./helpers";
 
-const PAIR = variant("pair");
-const BOUNDED = variant("bounded");
-const TRIPLE = variant("triple");
-const STACKED = variant("stacked");
-const CRAMPED = variant("cramped");
+const PAIR = demo("pair");
+const BOUNDED = demo("bounded");
+const TRIPLE = demo("triple");
+const STACKED = demo("stacked");
+const CRAMPED = demo("cramped");
 
 const root = (scope: string) => `${scope} [role="group"]`;
 const gutter = (scope: string) => `${scope} [role="separator"]`;
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/split-pane");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 /**
@@ -142,6 +142,8 @@ test("minimums that cannot fit overflow rather than shrink", async ({ page }) =>
  * container and clamping the drag there keeps the stored value inside what CSS will honour, so the panes
  * always add up to the box.
  */
+const OVERSHOOT_PX = 2000;
+
 test("a drag stops where the pixel bounds do, rather than writing past them", async ({ page }) => {
     const drag = async (scope: string, index: number, dx: number) => {
         const handle = page.locator(gutter(scope)).nth(index);
@@ -162,14 +164,14 @@ test("a drag stops where the pixel bounds do, rather than writing past them", as
                 .map((child) => (child as HTMLElement).offsetWidth),
         }));
 
-    await drag(TRIPLE, 1, -400);
+    await drag(TRIPLE, 1, -OVERSHOOT_PX);
 
     const triple = await tracks(TRIPLE);
 
     expect(triple.panes[1], "the middle pane stops on its 80px floor").toBe(80);
     expect(triple.sum, "and the tracks still add up to the container rather than spilling out of it").toBe(triple.box);
 
-    await drag(BOUNDED, 0, 400);
+    await drag(BOUNDED, 0, OVERSHOOT_PX);
 
     const bounded = await tracks(BOUNDED);
 

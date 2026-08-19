@@ -34,69 +34,71 @@ export const DefaultExample = ({
     const getIterationConfig = () => SVGDefsSamples.Iteration.SAMPLE_CONFIGS[getIterationConfigKey()];
 
     return (
-        <Shape
-            {...otherProps}
-            computePoints={(size) => ShapeConst.getDefaultShapePoints(getShapeKind(), size)}
-            computeStrokeDefs={(getSize) => {
-                const strokes = getStrokeConfig().computeSVGDefs(`stroke-${id}`, getFlags, {
-                    getSize,
-                    animationDurationMs: getAnimationDurationMs(),
-                    colors: getColors(),
-                    blurWidth: getBlurWidth?.(),
-                    ...getIterationConfig().computeDefs(getAnimationDurationMs()),
-                });
+        <div class={styles.exampleHost}>
+            <Shape
+                {...otherProps}
+                computePoints={(size) => ShapeConst.getDefaultShapePoints(getShapeKind(), size)}
+                computeStrokeDefs={(getSize) => {
+                    const strokes = getStrokeConfig().computeSVGDefs(`stroke-${id}`, getFlags, {
+                        getSize,
+                        animationDurationMs: getAnimationDurationMs(),
+                        colors: getColors(),
+                        blurWidth: getBlurWidth?.(),
+                        ...getIterationConfig().computeDefs(getAnimationDurationMs()),
+                    });
 
-                if (getFlags().isFocused) {
-                    strokes.push({ color: "#FF00FF" });
+                    if (getFlags().isFocused) {
+                        strokes.push({ color: "#FF00FF" });
+                    }
+
+                    return strokes;
+                }}
+                getStrokeGeom={() => {
+                    const result = [{ thicknesses: getEdgeThicknesses() }];
+
+                    if (getFlags().isFocused) {
+                        result.push({ thicknesses: [2] });
+                    }
+
+                    return result;
+                }}
+                computeFillDefs={(getSize) =>
+                    getFillConfig().computeSVGDefs(`fill-${id}`, undefined, {
+                        getSize,
+                        cellSize: getCellSize(),
+                        animationDurationMs: getAnimationDurationMs(),
+                        colors: getColors(),
+                        blurWidth: getBlurWidth?.(),
+                        ...getIterationConfig().computeDefs(getAnimationDurationMs()),
+                    })
                 }
+                renderChildren={(getSize, getClipPath, getClipPoints) => {
+                    const getStyle = createMemo(() => {
+                        const size = getSize();
+                        const shape = getShapeKind();
+                        const clipStyle = getShouldClipChildren?.() ? { "clip-path": `path("${getClipPath()}")` } : {};
 
-                return strokes;
-            }}
-            getStrokeGeom={() => {
-                const result = [{ thicknesses: getEdgeThicknesses() }];
+                        if (!getShouldPadChildren?.()) return clipStyle;
 
-                if (getFlags().isFocused) {
-                    result.push({ thicknesses: [2] });
-                }
+                        const paddingStyle =
+                            shape === "square"
+                                ? ShapeUtils.getRectPadding(
+                                      getEdgeThicknesses(),
+                                      otherProps.getJoinRadii?.(),
+                                      otherProps.getLameExponents?.(),
+                                  )
+                                : ShapeUtils.getPolygonPadding(size, getClipPoints());
 
-                return result;
-            }}
-            computeFillDefs={(getSize) =>
-                getFillConfig().computeSVGDefs(`fill-${id}`, undefined, {
-                    getSize,
-                    cellSize: getCellSize(),
-                    animationDurationMs: getAnimationDurationMs(),
-                    colors: getColors(),
-                    blurWidth: getBlurWidth?.(),
-                    ...getIterationConfig().computeDefs(getAnimationDurationMs()),
-                })
-            }
-            renderChildren={(getSize, getClipPath, getClipPoints) => {
-                const getStyle = createMemo(() => {
-                    const size = getSize();
-                    const shape = getShapeKind();
-                    const clipStyle = getShouldClipChildren?.() ? { "clip-path": `path("${getClipPath()}")` } : {};
+                        return { ...clipStyle, ...paddingStyle };
+                    });
 
-                    if (!getShouldPadChildren?.()) return clipStyle;
-
-                    const paddingStyle =
-                        shape === "square"
-                            ? ShapeUtils.getRectPadding(
-                                  getEdgeThicknesses(),
-                                  otherProps.getJoinRadii?.(),
-                                  otherProps.getLameExponents?.(),
-                              )
-                            : ShapeUtils.getPolygonPadding(size, getClipPoints());
-
-                    return { ...clipStyle, ...paddingStyle };
-                });
-
-                return (
-                    <div ref={setRootRef} class={styles.example} style={getStyle()}>
-                        <div class={styles.exampleInner}>I have a border</div>
-                    </div>
-                );
-            }}
-        />
+                    return (
+                        <div ref={setRootRef} class={styles.example} style={getStyle()}>
+                            <div class={styles.exampleInner}>I have a border</div>
+                        </div>
+                    );
+                }}
+            />
+        </div>
     );
 };

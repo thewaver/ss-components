@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-import { readout, variant } from "./helpers";
+import { demo, readout } from "./helpers";
 
-const FORM = `${variant("reportsValidity")} form`;
+const FORM = `${demo("reportsValidity")} form`;
 const submit = `${FORM} button[type="submit"]`;
 const reset = `${FORM} button[type="reset"]`;
 

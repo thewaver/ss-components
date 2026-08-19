@@ -1,17 +1,17 @@
 import { expect, test } from "@playwright/test";
 
-import { activeMatches, isChecked, isIndeterminate, readout, tabIndex, variant } from "./helpers";
+import { activeMatches, demo, isChecked, isIndeterminate, readout, tabIndex } from "./helpers";
 
-const DEFAULT = `${variant("default")} input`;
+const DEFAULT = `${demo("default")} input`;
 const SUMMARY = "#selectAll";
 const FIRST_CHILD = "#firstChild";
 const EMAIL = "#email";
-const DISABLED = `${variant("disabled")} input`;
-const REACHABLE = `${variant("reachable")} input`;
+const DISABLED = `${demo("disabled")} input`;
+const REACHABLE = `${demo("reachable")} input`;
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/checkbox");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 test("no control uses the native disabled attribute", async ({ page }) => {

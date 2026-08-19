@@ -1,18 +1,18 @@
 import { expect, test } from "@playwright/test";
 
-import { computedStyle, inputValue, isReadOnly, isScrolling, offsetHeight, readout, tagName, variant } from "./helpers";
+import { computedStyle, demo, inputValue, isReadOnly, isScrolling, offsetHeight, readout, tagName } from "./helpers";
 
-const FIXED = `${variant("fixedHeight")} textarea`;
-const GROWING = `${variant("autoSizing")} textarea`;
-const CAPPED = `${variant("autoSizingCapped")} textarea`;
-const READ_ONLY = `${variant("readOnly")} textarea`;
-const DISABLED = `${variant("disabled")} textarea`;
+const FIXED = `${demo("fixedHeight")} textarea`;
+const GROWING = `${demo("autoSizing")} textarea`;
+const CAPPED = `${demo("autoSizingCapped")} textarea`;
+const READ_ONLY = `${demo("readOnly")} textarea`;
+const DISABLED = `${demo("disabled")} textarea`;
 
 const THREE_LINES = "one\ntwo\nthree";
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/text-area");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 test("the control is a textarea rather than an input with a type", async ({ page }) => {

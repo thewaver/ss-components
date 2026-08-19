@@ -3,6 +3,9 @@ import { style } from "@vanilla-extract/css";
 import { themeVars } from "../../Theme.css";
 
 const SPIN_SIZE = 84;
+const PIP_SIZE = 28;
+const PIP_OVERHANG = 70;
+const PIP_SHADOW = "drop-shadow(0 2px 2px rgba(0, 0, 0, 0.75))";
 
 export const isHovered = style({});
 export const isActive = style({});
@@ -51,6 +54,48 @@ export const wheelWedgeLabel = style({
 
 export const wheelStack = style({
     position: "relative",
+});
+
+export const wheelMount = style({
+    position: "relative",
+    width: "fit-content",
+    marginInline: "auto",
+});
+
+const pip = style({
+    position: "absolute",
+    width: PIP_SIZE,
+    height: PIP_SIZE,
+    filter: PIP_SHADOW,
+    pointerEvents: "none",
+});
+
+export const wheelPipTop = style([
+    pip,
+    {
+        top: 0,
+        left: "50%",
+        transform: `translate(-50%, -${PIP_OVERHANG}%)`,
+    },
+]);
+
+export const wheelPipLeft = style([
+    pip,
+    {
+        top: "50%",
+        left: 0,
+        transform: `translate(-${PIP_OVERHANG}%, -50%) rotate(-90deg)`,
+    },
+]);
+
+export const wheelPipShape = style({
+    display: "block",
+    width: "100%",
+    height: "100%",
+    fill: themeVars.color.secondary.main,
+    stroke: themeVars.color.secondary.light,
+    strokeWidth: 2,
+    strokeLinejoin: "round",
 });
 
 export const wheelHub = style({

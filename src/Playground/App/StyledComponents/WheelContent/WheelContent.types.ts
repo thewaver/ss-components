@@ -13,6 +13,12 @@ export type PageWheelCardProps = ParentProps<{
     getRank?: Accessor<number>;
 }>;
 
+export type PageWheelPipSide = "top" | "left";
+
+export type PageWheelPipProps = {
+    getSide: Accessor<PageWheelPipSide>;
+};
+
 export type PageWheelSpinProps = {
     getFlags: () => InteractionFlags;
     getPhase: Accessor<RotationPhase | undefined>;

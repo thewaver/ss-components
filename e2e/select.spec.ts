@@ -4,18 +4,19 @@ import {
     activeDescendantText,
     activeMatches,
     attributesOf,
+    demo,
+    example,
     inputValue,
     readout,
     selectedTexts,
     tabIndex,
     tagName,
-    variant,
 } from "./helpers";
 
 const LISTBOX = '[role="listbox"]';
 const OPTION = '[role="listbox"] [role="option"]';
 
-const field = (key: string) => `${variant(key)} [role="combobox"]`;
+const field = (key: string) => `${demo(key)} [role="combobox"]`;
 
 /**
  * Opening is not instant: the list mounts and only then does the field point at a highlighted option.
@@ -29,7 +30,7 @@ const openedWithHighlight = async (page: Page, key: string) => {
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/select");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 test("a non-editable field is a button that starts closed", async ({ page }) => {
@@ -178,7 +179,7 @@ test("a list that is not all there fetches its first batch by opening", async ({
 
     await page.locator(field("onDemand")).click();
     await expect(
-        page.locator(`${variant("onDemand")} [data-readout]`),
+        page.locator(`${example("onDemand")} [data-readout]`),
         "opening asks for the first batch",
     ).toContainText("40 of 500", { timeout: 5000 });
 
@@ -190,7 +191,7 @@ test("a list that is not all there fetches its first batch by opening", async ({
 
 test("the walk stops at the last option held rather than wrapping round", async ({ page }) => {
     await page.locator(field("onDemand")).click();
-    await expect(page.locator(`${variant("onDemand")} [data-readout]`)).toContainText("40 of 500", {
+    await expect(page.locator(`${example("onDemand")} [data-readout]`)).toContainText("40 of 500", {
         timeout: 5000,
     });
 
@@ -206,7 +207,7 @@ test("the walk stops at the last option held rather than wrapping round", async 
         "and arrowing past it stays put rather than wrapping to the first, because more exist",
     ).toContain("Route 40");
 
-    await expect(page.locator(`${variant("onDemand")} [data-readout]`), "reaching the end asks for more").toContainText(
+    await expect(page.locator(`${example("onDemand")} [data-readout]`), "reaching the end asks for more").toContainText(
         "80 of 500",
         { timeout: 5000 },
     );
@@ -227,7 +228,7 @@ test("the walk stops at the last option held rather than wrapping round", async 
  */
 test("the end marker sits inside the last option rather than past it", async ({ page }) => {
     await page.locator(field("onDemand")).click();
-    await expect(page.locator(`${variant("onDemand")} [data-readout]`)).toContainText("40 of 500", {
+    await expect(page.locator(`${example("onDemand")} [data-readout]`)).toContainText("40 of 500", {
         timeout: 5000,
     });
 
@@ -310,7 +311,7 @@ test("a list given an estimated height mounts a window rather than every option"
  * to filter — and the list it replaces may be any length, including the length it was last asked at.
  */
 test("an autocomplete loaded on demand searches again rather than filtering what it holds", async ({ page }) => {
-    const searched = `${variant("autocompleteOnDemand")} [data-readout]`;
+    const searched = `${example("autocompleteOnDemand")} [data-readout]`;
 
     await expect(page.locator(searched), "the first batch of the empty query arrives on its own").toContainText(
         "40 of 500 matches held",

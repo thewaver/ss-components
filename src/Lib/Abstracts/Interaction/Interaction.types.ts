@@ -16,3 +16,9 @@ export type InteractionDragRatio = {
     x: number;
     y: number;
 };
+
+export type InteractionDragEndReason = "release" | "cancel";
+
+export type InteractionSwipeAxis = "horizontal" | "vertical";
+
+export type InteractionSwipeDirection = "left" | "right" | "up" | "down";

@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-import { variant } from "./helpers";
+import { demo } from "./helpers";
 
-const ANCHOR = `${variant("decorated")} button`;
-const OTHER = `${variant("default")} button`;
+const ANCHOR = `${demo("decorated")} button`;
+const OTHER = `${demo("default")} button`;
 const TOOLTIP = '[role="tooltip"]';
 
 /**
@@ -12,7 +12,7 @@ const TOOLTIP = '[role="tooltip"]';
  */
 test.beforeEach(async ({ page }) => {
     await page.goto("/button");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 test("nothing is announced before anything is hovered", async ({ page }) => {

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { accessibleText, prop, readout, tagName, variant } from "./helpers";
+import { accessibleText, demo, prop, readout, tagName } from "./helpers";
 
 /**
  * Every list on the page reads the same three knobs — page count, sibling count and boundary count — so
@@ -11,10 +11,10 @@ import { accessibleText, prop, readout, tagName, variant } from "./helpers";
  * the visible text and the accessible name are deliberately different things here: `accessibleText` on a
  * page item is empty, and the name a screen reader would read comes from `aria-label`.
  */
-const STEPS = variant("steps");
-const ENDS = variant("ends");
-const LINKS = variant("links");
-const LINK_COMPONENT = variant("linkComponent");
+const STEPS = demo("steps");
+const ENDS = demo("ends");
+const LINKS = demo("links");
+const LINK_COMPONENT = demo("linkComponent");
 
 const nav = (scope: string) => `${scope} nav`;
 const item = (scope: string) => `${scope} nav a, ${scope} nav button`;

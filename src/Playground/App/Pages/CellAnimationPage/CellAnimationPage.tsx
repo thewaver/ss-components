@@ -132,6 +132,8 @@ const StressTestWrapper = (props: CellAnimationExampleProps) => {
     );
 };
 
+const MIN_COLUMN_WIDTH = 520;
+
 export const CellAnimationPage = () => {
     const playback = createSignal(true);
 
@@ -300,7 +302,7 @@ export const CellAnimationPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} />
+            <PageExamples getItems={getExamples} getMinColumnWidth={() => MIN_COLUMN_WIDTH} />
         </div>
     );
 };

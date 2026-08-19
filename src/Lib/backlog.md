@@ -45,15 +45,13 @@ reading.
 18. `Viewport` as a region: what is settled and what is not — _open_
 19. `Tree` — five things deliberately not built, and one extraction to decide — _open_
 20. `SlideButton` — five things deliberately not built — _open_
-21. Planned: the same source view on the pages still using `Variants` — _planned_
-22. `Spotlight` — three things deliberately not built — _open_
-23. `Scroller` — five things deliberately not built — _open_
-24. `Paginator` — four things deliberately not built — _open_
-25. `Carousel` — five things deliberately not built — _open_
-26. A gesture `Abstract`, and the components that would consume it — _open_
-27. The four components ported from React — one thing to retest, one deliberately not built — _open_
-28. `Typewriter` cannot render a blank line, and the fix is in `ss-utils` — _open_
-29. The suite finds things by strings a person is free to reword — _open_
+21. `Spotlight` — three things deliberately not built — _open_
+22. `Scroller` — five things deliberately not built — _open_
+23. `Paginator` — four things deliberately not built — _open_
+24. `Carousel` — four things deliberately not built — _open_
+25. The four components ported from React — one thing to retest, one deliberately not built — _open_
+26. `Typewriter` cannot render a blank line, and the fix is in `ss-utils` — _open_
+27. The suite finds things by strings a person is free to reword — _open_
 
 ### Build order
 
@@ -1017,12 +1015,6 @@ gaps, each with the reason it is still one.
   arithmetic both read one axis, and the painter's `calc` does too. A vertical slide-to-activate is a real
   shape on a phone lock screen and nowhere else, which is why it was not built rather than why it could not
   be.
-- **A cancelled pointer at the very end still activates.** `trackDrag` routes `pointercancel` to the same
-  handler as a release, so a drag the browser or the OS takes over while the thumb is already at the end reads
-  as a completed gesture. `touch-action: none` closes the route that would actually cause this — a touch drag
-  turning into a page scroll — so what is left needs the pointer taken away at exactly the wrong moment.
-  Distinguishing the two would mean `trackDrag` reporting why a drag ended, which is a change to a shipped
-  `Abstract` with two other consumers for a case nobody has hit.
 - **Nothing announces the progress, and the hold made that slightly worse.** A screen reader hears a button
   and hears nothing while the bar fills, because a `<button>` has nowhere to put a value — so a person who
   cannot see the fill has no way to know how much longer to hold, or that holding is doing anything at all.
@@ -1057,26 +1049,7 @@ gaps, each with the reason it is still one.
 
 ---
 
-## 21. Planned: the same source view on the pages still using `Variants`
-
-The source view itself is built and is described in `conventions.md` under _"The Playground: an example's
-source is a folder view"_ and _"The source view, as built"_. What is left is putting the same button next to
-the demos on the pages that still use `PageVariants`, which means extracting each of them into its own file.
-
-The four `Exotics` pages that used it — `Formation`, `Satellite`, `Staircase` and `Wheel` — are done, and the
-shape they settled on is recorded in `conventions.md` under _"Turning a page's variants into examples"_: the
-example file holds the library call and its painters, the page keeps the measure box and the props panel, and
-one `<Name>ExampleProps` per page carries what used to be closed-over signals. That answers the question this
-item was blocked on. Thirty-three pages still use `PageVariants`, carrying about two hundred demos between
-them; that is ordinary work now rather than a decision.
-
-It is also the phase that makes the `StyledComponents` half of the tab rule pay, and the four converted pages
-are the first to exercise it: `FormationContent`, `SatelliteContent`, `StaircaseContent`, `WheelContent` and
-`ButtonContent` all appear as tabs now.
-
----
-
-## 22. `Spotlight` — three things deliberately not built
+## 21. `Spotlight` — three things deliberately not built
 
 The decisions behind what exists are in `conventions.md` under _"Controls: `Spotlight`, and three presets
 because a mode cannot move at runtime"_. These are the gaps, each with the reason it is still one.
@@ -1099,7 +1072,7 @@ because a mode cannot move at runtime"_. These are the gaps, each with the reaso
 
 ---
 
-## 23. `Scroller` — five things deliberately not built
+## 22. `Scroller` — five things deliberately not built
 
 The decisions behind what exists are in `conventions.md` under _"Controls: `Scroller`, and why it renders no
 button of its own"_. These are the gaps, each with the reason it is still one.
@@ -1129,7 +1102,7 @@ button of its own"_. These are the gaps, each with the reason it is still one.
 
 ---
 
-## 24. `Paginator` — four things deliberately not built
+## 23. `Paginator` — four things deliberately not built
 
 The decisions behind what exists are in `conventions.md` under _"Controls: `Paginator`, where the arithmetic
 is the component"_. These are the gaps, each with the reason it is still one.
@@ -1152,7 +1125,7 @@ is the component"_. These are the gaps, each with the reason it is still one.
 
 ---
 
-## 25. `Carousel` — five things deliberately not built
+## 24. `Carousel` — four things deliberately not built
 
 The decisions behind what exists are in `conventions.md` under _"Controls: `Carousel`, and the first component
 that acts without being asked"_. These are the gaps, each with the reason it is still one.
@@ -1162,11 +1135,6 @@ that acts without being asked"_. These are the gaps, each with the reason it is 
   asking how many fit, which is `Scroller`'s question and the boundary the two were separated along. Building
   it would also make the picker ambiguous — a dot per slide or a dot per page — and that is a design question
   rather than a missing line.
-- **No swipe.** `InteractionUtils.trackDrag` exists and `Range` and `ColorArea` are both over it, so the
-  machinery is there. What is missing is the decision about what a drag means when it is released halfway:
-  a threshold in pixels, in fractions of the viewport, or in velocity. All three are tuned numbers, which the
-  rule in `CLAUDE.md` says are the user's to set rather than a value to invent here. The machinery this would
-  sit on is item 26, which also records that the swipe would be gated on `renderControls` being present.
 - **The keyboard is whatever the controls are.** There is no arrow-key handling on the region, so a carousel
   rendered with no `renderControls` has no keyboard route at all. The published pattern puts the arrows on the
   buttons rather than on the region, so this matches it — but a consumer who skips the controls gets a control
@@ -1183,76 +1151,7 @@ that acts without being asked"_. These are the gaps, each with the reason it is 
 
 ---
 
-## 26. A gesture `Abstract`, and the components that would consume it
-
-Raised by the user on **2026-08-15** and recorded rather than built. A directional swipe — dismiss a `Drawer`
-by pushing it towards its edge, move a `Carousel` by flicking it — as one `Abstract` several controls consume.
-
-**It is a new `Abstract` rather than a widening of `trackDrag`, because it reports a different kind of thing.**
-`InteractionUtils.trackDrag` reports a **position**, continuously, for as long as a drag lasts; it exists so a
-control can set a value, and its two consumers, `ColorArea` and `SlideButton`, both do exactly that. A swipe is
-an **event**: it has a direction, everything before the release is provisional, and at the end it either
-commits or it does not. That is the same state-versus-event distinction item 2 draws about one-shot pointer
-effects, and it is why this is a second thing beside `trackDrag` rather than more parameters on it.
-
-**It would change `trackDrag`, and that retires a deferral rather than adding one.** `pointercancel` currently
-routes to the same handler as a release, so a drag the browser or the OS takes over reads as completed. Item 20
-records that as tolerable for `SlideButton` and says outright that fixing it "would mean `trackDrag` reporting
-why a drag ended, which is a change to a shipped `Abstract` with two other consumers for a case nobody has
-hit". A swipe must never commit on a cancel, so this is the consumer that makes that change worth making.
-
-**`touch-action` is the hard part, not the arithmetic.** `ColorArea` and `SlideButton` both set
-`touch-action: none` because they own both axes. A drawer swiped in from the right must still let the page
-scroll vertically, so it needs `pan-y`, and a carousel needs the mirror. Get it wrong and the browser claims
-the gesture and the handler never fires — silently, and only on touch hardware, which is the hardest kind of
-bug to see from a desktop. So the `Abstract` has to carry the axis and the consumer's CSS has to agree with it.
-
-**The thresholds are the user's, not the library's.** What a release halfway across means — a distance in
-pixels, a fraction of the viewport, or a velocity — is a tuned number, and `CLAUDE.md` says those are the
-user's to set. Item 25 already records this as the thing blocking `Carousel`'s swipe. The shape is therefore a
-parameter with per-call-site defaults rather than one constant chosen here.
-
-**SC 2.5.1 Pointer Gestures is Level A, and it decides where the gesture may be offered.** A swipe is
-path-based, so anything operable by swipe must also be operable with a single pointer and no path, unless the
-gesture is essential — which a drawer dismissal plainly is not.
-
-**The user's answer to that, given on 2026-08-15, is to gate the gesture rather than to restrict the
-components:** wire it everywhere it makes sense and disable the listeners when the control has no other route.
-`Carousel` already distinguishes the case, since a carousel rendered without `renderControls` has no keyboard
-route at all — item 25 — so the swipe is simply not attached in that configuration. That is the same shape as
-three decisions already taken here: the floater observers run only when `renderFloater` is passed, and
-`Stepper` derives reachability from whether a tooltip exists rather than taking a prop. Derived, not
-configured, so a consumer cannot ask for the conformance failure.
-
-**Candidates, in the order their alternatives already exist:**
-
-- **`Drawer`** — Escape and a close control are already there, so nothing has to be fixed first. The obvious
-  first consumer.
-- **`Carousel`** — gated on `renderControls` being present, per above.
-- **`Toasts`** — swipe-to-dismiss is what both mainstream toast libraries ship, but item 13 records that there
-  is no keyboard route into the stack at all, so the same gate would leave it permanently off. **The user has
-  deferred this one for a separate discussion.**
-- **`Modal`** — a sheet dismissed by pushing it down is the mobile pattern, and its alternatives exist for the
-  same reason `Drawer`'s do. Nobody has asked.
-
-**A swipe reports progress in flight, not just its outcome — decided by the user on 2026-08-15.** A drawer
-follows the finger and springs back if the gesture is abandoned; nothing waits for the release to move.
-
-**That partly reverses the "new `Abstract`, not a widening" argument above, and the reversal is the useful
-part.** The case for a separate thing was that a swipe is an event while `trackDrag` reports state. With
-progress reporting it is both: a continuous position for the whole gesture, plus a verdict at the end. So the
-likely shape is not a second `Abstract` beside `trackDrag` but **`trackDrag` reporting why a drag ended —
-which item 20 needs regardless — with a thin swipe layer over it that adds the axis, the threshold and the
-commit-or-cancel verdict.** Start there rather than from a blank file; if that turns out to overload
-`trackDrag`'s contract, splitting is still available, but the split should be earned rather than assumed.
-
-What is still undecided is smaller: whether the in-flight report is a raw offset, a ratio of the distance to
-the commit threshold, or both. The threshold is the consumer's number, so a ratio means the `Abstract` divides
-by something only the consumer knows — which argues for the offset, with the ratio derived at the call site.
-
----
-
-## 27. The four components ported from React — one thing to retest, one deliberately not built
+## 25. The four components ported from React — one thing to retest, one deliberately not built
 
 `Satellite`, `Staircase`, `Formation`, `FlatWheel` and `DrumWheel` came in from a React codebase; what the port
 settled is in `conventions.md`. Two things did not settle, and only the first is live.
@@ -1303,7 +1202,7 @@ settled that a component does not fully delegate position. Recorded so it is not
 
 ---
 
-## 28. `Typewriter` cannot render a blank line, and the fix is in `ss-utils`
+## 26. `Typewriter` cannot render a blank line, and the fix is in `ss-utils`
 
 **What a consumer sees.** Text containing `"a\n\nb"` renders as two lines with no blank line between them, and a
 stray blank line after the last one instead. It is on the Playground's second Typewriter example, whose starting

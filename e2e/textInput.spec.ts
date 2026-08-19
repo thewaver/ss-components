@@ -1,18 +1,18 @@
 import { expect, test } from "@playwright/test";
 
-import { computedStyle, inputValue, isReadOnly, readout, selectionRange, setSelectionRange, variant } from "./helpers";
+import { computedStyle, demo, inputValue, isReadOnly, readout, selectionRange, setSelectionRange } from "./helpers";
 
-const DEFAULT = `${variant("default")} input`;
-const COUPON = `${variant("transformingSetter")} input`;
-const PIN = `${variant("refusingSetter")} input`;
-const NUMBER = `${variant("number")} input`;
-const READ_ONLY = `${variant("readOnly")} input`;
-const DISABLED = `${variant("disabled")} input`;
-const EMAIL = `${variant("errored")} input`;
+const DEFAULT = `${demo("default")} input`;
+const COUPON = `${demo("transformingSetter")} input`;
+const PIN = `${demo("refusingSetter")} input`;
+const NUMBER = `${demo("number")} input`;
+const READ_ONLY = `${demo("readOnly")} input`;
+const DISABLED = `${demo("disabled")} input`;
+const EMAIL = `${demo("errored")} input`;
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/text-input");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 test("no field uses the native disabled attribute", async ({ page }) => {

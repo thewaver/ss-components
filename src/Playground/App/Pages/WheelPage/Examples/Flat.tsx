@@ -5,6 +5,7 @@ import type { WheelController } from "../../../../../Lib/Exotics/Wheel/Wheel.typ
 import { Button } from "../../../../../Lib/Fundamentals/Button/Button";
 import {
     PageWheelHub,
+    PageWheelPip,
     PageWheelSpin,
     PageWheelStack,
     PageWheelWedge,
@@ -34,6 +35,8 @@ export const FlatExample = ({ getWedges, ...otherProps }: Props) => {
                 renderWedge={(getWedge, getState) => <PageWheelWedge getState={getState}>{getWedge()}</PageWheelWedge>}
                 onMount={setController}
             />
+
+            <PageWheelPip getSide={() => "top"} />
 
             <PageWheelHub>
                 <Button

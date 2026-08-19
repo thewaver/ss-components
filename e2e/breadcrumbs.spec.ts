@@ -1,17 +1,17 @@
 import { expect, test } from "@playwright/test";
 
-import { attributesOf, prop, readout, tagName, variant } from "./helpers";
+import { attributesOf, demo, prop, readout, tagName } from "./helpers";
 
-const DEFAULT = variant("default");
-const BARE = variant("bare");
-const LINKED = variant("linked");
-const ROUTED = variant("linkComponent");
+const DEFAULT = demo("default");
+const BARE = demo("bare");
+const LINKED = demo("linked");
+const ROUTED = demo("linkComponent");
 
 const crumb = (scope: string) => `${scope} nav[aria-label] ol > li`;
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/breadcrumbs");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 /**

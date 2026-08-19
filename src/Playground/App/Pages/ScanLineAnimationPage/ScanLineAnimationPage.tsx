@@ -105,6 +105,7 @@ const groupOptions = <T extends string>(keys: readonly T[]) => {
 
 const GROUPPED_WEIGHTS = groupOptions(CellAnimationWeights.ORIGIN_FREE_WEIGHT_TYPES);
 
+const MIN_COLUMN_WIDTH = 400;
 const EXAMPLES_ROOT = "/src/Playground/App/Pages/ScanLineAnimationPage/Examples";
 const WEIGHT_ORIGIN = { x: 0, y: 0 };
 
@@ -587,7 +588,7 @@ export const ScanlineAnimationPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} />
+            <PageExamples getItems={getExamples} getMinColumnWidth={() => MIN_COLUMN_WIDTH} />
         </div>
     );
 };

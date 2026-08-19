@@ -1,0 +1,22 @@
+import { FileInput } from "../../../../../Lib/Fundamentals/Input/FileInput/FileInput";
+import { PageFileInputContent } from "../../../StyledComponents/FileInputContent/FileInputContent";
+import { MAX_ATTACHMENT_BYTES } from "../FileInputPage.const";
+import type { FileInputRejectingExampleProps } from "../FileInputPage.types";
+
+type Props = FileInputRejectingExampleProps;
+
+export const RejectingSetterExample = (props: Props) => (
+    <FileInput
+        filesSignal={props.filesSignal}
+        getHasError={() => props.getRejection() !== ""}
+        getAriaLabel={() => "Small attachment"}
+        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
+        onChange={(files) => {
+            const tooBig = files.filter((file) => file.size > MAX_ATTACHMENT_BYTES);
+
+            props.onRejectionChange(tooBig.length ? `${tooBig[0].name} is too big, pick again` : "");
+
+            if (tooBig.length) props.filesSignal[1]([]);
+        }}
+    />
+);

@@ -16,6 +16,7 @@ const MAX_ITEM_COUNT = 12;
 const ITEM_COUNT_STEP = 1;
 const FIELD_WIDTH = 130;
 const FORMATION_WIDTH = 380;
+const MIN_COLUMN_WIDTH = 420;
 const EXAMPLES_ROOT = "/src/Playground/App/Pages/FormationPage/Examples";
 
 const STARTING_ITEM_COUNT = 6;
@@ -115,7 +116,7 @@ export const FormationPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} />
+            <PageExamples getItems={getExamples} getMinColumnWidth={() => MIN_COLUMN_WIDTH} />
         </>
     );
 };

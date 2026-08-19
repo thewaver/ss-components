@@ -1,18 +1,18 @@
 import { expect, test } from "@playwright/test";
 
-import { activeText, computedStyle, inlineStyle, readout, tabIndex, tagName, variant } from "./helpers";
+import { activeText, computedStyle, demo, inlineStyle, readout, tabIndex, tagName } from "./helpers";
 
 /**
  * The page carries one tab list per variant, so every locator is scoped to its own variant box. Each
  * list holds a disabled entry in the middle rather than at an edge, which is the case a walk can get
  * wrong in both directions at once.
  */
-const ROW = variant("row");
-const COLUMN = variant("column");
-const LINKS = variant("links");
-const LINK_COMPONENT = variant("linkComponent");
-const CLEARABLE = variant("clearable");
-const DISABLED = variant("disabled");
+const ROW = demo("row");
+const COLUMN = demo("column");
+const LINKS = demo("links");
+const LINK_COMPONENT = demo("linkComponent");
+const CLEARABLE = demo("clearable");
+const DISABLED = demo("disabled");
 
 const list = (scope: string) => `${scope} [role="tablist"]`;
 const tab = (scope: string) => `${scope} [role="tab"]`;

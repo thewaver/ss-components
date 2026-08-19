@@ -1,17 +1,17 @@
 import { expect, test } from "@playwright/test";
 
-import { activeMatches, attributesOf, inlineStyle, readout, variant } from "./helpers";
+import { activeMatches, attributesOf, demo, inlineStyle, readout } from "./helpers";
 
-const DEFAULT = variant("default");
-const REACHABLE = variant("reachable");
-const DISABLED = variant("disabled");
-const SEGMENTED = variant("segmented");
+const DEFAULT = demo("default");
+const REACHABLE = demo("reachable");
+const DISABLED = demo("disabled");
+const SEGMENTED = demo("segmented");
 
 const option = (scope: string, label: string) => `${scope} input[aria-label="${label}"]`;
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/radio");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 test("a group is named on its own element and uses no native disabled", async ({ page }) => {

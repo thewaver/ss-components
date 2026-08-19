@@ -1,6 +1,8 @@
 import type { JSX } from "solid-js";
 import { Index, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
+import { MathUtils } from "@thewaver/ss-utils";
+
 import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
 import { LiveAnnouncer } from "../../Abstracts/LiveAnnouncer/LiveAnnouncer";
 import { SignalMirror } from "../../Abstracts/SignalMirror/SignalMirror";
@@ -22,9 +24,13 @@ import * as styles from "./Carousel.css";
 const DEFAULT_CAROUSEL_TRANSITION_DURATION_MS = 400;
 const DEFAULT_CAROUSEL_GAP = 0;
 
+const CAROUSEL_SWIPE_COMMIT_RATIO = 0.2;
+
 const CAROUSEL_ROLE_DESCRIPTION = "carousel";
 const SLIDE_ROLE_DESCRIPTION = "slide";
 const MIN_ROTATABLE_COUNT = 2;
+const SLIDE_PERCENT = 100;
+const SWIPE_RATIO_LIMIT = 1;
 
 const STEP_LABELS: Record<CarouselStep, string> = {
     previous: "Previous slide",
@@ -60,6 +66,8 @@ const CarouselControl = (props: CarouselControlProps) => {
 
 export const Carousel = <T,>(props: CarouselProps<T>) => {
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
+    const [getViewportRef, setViewportRef] = createSignal<HTMLElement>();
+    const [getSwipeRatio, setSwipeRatio] = createSignal(0);
 
     const [getIndex, setIndex] = SignalMirror.createOptional(() => props.indexSignal, 0);
     const [getIsPlaying, setIsPlaying] = SignalMirror.createOptional(() => props.playingSignal, true);
@@ -78,18 +86,6 @@ export const Carousel = <T,>(props: CarouselProps<T>) => {
 
     const getIsHeld = InteractionUtils.trackHold(getRootRef);
 
-    const getIsRotating = createMemo(
-        () =>
-            getAutoplayDelayMs() !== undefined &&
-            getIsPlaying() &&
-            !getIsHeld() &&
-            !getIsDisabled() &&
-            getCount() >= MIN_ROTATABLE_COUNT,
-    );
-
-    const getSlideLabel = (index: number) =>
-        props.computeSlideLabel?.(index + 1, getCount()) ?? `${index + 1} of ${getCount()}`;
-
     const goTo = (index: number) => {
         const next = CarouselUtils.wrapIndex(index, getCount());
 
@@ -99,6 +95,37 @@ export const Carousel = <T,>(props: CarouselProps<T>) => {
 
         void props.onIndexChange?.(next);
     };
+
+    const { getIsSwiping } = InteractionUtils.trackSwipe(
+        getViewportRef,
+        () => props.renderControls === undefined || getIsDisabled() || getCount() < MIN_ROTATABLE_COUNT,
+        {
+            getAxis: () => "horizontal",
+            getCommitRatio: () => CAROUSEL_SWIPE_COMMIT_RATIO,
+            onSwipe: (progressRatio) => {
+                setSwipeRatio(MathUtils.clamp(progressRatio, -SWIPE_RATIO_LIMIT, SWIPE_RATIO_LIMIT));
+            },
+            onSwipeEnd: (direction) => {
+                setSwipeRatio(0);
+
+                if (direction === "left") goTo(getCurrentIndex() + 1);
+                if (direction === "right") goTo(getCurrentIndex() - 1);
+            },
+        },
+    );
+
+    const getIsRotating = createMemo(
+        () =>
+            getAutoplayDelayMs() !== undefined &&
+            getIsPlaying() &&
+            !getIsHeld() &&
+            !getIsSwiping() &&
+            !getIsDisabled() &&
+            getCount() >= MIN_ROTATABLE_COUNT,
+    );
+
+    const getSlideLabel = (index: number) =>
+        props.computeSlideLabel?.(index + 1, getCount()) ?? `${index + 1} of ${getCount()}`;
 
     createEffect(() => {
         const delayMs = getAutoplayDelayMs();
@@ -200,12 +227,12 @@ export const Carousel = <T,>(props: CarouselProps<T>) => {
             aria-roledescription={CAROUSEL_ROLE_DESCRIPTION}
             aria-label={props.getAriaLabel()}
         >
-            <div class={styles.carouselViewport}>
+            <div ref={setViewportRef} class={styles.carouselViewport}>
                 <div
                     class={styles.carouselTrack}
                     style={{
-                        "transform": `translateX(${getCurrentIndex() * -100}%)`,
-                        "transition-duration": `${getTransitionDurationMs()}ms`,
+                        "transform": `translateX(${(getSwipeRatio() - getCurrentIndex()) * SLIDE_PERCENT}%)`,
+                        "transition-duration": `${getIsSwiping() ? 0 : getTransitionDurationMs()}ms`,
                     }}
                 >
                     <Index each={props.getSlides()}>

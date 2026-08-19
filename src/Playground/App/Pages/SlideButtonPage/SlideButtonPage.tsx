@@ -1,14 +1,13 @@
 import { createMemo, createSignal } from "solid-js";
 
-import { Button } from "../../../../Lib/Fundamentals/Button/Button";
-import { SlideButton } from "../../../../Lib/Fundamentals/SlideButton/SlideButton";
-import { PageControlColumn } from "../../PageComponents/ControlRow/ControlRow";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
-import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
-import { PageSlideButtonContent } from "../../StyledComponents/SlideButtonContent/SlideButtonContent";
-import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
+import { DefaultExample } from "./Examples/Default";
+import { DisabledExample } from "./Examples/Disabled";
+import { ErroredExample } from "./Examples/Errored";
+import { HeldExample } from "./Examples/Held";
+import { ReachableExample } from "./Examples/Reachable";
 
-import { SLIDE_BUTTON_THUMB_SIZE } from "../../StyledComponents/SlideButtonContent/SlideButtonContent.css";
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/SlideButtonPage/Examples";
 
 export const SlideButtonPage = () => {
     const [getSends, setSends] = createSignal(0);
@@ -17,122 +16,78 @@ export const SlideButtonPage = () => {
     const [getReachableSends, setReachableSends] = createSignal(0);
     const [getHasError, setHasError] = createSignal(true);
 
-    const getVariants = createMemo(() => {
-        return [
-            {
-                key: "default",
-                name: "Default",
-                readout: () => `activations: ${getSends()}`,
-                component: () => (
-                    <SlideButton
-                        getThumbSize={() => SLIDE_BUTTON_THUMB_SIZE}
-                        renderContent={(getFlags) => (
-                            <PageSlideButtonContent getFlags={getFlags}>Slide or hold to send</PageSlideButtonContent>
-                        )}
-                        onActivate={async () => {
-                            setSends((prev) => prev + 1);
-                        }}
-                    />
-                ),
-            },
-            {
-                key: "held",
-                name: "Held at the end by the owner",
-                readout: () => `armed: ${getIsArmed()}`,
-                component: () => (
-                    <PageControlColumn>
-                        <SlideButton
-                            getIsPressed={getIsArmed}
-                            getThumbSize={() => SLIDE_BUTTON_THUMB_SIZE}
-                            renderContent={(getFlags) => (
-                                <PageSlideButtonContent getFlags={getFlags}>
-                                    Slide or hold to arm
-                                </PageSlideButtonContent>
-                            )}
-                            onActivate={async () => {
-                                setIsArmed(true);
-                            }}
-                        />
+    const getExamples = createMemo(() => [
+        {
+            key: "default",
+            name: "Default",
+            readout: () => `activations: ${getSends()}`,
+            component: () => (
+                <DefaultExample
+                    onActivate={() => {
+                        setSends((prev) => prev + 1);
+                    }}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Default.tsx`,
+        },
+        {
+            key: "held",
+            name: "Held at the end by the owner",
+            readout: () => `armed: ${getIsArmed()}`,
+            component: () => (
+                <HeldExample
+                    getIsArmed={getIsArmed}
+                    onActivate={() => {
+                        setIsArmed(true);
+                    }}
+                    onReset={() => {
+                        setIsArmed(false);
+                    }}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Held.tsx`,
+        },
+        {
+            key: "disabled",
+            name: "Disabled",
+            readout: () => `activations: ${getDisabledSends()}`,
+            component: () => (
+                <DisabledExample
+                    onActivate={() => {
+                        setDisabledSends((prev) => prev + 1);
+                    }}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Disabled.tsx`,
+        },
+        {
+            key: "reachable",
+            name: "Disabled + reachable",
+            readout: () => `activations: ${getReachableSends()}`,
+            component: () => (
+                <ReachableExample
+                    onActivate={() => {
+                        setReachableSends((prev) => prev + 1);
+                    }}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Reachable.tsx`,
+        },
+        {
+            key: "errored",
+            name: "Error",
+            readout: () => `hasError: ${getHasError()}`,
+            component: () => (
+                <ErroredExample
+                    getHasError={getHasError}
+                    onActivate={() => {
+                        setHasError((prev) => !prev);
+                    }}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Errored.tsx`,
+        },
+    ]);
 
-                        <Button
-                            getIsDisabled={() => !getIsArmed()}
-                            renderContent={(getFlags) => (
-                                <PageButtonContent getFlags={getFlags}>Reset</PageButtonContent>
-                            )}
-                            onClick={async () => {
-                                setIsArmed(false);
-                            }}
-                        />
-                    </PageControlColumn>
-                ),
-            },
-            {
-                key: "disabled",
-                name: "Disabled",
-                readout: () => `activations: ${getDisabledSends()}`,
-                component: () => (
-                    <SlideButton
-                        getIsDisabled={() => true}
-                        getThumbSize={() => SLIDE_BUTTON_THUMB_SIZE}
-                        renderContent={(getFlags) => (
-                            <PageSlideButtonContent getFlags={getFlags}>Slide or hold to send</PageSlideButtonContent>
-                        )}
-                        onActivate={async () => {
-                            setDisabledSends((prev) => prev + 1);
-                        }}
-                    />
-                ),
-            },
-            {
-                key: "reachable",
-                name: "Disabled + reachable",
-                readout: () => `activations: ${getReachableSends()}`,
-                component: () => (
-                    <SlideButton
-                        getIsDisabled={() => true}
-                        getIsReachableWhenDisabled={() => true}
-                        getThumbSize={() => SLIDE_BUTTON_THUMB_SIZE}
-                        renderContent={(getFlags) => (
-                            <PageSlideButtonContent getFlags={getFlags}>Slide or hold to send</PageSlideButtonContent>
-                        )}
-                        getTooltipDefs={() => ({
-                            getPlacement: () => ({ x: "center", y: "top-out" }),
-                            getOffset: () => ({ x: 0, y: 5 }),
-                            renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                                <PageTooltipContent
-                                    getVisibilityTarget={getVisibilityTarget}
-                                    getTransitionDurationMs={getTransitionDurationMs}
-                                >
-                                    Focusable so this tooltip can be read, but neither a drag nor a held Enter may leave
-                                    the count above zero.
-                                </PageTooltipContent>
-                            ),
-                        })}
-                        onActivate={async () => {
-                            setReachableSends((prev) => prev + 1);
-                        }}
-                    />
-                ),
-            },
-            {
-                key: "errored",
-                name: "Error",
-                readout: () => `hasError: ${getHasError()}`,
-                component: () => (
-                    <SlideButton
-                        getHasError={getHasError}
-                        getThumbSize={() => SLIDE_BUTTON_THUMB_SIZE}
-                        renderContent={(getFlags) => (
-                            <PageSlideButtonContent getFlags={getFlags}>Slide or hold to retry</PageSlideButtonContent>
-                        )}
-                        onActivate={async () => {
-                            setHasError((prev) => !prev);
-                        }}
-                    />
-                ),
-            },
-        ];
-    });
-
-    return <PageVariants getItems={getVariants} />;
+    return <PageExamples getItems={getExamples} />;
 };

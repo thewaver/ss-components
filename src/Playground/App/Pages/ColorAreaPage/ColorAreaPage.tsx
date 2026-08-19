@@ -1,169 +1,65 @@
-import { createEffect, createMemo, createSignal, createUniqueId, onCleanup, untrack } from "solid-js";
+import { createMemo, createSignal, createUniqueId } from "solid-js";
 
 import { Color } from "@thewaver/ss-utils";
 
-import { Button } from "../../../../Lib/Fundamentals/Button/Button";
-import { ColorArea } from "../../../../Lib/Fundamentals/Input/ColorArea/ColorArea";
-import { Range } from "../../../../Lib/Fundamentals/Input/Range/Range";
-import { Popover } from "../../../../Lib/Fundamentals/Popover/Popover";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
-import {
-    PageColorAreaContent,
-    PageColorFieldTrigger,
-    PageColorPickerPopup,
-    PageColorPickerRow,
-    PageColorPreview,
-    PageColorSwatch,
-    PageHueSlider,
-} from "../../StyledComponents/ColorAreaContent/ColorAreaContent";
-import { PageColorChannels } from "../../StyledComponents/ColorChannels/ColorChannels";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
+import type { ColorAreaDropdownExampleProps, ColorAreaExampleProps } from "./ColorAreaPage.types";
+import { DropdownExample } from "./Examples/Dropdown";
+import { SurfaceExample } from "./Examples/Surface";
 
-const AREA_SIZE = 160;
-const HUE_THUMB_SIZE = 18;
-const HUE_MAX = 360;
 const PERCENT = 100;
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/ColorAreaPage/Examples";
+
 const STARTING_HSV: Color.HSVA = { h: 210, s: 0.7, v: 0.9, a: 1 };
+const STARTING_PICKER_HSV: Color.HSVA = { h: 90, s: 0.5, v: 0.8, a: 1 };
+const STARTING_DISABLED_HSV: Color.HSVA = { h: 0, s: 0.6, v: 0.6, a: 1 };
 
 export const ColorAreaPage = () => {
     const popupId = createUniqueId();
 
     const bareSignal = createSignal<Color.HSVA>(STARTING_HSV);
-    const pickerSignal = createSignal<Color.HSVA>({ h: 90, s: 0.5, v: 0.8, a: 1 });
-    const disabledSignal = createSignal<Color.HSVA>({ h: 0, s: 0.6, v: 0.6, a: 1 });
-
-    const [getIsOpen, setIsOpen] = createSignal(false);
-    const [getTriggerRef, setTriggerRef] = createSignal<HTMLElement>();
-
-    createEffect(() => {
-        if (!getIsOpen()) return;
-
-        const handlePointerDown = (e: PointerEvent) => {
-            const target = e.target as Node | null;
-
-            if (!target) return;
-            if (document.getElementById(popupId)?.contains(target)) return;
-            if (getTriggerRef()?.contains(target)) return;
-
-            setIsOpen(false);
-        };
-
-        document.addEventListener("pointerdown", handlePointerDown);
-
-        onCleanup(() => {
-            document.removeEventListener("pointerdown", handlePointerDown);
-        });
-    });
-
-    const getHexa = () => Color.HSVA.toHexa(pickerSignal[0]());
-
+    const pickerSignal = createSignal<Color.HSVA>(STARTING_PICKER_HSV);
+    const disabledSignal = createSignal<Color.HSVA>(STARTING_DISABLED_HSV);
+    const isOpenSignal = createSignal(false);
     const hueSignal = createSignal(pickerSignal[0]().h);
 
-    createEffect(() => {
-        const hue = pickerSignal[0]().h;
+    const getExamples = createMemo(() => {
+        const bareProps: ColorAreaExampleProps = { hsvSignal: bareSignal };
 
-        if (untrack(hueSignal[0]) === hue) return;
+        const disabledProps: ColorAreaExampleProps = { hsvSignal: disabledSignal, getIsDisabled: () => true };
 
-        hueSignal[1](hue);
-    });
+        const dropdownProps: ColorAreaDropdownExampleProps = {
+            hsvSignal: pickerSignal,
+            isOpenSignal,
+            hueSignal,
+            getPopupId: () => popupId,
+        };
 
-    createEffect(() => {
-        const hue = hueSignal[0]();
-
-        if (untrack(() => pickerSignal[0]().h) === hue) return;
-
-        pickerSignal[1]((prev) => ({ ...prev, h: hue }));
-    });
-
-    const renderArea = (signal: typeof bareSignal, isDisabled?: boolean) => (
-        <ColorArea
-            hsvSignal={signal}
-            getSizing={() => "fill"}
-            getIsDisabled={() => isDisabled ?? false}
-            getAriaLabel={() => "Saturation and brightness"}
-            renderContent={(getFlags) => <PageColorAreaContent getFlags={getFlags} getSize={() => AREA_SIZE} />}
-        />
-    );
-
-    const getVariants = createMemo(() => {
         return [
             {
                 key: "bare",
                 name: "The surface alone",
                 readout: () =>
                     `hsv: ${Math.round(bareSignal[0]().h)}° ${Math.round(bareSignal[0]().s * PERCENT)}% ${Math.round(bareSignal[0]().v * PERCENT)}% — hex: ${Color.HSV.toHex(bareSignal[0]())}`,
-                component: () => renderArea(bareSignal),
+                component: () => <SurfaceExample {...bareProps} />,
+                path: `${EXAMPLES_ROOT}/Surface.tsx`,
             },
             {
                 key: "dropdown",
                 name: "In a dropdown, replacing the OS dialog",
-                readout: () => `${getHexa()} — open: ${getIsOpen()}`,
-                component: () => (
-                    <>
-                        <Button
-                            ref={setTriggerRef}
-                            renderContent={(getFlags) => (
-                                <PageColorFieldTrigger getFlags={getFlags}>
-                                    <PageColorSwatch
-                                        getValue={() => Color.RGBA.toCss(Color.HSVA.toRgba(pickerSignal[0]()))}
-                                    />
-                                    {getHexa()}
-                                </PageColorFieldTrigger>
-                            )}
-                            onClick={() => {
-                                setIsOpen((prev) => !prev);
-                            }}
-                        />
-
-                        <Popover
-                            getId={() => popupId}
-                            getRole={() => "dialog"}
-                            getAriaAttributes={() => ({ "aria-label": "Choose a colour" })}
-                            getIsOpen={getIsOpen}
-                            getAnchorRef={getTriggerRef}
-                            getHasAutoFocus={() => true}
-                            getOffset={() => ({ x: 0, y: 5 })}
-                            onKeyDown={(e) => {
-                                if (e.key !== "Escape") return;
-
-                                setIsOpen(false);
-                                getTriggerRef()?.focus();
-                            }}
-                            renderContent={() => (
-                                <PageColorPickerPopup>
-                                    <PageColorPreview
-                                        getValue={() => Color.RGBA.toCss(Color.HSVA.toRgba(pickerSignal[0]()))}
-                                    />
-
-                                    {renderArea(pickerSignal)}
-
-                                    <PageColorPickerRow>
-                                        <Range
-                                            valueSignal={hueSignal}
-                                            getSizing={() => "fill"}
-                                            getMax={() => HUE_MAX}
-                                            getStep={() => 1}
-                                            getId={() => "hueSlider"}
-                                            getAriaLabel={() => "Hue"}
-                                            getThumbSize={() => HUE_THUMB_SIZE}
-                                            renderContent={(getFlags) => <PageHueSlider getFlags={getFlags} />}
-                                        />
-                                    </PageColorPickerRow>
-
-                                    <PageColorChannels hsvSignal={pickerSignal} />
-                                </PageColorPickerPopup>
-                            )}
-                        />
-                    </>
-                ),
+                readout: () => `${Color.HSVA.toHexa(pickerSignal[0]())} — open: ${isOpenSignal[0]()}`,
+                component: () => <DropdownExample {...dropdownProps} />,
+                path: `${EXAMPLES_ROOT}/Dropdown.tsx`,
             },
             {
                 key: "disabled",
                 name: "Disabled",
                 readout: () => "the drag is not attached at all, so nothing moves",
-                component: () => renderArea(disabledSignal, true),
+                component: () => <SurfaceExample {...disabledProps} />,
+                path: `${EXAMPLES_ROOT}/Surface.tsx`,
             },
         ];
     });
 
-    return <PageVariants getItems={getVariants} />;
+    return <PageExamples getItems={getExamples} />;
 };

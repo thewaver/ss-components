@@ -2,6 +2,8 @@ import { style } from "@vanilla-extract/css";
 
 import { themeVars } from "../../Theme.css";
 
+const FRAME_MAX_WIDTH = 380;
+
 export const isDragging = style({});
 export const isDisabled = style({});
 
@@ -49,6 +51,7 @@ export const splitPaneBox = style({
 
 export const splitPaneFrame = style({
     width: "100%",
+    maxWidth: FRAME_MAX_WIDTH,
     height: 220,
     padding: themeVars.spacing.half,
     border: `1px solid rgb(from currentColor r g b / 25%)`,

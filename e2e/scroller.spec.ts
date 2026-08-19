@@ -1,9 +1,9 @@
 import { type Page, expect, test } from "@playwright/test";
 
-import { prop, variant } from "./helpers";
+import { demo, prop } from "./helpers";
 
-const SPLIT = variant("split");
-const TABBED = variant("tabbed");
+const SPLIT = demo("split");
+const TABBED = demo("tabbed");
 
 /**
  * The `Scroller` owns one number — how far its track is scrolled — and everything observable about it is a
@@ -22,7 +22,7 @@ const scrollOf = (page: Page, scope: string) =>
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/scroller");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 test("the buttons report the ends rather than wrapping round", async ({ page }) => {

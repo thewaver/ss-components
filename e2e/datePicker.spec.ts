@@ -1,16 +1,16 @@
 import { expect, test } from "@playwright/test";
 
-import { inputValue, prop, readout, variant } from "./helpers";
+import { demo, inputValue, prop, readout } from "./helpers";
 
-const TYPED = variant("typed");
-const LOCALE = variant("locale");
-const ERA = variant("era");
-const PICKED = variant("picked");
-const BOUNDED = variant("bounded");
-const TIME = variant("time");
-const TWELVE = variant("twelve");
-const PRECISE = variant("precise");
-const SHIFT = variant("shift");
+const TYPED = demo("typed");
+const LOCALE = demo("locale");
+const ERA = demo("era");
+const PICKED = demo("picked");
+const BOUNDED = demo("bounded");
+const TIME = demo("time");
+const TWELVE = demo("twelve");
+const PRECISE = demo("precise");
+const SHIFT = demo("shift");
 const POPUP = '[role="dialog"]';
 
 const field = (scope: string) => `${scope} input`;

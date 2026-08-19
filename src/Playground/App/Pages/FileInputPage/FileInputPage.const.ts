@@ -1,0 +1,1 @@
+export const MAX_ATTACHMENT_BYTES = 1024;

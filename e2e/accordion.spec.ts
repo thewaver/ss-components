@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { activeText, offsetHeight, readout, tabIndex, variant } from "./helpers";
+import { activeText, demo, offsetHeight, readout, tabIndex } from "./helpers";
 
-const MULTI = variant("multi");
-const SINGLE = variant("single");
-const GROWING = variant("growing");
+const MULTI = demo("multi");
+const SINGLE = demo("single");
+const GROWING = demo("growing");
 
 /**
  * The panel is measured through two boxes on purpose: the one carrying `role="region"` is the constrained
@@ -138,7 +138,7 @@ test("a disabled header carries no native attribute and cannot open its panel", 
  * claims about a section belonging to a set. A "show more" in the middle of a paragraph is none of those
  * things, so it must be able to have none of them — which is what these assert.
  */
-const SINGLE_PANEL = variant("singlePanel");
+const SINGLE_PANEL = demo("singlePanel");
 
 test("a lone Collapsible is a trigger and a panel and nothing else", async ({ page }) => {
     const trigger = page.locator(`${SINGLE_PANEL} button`);

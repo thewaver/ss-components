@@ -1,17 +1,17 @@
 import { expect, test } from "@playwright/test";
 
-import { activeMatches, clickIsAllowed, inputValue, pickFiles, readout, tabIndex, variant } from "./helpers";
+import { activeMatches, clickIsAllowed, demo, inputValue, pickFiles, readout, tabIndex } from "./helpers";
 
-const DEFAULT = `${variant("default")} input`;
-const MULTIPLE = `${variant("multiple")} input`;
-const IMAGES = `${variant("images")} input`;
-const REJECTING = `${variant("rejectingSetter")} input`;
-const DISABLED = `${variant("disabled")} input`;
-const REACHABLE = `${variant("reachable")} input`;
+const DEFAULT = `${demo("default")} input`;
+const MULTIPLE = `${demo("multiple")} input`;
+const IMAGES = `${demo("images")} input`;
+const REJECTING = `${demo("rejectingSetter")} input`;
+const DISABLED = `${demo("disabled")} input`;
+const REACHABLE = `${demo("reachable")} input`;
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/file-input");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 test("the control is a real file input and passes its attributes through", async ({ page }) => {
@@ -26,7 +26,7 @@ test("a pick reaches the owner and is drawn by the painter", async ({ page }) =>
 
     expect(await readout(page, "default"), "a pick reaches the owner's signal").toContain("files: notes.txt");
     await expect(
-        page.locator(`${variant("default")} [aria-hidden]`).first(),
+        page.locator(`${demo("default")} [aria-hidden]`).first(),
         "and the painter draws it from the flags, since the native rendering is suppressed",
     ).toContainText("notes.txt");
 });

@@ -1,20 +1,18 @@
 import { createMemo, createSignal } from "solid-js";
 
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
-import { TagInput } from "../../../../Lib/Fundamentals/Input/TagInput/TagInput";
+import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
-import { PageVariants } from "../../PageComponents/Variants/Variants";
 import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import { PageCheckField } from "../../StyledComponents/Field/Field";
-import {
-    PageTagContent,
-    PageTagInputContent,
-    PageTagInputPlaceholder,
-} from "../../StyledComponents/TagInputContent/TagInputContent";
-import { computePageTextFieldTextStyle } from "../../StyledComponents/TextFieldContent/TextFieldContent";
+import { CrowdedExample } from "./Examples/Crowded";
+import { DefaultExample } from "./Examples/Default";
+import { UniqueExample } from "./Examples/Unique";
+import type { TagInputExampleProps } from "./TagInputPage.types";
 
-import { FIELD_GAP, FIELD_HEIGHT, FIELD_PADDING } from "../../StyledComponents/TextFieldContent/TextFieldContent.css";
+const NARROW_WIDTH = 240;
+const EXAMPLES_ROOT = "/src/Playground/App/Pages/TagInputPage/Examples";
 
 const STARTING_TAGS = ["solid", "vanilla-extract"];
 const CROWDED_TAGS = [
@@ -32,8 +30,6 @@ const CROWDED_TAGS = [
     "stores",
 ];
 
-const NARROW_WIDTH = 240;
-
 export const TagInputPage = () => {
     const [getIsDisabled, setIsDisabled] = createSignal(false);
     const [getHasError, setHasError] = createSignal(false);
@@ -50,111 +46,40 @@ export const TagInputPage = () => {
         emptySignal[1]([]);
     };
 
-    const getVariants = createMemo(() => {
+    const getExamples = createMemo(() => {
+        const commonProps: Omit<TagInputExampleProps, "valueSignal"> = { getIsDisabled, getHasError };
+
         return [
             {
                 key: "default",
                 name: "Default",
                 readout: () => `tags: ${defaultSignal[0]().join(", ") || "none"}`,
-                component: () => (
-                    <TagInput
-                        valueSignal={defaultSignal}
-                        getAriaLabel={() => "Topics"}
-                        getGap={() => FIELD_GAP}
-                        getPadding={() => FIELD_PADDING}
-                        getMinHeight={() => FIELD_HEIGHT}
-                        getIsDisabled={getIsDisabled}
-                        getHasError={getHasError}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => <PageTagInputContent getFlags={getFlags} />}
-                        renderPlaceholder={() => (
-                            <PageTagInputPlaceholder>Type and press Enter</PageTagInputPlaceholder>
-                        )}
-                        renderTag={(getTag, getFlags) => (
-                            <PageTagContent getFlags={getFlags}>{getTag()}</PageTagContent>
-                        )}
-                    />
-                ),
+                component: () => <DefaultExample {...commonProps} valueSignal={defaultSignal} />,
+                path: `${EXAMPLES_ROOT}/Default.tsx`,
             },
             {
                 key: "empty",
                 name: "Empty",
                 readout: () => `tags: ${emptySignal[0]().join(", ") || "none"}`,
                 component: () => (
-                    <TagInput
-                        valueSignal={emptySignal}
-                        getAriaLabel={() => "Empty topics"}
-                        getGap={() => FIELD_GAP}
-                        getPadding={() => FIELD_PADDING}
-                        getMinHeight={() => FIELD_HEIGHT}
-                        getIsDisabled={getIsDisabled}
-                        getHasError={getHasError}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        renderContent={(getFlags) => <PageTagInputContent getFlags={getFlags} />}
-                        renderPlaceholder={() => (
-                            <PageTagInputPlaceholder>Type and press Enter</PageTagInputPlaceholder>
-                        )}
-                        renderTag={(getTag, getFlags) => (
-                            <PageTagContent getFlags={getFlags}>{getTag()}</PageTagContent>
-                        )}
-                    />
+                    <DefaultExample {...commonProps} valueSignal={emptySignal} getAriaLabel={() => "Empty topics"} />
                 ),
+                path: `${EXAMPLES_ROOT}/Default.tsx`,
             },
             {
                 key: "unique",
                 name: "Refusing duplicates",
                 readout: () => `tags: ${uniqueSignal[0]().join(", ") || "none"} — the same word twice is refused`,
-                component: () => (
-                    <TagInput
-                        valueSignal={uniqueSignal}
-                        getAriaLabel={() => "Unique topics"}
-                        getGap={() => FIELD_GAP}
-                        getPadding={() => FIELD_PADDING}
-                        getMinHeight={() => FIELD_HEIGHT}
-                        getIsDisabled={getIsDisabled}
-                        getHasError={getHasError}
-                        computeTextStyle={computePageTextFieldTextStyle}
-                        computeTag={(text) => {
-                            const tag = text.trim().toLowerCase();
-
-                            return tag && !uniqueSignal[0]().includes(tag) ? tag : undefined;
-                        }}
-                        renderContent={(getFlags) => <PageTagInputContent getFlags={getFlags} />}
-                        renderPlaceholder={() => (
-                            <PageTagInputPlaceholder>Type and press Enter</PageTagInputPlaceholder>
-                        )}
-                        renderTag={(getTag, getFlags) => (
-                            <PageTagContent getFlags={getFlags}>{getTag()}</PageTagContent>
-                        )}
-                    />
-                ),
+                component: () => <UniqueExample {...commonProps} valueSignal={uniqueSignal} />,
+                path: `${EXAMPLES_ROOT}/Unique.tsx`,
             },
             {
                 key: "crowded",
                 name: "Crowded and narrow",
                 readout: () =>
                     `${crowdedSignal[0]().length} tags in ${NARROW_WIDTH}px — they wrap and the box grows with them`,
-                component: () => (
-                    <div style={{ width: `${NARROW_WIDTH}px` }}>
-                        <TagInput
-                            valueSignal={crowdedSignal}
-                            getAriaLabel={() => "Crowded topics"}
-                            getGap={() => FIELD_GAP}
-                            getPadding={() => FIELD_PADDING}
-                            getMinHeight={() => FIELD_HEIGHT}
-                            getIsDisabled={getIsDisabled}
-                            getHasError={getHasError}
-                            computeTextStyle={computePageTextFieldTextStyle}
-                            renderContent={(getFlags) => <PageTagInputContent getFlags={getFlags} />}
-                            renderPlaceholder={() => (
-                                <PageTagInputPlaceholder>Type and press Enter</PageTagInputPlaceholder>
-                            )}
-                            renderTag={(getTag, getFlags) => (
-                                <PageTagContent getFlags={getFlags}>{getTag()}</PageTagContent>
-                            )}
-                        />
-                    </div>
-                ),
+                component: () => <CrowdedExample {...commonProps} valueSignal={crowdedSignal} />,
+                path: `${EXAMPLES_ROOT}/Crowded.tsx`,
             },
         ];
     });
@@ -180,7 +105,7 @@ export const TagInputPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageVariants getItems={getVariants} />
+            <PageExamples getItems={getExamples} />
         </>
     );
 };

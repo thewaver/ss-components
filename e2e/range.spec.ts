@@ -1,14 +1,14 @@
 import { type Locator, type Page, expect, test } from "@playwright/test";
 
-import { activeMatches, attributesOf, inputValue, readout, tabIndex, variant } from "./helpers";
+import { activeMatches, attributesOf, demo, inputValue, readout, tabIndex } from "./helpers";
 
-const DEFAULT = variant("default");
-const STEPPED = variant("stepped");
-const PAIR = variant("pair");
-const DISABLED = variant("disabled");
-const DISABLED_PAIR = variant("disabledPair");
-const REACHABLE = variant("reachable");
-const ERRORED = variant("errored");
+const DEFAULT = demo("default");
+const STEPPED = demo("stepped");
+const PAIR = demo("pair");
+const DISABLED = demo("disabled");
+const DISABLED_PAIR = demo("disabledPair");
+const REACHABLE = demo("reachable");
+const ERRORED = demo("errored");
 
 const thumbs = (scope: string) => `${scope} input[type="range"]`;
 

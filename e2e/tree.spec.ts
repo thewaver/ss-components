@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-import { activeMatches, activeText, readout, tabIndex, variant } from "./helpers";
+import { activeMatches, activeText, demo, readout, tabIndex } from "./helpers";
 
-const DEFAULT = variant("default");
-const COLLAPSED = variant("collapsed");
-const DISABLED = variant("disabled");
-const REACHABLE = variant("reachable");
-const OUTSIDE = variant("outside");
+const DEFAULT = demo("default");
+const COLLAPSED = demo("collapsed");
+const DISABLED = demo("disabled");
+const REACHABLE = demo("reachable");
+const OUTSIDE = demo("outside");
 
 const OUTSIDE_COLLAPSE_DELAY_MS = 500;
 

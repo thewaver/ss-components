@@ -3,12 +3,11 @@ import { style } from "@vanilla-extract/css";
 import { themeVars } from "../../Theme.css";
 
 export const examplesRoot = style({
-    display: "flex",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "start",
+    display: "grid",
     alignItems: "stretch",
     gap: themeVars.spacing.double,
+    width: "100%",
+    minWidth: 0,
 });
 
 export const exampleContainer = style({
@@ -17,6 +16,7 @@ export const exampleContainer = style({
     justifyContent: "start",
     alignItems: "stretch",
     gap: themeVars.spacing.double,
+    minWidth: 0,
 
     color: themeVars.color.surface.contrast,
     backgroundImage: `linear-gradient(45deg, ${themeVars.color.surface.dark}, ${themeVars.color.surface.light})`,
@@ -24,6 +24,10 @@ export const exampleContainer = style({
     boxShadow: themeVars.shadow.medium,
     borderRadius: themeVars.borderRadius.full,
     padding: themeVars.spacing.double,
+});
+
+export const exampleDemo = style({
+    display: "contents",
 });
 
 export const exampleReadout = style({

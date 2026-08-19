@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { prop, readout, variant } from "./helpers";
+import { demo, prop, readout } from "./helpers";
 
 /**
  * The rotation delay is a panel knob, so the spec turns it down to its floor rather than waiting out the
@@ -10,17 +10,20 @@ import { prop, readout, variant } from "./helpers";
  * Three carousels sit on the page and only one of them rotates, which is what makes the holds testable:
  * a hold that leaked would show up as the other two behaving differently from the one under the pointer.
  */
-const MANUAL = variant("manual");
-const ROTATING = variant("rotating");
+const MANUAL = demo("manual");
+const ROTATING = demo("rotating");
+const NO_CONTROLS = demo("noControls");
 
 const region = (scope: string) => `${scope} [aria-roledescription="carousel"]`;
 const slide = (scope: string) => `${scope} [aria-roledescription="slide"]`;
 const control = (scope: string, name: string) => `${scope} button[aria-label="${name}"]`;
+const viewport = (scope: string) => `${region(scope)} > div:first-child`;
 
 const field = (key: string) => `${prop(key)} input`;
 
 const DELAY_MS = 500;
 const SETTLE_MS = 900;
+const DRAG_STEPS = 10;
 
 const currentSlide = (page: import("@playwright/test").Page, scope: string) =>
     page.locator(`${slide(scope)}:not([aria-hidden="true"])`).getAttribute("aria-label");
@@ -156,4 +159,45 @@ test("the disabled knob stops the rotation as well as the controls", async ({ pa
 
     await page.locator(control(MANUAL, "Next slide")).click({ force: true });
     expect(await readout(page, "manual"), "and nothing steps it").toContain("slide 1 of");
+});
+
+/**
+ * The swipe is measured against the viewport's own width, so a drag is written as a pair of fractions of it
+ * and run in enough steps to clear the slop the gesture waits for before it takes the pointer over.
+ */
+const swipeAcross = async (page: import("@playwright/test").Page, scope: string, from: number, to: number) => {
+    const box = (await page.locator(viewport(scope)).boundingBox())!;
+    const y = box.y + box.height / 2;
+
+    await page.mouse.move(box.x + box.width * from, y);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * to, y, { steps: DRAG_STEPS });
+    await page.mouse.up();
+};
+
+test("a swipe across the slides steps the way the finger went", async ({ page }) => {
+    await swipeAcross(page, MANUAL, 0.8, 0.3);
+
+    expect(await currentSlide(page, MANUAL), "pushing the slides leftwards brings the next one in").toBe("2 of 4");
+
+    await swipeAcross(page, MANUAL, 0.2, 0.7);
+
+    expect(await currentSlide(page, MANUAL), "and pushing them back the other way returns to the first").toBe("1 of 4");
+});
+
+test("a swipe let go before it has travelled far enough puts the slide back", async ({ page }) => {
+    await swipeAcross(page, MANUAL, 0.8, 0.7);
+
+    expect(await currentSlide(page, MANUAL), "a tenth of the width is a nudge, not a step").toBe("1 of 4");
+});
+
+test("a carousel with no controls refuses the swipe, because nothing else could move it", async ({ page }) => {
+    await expect(
+        page.locator(viewport(NO_CONTROLS)),
+        "the axis is never claimed, so the browser keeps the whole gesture",
+    ).toHaveCSS("touch-action", "auto");
+
+    await swipeAcross(page, NO_CONTROLS, 0.8, 0.2);
+
+    expect(await currentSlide(page, NO_CONTROLS), "and the swipe moves nothing").toBe("1 of 4");
 });

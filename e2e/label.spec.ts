@@ -1,14 +1,14 @@
 import { type ConsoleMessage, expect, test } from "@playwright/test";
 
-import { isChecked, readout, variant } from "./helpers";
+import { demo, isChecked, readout } from "./helpers";
 
-const CHECKBOX = variant("checkbox");
-const SUPPRESSED = variant("suppressed");
-const DISABLED = variant("disabled");
+const CHECKBOX = demo("checkbox");
+const SUPPRESSED = demo("suppressed");
+const DISABLED = demo("disabled");
 
 test.beforeEach(async ({ page }) => {
     await page.goto("/label");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 });
 
 test("a Label wraps caption and control, and the caption activates it", async ({ page }) => {
@@ -30,7 +30,7 @@ test("an aria-label inside a Label warns and is dropped", async ({ page }) => {
     page.on("console", (message) => messages.push(message));
 
     await page.goto("/label");
-    await expect(page.locator("[data-variant]").first()).toBeVisible();
+    await expect(page.locator("[data-example]").first()).toBeVisible();
 
     const warning = messages.find((message) => message.text().startsWith("Label: getAriaLabel"));
 

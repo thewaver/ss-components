@@ -107,7 +107,7 @@ const SlideButtonElement = (props: SlideButtonElementProps) => {
             setGrabRatio(nextGrabRatio);
             props.setProgressRatio(SlideButtonUtils.computeProgressRatio(ratio.x, nextGrabRatio, thumbRatio));
         },
-        onDragEnd: () => {
+        onDragEnd: (reason) => {
             const grabRatio = getGrabRatio();
 
             stopHold();
@@ -115,7 +115,7 @@ const SlideButtonElement = (props: SlideButtonElementProps) => {
 
             if (grabRatio === undefined) return;
 
-            if (props.getProgressRatio() >= RATIO_MAX) void props.onActivate?.();
+            if (reason === "release" && props.getProgressRatio() >= RATIO_MAX) void props.onActivate?.();
 
             setGrabRatio(undefined);
             props.setProgressRatio(RATIO_MIN);
