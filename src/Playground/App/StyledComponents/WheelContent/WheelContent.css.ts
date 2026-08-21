@@ -3,8 +3,8 @@ import { style } from "@vanilla-extract/css";
 import { themeVars } from "../../Theme.css";
 
 const SPIN_SIZE = 84;
-const PIP_SIZE = 28;
-const PIP_OVERHANG = 70;
+const PIP_SIZE = 20;
+const PIP_OVERHANG_PERCENT = 50;
 const PIP_SHADOW = "drop-shadow(0 2px 2px rgba(0, 0, 0, 0.75))";
 
 export const isHovered = style({});
@@ -32,7 +32,7 @@ export const wheelWedgeShape = style({
     strokeLinejoin: "round",
 
     selectors: {
-        [`&.${isSelected}`]: {
+        [`${isSelected} &`]: {
             fill: themeVars.color.primary.dark,
             stroke: themeVars.color.primary.light,
         },
@@ -50,6 +50,12 @@ export const wheelWedgeLabel = style({
     lineHeight: 1.2,
     textAlign: "center",
     textWrap: "balance",
+
+    selectors: {
+        [`${isSelected} &`]: {
+            color: themeVars.color.primary.contrast,
+        },
+    },
 });
 
 export const wheelStack = style({
@@ -75,7 +81,7 @@ export const wheelPipTop = style([
     {
         top: 0,
         left: "50%",
-        transform: `translate(-50%, -${PIP_OVERHANG}%)`,
+        transform: `translate(-50%, -${PIP_OVERHANG_PERCENT}%)`,
     },
 ]);
 
@@ -84,7 +90,7 @@ export const wheelPipLeft = style([
     {
         top: "50%",
         left: 0,
-        transform: `translate(-${PIP_OVERHANG}%, -50%) rotate(-90deg)`,
+        transform: `translate(-${PIP_OVERHANG_PERCENT}%, -50%) rotate(-90deg)`,
     },
 ]);
 
@@ -147,8 +153,7 @@ export const wheelSpin = style([
         backgroundImage: `radial-gradient(${themeVars.color.primary.light}, ${themeVars.color.primary.dark})`,
         border: `2px solid ${themeVars.color.primary.light}`,
         color: themeVars.color.primary.contrast,
-        fontSize: themeVars.fontSize.small,
-        textTransform: "uppercase",
+        fontWeight: "bold",
         boxShadow: themeVars.shadow.medium,
     },
 ]);

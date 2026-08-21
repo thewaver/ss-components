@@ -14,7 +14,7 @@ const WEDGE_RADIUS = 50;
 const WEDGE_CENTRE = 50;
 const LABEL_RADIUS = 44;
 const LABEL_TYPE_RATIO = 0.14;
-const PIP_PATH = "M 2 3 H 22 L 12 21 Z";
+const PIP_PATH = "M 2 3 H 18 L 10 17 Z";
 
 const PIP_SIDE_STYLES: Record<PageWheelPipSide, string> = {
     top: styles.wheelPipTop,
@@ -48,13 +48,9 @@ export const PageWheelWedge = (props: PageWheelWedgeProps) => {
     const getGeometry = createMemo(() => getWedgeGeometry(props.getState().wedgeCount));
 
     return (
-        <div class={styles.wheelWedge}>
+        <div class={styles.wheelWedge} classList={{ [styles.isSelected]: props.getState().isSelected }}>
             <svg class={styles.wheelWedgeSVG} width="100%" height="100%" viewBox="0 0 100 100">
-                <path
-                    class={styles.wheelWedgeShape}
-                    classList={{ [styles.isSelected]: props.getState().isSelected }}
-                    d={getGeometry().path}
-                />
+                <path class={styles.wheelWedgeShape} d={getGeometry().path} />
             </svg>
 
             <div
@@ -96,7 +92,7 @@ export const PageWheelMount = (props: ParentProps) => <div class={styles.wheelMo
 
 export const PageWheelPip = (props: PageWheelPipProps) => (
     <div class={PIP_SIDE_STYLES[props.getSide()]} aria-hidden>
-        <svg class={styles.wheelPipShape} viewBox="0 0 24 24">
+        <svg class={styles.wheelPipShape} viewBox="0 0 20 20">
             <path d={PIP_PATH} />
         </svg>
     </div>

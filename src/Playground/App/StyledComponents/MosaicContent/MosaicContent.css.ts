@@ -10,8 +10,9 @@ export const mosaicTile = style({
     boxSizing: "border-box",
     padding: themeVars.spacing.half,
     borderRadius: themeVars.borderRadius.half,
-    backgroundImage: `linear-gradient(135deg, ${themeVars.color.primary.dark}, ${themeVars.color.secondary.dark})`,
-    color: themeVars.color.background.contrast,
+    backgroundImage: `linear-gradient(45deg, ${themeVars.color.secondary.dark}, ${themeVars.color.secondary.light})`,
+    color: themeVars.color.secondary.contrast,
+    boxShadow: themeVars.shadow.small,
     fontSize: themeVars.fontSize.xSmall,
     overflow: "hidden",
 });
