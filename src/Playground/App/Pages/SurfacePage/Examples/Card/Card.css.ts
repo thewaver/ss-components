@@ -61,6 +61,17 @@ export const role = style({
     fontWeight: 500,
 });
 
+export const bios = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: themeVars.spacing.full,
+});
+
+export const bioFade = style({
+    height: 60,
+    backgroundImage: `linear-gradient(to bottom, transparent, ${themeVars.color.primary.contrast})`,
+});
+
 export const bio = style({
     fontSize: themeVars.fontSize.medium,
     fontWeight: 400,

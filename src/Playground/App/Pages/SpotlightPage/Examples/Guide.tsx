@@ -22,18 +22,20 @@ export const GuideExample = (props: Props) => {
 
     return (
         <div class={styles.root}>
-            <For each={TOUR_STEPS}>
-                {(step, getIndex) => (
-                    <div
-                        ref={(element) => {
-                            stepRefs[getIndex()] = element;
-                        }}
-                        class={styles.tourTarget}
-                    >
-                        {step.title}
-                    </div>
-                )}
-            </For>
+            <div class={styles.tourStrip} data-scroll-box>
+                <For each={TOUR_STEPS}>
+                    {(step, getIndex) => (
+                        <div
+                            ref={(element) => {
+                                stepRefs[getIndex()] = element;
+                            }}
+                            class={styles.tourTarget}
+                        >
+                            {step.title}
+                        </div>
+                    )}
+                </For>
+            </div>
 
             <Button
                 renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Take the tour</PageButtonContent>}

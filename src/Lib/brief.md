@@ -11,7 +11,7 @@ outstanding work. They are at the end of `backlog.md`.
 | ------------------------------------------------------- | ----: |
 | [Missing components](#missing-components)               |     7 |
 | [Pending abstractions](#pending-abstractions)           |    11 |
-| [Blockers and known issues](#blockers-and-known-issues) |    17 |
+| [Blockers and known issues](#blockers-and-known-issues) |    16 |
 | [Accessibility gaps](#accessibility-gaps)               |     5 |
 | [Planned projects](#planned-projects)                   |     1 |
 
@@ -65,7 +65,6 @@ Ordered by the user on 2026-08-15. A toolbar, a segmented control, a rating inpu
 | 19     | **`Tree`**                      | Cannot express a branch whose children have not loaded                                      |
 | 22     | **`Scroller`**                  | A second press mid-scroll advances less than a page                                         |
 | 13     | **`Toasts`**                    | An id re-added while leaving fades back in instead of restarting                            |
-| 21, 16 | **`Spotlight`, `Accordion`**    | Nothing scrolls the highlighted element or the newly opened section into view               |
 | 25     | **`DrumWheel`**                 | Girth arithmetic replaced a tuned constant; the user recalls it misbehaving and will retest |
 | 26     | **`Typewriter`**                | Cannot render a blank line; a break-collapsing bug in `ss-utils`, fix parked in-repo        |
 | 25     | **`FlatWheel`**                 | Hit-tests up to 70px outside its circle; nothing visible, a trap for a control in a wedge   |

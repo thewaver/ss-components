@@ -1,4 +1,4 @@
-import { Show, createMemo, createSignal, createUniqueId } from "solid-js";
+import { Show, createEffect, createMemo, createSignal, createUniqueId, on, onCleanup } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
 import { MathUtils } from "@thewaver/ss-utils";
@@ -47,7 +47,10 @@ export const Collapsible = (props: CollapsibleProps) => {
     const triggerId = createUniqueId();
     const panelId = createUniqueId();
 
+    const [getRootRef, setRootRef] = createSignal<HTMLElement>();
+    const [getTriggerRef, setTriggerRef] = createSignal<HTMLElement>();
     const [getContentRef, setContentRef] = createSignal<HTMLElement>();
+    const [getIsAwaitingScroll, setIsAwaitingScroll] = createSignal(false);
 
     const getIsExpanded = () => props.expandedSignal[0]();
 
@@ -59,7 +62,35 @@ export const Collapsible = (props: CollapsibleProps) => {
 
     const getContentHeight = ElementObserver.createBorderBoxHeightObserver(getContentRef);
 
-    const { getTransitionTarget } = ElementFader.createFader(getIsExpanded, { getTransitionDurationMs });
+    const { getTransitionTarget, getHasTransitionFinished } = ElementFader.createFader(getIsExpanded, {
+        getTransitionDurationMs,
+    });
+
+    createEffect(on(getIsExpanded, (isExpanded) => setIsAwaitingScroll(isExpanded), { defer: true }));
+
+    createEffect(() => {
+        if (!getIsAwaitingScroll() || !getHasTransitionFinished()) return;
+
+        setIsAwaitingScroll(false);
+
+        const root = getRootRef();
+        const trigger = getTriggerRef();
+
+        if (props.getIsScrolledIntoViewOnExpand?.() !== true || !root || !trigger) return;
+
+        const scrollIntoView = () => {
+            root.scrollIntoView({ block: "nearest" });
+            trigger.scrollIntoView({ block: "nearest" });
+        };
+
+        scrollIntoView();
+
+        const frameId = requestAnimationFrame(scrollIntoView);
+
+        onCleanup(() => {
+            cancelAnimationFrame(frameId);
+        });
+    });
 
     const getHeadingTag = createMemo(() => {
         const level = props.getHeadingLevel?.();
@@ -76,6 +107,7 @@ export const Collapsible = (props: CollapsibleProps) => {
                 <CollapsibleTrigger
                     ref={(element) => {
                         setElementRef(element);
+                        setTriggerRef(element);
                         props.ref?.(element);
                     }}
                     getId={() => props.getId?.() ?? triggerId}
@@ -90,7 +122,7 @@ export const Collapsible = (props: CollapsibleProps) => {
     );
 
     return (
-        <div class={[styles.collapsibleRoot, styles.collapsibleSizingVariants[getSizing()]].join(" ")}>
+        <div ref={setRootRef} class={[styles.collapsibleRoot, styles.collapsibleSizingVariants[getSizing()]].join(" ")}>
             <Show when={getHeadingTag()} fallback={renderWrapper()}>
                 {(getTag) => (
                     <Dynamic component={getTag()} class={styles.collapsibleHeading}>

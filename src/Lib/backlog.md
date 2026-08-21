@@ -40,12 +40,12 @@ reading.
 13. `Toasts` — five things deliberately not built — _open_
 14. `Calendar` — five things deliberately not built — _open_
 15. `ColorInput` — two things deliberately not built — _open_
-16. `Accordion` — four things deliberately not built — _open_
+16. `Accordion` — three things deliberately not built — _open_
 17. `Tabs` — no automatic activation, and a pairing the consumer can still skip — _open_
 18. `Viewport` as a region: what is settled and what is not — _open_
 19. `Tree` — four things deliberately not built, and one extraction to decide — _open_
 20. `SlideButton` — five things deliberately not built — _open_
-21. `Spotlight` — three things deliberately not built — _open_
+21. `Spotlight` — two things deliberately not built — _open_
 22. `Scroller` — five things deliberately not built — _open_
 23. `Paginator` — four things deliberately not built — _open_
 24. `Carousel` — four things deliberately not built — _open_
@@ -806,7 +806,7 @@ every other layer and takes a `visibilitySignal` like every other popup; both ar
 
 ---
 
-## 16. `Accordion` — four things deliberately not built
+## 16. `Accordion` — three things deliberately not built
 
 The decisions behind what exists are in `conventions.md` under _"Controls: `Accordion`, and where
 auto-height measurement lives"_.
@@ -816,10 +816,6 @@ auto-height measurement lives"_.
   `getIsLazy` that withholds the panel until first expansion would cost the open animation on that first
   expansion, since there would be nothing to measure yet. This now belongs to `Collapsible` rather than to
   `Accordion` — see `conventions.md` — so whatever is decided lands in one place for both.
-- **Nothing scrolls a newly opened section into view.** Opening the last section of a long list animates
-  it open below the fold. `Select`'s option does this for itself off its own `isHighlighted` flag; here
-  it would have to happen when the transition finishes rather than when it starts, so it needs the
-  fader's completion rather than its target.
 - **The height animates, and nothing else can.** A consumer wanting the panel to slide in from the side
   gets it from `renderPanel`'s visibility target, but the panel box itself only ever animates `height`.
   Animating width instead — a horizontal accordion — would need the observer's twin and a direction prop.
@@ -836,10 +832,6 @@ auto-height measurement lives"_.
   section. Both keep the measurement library-side and differ only on whether the content stays built, so
   a `getIsLazy` here would land in Radix's position — animation cost on first expansion included — rather
   than somewhere new.
-- **Nobody scrolls a newly opened section into view.** It is an open feature request against Base UI
-  (#4173) and against MUI's own accordion (#40625), and the recipe everywhere is `scrollIntoView` once
-  the transition has ended — which is exactly the completion signal this bullet identifies as the missing
-  piece. So the gap is shared rather than peculiar, and the shape of the fix is agreed on.
 - **A horizontal accordion is an `orientation` prop plus a second CSS variable.** Radix's
   `orientation="horizontal"` swaps the arrow-key axis and exposes the content _width_ beside the height,
   which is the direction prop this bullet describes, with the measurement doubled rather than generalised.
@@ -1032,17 +1024,11 @@ gaps, each with the reason it is still one.
 
 ---
 
-## 21. `Spotlight` — three things deliberately not built
+## 21. `Spotlight` — two things deliberately not built
 
 The decisions behind what exists are in `conventions.md` under _"Controls: `Spotlight`, and three presets
 because a mode cannot move at runtime"_. These are the gaps, each with the reason it is still one.
 
-- **Nothing scrolls the highlighted element into view.** `ElementObserver` measures the rect where it is, so a
-  step below the fold spotlights a rectangle nobody can see and a guide's popup is anchored to it. This is the
-  most likely of the three to be hit first, because a tour is exactly the case where the consumer does not
-  choose which part of the page is on screen. `scrollIntoView` on the element when the rect first resolves is
-  the whole of it; what has not been argued is whether a `hint` should do it too, since a hint that yanks the
-  page is a different thing from one that points at something already visible.
 - **A step change announces nothing.** The dialog stays mounted and focus deliberately does not move — see
   `conventions.md` for why moving it is worse — so a screen reader hears silence when the popup's content is
   replaced. `LiveAnnouncer` exists and is the obvious tool; what it should say, and whether a consumer wants to

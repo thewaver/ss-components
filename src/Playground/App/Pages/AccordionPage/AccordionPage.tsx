@@ -2,6 +2,7 @@ import { createMemo, createSignal } from "solid-js";
 
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { GrowingExample } from "./Examples/Growing";
+import { ScrolledExample } from "./Examples/Scrolled";
 import { SectionsExample } from "./Examples/Sections";
 import { SinglePanelExample } from "./Examples/SinglePanel";
 
@@ -11,6 +12,7 @@ export const AccordionPage = () => {
     const multiSignal = createSignal<string[]>(["Shipping"]);
     const singleSignal = createSignal<string[]>([]);
     const growingSignal = createSignal<string[]>(["Shipping"]);
+    const scrolledSignal = createSignal<string[]>([]);
 
     const showMoreSignal = createSignal(false);
 
@@ -45,6 +47,14 @@ export const AccordionPage = () => {
                 />
             ),
             path: `${EXAMPLES_ROOT}/Growing.tsx`,
+        },
+        {
+            key: "scrolled",
+            name: "Inside a box that scrolls",
+            readout: () =>
+                `expanded: ${JSON.stringify(scrolledSignal[0]())} — opening a section below the fold brings it up`,
+            component: () => <ScrolledExample expandedSignal={scrolledSignal} />,
+            path: `${EXAMPLES_ROOT}/Scrolled.tsx`,
         },
         {
             key: "singlePanel",

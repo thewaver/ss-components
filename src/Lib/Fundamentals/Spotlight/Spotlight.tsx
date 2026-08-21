@@ -46,6 +46,14 @@ export const Spotlight = (props: SpotlightProps) => {
 
     ElementObserver.createViewportRectObserver(props.getElementRef, getIsVisible, { setElementRect, getPadding });
 
+    createEffect(() => {
+        const element = props.getElementRef();
+
+        if (!getIsVisible() || !element) return;
+
+        element.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+
     const { getPlacement, getPosition, setContentRef } = Anchor.createPortalPosition(
         props.getElementRef,
         () => getIsVisible() && getHasPopup(),

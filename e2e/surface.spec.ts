@@ -54,7 +54,7 @@ test("a gradient stroke takes the SVG path and clips its children", async ({ pag
 });
 
 test("the source button opens a modal named after its example", async ({ page }) => {
-    await page.locator(`${CARD} button`).click();
+    await page.locator("#cardSource").click();
 
     await expect(
         page.locator(DIALOG),

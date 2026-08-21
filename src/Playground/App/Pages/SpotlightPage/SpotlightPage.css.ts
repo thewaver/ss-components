@@ -52,6 +52,14 @@ export const overlayOff = style({
     backdropFilter: "none",
 });
 
+export const tourStrip = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: 20,
+    height: 44,
+    overflowY: "auto",
+});
+
 export const tourTarget = style({
     width: "fit-content",
     padding: "10px 20px",

@@ -8,6 +8,7 @@ export const MEASURE_BOX_PADDING = checkerSize * 0.5;
 
 export const measureBoxRoot = style({
     position: "relative",
+    isolation: "isolate",
     backgroundImage: [
         `linear-gradient(45deg, ${checkerColorA} 25%, transparent 25%)`,
         `linear-gradient(-45deg, ${checkerColorA} 25%, transparent 25%)`,
@@ -23,7 +24,7 @@ export const measureBoxRoot = style({
             content: "",
             position: "absolute",
             inset: 1,
-            zIndex: 1,
+            zIndex: -1,
             border: `2px dashed rgba(255, 255, 255, 0.5)`,
             borderRadius: "inherit",
             pointerEvents: "none",

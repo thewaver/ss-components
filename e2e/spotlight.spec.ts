@@ -1,6 +1,6 @@
 import { type Page, expect, test } from "@playwright/test";
 
-import { activeText, demo, readout } from "./helpers";
+import { activeText, demo, readout, scrollTop } from "./helpers";
 
 const HINT = demo("hint");
 const PROMPT = demo("prompt");
@@ -143,6 +143,27 @@ test("a guide steps between elements and reports how it ended", async ({ page })
     await expect(page.locator(POPUP), "finishing closes it").toHaveCount(0);
     expect(await readout(page, "guide")).toContain("finished");
     await expect(page.locator("[inert]"), "and the page is handed back").toHaveCount(0);
+});
+
+/**
+ * Every mode scrolls to what it highlights, because none of them chooses what is on screen when it opens —
+ * the element is wherever the page put it. A tour is where that bites first and where it is easiest to
+ * drive: the guide example holds its steps in a strip only one step tall, so the second one is out of sight
+ * until something scrolls to it, which is the situation a long page produces naturally.
+ */
+test("a guide scrolls a step that is out of sight into view", async ({ page }) => {
+    const strip = page.locator(`${GUIDE} [data-scroll-box]`);
+
+    await page.locator(button(GUIDE, "Take the tour")).click();
+    await expect(page.locator(POPUP)).toBeVisible();
+    await page.waitForTimeout(SETTLE_MS);
+
+    expect(await scrollTop(strip), "the first step is where the strip already was").toBe(0);
+
+    await page.locator(popupButton("Next")).click();
+    await page.waitForTimeout(SETTLE_MS);
+
+    expect(await scrollTop(strip), "and the second is reached rather than highlighted off-screen").toBeGreaterThan(0);
 });
 
 test("a guide can be abandoned, and says so", async ({ page }) => {

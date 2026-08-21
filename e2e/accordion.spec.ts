@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { type Page, expect, test } from "@playwright/test";
 
-import { activeText, demo, offsetHeight, readout, tabIndex } from "./helpers";
+import { activeText, demo, offsetHeight, readout, scrollTop, tabIndex } from "./helpers";
 
 const MULTI = demo("multi");
 const SINGLE = demo("single");
@@ -200,4 +200,56 @@ test("arrow keys do nothing to a lone panel, because it is not part of a set", a
     await page.keyboard.press("ArrowDown");
 
     expect(await activeText(page), "focus stays where it was rather than walking to a sibling").toContain("Show more");
+});
+
+/**
+ * The scroll is opt-in and off by default, so the box is what makes it visible: four sections in a window
+ * a couple of headers tall means the lower ones grow below the fold, which is a long page reproduced inside
+ * a card. Neither test asserts a scroll distance — what matters is where the section ends up, not how far
+ * anything travelled to put it there.
+ */
+const SCROLLED = demo("scrolled");
+
+const scrollBox = (page: Page) => page.locator(`${SCROLLED} [data-scroll-box]`);
+
+const EDGE_TOLERANCE_PX = 2;
+
+const SETTLE_MS = 500;
+
+test("opening a section below the fold brings it into view", async ({ page }) => {
+    expect(await scrollTop(scrollBox(page)), "nothing has scrolled yet").toBe(0);
+
+    await page.locator(header(SCROLLED)).nth(2).click();
+    await page.waitForTimeout(SETTLE_MS);
+
+    expect(await scrollTop(scrollBox(page)), "the box scrolled to reach the section").toBeGreaterThan(0);
+
+    const box = (await scrollBox(page).boundingBox())!;
+    const opened = (await page.locator(panel(SCROLLED)).nth(2).boundingBox())!;
+
+    expect(opened.y + opened.height, "and the whole of the panel is inside the box").toBeLessThanOrEqual(
+        box.y + box.height + EDGE_TOLERANCE_PX,
+    );
+});
+
+/**
+ * The case that decides whether this behaviour is worth having: a panel with more in it than the box can
+ * show cannot be brought fully into view, and scrolling to its far edge would push the header someone just
+ * pressed off the top. So the header wins, and the panel is cut at the bottom instead.
+ */
+test("a section taller than the box keeps the pressed header in view rather than scrolling past it", async ({
+    page,
+}) => {
+    await page.locator(header(SCROLLED)).nth(3).click();
+    await page.waitForTimeout(SETTLE_MS);
+
+    const box = (await scrollBox(page).boundingBox())!;
+    const opened = (await page.locator(panel(SCROLLED)).nth(3).boundingBox())!;
+    const pressed = (await page.locator(header(SCROLLED)).nth(3).boundingBox())!;
+
+    expect(opened.height, "the panel really is more than the box can show").toBeGreaterThan(box.height);
+    expect(pressed.y, "the header is still inside the box").toBeGreaterThanOrEqual(box.y - EDGE_TOLERANCE_PX);
+    expect(pressed.y, "and sits at its top, so as much of the panel as fits is showing").toBeLessThan(
+        box.y + pressed.height,
+    );
 });

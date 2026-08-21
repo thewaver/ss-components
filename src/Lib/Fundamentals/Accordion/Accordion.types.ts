@@ -25,6 +25,7 @@ export type AccordionPanelRenderer<T> = (
 export type AccordionSectionProps<T> = AccessorProps<{
     headingLevel: number;
     isExpanded: boolean;
+    isScrolledIntoViewOnExpand?: boolean;
     transitionDurationMs?: number;
     ref?: (element: HTMLElement) => void;
 }> & {
@@ -39,6 +40,7 @@ export type AccordionProps<T> = AccessorProps<{
     sizing?: AccordionSizing;
     headingLevel?: number;
     isSingleExpand?: boolean;
+    isScrolledIntoViewOnExpand?: boolean;
     transitionDurationMs?: number;
 }> & {
     getItems: Accessor<AccordionItem<T>[]>;

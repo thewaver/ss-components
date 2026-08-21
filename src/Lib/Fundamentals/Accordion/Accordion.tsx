@@ -22,6 +22,7 @@ const AccordionSection = <T,>(props: AccordionSectionProps<T>) => {
             getId={() => headerId}
             getIsDisabled={() => props.getItem().isDisabled ?? false}
             getHeadingLevel={props.getHeadingLevel}
+            getIsScrolledIntoViewOnExpand={props.getIsScrolledIntoViewOnExpand}
             getTransitionDurationMs={props.getTransitionDurationMs}
             getPanelRole={() => "region"}
             getPanelAriaAttributes={() => ({ "aria-labelledby": headerId })}
@@ -97,6 +98,7 @@ export const Accordion = <T,>(props: AccordionProps<T>) => {
                         getItem={getItem}
                         getHeadingLevel={getHeadingLevel}
                         getIsExpanded={() => props.expandedSignal[0]().includes(getItem().value)}
+                        getIsScrolledIntoViewOnExpand={props.getIsScrolledIntoViewOnExpand}
                         getTransitionDurationMs={props.getTransitionDurationMs}
                         renderHeader={props.renderHeader}
                         renderPanel={props.renderPanel}

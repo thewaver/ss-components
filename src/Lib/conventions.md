@@ -2903,6 +2903,90 @@ the text in every other one. An accordion's natural width is its container's. Th
 heading above it. `Button.css.ts` and `BinarySwitch.css.ts` are the precedent. Nothing in the type system or
 in a DOM assertion catches it; only a real click does.
 
+**Scrolling a newly opened section into view is `Collapsible`'s, and it is opt-in.** `getIsScrolledIntoViewOnExpand`
+defaults to off; `Accordion` passes it straight through, since the section that opened is a disclosure rather
+than anything the set knows about. Off by default because the library cannot tell whether the disclosure **is**
+the page — where taking the scroll position is a kindness — or one widget in a column beside other content,
+where taking it steals the reader's place in something they were not touching. The consumer is the only one who
+knows which, and the expensive half, knowing when the growing has stopped, stays library-side either way.
+Nothing published ships it on: it is an open request against Base UI and MUI, and `backlog.md` recorded the
+recipe everyone agrees on.
+
+**It waits for the growth to finish, because the panel's size is what it has to aim at.** Scrolling when the
+click lands would aim at a panel still at zero height and leave the page in the wrong place. `ElementFader`
+already exposes `getHasTransitionFinished` beside its target — the completion signal `backlog.md` assumed did
+not exist — so the wait is a latch armed when the section expands and read when the fader reports the
+transition over. The latch is `on(..., { defer: true })`, so a section that starts life expanded does not
+scroll the page as the app loads.
+
+**Two calls, and each answers a different failure.** `scrollIntoView({ block: "nearest" })` on the whole
+section brings it up by the smallest amount that shows it, and does nothing at all when it is already visible;
+the same call on the **header** immediately afterwards is the clamp for a panel with more in it than the
+window can hold, where reaching the panel's far edge would push the header that was just pressed off the top.
+The second call gives back the least amount that puts the header back, so the panel is cut at the bottom
+instead. Chromium's own reading of `"nearest"` happens to keep the header for that case already, but the
+behaviour is stated rather than inherited from one engine's reading.
+
+**And each call happens twice, once on the finish and once on the frame after it.** The fader's completion is
+a timer started a frame before the CSS transition does, so it can report "over" while the last few pixels of
+growth are still to paint; scrolling on that frame alone lands a few pixels short. A second pass on the next
+frame corrects it. It is not a frame **instead** of the immediate call: a frame may be a long time coming on a
+loaded machine, and the suite failed exactly that way while the whole of it ran at once.
+
+### Controls: `Preview`, which shortens rather than hides
+
+Settled with the user, for a "read more" on the Playground's card. A `Preview` shows its content down to a
+height the consumer sets and opens it the rest of the way on a press.
+
+**It is a component beside `Collapsible`, not a prop on it, because the two disagree about what collapsed
+means.** MUI and Chakra took the other route — `collapsedSize` and `startingHeight` on their own `Collapse` —
+and it costs them nothing because their `Collapse` is a bare transition wrapper with no `aria-expanded`, no
+`aria-controls` and no `inert`. Ours has all three, and one of them **inverts**: `Collapsible` marks its panel
+`inert` while closed, which is right when nothing shows and wrong here, where the opening lines are on screen
+being read. A flag that silently reverses an accessibility rule is not a flag.
+
+**Nothing is ever hidden from a screen reader, and that is a consequence rather than a choice.** `inert`
+cannot be lifted off part of a text flow, so the remainder past the cut cannot be sealed without sealing the
+visible opening too. The control is therefore an affordance for the eye, and a reader using a virtual cursor
+gets the whole text. `preview.spec.ts` asserts it, because it is exactly the thing a later change would
+"tidy up" by copying `Collapsible`.
+
+**`getCollapsedHeight` is required, alone among the props.** There is no defensible default: the right
+height depends entirely on what is being shortened, and a component that guessed would be inventing the one
+number it exists to hold. `Spotlight`'s `getPadding` defaults to 0 because 0 means "no padding"; there is no
+equivalent no-op height.
+
+**Content that already fits gets no control and no overlay.** A control that opens nothing invites a press
+and does not reward it. Mantine's `Spoiler` does the same — under its `maxHeight` it renders the children and
+nothing else — and it is the reason the overflow test drives the paint as well as the button.
+
+**An unmeasured content box reads as the collapsed height, never as zero.** The height observer starts at 0,
+so the first render would otherwise ask for a zero-height box and then grow to the collapsed height once the
+measurement arrived — a preview that visibly unfolds on page load, and a transition running before anybody
+touched anything. Reading "not measured yet" as the collapsed height means the common case, where the content
+overflows, never changes height at all.
+
+**The overlay's visibility target is 1 while collapsed, which is the one place a renderer is handed the
+inverse of the open state.** It is the fade that says there is more, so it belongs to the shortened state;
+handing it the expanded target would mean every consumer writing the inversion themselves. The pair is
+`(getVisibilityTarget, getTransitionDurationMs)` as everywhere else, and the wrapper around it is positioned
+across the bottom of the clipped box — which is the library's element and unreachable from `renderContent`,
+the same reason `InteractionWrapper` owns the box its `renderDecoration` paints into.
+
+**The scroll is opt-in and fires on the way in, which is the opposite of `Accordion`'s.**
+`getIsScrolledIntoViewOnCollapse`, off by default, for the user. Opening pushes what is below further
+down and leaves the reader looking at the text they asked for, so nothing should move; closing pulls it all up
+by the height that just vanished and takes the control they pressed with it, so something should. `Accordion`
+is the mirror image — its growth is the event that can leave a section below the fold — which is why the two
+props are named for the half they act on rather than sharing one name. The machinery underneath is the same,
+latch and all: see _"Scrolling a newly opened section into view is `Collapsible`'s"_ for why the wait, the two
+calls and the extra frame are each there.
+
+**`Fold` is reserved and must not be spent on anything else.** The user's call, made while naming this: it is
+being kept for a possible component that folds in the literal sense, growing or shrinking by 2× or 0.5×.
+`Spoiler` was rejected for meaning content concealed until revealed, `Summary` because `<summary>` is the
+**trigger** half of a native disclosure, and `Excerpt` because a name has to be spellable from memory.
+
 ### `LiveAnnouncer`: the region that belongs to no component
 
 Settled, on the user's call, for `Calendar`'s month change.
@@ -5110,6 +5194,26 @@ mount silently did nothing and left a sealed page with focus on the body. Then, 
 every step, an autofocus that kept following it threw focus back to the first control each time: press `Next`,
 and the next press lands on `Skip all`. Both are pinned in `spotlight.spec.ts`.
 
+**Every mode scrolls to what it highlights, and the mode makes no difference to that.** The user's call, over
+the alternative of leaving `hint` out. The argument for leaving it out was that a hint points at something you
+are already looking at, so moving the page under someone who did not ask is worse than not pointing; the
+argument that won is that a spotlight aimed at something off-screen is useless in every mode, and that a rule
+with one mode-shaped exception is a rule nobody remembers. So the effect reads the element and the visibility
+and nothing else — it does not read `getMode`.
+
+**It is `scrollIntoView({ block: "nearest", inline: "nearest" })`, which is what the highlighted-row controls
+already use.** `Select`, `Menu` and `Clock` all scroll their highlighted row with `block: "nearest"`, so the
+smallest movement that brings the thing into view is the house answer rather than a new one. "Nearest" also
+means an element already fully visible is not moved at all, which is what keeps a hint from twitching the page
+in the common case. No `behavior: "smooth"`: the rect is re-read every frame while the spotlight is open, so a
+smooth scroll would work, but an instant one has no reduced-motion question to answer and matches the three
+controls above.
+
+**The Playground's guide example holds its steps in a strip one step tall, and that is deliberate.** The demo
+page is short enough that both tour steps were always on screen, which made the scroll unobservable and the
+spec unwritable. The strip is what reproduces a long page inside a card, and `spotlight.spec.ts` reads its
+`scrollTop` — the same shape as `viewport.spec.ts` driving `[data-scroll-box]`.
+
 ### `Anchor` positions against a rect when it is given one
 
 Settled, and it is the virtual anchor `backlog.md` has wanted since `Menu`.
@@ -5570,6 +5674,12 @@ gap on it, which is the exception rather than the pattern.
 outline that say "this is the space the component asked for", which is exactly what a page hand-rolling a
 bordered `host` div is trying to say and says less well. Three of the four pages had their own.
 
+**The outline paints behind the demo, not over it.** It was at `z-index: 1` and drew across whatever it
+contained, which stayed invisible for as long as every demo left a margin inside its box — `ElementMosaic`
+is the first that fills one edge to edge, and the dashes ran straight over the tiles. A measurement drawn on
+top of the thing it measures is the wrong way round. The box now isolates itself and the outline sits at
+`z-index: -1`, which puts it above the checkerboard and below everything the page renders into it.
+
 **The box has no padding, and that is the whole point of it.** Stated by the user, twice: the content hugs the
 box, so the outline is a measurement rather than a frame. It was defaulting to 20px, which quietly made every
 demo on every page smaller than the thing being measured, and three pages had grown a
@@ -5653,3 +5763,172 @@ contract, so a spec is meant to break when one changes; an accessible name that 
 because there the string is the thing under test; and a name the **library** owns rather than a page —
 `ColorInput`'s own default hue label, for instance — is contract too. Between those and the keys, no locator in `e2e/` now
 reads a string the Playground wrote as furniture.
+
+### `Mosaic`: one side comes from the parent, the other is what the arrangement costs
+
+Settled with the user across one conversation, from "a grid of sorts that occupies the minimum possible
+size". The name is theirs, chosen from three sets — a mosaic is unequal pieces set into a rectangle with
+grout between them, and the gap prop is the grout.
+
+**"Minimum possible size" does not define itself, and the size anchor is what fixed that.** Minimum by area,
+minimum against a target shape and minimum height for a given width are three different arrangements, and
+the first two can come out wider than the parent and spill. `sizeAnchor: "width" | "height"` is
+`CellAnimation`'s prop and its vocabulary: one side is taken from the parent, the other is whatever the
+arrangement costs, and the objective is to make that second side as small as it goes. Nothing can overflow
+the side that was given, and there is no number to tune.
+
+**The two anchors are one algorithm and a transpose, not two.** Sizes go in swapped, placements come back
+swapped, and everything between works in one space where the anchored axis is `x` and the free axis is `y`.
+`MosaicUtils.transposeSize` and `transposePlacement` are the whole of it.
+
+**The presets differ on exactly one thing: whether an item keeps its size or only its shape.** That is what
+made two presets over an unexported base the right shape rather than one component with a mode — a mosaic of
+fixed-size elements can never become a mosaic of rescaled images while it is mounted, so the choice is not a
+runtime value. Same reasoning as `SpotlightHint` / `SpotlightPrompt` / `SpotlightGuide`, and as `Checkbox` /
+`Toggle` / `Radio` over `BinarySwitch`. The base takes the packing function from the preset, which is why
+`computePlacements` exists at all; `getIsItemSized` says whether the placement's width and height are written
+to the DOM or only its position.
+
+**The packer is a skyline, and the gap is baked into the cell rather than added afterwards.** Every item is
+inflated by the gap on its right and bottom edges and packed into a container one gap wider than the real
+one. Two neighbours then have exactly one gap between them and the outermost items sit flush against the
+edges, with no special case for the first column or the last row. The placement written out is the inflated
+cell minus the gap again.
+
+**Items are packed tallest first, and that is what fills the holes.** A short item leaves room under it that
+a plain row layout can never reclaim; the skyline records the free space and the next item that fits drops
+into it. `elementMosaic.spec.ts` pins the invariant that says so — a tile's top edge is either the top of
+the mosaic or exactly one gap below some other tile's bottom edge — because a packer that quietly fell back
+to rows would still pass a no-overlap check.
+
+**An item wider than the container overhangs rather than being shrunk.** Shrinking it is the other preset's
+job, and silently distorting something the consumer gave a fixed size to is worse than showing that it does
+not fit. It reserves the full container width, so nothing is placed beside it.
+
+**The reading order is derived from the finished geometry, and the DOM is rendered in it.** The user's call,
+over the safer option of forbidding hole-filling so that placement order and reading order agree by
+construction — their reasoning was that a mosaic which leaves its holes open is not a mosaic. So the
+arrangement is cut recursively: find a horizontal line no item straddles and the mosaic splits into bands;
+within a band find a vertical line and it splits into columns; recurse, alternating. This is how reading
+order is recovered from a scanned page. An arrangement that decomposes on neither axis falls back to sorting
+by top edge then left edge.
+
+**Which makes the accessibility answer the DOM itself, with no `tabindex` and no ARIA.** WCAG 1.3.2
+Meaningful Sequence and 2.4.3 Focus Order are both Level A, and both are satisfied by putting the elements
+in the order they read: Tab and a screen reader then follow the eye by construction. The property that
+survives every arrangement, and the one the spec asserts, is that an item announced later never sits above
+**and** to the left of one announced earlier — announcement may move right and it may move down, and it
+never goes back.
+
+**`<For>` runs over the item indices, not over the placements.** A placement is a fresh object on every
+pass, so `<For>` would key on nothing stable and rebuild every tile whenever the container resized. Indices
+are primitives, `<For>` compares them by value, and reordering therefore moves the existing nodes — which is
+what keeps focus on whatever the user was on while the mosaic reflows underneath them. The order memo
+compares element by element so an unchanged order does not re-diff at all.
+
+**`readingIndex` is on the item state because nothing else can work it out.** The consumer knows its own
+array order and the component decides the announcement order, so a consumer staggering an animation along
+the reading order has no other way to ask. Everything else on `MosaicItemState` mirrors `Formation`'s.
+
+**An unplaced item is rendered and hidden, never left out.** Where the sizes come from mounted elements —
+which is `ElementMosaic` — an item that is not in the DOM can never be measured and would never earn a
+placement, so leaving it out is a deadlock rather than an optimisation. It renders at the origin with `visibility: hidden`, which still measures,
+and takes its place on the next pass. That is also what covers the first frame, where nothing has been
+measured yet.
+
+**The measuring wrapper is `width: max-content`, and that is what stops the height anchor eating itself.**
+An ordinary block inside the positioned wrapper would shrink to fit the container, so its measured width
+would depend on the container's width — which, when the height is the anchored side, is itself computed
+from the measurements. `max-content` breaks the circle by making an item's width its own business, and it
+is the same rule that lets an oversized item overhang.
+
+**Sizes are read with `ElementObserver.createBorderBoxSizeObserver` rather than from a client rect.** A
+bounding client rect is the transformed size, so inside a `Viewport` it is the layout value times the scale
+factor and the whole mosaic packs against numbers that are wrong by a constant. `ResizeObserver`'s
+`borderBoxSize` is the layout box and no transform touches it.
+
+### `ImageMosaic`: no smallest to aim at, so it is given a shape to aim at instead
+
+**"Make the free side as small as possible" is degenerate once the component picks the sizes.** With fixed
+elements the objective has an answer; with images it does not, because the smallest arrangement is always one
+row with everything scaled down — sixty images across a 380px column is sixty slivers, technically minimal
+and useless. So the preset needs a second thing to aim at, and three were weighed: a target thickness for a
+row in pixels, a floor under how small an image may get, and a target shape for the finished mosaic. The
+user took the shape.
+
+**The target is a width and a height, not one number, and that is theirs.** `{ width: 16, height: 9 }` says
+which way round it goes at the call site; a bare `1.78` does not, and the reader has to know whether the
+library divides width by height or the other way. It defaults to `{ width: 1, height: 1 }`, so a consumer
+who has no opinion gets something close to a square.
+
+**The row count is not asked for and not guessed: it is scanned for.** Splitting the images into more rows
+makes each row shorter and the mosaic taller, so the finished height rises with the row count. The scan runs
+the count upward from one, stops at the first count whose mosaic overshoots the target height, and keeps
+whichever of that count and the one before it lands nearer. Nothing is tuned and there is no window
+constant to defend.
+
+**Within a row count, the split is a dynamic program rather than a greedy fill.** For a candidate count the
+target height divides into an ideal thickness per row, and the program picks the split minimising the summed
+squared deviation from it — the standard way a justified image wall is laid out. A greedy pass closing each
+row as soon as it is full is cheaper and visibly worse: it pushes all the slack into the last row. The cost
+is the honest one for a dynamic program, quadratic in the images per row count tried, so a mosaic of several
+hundred images is doing real work on every resize.
+
+**Rows run over the order given, and nothing is reordered.** The element preset reorders because reordering
+is how a hole gets filled; here every row fills its side exactly by construction, so there is no waste to
+reclaim and reordering would only shuffle the images for nothing. The reading order derived from the
+geometry therefore comes back equal to the order passed in, which costs nothing and keeps the two presets on
+one mechanism.
+
+**The preset transposes the target shape, not the base.** The base swaps the axes so that one packer serves
+both anchors, and a target shape stated by the consumer is in the consumer's axes — so with the height
+anchored, a 16:9 target has to reach the packer as 9:16. `ImageMosaic` does that swap itself because it is
+the only thing that knows the target exists; `computePlacements` stays "whatever the preset wants" and the
+base stays a mechanism with no opinion about what is being packed.
+
+**Every source carries a text alternative, because WCAG 1.1.1 Non-text Content is Level A.** A wall of
+images with no alternatives fails outright, so the array is `{ src, alt }` rather than bare strings and a
+deliberately decorative wall says so by passing an empty string. Not a house preference — the criterion
+leaves no room, and it outranks any argument about how tidy `string[]` would have been.
+
+**The measuring copy of an image is never mounted.** `new Image()` with a `src` fires `load` and reports
+`naturalWidth` without ever being in the document, so the component learns every shape without owning
+anything the consumer can see. The first build mounted a hidden `<img>` per source instead and concluded
+from that that the consumer could never be given the element to render — a wrong conclusion, corrected by
+the user, and the reason the render slot below exists at all.
+
+**Which also means every source is fetched up front, and there is no lazy path.** The layout cannot start
+until every shape is known, so deferring a file defers the whole arrangement rather than one tile. The
+visible image and the measuring copy share a URL, so the browser serves the second from cache and only one
+request leaves the machine. Attributes that split the cache — a `crossorigin` or a `referrerpolicy` a
+consumer sets on their own markup — would cost a second fetch, which is the one case where the two copies
+stop being free.
+
+**An image that fails to load keeps a square box.** Dropping it would take its alternative text out of the
+document along with it, so a reader who cannot see the wall would not be told the picture was ever there.
+A square is the honest guess when the shape is unknowable.
+
+**`renderItem` hands over the image, and the cell keeps the size.** Without it the component renders its own
+`<img>` and the preset behaves as before. With it the consumer receives `renderImage` — the library's
+element, built and ready to place — plus the item state, and returns whatever they want around it: an
+anchor, a `<figure>` with a caption, a `<picture>` with a srcset. Same shape as `DatePicker`'s
+`renderCalendar`, `TimePicker`'s `renderClock` and `Select`'s `renderOptions`: the library builds, the
+consumer places.
+
+**The size is forced by the cell being a one-cell grid, not by asking the consumer to honour a number.**
+Publishing the computed size as a prop was weighed and dropped: it hands over a decision the component has
+already taken, cannot revise and cannot verify, so a consumer who quietly ignores it gets overlapping tiles
+that nothing detects. The cell carries the pixel width and height, `display: grid` puts every direct child
+into the single cell, and a grid item is blockified — so a bare inline `<a>` becomes a full-size click
+target with no CSS from the consumer at all, and several returned elements each fill the cell instead of
+splitting it into rows. An explicit width or height on their element still beats the stretch, which is
+deliberate: it is what lets `ElementMosaic`'s `max-content` measuring box keep its own size inside the same
+wrapper, so one mechanism serves both presets.
+
+**The cell does not clip, and that is the user's call.** `overflow: hidden` was proposed to stop a long
+caption spilling across the gap and rejected on the case it forecloses — an image that grows on hover. What
+happens to paint inside or outside the box is the consumer's half, the same line the library draws around
+`Shape` and around the `Toasts` painter; the box's job is only to be the right size. The consequence worth
+knowing is that a grown tile paints **under** the tiles after it, since later siblings win ties, and the
+cell wrapper is deliberately not a stacking context — so `position: relative` plus a `z-index` on the
+consumer's own element reaches past its neighbours and lifts it clear.

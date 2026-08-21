@@ -34,6 +34,7 @@ export type CollapsibleProps = Omit<
         sizing?: CollapsibleSizing;
         transitionDurationMs?: number;
         headingLevel?: number;
+        isScrolledIntoViewOnExpand?: boolean;
         panelRole?: JSX.HTMLAttributes<HTMLElement>["role"];
         panelAriaAttributes?: JSX.AriaAttributes;
     }> & {

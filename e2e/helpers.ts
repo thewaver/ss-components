@@ -36,6 +36,8 @@ export const inputValue = (locator: Locator) => locator.evaluate((element) => (e
 
 export const offsetHeight = (locator: Locator) => locator.evaluate((element) => (element as HTMLElement).offsetHeight);
 
+export const scrollTop = (locator: Locator) => locator.evaluate((element) => element.scrollTop);
+
 export const isScrolling = (locator: Locator) =>
     locator.evaluate((element) => element.scrollHeight > element.clientHeight);
 

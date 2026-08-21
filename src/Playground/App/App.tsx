@@ -19,15 +19,18 @@ import { ColorInputPage } from "./Pages/ColorInputPage/ColorInputPage";
 import { CurrencyInputPage } from "./Pages/CurrencyInputPage/CurrencyInputPage";
 import { DatePickerPage } from "./Pages/DatePickerPage/DatePickerPage";
 import { DrawerPage } from "./Pages/DrawerPage/DrawerPage";
+import { ElementMosaicPage } from "./Pages/ElementMosaicPage/ElementMosaicPage";
 import { FileInputPage } from "./Pages/FileInputPage/FileInputPage";
 import { FormPage } from "./Pages/FormPage/FormPage";
 import { FormationPage } from "./Pages/FormationPage/FormationPage";
+import { ImageMosaicPage } from "./Pages/ImageMosaicPage/ImageMosaicPage";
 import { ImageSwitcherPage } from "./Pages/ImageSwitcherPage/ImageSwitcherPage";
 import { LabelPage } from "./Pages/LabelPage/LabelPage";
 import { MenuPage } from "./Pages/MenuPage/MenuPage";
 import { ModalPage } from "./Pages/ModalPage/ModalPage";
 import { NumberInputPage } from "./Pages/NumberInputPage/NumberInputPage";
 import { PaginatorPage } from "./Pages/PaginatorPage/PaginatorPage";
+import { PreviewPage } from "./Pages/PreviewPage/PreviewPage";
 import { ProgressPage } from "./Pages/ProgressPage/ProgressPage";
 import { RadioPage } from "./Pages/RadioPage/RadioPage";
 import { RangePage } from "./Pages/RangePage/RangePage";
@@ -89,6 +92,12 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
                 component: () => <CellAnimationPage />,
             },
             {
+                name: "ElementMosaic",
+                description:
+                    "Packs a set of differently sized elements into the least room they will fit in. One side is taken from the parent and the other is whatever the arrangement costs, so a short item does not leave a hole under it — the next item that fits rises into it. Items are rendered in the order they end up reading in rather than the order they were passed, so Tab and a screen reader follow the eye.",
+                component: () => <ElementMosaicPage />,
+            },
+            {
                 name: "Formation",
                 description:
                     "Places a set of items into an arrangement — a podium, a whorl of three, a zigzag — from a function that answers with a position per item. Every position is a fraction of the formation's own width, so the whole thing scales with the container and nothing is measured in JavaScript.",
@@ -100,6 +109,12 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
                 component: () => null,
             },
             */
+            {
+                name: "ImageMosaic",
+                description:
+                    "The same packing over images, where the sizes are the component's to choose rather than the consumer's. Every row is scaled to fill the fixed side exactly and each image keeps its own shape, so what the consumer picks is not a size but the shape the finished mosaic should come out closest to — a square by default.",
+                component: () => <ImageMosaicPage />,
+            },
             {
                 name: "Satellite",
                 description:
@@ -272,6 +287,12 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
                 description:
                     "A page-range control, and the arithmetic is the point: which page numbers are worth showing, where the gaps fall, and which pages each gap stands for. The consumer knows the address shape, so it computes an href from a page rather than authoring the list.",
                 component: () => <PaginatorPage />,
+            },
+            {
+                name: "Preview",
+                description:
+                    "Content shown down to a height you set, with a control that opens it the rest of the way. Unlike a disclosure, nothing is ever hidden — the opening lines are readable from the start, which is why the part still folded away stays in the accessibility tree rather than going inert.",
+                component: () => <PreviewPage />,
             },
             {
                 name: "Progress",
