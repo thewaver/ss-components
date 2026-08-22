@@ -1,13 +1,30 @@
-import { style } from "@vanilla-extract/css";
+import { style, styleVariants } from "@vanilla-extract/css";
 
 import { themeVars } from "../../Theme.css";
 
-export const examplesRoot = style({
-    display: "grid",
+const examplesRoot = style({
     alignItems: "stretch",
     gap: themeVars.spacing.double,
-    width: "100%",
     minWidth: 0,
+});
+
+export const examplesRootVariants = styleVariants({
+    grid: [
+        examplesRoot,
+        {
+            display: "grid",
+            width: "100%",
+        },
+    ],
+    flow: [
+        examplesRoot,
+        {
+            display: "flex",
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "start",
+        },
+    ],
 });
 
 export const exampleContainer = style({
@@ -27,7 +44,11 @@ export const exampleContainer = style({
 });
 
 export const exampleDemo = style({
-    display: "contents",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    gap: themeVars.spacing.full,
+    minWidth: 0,
 });
 
 export const exampleReadout = style({

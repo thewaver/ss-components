@@ -7,13 +7,13 @@ import { themeVars } from "../../Theme.css";
 import * as styles from "./FormationContent.css";
 
 const EDGE_THICKNESSES = [2];
-const FILL_OPACITY = 0.95;
+const FILL_OPACITY = 0.75;
 
 export const PageFormationItem = (props: PageFormationItemProps) => (
     <div class={styles.formationItem}>
         <Shape
             computePoints={(size) => ShapeConst.getDefaultShapePoints(props.getShapeKind(), size)}
-            computeFillDefs={() => [{ color: themeVars.color.background.light, opacity: FILL_OPACITY }]}
+            computeFillDefs={() => [{ color: themeVars.color.control.background.main, opacity: FILL_OPACITY }]}
             computeStrokeDefs={() => [{ color: themeVars.color.primary.main }]}
             getStrokeGeom={() => [{ thicknesses: EDGE_THICKNESSES }]}
             renderChildren={() => (

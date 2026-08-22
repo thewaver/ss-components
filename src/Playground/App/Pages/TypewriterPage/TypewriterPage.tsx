@@ -136,7 +136,7 @@ export const TypewriterPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} />
+            <PageExamples getItems={getExamples} getLayout={() => "flow"} />
         </div>
     );
 };

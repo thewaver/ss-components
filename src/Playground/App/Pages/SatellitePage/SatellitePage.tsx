@@ -166,7 +166,7 @@ export const SatellitePage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} />
+            <PageExamples getItems={getExamples} getLayout={() => "flow"} />
         </>
     );
 };

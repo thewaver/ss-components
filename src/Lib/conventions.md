@@ -5122,10 +5122,9 @@ to a single column and stacked cards that had room to sit side by side. `CellAni
 
 **The column floor is the page's, because it follows from the demo rather than from the layout.**
 `getMinColumnWidth` defaults to the 320 `PageVariants` used, and a page that states a width for its demo
-states a floor of that width plus the card's own padding — `Formation` 420 for its 380px measure box,
-`ImageSwitcher` 520 for its 480px image, `SplitPane` 420 for its 380px frame. Where a page's demos have no
-declared width the default stands. It is a prop rather than something derived because the demo's own width is
-often inside a styled component the page never names.
+states a floor of that width plus the card's own padding — `SplitPane` 420 for its 380px frame, `Scroller`
+460, `TextArea` 340. Where a page's demos have no declared width the default stands. It is a prop rather than
+something derived because the demo's own width is often inside a styled component the page never names.
 
 **An example may take more than one column, and the grid's floor is divided by the widest span on the page.**
 `ExampleDefs.span` is a column count; `Tabs`' two demos that carry a panel and `Select`'s virtualized demo
@@ -5151,6 +5150,52 @@ plain `min(100%, floor)` a two-column card in a one-column grid lands one gap wi
 allocates a zero-width implicit track and the gap before it is still spent. Halving the floor removes the case
 entirely — checked at container widths from 280px up, the row now overflows by nothing at any of them, and the
 column count at ordinary widths is unchanged.
+
+### `PageExamples` takes one layout switch, because the two questions turned out to be one
+
+Settled with the user after the grid had been running for a while. The grid fixed what it was brought in for —
+cards of a size, and a long readout no longer stretching one card wider than its neighbours — and broke two
+things on the pages whose demos come at a fixed size. `Shape`'s card and its stress-test card were handed the
+same track, which is right for two text fields and absurd for a 320px box beside three buttons; and neither
+card was flush with what it held, so the page could no longer be read as "this is the room the component asks
+for".
+
+**Two dimensions were in play and they collapse into one.** How the demo sits inside its card, and how the
+cards sit on the page. Once a card hugs its content there is nothing left to align inside it — the card _is_
+the content — so hugging implies a wrapping row, and a wrapping row is only worth having if the cards hug.
+`getLayout` is therefore a single prop with `grid` (the default) and `flow`, and no page states both.
+
+**The rule for which is whether the demo owns its width.** A demo the page hands a size to is being shown for
+its footprint, so the card has to be flush with it: `Shape`'s `fit-content` host, `Wheel`'s 340px flat wheel,
+every measure box that is given a width. A control that takes whatever width it is given — a field, a tree, a
+tab strip — has no size of its own, any width is as arbitrary as any other, and an even column beats a ragged
+one. Argued from ownership rather than from how the pages happen to look: a demo with no width cannot be
+flush with anything, because there is nothing to be flush with.
+
+**`grid` centres its demo rather than stretching it, and a demo that must fill says so itself.** The card was
+a column that stretched its children, which was invisible while cards hugged their content and became a demo
+pinned to the left edge once they did not. The demo slot is now a centred row. The alternative — keep
+stretching and have the fixed-size demos centre themselves — was rejected by the user: it leaves the rule in
+each demo's CSS, where a new example forgets it silently. Nothing had to be swept in for the change, because
+a demo that has to fill already declares its own width and a declared width still fills a flex line:
+`Progress`'s bar, `ColorArea`'s surface and `Tabs`' panels came through untouched. What moved is what should
+have — `Tree`, `Breadcrumbs`, `DatePicker` and the link-shaped `Tabs` demos now sit at their natural width in
+the middle of the card instead of being pulled to its edges.
+
+**`ScanlineAnimation` uses measure boxes and stays on the grid, which is what sharpens the rule.** Its demo is
+an image beside a local props panel, and that pair re-flows: inside a column it stacks, and freed of one it
+lays out in a single 657px row, at which point two cards no longer fit a 1320px area and the page becomes one
+card per row. So the test is the demo having a fixed size, not the page using a `PageMeasureBox` — a demo that
+merely adapts to its container has no footprint to be flush with. `Shape`, `Wheel`, `CellAnimation`,
+`ElementMosaic`, `Formation`, `ImageMosaic`, `ImageSwitcher`, `Satellite`, `Staircase` and `Typewriter` flow;
+everything else stays on the grid. A flowing page drops `getMinColumnWidth`, since a hugging row has no
+columns to put a floor under.
+
+**The known cost of `flow` is that the readout and the title contribute their own width to a hugging card**,
+which is precisely the unevenness the grid was brought in to remove. It does not bite in practice: a readout
+and a measure box are near-disjoint across the pages — `ImageSwitcher` is the only page with both, and its
+readout is narrower than its image. Worth stating because the first flowing page to grow a long readout will
+show it, and the fix is to stop the readout contributing rather than to reach back for the grid.
 
 ### Controls: `Spotlight`, and three presets because a mode cannot move at runtime
 

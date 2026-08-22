@@ -12,6 +12,7 @@ import type { ExamplesProps } from "./Examples.types";
 
 import * as styles from "./Examples.css";
 
+const DEFAULT_LAYOUT = "grid" as const;
 const DEFAULT_MIN_COLUMN_WIDTH = 320;
 const SINGLE_SPAN = 1;
 const PERCENT = 100;
@@ -25,14 +26,18 @@ export const PageExamples = (props: ExamplesProps) => {
         props.getItems().reduce((widest, example) => Math.max(widest, example.span ?? SINGLE_SPAN), SINGLE_SPAN),
     );
 
+    const getLayout = () => props.getLayout?.() ?? DEFAULT_LAYOUT;
+
     const getMinColumnWidth = () => props.getMinColumnWidth?.() ?? DEFAULT_MIN_COLUMN_WIDTH;
 
     const getColumns = () =>
-        `repeat(auto-fill, minmax(min(${PERCENT / getWidestSpan()}%, ${getMinColumnWidth()}px), 1fr))`;
+        getLayout() === "grid"
+            ? `repeat(auto-fill, minmax(min(${PERCENT / getWidestSpan()}%, ${getMinColumnWidth()}px), 1fr))`
+            : undefined;
 
     return (
         <>
-            <div class={styles.examplesRoot} style={{ "grid-template-columns": getColumns() }}>
+            <div class={styles.examplesRootVariants[getLayout()]} style={{ "grid-template-columns": getColumns() }}>
                 <For each={props.getItems()}>
                     {(example, getExampleIndex) => (
                         <div

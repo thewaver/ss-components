@@ -14,5 +14,6 @@ export type ExampleDefs = {
 
 export type ExamplesProps = AccessorProps<{
     items: ExampleDefs[];
+    layout?: "grid" | "flow";
     minColumnWidth?: number;
 }>;

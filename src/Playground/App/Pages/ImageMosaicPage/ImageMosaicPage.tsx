@@ -19,7 +19,6 @@ const MAX_GAP = 24;
 const GAP_STEP = 2;
 const FIELD_WIDTH = 130;
 const MOSAIC_EXTENT = 380;
-const MIN_COLUMN_WIDTH = 440;
 const EXAMPLES_ROOT = "/src/Playground/App/Pages/ImageMosaicPage/Examples";
 
 const SIZE_ANCHORS: MosaicSizeAnchor[] = ["width", "height"];
@@ -131,7 +130,7 @@ export const ImageMosaicPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} getMinColumnWidth={() => MIN_COLUMN_WIDTH} />
+            <PageExamples getItems={getExamples} getLayout={() => "flow"} />
         </>
     );
 };

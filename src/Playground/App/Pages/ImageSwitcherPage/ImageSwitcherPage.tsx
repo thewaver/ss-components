@@ -40,8 +40,6 @@ const DefaultExampleWrapper = (props: ImageSwitcherProps) => {
     );
 };
 
-const MIN_COLUMN_WIDTH = 520;
-
 export const ImageSwitcherPage = () => {
     const [getSourceType, setSourceType] = createSignal<SourceType>("profile");
     const [getTransitionDurationMs, setTransitionDurationMs] = createSignal(STARTING_DURATION_MS);
@@ -99,7 +97,7 @@ export const ImageSwitcherPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} getMinColumnWidth={() => MIN_COLUMN_WIDTH} />
+            <PageExamples getItems={getExamples} getLayout={() => "flow"} />
         </div>
     );
 };

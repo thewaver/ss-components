@@ -21,7 +21,6 @@ const MAX_GAP = 40;
 const GAP_STEP = 2;
 const FIELD_WIDTH = 110;
 const STAIRCASE_WIDTH = 340;
-const MIN_COLUMN_WIDTH = 380;
 const EXAMPLES_ROOT = "/src/Playground/App/Pages/StaircasePage/Examples";
 
 const STARTING_STEP_COUNT = 6;
@@ -141,7 +140,7 @@ export const StaircasePage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} getMinColumnWidth={() => MIN_COLUMN_WIDTH} />
+            <PageExamples getItems={getExamples} getLayout={() => "flow"} />
         </>
     );
 };

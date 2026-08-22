@@ -26,15 +26,14 @@ export const wheelWedgeSVG = style({
 });
 
 export const wheelWedgeShape = style({
-    fill: `rgb(from ${themeVars.color.background.light} r g b / 90%)`,
-    stroke: themeVars.color.primary.dark,
+    fill: themeVars.color.control.background.main,
+    stroke: themeVars.color.primary.main,
     strokeWidth: 0.5,
     strokeLinejoin: "round",
 
     selectors: {
         [`${isSelected} &`]: {
-            fill: themeVars.color.primary.dark,
-            stroke: themeVars.color.primary.light,
+            fill: themeVars.color.secondary.light,
         },
     },
 });
@@ -46,14 +45,14 @@ export const wheelWedgeLabel = style({
     flexDirection: "column",
     alignItems: "center",
     gap: "0.5em",
-    color: themeVars.color.background.contrast,
+    color: themeVars.color.control.background.contrast,
     lineHeight: 1.2,
     textAlign: "center",
     textWrap: "balance",
 
     selectors: {
         [`${isSelected} &`]: {
-            color: themeVars.color.primary.contrast,
+            color: themeVars.color.secondary.contrast,
         },
     },
 });
@@ -168,9 +167,9 @@ export const wheelCard = style({
     width: "100%",
     height: "100%",
     borderRadius: themeVars.borderRadius.half,
-    backgroundImage: `linear-gradient(160deg, ${themeVars.color.background.light}, ${themeVars.color.background.dark})`,
-    border: `2px solid ${themeVars.color.primary.dark}`,
-    color: themeVars.color.background.contrast,
+    backgroundImage: `linear-gradient(160deg, ${themeVars.color.control.background.main}, ${themeVars.color.control.background.main})`,
+    border: `2px solid ${themeVars.color.primary.main}`,
+    color: themeVars.color.control.background.contrast,
     fontSize: themeVars.fontSize.small,
     textAlign: "center",
 
@@ -182,7 +181,7 @@ export const wheelCard = style({
 });
 
 export const wheelCardBack = style({
-    backgroundImage: `repeating-linear-gradient(45deg, ${themeVars.color.primary.dark} 0 6px, ${themeVars.color.background.dark} 6px 12px)`,
+    backgroundImage: `repeating-linear-gradient(45deg, ${themeVars.color.primary.main} 0 6px, ${themeVars.color.control.background.main} 6px 12px)`,
 });
 
 export const wheelCardRank = style({
