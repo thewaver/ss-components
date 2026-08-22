@@ -14,15 +14,15 @@ const DEFAULT_THEME_VALUES = {
             contrast: "rgb(0, 0, 0)",
         },
         secondary: {
-            dark: "hsl(255, 50%, 40%)",
-            main: "hsl(255, 75%, 50%)",
-            light: "hsl(255, 50%, 50%)",
-            contrast: "rgb(255, 255, 255)",
+            dark: "hsl(30, 25%, 50%)",
+            main: "hsl(30, 50%, 50%)",
+            light: "hsl(30, 25%, 60%)",
+            contrast: "rgb(0, 0, 0)",
         },
         info: {
-            dark: "hsl(210, 50%, 40%)",
-            main: "hsl(210, 75%, 50%)",
-            light: "hsl(210, 50%, 50%)",
+            dark: "hsl(225, 50%, 40%)",
+            main: "hsl(225, 75%, 50%)",
+            light: "hsl(225, 50%, 50%)",
             contrast: "rgb(255, 255, 255)",
         },
         success: {

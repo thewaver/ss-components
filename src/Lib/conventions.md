@@ -2540,6 +2540,47 @@ back to the value. Nothing was added to the library — the preview was the argu
 being more than paint, and it turned out to be **eight lines in the consumer**; a radio group's arrow keys
 move the value itself, so the keyboard case needs no preview.
 
+### Each palette token has one job, and the two rules that follow from it
+
+Stated by the user. A colour group is `dark` / `main` / `light` / `contrast`, or `dark` / `light` /
+`contrast` where there is no `main`. Which token goes where is not a matter of taste:
+
+- **`main` is never a background.** It is for highlights, borders, and text over black — the places where a
+  colour has to announce itself against something dark, not the places something else has to be read on top
+  of it.
+- **A background is a gradient from `dark` to `light`, or the reverse — never a flat `main`.** Linear or
+  radial, whichever suits the shape: linear for cells and rows, radial for round badges and markers.
+- **`color` only ever takes `main` or `contrast`.** `main` when the text is a coloured accent on a dark
+  surface, `contrast` when it sits on its own family's background. Never `dark` or `light`, which are
+  background shades and are not built to be read against anything.
+
+**What this cost across the Playground**: nine backgrounds became gradients — the calendar's and clock's
+selected cells, the paginator's current page, both satellite badges, and the step marker's `done`, `current`,
+`failed` and `skipped` states. Four `color` declarations moved from `light` to `main`: the form field's error
+message and the three toast severities. Everything left holding `main` paints a line, a dot, a track, a
+scrollbar thumb or a drag handle — highlights, which is the token's job.
+
+**Direction is `215deg` for linear and `circle at 70% 30%` for radial, so the light falls the same way
+everywhere.** The house already had `linear-gradient(45deg, dark, light)` on the example card and
+`linear-gradient(215deg, light, dark)` on the toast, which are the same picture written twice — light at the
+top right. The new gradients follow it rather than adding a third convention.
+
+**Contrast was checked at both ends of every new gradient, not just at one.** A gradient background has two
+extremes and the text has to clear the worse of them. Against each family's own `contrast` token, after the palette pass
+that followed: `primary` 9.17 / 10.85, `success` 9.44 / 11.18 and `alert` 8.25 / 10.21 are **AAA at both
+ends**, clearing 7:1 rather than merely 4.5:1. Three groups have one AAA end and one AA end — `secondary`
+5.73 / 7.78, `info` 7.89 / 5.76 and `error` 7.30 / 5.22. Nothing in the palette is below AA on either end
+any more, so any `dark`-to-`light` gradient is safe to put its own `contrast` on.
+
+**The flat wheel's wedge is an SVG `path`, so it needed a real gradient def rather than a CSS one.** `fill`
+cannot take a CSS gradient. Each `PageWheelWedge` renders its own two-stop `<linearGradient>` under a
+`createUniqueId`, and the picked state points the path's `fill` at it through an inline style — inline so it
+beats the class rule that carries the unpicked colour, which stays in the stylesheet where every other colour
+lives. The stops themselves are vanilla-extract classes rather than attributes, because a presentation
+attribute will not resolve a CSS custom property and every colour here is one. Eight wedges means eight
+identical defs with eight different ids: redundant, but valid, and a shared id would mean one component
+knowing about a def emitted somewhere else on the page.
+
 ### The Playground theme is an example, and carries no rationale on purpose
 
 Settled by the user, when asked whether `App/Theme.css.ts`'s token shape deserved an entry
@@ -5776,26 +5817,29 @@ size is still being measured, and backs must not flicker in and out during a mea
 **A picked wedge and a picked drum face wear the same treatment, and the colour is decided by contrast
 rather than by taste.** Asked for by the user, who found the drums had no visible highlight at all: the card
 changed its border from `primary.main` to `primary.light` and nothing else, which is not something anyone
-notices on a barrel that is turning. Both now take `secondary.light` behind `secondary.contrast` text — the
+notices on a barrel that is turning. Both now take a `secondary.dark` to `secondary.light` gradient behind `secondary.contrast` text — the
 flat wedge as a `fill` on its shape, the drum face as a `backgroundImage` on its card, because one is SVG and
 the other is a div, and that is the whole of the difference.
 
-**The purple does not meet WCAG 1.4.3, and stays as it is because the user said so.** It was changed to
-`secondary.dark` once and put back on their instruction: the measurement was wanted, the edit to their
-colours was not — see _"A contrast finding in the Playground's own look is a warning"_ in `CLAUDE.md`. The
-numbers, so nobody has to take them again:
+**The purple failed WCAG 1.4.3 and the theme was moved rather than the component.** The wheel's picked
+wedge was reported as a warning, not patched — see _"A contrast finding in the Playground's own look is a
+warning"_ in `CLAUDE.md` — and the user answered by editing the palette itself, which is the right layer:
+every consumer of `secondary` gets the correction rather than the one component that happened to be measured.
+What moved was `secondary.light` from 60% to 50% lightness and the family's `contrast` token from a pale
+lavender to plain white.
 
-- **The flat wheel's label**, 17.35px regular on a 340px wheel, so normal text needing 4.5:1.
-  `secondary.contrast` on `secondary.light` is **3.41:1**. The size is set in container units, so a smaller
-  wheel only makes it worse.
-- **The drum card's text**, 14px regular, the same pairing and so the same **3.41:1**.
-- **The drum card's rank badge**, 24px regular, which is large text needing 3:1. `primary.main` on
-  `secondary.light` is **2.61:1**. This one arrived with the highlight rather than predating it: before the
-  card had a picked background the badge sat on black at 12.2:1.
+Measured on the built page afterwards, so nobody has to take them again:
 
-Two ways out, if it is ever wanted. `secondary.dark` behind the same text gives **7.11:1** for both labels and
-takes the badge to **5.44:1**. Black text on the lighter purple gives **4.69:1** for the labels and leaves the
-badge where it is.
+- **The flat wheel's label**, 17.35px regular on a 340px wheel, so normal text needing 4.5:1: **7.04:1**, up
+  from 3.41:1.
+- **The drum card's text**, 14px regular, the same pairing: **7.04:1**, up from 3.41:1.
+- **The drum card's rank badge**, `primary.main` at 24px, which is large text needing 3:1: **4.10:1**, up from
+  2.61:1 — clearing the normal-text bar too, so it is safe if the badge ever shrinks.
+
+**A palette pairing that nothing renders is not a finding.** `info.contrast` on `info.main` is 4.03:1 and on
+`info.light` 4.15:1, both short of 4.5:1 — and neither is reached, because `info.contrast` has no consumer
+anywhere in the Playground. `info.light` is used, but as a foreground on `surface`, which is a different sum.
+Worth knowing before that token is first used for text, and not worth changing on its own.
 
 **Only the front faces can be picked, and the back's stripes are left alone.** A back face carries the same
 index as its front, so it is flagged as picked at the same moment — but `backface-visibility` means a back is

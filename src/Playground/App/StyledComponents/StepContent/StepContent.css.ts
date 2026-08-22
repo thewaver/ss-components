@@ -44,17 +44,35 @@ const markerBase = {
 } as const;
 
 export const marker = styleVariants({
-    done: [{ ...markerBase, backgroundColor: themeVars.color.success.main, color: themeVars.color.success.contrast }],
+    done: [
+        {
+            ...markerBase,
+            backgroundImage: `radial-gradient(circle at 70% 30%, ${themeVars.color.success.light}, ${themeVars.color.success.dark})`,
+            color: themeVars.color.success.contrast,
+        },
+    ],
     current: [
         {
             ...markerBase,
-            backgroundColor: themeVars.color.primary.main,
+            backgroundImage: `radial-gradient(circle at 70% 30%, ${themeVars.color.primary.light}, ${themeVars.color.primary.dark})`,
             color: themeVars.color.primary.contrast,
             boxShadow: `0 0 0 3px rgb(from ${themeVars.color.primary.main} r g b / 35%)`,
         },
     ],
-    failed: [{ ...markerBase, backgroundColor: themeVars.color.error.main, color: themeVars.color.error.contrast }],
-    skipped: [{ ...markerBase, backgroundColor: themeVars.color.alert.main, color: themeVars.color.alert.contrast }],
+    failed: [
+        {
+            ...markerBase,
+            backgroundImage: `radial-gradient(circle at 70% 30%, ${themeVars.color.error.light}, ${themeVars.color.error.dark})`,
+            color: themeVars.color.error.contrast,
+        },
+    ],
+    skipped: [
+        {
+            ...markerBase,
+            backgroundImage: `radial-gradient(circle at 70% 30%, ${themeVars.color.alert.light}, ${themeVars.color.alert.dark})`,
+            color: themeVars.color.alert.contrast,
+        },
+    ],
     ahead: [
         {
             ...markerBase,

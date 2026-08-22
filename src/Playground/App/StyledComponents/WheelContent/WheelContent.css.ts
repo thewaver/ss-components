@@ -30,12 +30,14 @@ export const wheelWedgeShape = style({
     stroke: themeVars.color.primary.main,
     strokeWidth: 0.5,
     strokeLinejoin: "round",
+});
 
-    selectors: {
-        [`${isSelected} &`]: {
-            fill: themeVars.color.secondary.light,
-        },
-    },
+export const wheelWedgeGradientFrom = style({
+    stopColor: themeVars.color.secondary.dark,
+});
+
+export const wheelWedgeGradientTo = style({
+    stopColor: themeVars.color.secondary.light,
 });
 
 export const wheelWedgeLabel = style({
@@ -175,7 +177,7 @@ export const wheelCard = style({
 
     selectors: {
         [`&.${isSelected}`]: {
-            backgroundImage: `linear-gradient(160deg, ${themeVars.color.secondary.light}, ${themeVars.color.secondary.light})`,
+            backgroundImage: `linear-gradient(215deg, ${themeVars.color.secondary.light}, ${themeVars.color.secondary.dark})`,
             borderColor: themeVars.color.primary.light,
             color: themeVars.color.secondary.contrast,
         },

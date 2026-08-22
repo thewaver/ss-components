@@ -23,7 +23,7 @@ export const formFieldMessage = style({
 
     selectors: {
         [`&.${hasError}`]: {
-            color: themeVars.color.error.light,
+            color: themeVars.color.error.main,
             opacity: 1,
         },
     },

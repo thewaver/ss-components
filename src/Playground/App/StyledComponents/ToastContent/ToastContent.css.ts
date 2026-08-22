@@ -25,9 +25,9 @@ export const toastCard = style({
 });
 
 export const toastKindVariants = styleVariants({
-    info: { color: themeVars.color.info.light },
-    success: { color: themeVars.color.success.light },
-    error: { color: themeVars.color.error.light },
+    info: { color: themeVars.color.info.main },
+    success: { color: themeVars.color.success.main },
+    error: { color: themeVars.color.error.main },
 });
 
 export const toastAnimationOffVariants = styleVariants({

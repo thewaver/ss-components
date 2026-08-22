@@ -1,4 +1,4 @@
-import { type ParentProps, createMemo } from "solid-js";
+import { type ParentProps, createMemo, createUniqueId } from "solid-js";
 
 import type {
     PageWheelCardProps,
@@ -46,11 +46,23 @@ const getWedgeGeometry = (wedgeCount: number) => {
 
 export const PageWheelWedge = (props: PageWheelWedgeProps) => {
     const getGeometry = createMemo(() => getWedgeGeometry(props.getState().wedgeCount));
+    const gradientId = createUniqueId();
 
     return (
         <div class={styles.wheelWedge} classList={{ [styles.isSelected]: props.getState().isSelected }}>
             <svg class={styles.wheelWedgeSVG} width="100%" height="100%" viewBox="0 0 100 100">
-                <path class={styles.wheelWedgeShape} d={getGeometry().path} />
+                <defs>
+                    <linearGradient id={gradientId} x1="0" y1="1" x2="1" y2="0">
+                        <stop class={styles.wheelWedgeGradientFrom} offset="0%" />
+                        <stop class={styles.wheelWedgeGradientTo} offset="100%" />
+                    </linearGradient>
+                </defs>
+
+                <path
+                    class={styles.wheelWedgeShape}
+                    style={{ fill: props.getState().isSelected ? `url(#${gradientId})` : undefined }}
+                    d={getGeometry().path}
+                />
             </svg>
 
             <div
