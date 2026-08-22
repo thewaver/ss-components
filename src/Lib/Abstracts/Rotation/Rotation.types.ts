@@ -4,8 +4,6 @@ import type { AccessorProps } from "../../Utils/typeUtils";
 
 export type RotationPhase = "still" | "idling" | "spinning" | "settling";
 
-export type RotationTimingFunction = "ease" | "linear";
-
 export type RotationSpinDefs = {
     turns: number;
     jitterRatio: number;
@@ -23,5 +21,6 @@ export type RotationDefs = AccessorProps<{
     getIdleDelayMs?: Accessor<number | undefined>;
     indexSignal?: Signal<number>;
     autoSpinSignal?: Signal<boolean>;
+    onStepChange?: (index: number) => void;
     onSpinEnd?: (index: number) => void;
 };

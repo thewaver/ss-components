@@ -3,12 +3,15 @@ import type { Size2d } from "@thewaver/ss-utils";
 import type { WheelAxis } from "./Wheel.types";
 
 const MIN_DRUM_WEDGE_COUNT = 2;
+const MIN_BACKED_WEDGE_COUNT = 3;
 
 export const DRUM_PERSPECTIVE_PX = 1000;
 
 export namespace WheelUtils {
     export const getWedgeExtent = (wedgeSize: Size2d, axis: WheelAxis) =>
         axis === "row" ? wedgeSize.width : wedgeSize.height;
+
+    export const getHasWedgeBacks = (wedgeCount: number) => wedgeCount >= MIN_BACKED_WEDGE_COUNT;
 
     export const getApothem = (wedgeExtent: number, wedgeCount: number) => {
         if (wedgeCount < MIN_DRUM_WEDGE_COUNT) return 0;

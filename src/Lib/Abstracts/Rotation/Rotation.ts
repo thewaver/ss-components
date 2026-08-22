@@ -1,10 +1,14 @@
 import type { Accessor } from "solid-js";
-import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import { createEffect, createMemo, createSignal, on, onCleanup, untrack } from "solid-js";
 
+import { MathUtils } from "@thewaver/ss-utils";
+
+import type { EasingFn } from "../../Utils/easing";
+import { EasingUtils } from "../../Utils/easing";
 import { InteractionUtils } from "../Interaction/Interaction.utils";
 import { LiveAnnouncer } from "../LiveAnnouncer/LiveAnnouncer";
 import { SignalMirror } from "../SignalMirror/SignalMirror";
-import type { RotationDefs, RotationPhase, RotationSpinDefs, RotationTimingFunction } from "./Rotation.types";
+import type { RotationDefs, RotationPhase, RotationSpinDefs } from "./Rotation.types";
 import { RotationUtils } from "./Rotation.utils";
 
 const DEFAULT_SPIN_DURATION_MS = 3000;
@@ -13,8 +17,8 @@ const DEFAULT_REST_DURATION_MS = 3000;
 const DEFAULT_SPIN_DEFS: RotationSpinDefs = { turns: 3, jitterRatio: 0 };
 const MIN_ROTATABLE_STEP_COUNT = 2;
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
-const SETTLED_TIMING_FUNCTION: RotationTimingFunction = "ease";
-const IDLING_TIMING_FUNCTION: RotationTimingFunction = "linear";
+const FRAME_STARVATION_SLACK_MS = 100;
+const SPIN_EASING: EasingFn = EasingUtils.ease;
 
 export namespace Rotation {
     export const createRotation = (getIsDisabled: Accessor<boolean>, defs: RotationDefs) => {
@@ -28,7 +32,8 @@ export namespace Rotation {
         const [getIsAutoSpinEnabled] = SignalMirror.createOptional(() => defs.autoSpinSignal, true);
 
         let targetIndex: number | undefined;
-        let jitterAngle = 0;
+        let spinFrameId: number | undefined;
+        let starvationHandle: ReturnType<typeof setTimeout> | undefined;
 
         const getStepCount = createMemo(() => Math.max(0, Math.trunc(defs.getStepCount())));
 
@@ -66,35 +71,60 @@ export namespace Rotation {
             return isIdling ? "idling" : "still";
         });
 
-        const getTransitionDurationMs = createMemo(() => {
-            switch (getPhase()) {
-                case "spinning": {
-                    return getSpinDurationMs();
-                }
-                case "settling": {
-                    return getSettleDurationMs();
-                }
-                case "idling": {
-                    return getIdleDelayMs() ?? 0;
-                }
-                case "still": {
-                    return 0;
-                }
-            }
-        });
-
-        const getTimingFunction = createMemo(() =>
-            getPhase() === "idling" ? IDLING_TIMING_FUNCTION : SETTLED_TIMING_FUNCTION,
-        );
+        const getSelectedIndex = createMemo(() => RotationUtils.getAngleIndex(getAngle(), getStepCount()));
 
         const getStepLabel = (index: number) =>
             defs.computeStepLabel?.(index, getStepCount()) ?? `${index + 1} of ${getStepCount()}`;
+
+        const stopSpinFrames = () => {
+            if (spinFrameId !== undefined) cancelAnimationFrame(spinFrameId);
+            if (starvationHandle !== undefined) clearTimeout(starvationHandle);
+
+            spinFrameId = undefined;
+            starvationHandle = undefined;
+        };
+
+        const turnTo = (toAngle: number, durationMs: number, easing: EasingFn, onArrival: () => void) => {
+            stopSpinFrames();
+
+            const fromAngle = untrack(getAngle);
+
+            const arrive = () => {
+                stopSpinFrames();
+                setAngle(toAngle);
+                onArrival();
+            };
+
+            if (durationMs <= 0) {
+                arrive();
+
+                return;
+            }
+
+            const startedAt = performance.now();
+
+            const advance = () => {
+                const ratio = MathUtils.clamp01((performance.now() - startedAt) / durationMs);
+
+                if (ratio >= 1) {
+                    arrive();
+
+                    return;
+                }
+
+                setAngle(MathUtils.lerp(fromAngle, toAngle, easing(ratio)));
+
+                spinFrameId = requestAnimationFrame(advance);
+            };
+
+            starvationHandle = setTimeout(arrive, durationMs + FRAME_STARVATION_SLACK_MS);
+            spinFrameId = requestAnimationFrame(advance);
+        };
 
         const settle = () => {
             const index = RotationUtils.wrapIndex(targetIndex ?? getIndex(), getStepCount());
 
             targetIndex = undefined;
-            jitterAngle = 0;
 
             setSpinPhase("still");
             setIsResting(true);
@@ -115,15 +145,26 @@ export namespace Rotation {
                 .then((index) => {
                     const stepCount = getStepCount();
                     const spinDefs = defs.computeSpinDefs?.(index, stepCount) ?? DEFAULT_SPIN_DEFS;
+                    const jitterAngle = RotationUtils.getJitterAngle(spinDefs.jitterRatio, stepCount);
+                    const spinAngle =
+                        RotationUtils.getSpinAngle(untrack(getAngle), index, stepCount, spinDefs.turns) + jitterAngle;
 
-                    jitterAngle = RotationUtils.getJitterAngle(spinDefs.jitterRatio, stepCount);
                     targetIndex = index;
 
-                    setAngle(
-                        (prev) => RotationUtils.getSpinAngle(prev, index, stepCount, spinDefs.turns) + jitterAngle,
-                    );
                     setSpinPhase("spinning");
                     setIsAwaitingTarget(false);
+
+                    turnTo(spinAngle, getSpinDurationMs(), SPIN_EASING, () => {
+                        if (jitterAngle === 0) {
+                            settle();
+
+                            return;
+                        }
+
+                        setSpinPhase("settling");
+
+                        turnTo(spinAngle - jitterAngle, getSettleDurationMs(), SPIN_EASING, settle);
+                    });
                 })
                 .catch(() => {
                     setIsAwaitingTarget(false);
@@ -143,28 +184,6 @@ export namespace Rotation {
         });
 
         createEffect(() => {
-            const spinPhase = getSpinPhase();
-
-            if (spinPhase === "still") return;
-
-            const durationMs = spinPhase === "spinning" ? getSpinDurationMs() : getSettleDurationMs();
-            const handle = setTimeout(() => {
-                if (spinPhase === "spinning" && jitterAngle !== 0) {
-                    setAngle((prev) => prev - jitterAngle);
-                    setSpinPhase("settling");
-
-                    return;
-                }
-
-                settle();
-            }, durationMs);
-
-            onCleanup(() => {
-                clearTimeout(handle);
-            });
-        });
-
-        createEffect(() => {
             const restDurationMs = getRestDurationMs();
 
             if (!getIsResting() || restDurationMs < 0) return;
@@ -177,25 +196,44 @@ export namespace Rotation {
         });
 
         createEffect(() => {
-            if (getPhase() !== "idling") return;
-
-            const fromAngle = getAngle();
+            const idleDelayMs = getIdleDelayMs();
             const stepAngle = getStepAngle();
-            const handle = setTimeout(() => setAngle(fromAngle + stepAngle), getIdleDelayMs());
+
+            if (getPhase() !== "idling" || idleDelayMs === undefined || idleDelayMs <= 0 || stepAngle <= 0) return;
+
+            const degreesPerMs = stepAngle / idleDelayMs;
+
+            let previousTime = performance.now();
+            let idleFrameId: number;
+
+            const advance = (time: number) => {
+                const elapsedMs = time - previousTime;
+
+                previousTime = time;
+
+                setAngle((angle) => angle + elapsedMs * degreesPerMs);
+
+                idleFrameId = requestAnimationFrame(advance);
+            };
+
+            idleFrameId = requestAnimationFrame(advance);
 
             onCleanup(() => {
-                clearTimeout(handle);
+                cancelAnimationFrame(idleFrameId);
             });
         });
+
+        createEffect(on(getSelectedIndex, (index) => defs.onStepChange?.(index), { defer: true }));
+
+        onCleanup(stopSpinFrames);
 
         return {
             getAngle,
             getIndex,
+            getSelectedIndex,
             getPhase,
             getStepAngle,
             getStepCount,
-            getTransitionDurationMs,
-            getTimingFunction,
             getIsRotatable,
             getIsSpinnable,
             getIsAwaitingTarget,

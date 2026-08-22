@@ -1,3 +1,4 @@
+import type { Accessor } from "solid-js";
 import { createMemo, createSignal } from "solid-js";
 
 import { PageExamples } from "../../PageComponents/Examples/Examples";
@@ -16,6 +17,9 @@ const WEDGE_COUNT_STEP = 1;
 const MIN_DURATION_MS = 500;
 const MAX_DURATION_MS = 6000;
 const DURATION_STEP_MS = 500;
+const MIN_TURNS = 1;
+const MAX_TURNS = 10;
+const TURNS_STEP = 1;
 const MIN_IDLE_DELAY_MS = 1000;
 const MAX_IDLE_DELAY_MS = 8000;
 const IDLE_DELAY_STEP_MS = 500;
@@ -28,11 +32,10 @@ const STARTING_SETTLE_DURATION_MS = 1500;
 const STARTING_REST_DURATION_MS = 3000;
 const INDEFINITE_REST_DURATION_MS = -1;
 const STARTING_IDLE_DELAY_MS = 3000;
+const STARTING_TURNS = 3;
 
 const FLAT_WHEEL_SIZE = 340;
-const PLAIN_TURNS = 3;
 const MIN_LIVELY_TURNS = 1;
-const MAX_LIVELY_TURNS = 3;
 const LIVELY_JITTER_SPREAD = 0.9;
 
 const PRIZES = [
@@ -50,10 +53,10 @@ const PRIZES = [
     "Another go",
 ];
 
-const rigid: WheelSpinStyleFn = () => ({ turns: PLAIN_TURNS, jitterRatio: 0 });
+const rigid: WheelSpinStyleFn = (index, wedgeCount, turns) => ({ turns, jitterRatio: 0 });
 
-const bouncy: WheelSpinStyleFn = () => ({
-    turns: MIN_LIVELY_TURNS + Math.floor(Math.random() * (MAX_LIVELY_TURNS - MIN_LIVELY_TURNS + 1)),
+const bouncy: WheelSpinStyleFn = (index, wedgeCount, turns) => ({
+    turns: MIN_LIVELY_TURNS + Math.floor(Math.random() * (turns - MIN_LIVELY_TURNS + 1)),
     jitterRatio: (Math.random() - 0.5) * LIVELY_JITTER_SPREAD,
 });
 
@@ -92,6 +95,7 @@ const DrumOverExampleWrapper = (props: WheelExampleProps) => {
 export const WheelPage = () => {
     const [getWedgeCount, setWedgeCount] = createSignal(STARTING_WEDGE_COUNT);
     const [getSpinDurationMs, setSpinDurationMs] = createSignal(STARTING_SPIN_DURATION_MS);
+    const [getTurns, setTurns] = createSignal(STARTING_TURNS);
     const [getSettleDurationMs, setSettleDurationMs] = createSignal(STARTING_SETTLE_DURATION_MS);
     const [getRestDurationMs, setRestDurationMs] = createSignal(STARTING_REST_DURATION_MS);
     const [getDoesResume, setDoesResume] = createSignal(true);
@@ -104,11 +108,18 @@ export const WheelPage = () => {
     const sidewaysIndexSignal = createSignal(0);
     const reelIndexSignal = createSignal(0);
 
+    const [getFlatMarkedIndex, setFlatMarkedIndex] = createSignal(0);
+    const [getSidewaysMarkedIndex, setSidewaysMarkedIndex] = createSignal(0);
+    const [getReelMarkedIndex, setReelMarkedIndex] = createSignal(0);
+
     const getWedges = createMemo(() => PRIZES.slice(0, getWedgeCount()));
 
     const getIdleDelay = () => (getIsIdlingAllowed() ? getIdleDelayMs() : undefined);
 
     const getRestDuration = () => (getDoesResume() ? getRestDurationMs() : INDEFINITE_REST_DURATION_MS);
+
+    const getReadout = (getMarkedIndex: Accessor<number>, getSettledIndex: Accessor<number>) => () =>
+        `under the marker: ${getWedges()[getMarkedIndex()] ?? "nothing"} — settled on: ${getWedges()[getSettledIndex()] ?? "nothing"}`;
 
     const getExamples = createMemo(() => {
         const commonProps = {
@@ -118,26 +129,48 @@ export const WheelPage = () => {
             getSettleDurationMs,
             getRestDurationMs: getRestDuration,
             getIdleDelayMs: getIdleDelay,
-            computeSpinDefs: (index: number, wedgeCount: number) => SPIN_STYLES[getSpinStyleKey()](index, wedgeCount),
+            computeSpinDefs: (index: number, wedgeCount: number) =>
+                SPIN_STYLES[getSpinStyleKey()](index, wedgeCount, getTurns()),
         };
 
         return [
             {
                 key: "flat",
                 name: "Flat, top",
-                component: () => <FlatExampleWrapper {...commonProps} indexSignal={flatIndexSignal} />,
+                component: () => (
+                    <FlatExampleWrapper
+                        {...commonProps}
+                        indexSignal={flatIndexSignal}
+                        onSelectedWedgeChange={setFlatMarkedIndex}
+                    />
+                ),
+                readout: getReadout(getFlatMarkedIndex, flatIndexSignal[0]),
                 path: `${EXAMPLES_ROOT}/Flat.tsx`,
             },
             {
                 key: "sideways",
                 name: "Drum, horizontal",
-                component: () => <DrumSidewaysExampleWrapper {...commonProps} indexSignal={sidewaysIndexSignal} />,
+                component: () => (
+                    <DrumSidewaysExampleWrapper
+                        {...commonProps}
+                        indexSignal={sidewaysIndexSignal}
+                        onSelectedWedgeChange={setSidewaysMarkedIndex}
+                    />
+                ),
+                readout: getReadout(getSidewaysMarkedIndex, sidewaysIndexSignal[0]),
                 path: `${EXAMPLES_ROOT}/DrumSideways.tsx`,
             },
             {
                 key: "reel",
                 name: "Drum, vertical",
-                component: () => <DrumOverExampleWrapper {...commonProps} indexSignal={reelIndexSignal} />,
+                component: () => (
+                    <DrumOverExampleWrapper
+                        {...commonProps}
+                        indexSignal={reelIndexSignal}
+                        onSelectedWedgeChange={setReelMarkedIndex}
+                    />
+                ),
+                readout: getReadout(getReelMarkedIndex, reelIndexSignal[0]),
                 path: `${EXAMPLES_ROOT}/DrumOver.tsx`,
             },
         ];
@@ -167,6 +200,18 @@ export const WheelPage = () => {
                         getWidth={() => FIELD_WIDTH}
                         getAriaLabel={() => "Spin duration"}
                         onInput={setSpinDurationMs}
+                    />
+                </PageProp>
+
+                <PageProp getKey={() => "turns"} getLabel={() => "Turns per spin"}>
+                    <PageNumberField
+                        getValue={getTurns}
+                        getMin={() => MIN_TURNS}
+                        getMax={() => MAX_TURNS}
+                        getStep={() => TURNS_STEP}
+                        getWidth={() => FIELD_WIDTH}
+                        getAriaLabel={() => "Turns per spin"}
+                        onInput={setTurns}
                     />
                 </PageProp>
 

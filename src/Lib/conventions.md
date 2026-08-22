@@ -128,6 +128,46 @@ rather than the verb, since the package names things after what they operate on.
 genuinely absent, it is a candidate to go _to_ `ss-utils` — see the section above for which side of the
 line it falls on.
 
+### `EasingUtils` is written here to be lifted into `ss-utils` whole
+
+`src/Lib/Utils/easing.ts` is the one file in `src/Lib` written against another repo's conventions rather
+than this one's. The user's instruction when it was commissioned: put the curve maths in its own file,
+wherever, because it is going to be copy-pasted into `ss-utils` later — and while building it, fill out the
+family rather than stopping at the one curve the caller needed, so the package arrives complete.
+
+**So it exports far more than has a consumer, and that is deliberate.** `Rotation` uses `ease` and nothing
+else. Everything beside it — the four CSS keyword curves, and `in` / `out` / `inOut` for quad, cubic, quart,
+quint, sine, expo, circ, back, elastic and bounce — exists because a package of easings missing two thirds of
+the set is a package nobody reaches for. Do not prune it back to what the repo happens to call, and do not
+treat the unused exports as dead code.
+
+**Only the accelerating member of each family is written out; the other two are derived.** `reversed` turns a
+slow start into a slow finish, `mirrored` runs a curve into its own first half and its reflection into the
+second, and `easeOutQuad` and `easeInOutQuad` are those two applied to `easeInQuad`. Thirty functions written
+by hand is thirty chances to get a sign wrong, and the two combinators are each one line and independently
+tested. `bounce` is the one that starts from its `out` form, because that is the shape everyone recognises;
+`easeInBounce` is the reversal of it, which comes out the same as writing it directly.
+
+**A cubic Bezier cannot be read off the elapsed fraction directly, which is the only hard part of the file.**
+The curve CSS writes as `cubic-bezier(x1, y1, x2, y2)` is a parametric curve: one hidden parameter drives the
+horizontal position and the vertical position together, and neither is a function of the other in closed form.
+So evaluating one at a given time means first finding the parameter whose horizontal position **is** that time
+— Newton-Raphson from the time itself, which converges in a handful of steps because the curve is nearly
+straight, then bisection as the fallback for the flat-sloped curves where Newton has nothing to divide by.
+`getCubicBezier` does the solve; everything else in the file is arithmetic.
+
+**The horizontal control points are clamped to the turn and the vertical ones are not.** Same rule CSS
+applies, and for the same reason: time may not run backwards, so `x1` and `x2` outside `0..1` are pulled back
+in, whereas a `y` outside it is how an overshooting curve is expressed and is left alone. A caller who wants
+`easeOutBack` as a Bezier gets it.
+
+**Its tests are the ones that will travel with it.** `ease` is checked against three known values of the CSS
+curve — 0.408511, 0.802403, 0.960459 at a quarter, a half and three quarters — which is what proves the
+solver rather than the arithmetic around it. Everything else is a property held across the whole set: every
+curve starts at nothing and finishes whole, every curve holds its ends when given a ratio outside the range,
+and every curve that is not `back`, `elastic` or `bounce` never goes backwards. The three that are excluded
+are excluded because leaving the range is what they are for, and each has its own test saying so.
+
 ### House style
 
 `const DEFAULT_X = …` at module scope, `createMemo` for derived props with a default, one blank line
@@ -5046,6 +5086,24 @@ tests; what is gone is the browser's confirmation of it.
 example is still handed `getLayoutKey` / `getIndentKey` and does the lookup in its own body, because that is
 the line the reader came for. The registry it imports becomes a tab either way.
 
+**The turn count is a panel knob, and a spin style is handed it rather than owning one.** Asked for by the
+user: the page exposed how long a spin lasts but not how far it goes in that time, so the only thing the
+duration knob could change was the pace. `WheelSpinStyleFn` takes a third argument for it, after the two the
+library's own `computeSpinDefs` passes, and the page closes over the signal at the call site rather than each
+style reading it — which keeps the styles pure page constants that can be read whole in the source view.
+
+**The two styles read the knob differently and both are right.** `rigid` uses it exactly. `bouncy` picks a
+whole number between one and it, because randomness is what that style is for and a knob that fixed the count
+would leave it randomising nothing but the jitter. So the knob is a ceiling for one and a setting for the
+other, which is why it is labelled _"Turns per spin"_ rather than named after either reading. At the starting
+value of 3 both reproduce the constants they replaced — `PLAIN_TURNS` was 3 and the lively range was 1 to 3 —
+so nothing about the page's default behaviour moved.
+
+**`WheelExampleProps.computeSpinDefs` is the library's two-argument shape, not `WheelSpinStyleFn`.** An
+example spreads its props straight onto a wheel, so what it receives has to be what the wheel accepts; the
+three-argument form is the page's catalogue signature and stops at the page. The two were the same type until
+the knob arrived and the difference was invisible, which is worth knowing before merging them back.
+
 **`Wheel` passes `computeSpinDefs` resolved rather than as a key**, which is the one place this departs from
 _"An example is given the key rather than the resolved sample"_. Its two spin styles are page constants and not
 a `Samples/` registry, so there is nothing for a key to resolve to; making them one is a separate change and
@@ -5088,6 +5146,25 @@ and got zero, and now asks the card's content box instead.
 **`readout` sits outside that box, and a spec that builds its selector from `demo(key)` finds nothing.** The
 card holds the title, the demo and the readout as siblings, so a readout lookup is scoped to `example(key)`
 and a control lookup to `demo(key)`. Both spellings are correct and they are not interchangeable.
+
+**A readout is laid out at zero width with a minimum of the full box, so it never decides how wide its
+example is.** Asked for by the user, and it is a testing requirement as much as a visual one. A readout is a
+line of text about the control, and text is exactly as wide as whatever it happens to say — so a card sized
+to fit it is a card that changes width every time the words change. On the wheel page that is several times
+a second, because all three wheels report the wedge passing their marker while they idle, and the vertical
+drum's card was measured at 376px when the drum inside it is 160px wide. A demo whose box moves under a spec
+is a demo whose coordinates cannot be relied on, which is the half that matters beyond the look of it.
+
+`width: 0` is what the browser uses when it works out how wide the card should be, so the readout counts for
+nothing there; `min-width: 100%` is what it uses once the card has a width, so the text still renders across
+the whole of it. Percentage minimums resolve to nothing during intrinsic sizing and to the real value
+afterwards, which is exactly the split needed, and it is why the pair is not a contradiction. Note that this
+also stops the readout stretching the demo beside it — `exampleContainer` stretches its children, so a wide
+readout used to widen the demo box too, and the drum was being handed 336px of room it did not want.
+
+`e2e/playgroundExamples.spec.ts` guards it without writing down a width for any control: it measures each
+card, hides its readout, measures again, and the two have to match. Every card on every page with a readout
+answers the same question, so a page added later is covered by adding its route to the list.
 
 **A spec belongs to the route it visits, not to the file it is named after.** `tooltip.spec.ts` exercises
 tooltips on the **button** page and `modal.spec.ts` covers both the modal and the drawer — so converting a
@@ -5398,7 +5475,7 @@ asked for and then the target index's angle, so a spin is always forward however
 spun. Testable in one line, and the property a consumer would otherwise discover by watching a wheel unwind
 backwards.
 
-**A spin overshoots and then settles, which is two transitions rather than one.** Landing dead centre on the
+**A spin overshoots and then settles, which is two turns rather than one.** Landing dead centre on the
 wedge looks mechanical, so `computeSpinDefs` may return a `jitterRatio`: the wheel spins to the target plus
 that fraction of a wedge, then corrects to the centre over the settle duration. `getJitterAngle` clamps the
 ratio to half a wedge, because past that the wheel would come to rest on a different wedge from the one the
@@ -5426,6 +5503,71 @@ signal; a rewind is a command"_. Whether the wheel is turning by itself **is** s
 through by `Wheel`; it is gone, and `WheelController` is the only one. An abstract with no DOM has no
 consumer to hand anything to — the component that owns the element owns the handle, and one handle in wheel
 vocabulary beats two in two vocabularies for the same thing.
+
+**The wheel computes its own angle every frame; CSS no longer interpolates anything.** This replaced the
+original arrangement, in which `Rotation` set a target angle, published a duration and a timing-function name,
+and let a `transition` on the wedge do the moving while a `setTimeout` of the same length stood in for "the
+turn has finished". The user asked for the change, and the reason is that the browser was the only thing that
+knew where the wheel actually was. Mid-transition the angle signal already held the destination, so nothing in
+the library could answer "which wedge is under the marker right now" — the question only had an answer at the
+two ends. Now `turnTo` walks the angle from where it is to where it is going, one `requestAnimationFrame` at a
+time, through `EasingUtils.ease`, and the angle signal is the truth at every instant.
+
+**Three things came out of it beyond the live index.** The spin no longer takes its starting angle from the
+destination of an idle step that had not finished. The turn ends when the turn ends, rather than when a timer
+guesses it has. And nothing on a wedge interpolates any more, so a change to any input the transform is built
+from — the wedge count above all — applies on the next frame rather than being animated to. Measured on a
+turning two-wedge drum, the faces now sit inside the width the component reserves at every angle of the turn.
+
+**The idle turn became continuous rather than a step per delay.** It used to set the angle one wedge forward
+and let a linear transition of `idleDelayMs` carry it there, which is a sawtooth of targets that happens to
+look smooth. The frame loop advances by `stepAngle / idleDelayMs` degrees per elapsed millisecond, which is
+the same motion described directly. `idleDelayMs` keeps its meaning exactly — how long one wedge takes to pass
+— so the panel knob still reads the way it did. It also means the turn stops where it is when idling ends,
+rather than running on to the step it had already committed to.
+
+**The spin carries a starvation fallback and the idle turn does not, and the split is the point.** A page that
+is not painting — a background tab, a throttled window — hands out no frames, so a loop built on them alone
+stops advancing while timers carry on. `ElementFader` already answered this once, and the answer here is the
+same shape: `turnTo` arms a `setTimeout` for the duration plus `FRAME_STARVATION_SLACK_MS` beside the frame
+loop, and whichever arrives first lands the angle and runs the arrival. Without it a visitor who starts a spin
+and switches tabs comes back to a wheel stopped part-way round, no prize announced, `onSpinEnd` never fired
+and the spin control disabled for good. The idle turn gets no such fallback, deliberately: it owes nobody an
+answer, it is already suppressed for a hidden page and for `prefers-reduced-motion`, and arming a timer to
+shuffle a wheel nobody can see would be worse than doing nothing. `e2e/noAnimationFrames.spec.ts` drives both
+halves.
+
+**`isSelected` says the wheel has picked this wedge out, which is not the same as the wedge being at the
+marker.** The user's sequence, and it is the one to keep: a wheel turning by itself has picked nothing, a
+wheel spinning has picked whatever is passing the marker right now and moves the pick as it turns, a wheel
+that has settled has picked the prize and holds it for the rest, and when the rest runs out and the turn
+resumes the pick goes away again. So `isSelected` is the live index everywhere except while idling, where it
+is nothing at all. Painting the passing wedge during an idle turn would tell a visitor the wheel had chosen
+something it has not, and the first build had the opposite failure — `isSelected` was the settled index, so
+one wedge was lit from page load and never moved, including all the way through a spin.
+
+**That is deliberately not the same rule as `onSelectedWedgeChange`, which fires during the idle turn too.**
+The two answer different questions. `isSelected` is paint, and a wheel with nothing selected must paint
+nothing. The callback is position, and position exists whenever the wheel is moving — a consumer wanting a
+tick per wedge as it passes needs it exactly while the wheel is idling, which is when a gated callback would
+be silent.
+
+**The drum's `aria-hidden` and `inert` stay on the settled index rather than following the pick.** They mark
+which face a screen reader may reach, and moving that with the turn would rewrite the accessibility tree
+tens of times a second while the drum idles, for a face nobody is going to stop on. Paint may follow the
+angle; what assistive technology is offered should not.
+
+**The wedge under the marker is reported through a callback, not published as a signal, and it is not the
+index.** `getIndex` stays what it always was — the settled selection, written when the spin ends, because a
+consumer bound to `indexSignal` is showing what was won and writing it at the start would give the answer away
+three seconds early. What the frame loop makes newly available is a different quantity: which wedge happens to
+be at the marker at this instant, which during a spin is a stream of values and none of them the result. The
+user's call on its shape: `onStepChange` on the abstract, surfaced by `Wheel` as `onSelectedWedgeChange`, and
+a callback rather than a signal because the wheel reports and nothing writes back — there is no second owner
+for a two-way binding to serve. `RotationUtils.getAngleIndex` is the arithmetic, the exact inverse of
+`getIndexAngle`, and it rounds, so a wedge holds the marker until the halfway point of the gap to the next.
+It fires on every change including during the idle turn, which is what a consumer wanting a tick per wedge
+needs.
 
 **The idle turn runs indefinitely, and rests only after a spin. This replaced an arrangement built on holds,
 and the replacement is the user's.** The first build stopped turning whenever the pointer was over the wheel,
@@ -5621,6 +5763,44 @@ same tick. Nothing on screen has moved by then, so no consumer has yet been able
 wedges are painted at once, so all of them are real content. A drum's are not — `backface-visibility` removes
 them from the picture — and `Carousel`'s rule applies: a control nobody can see is still in the tab order, so
 the faces that are not at the marker are `aria-hidden` and `inert`, and the back faces always are.
+
+**A drum of two wedges renders no backs, because it has no barrel to have an inside.** At three faces and up
+the apothem is positive, the faces stand off the axis, and a face that has turned away shows the reverse
+printed on its own card — which is what `renderWedgeBack` is for. At two the apothem is zero: the faces are
+flat against one another with nothing between them, and the reverse of one _is_ the other. Rendering backs as
+well puts a blank card in exactly the same plane as a prize, and since they are coplanar the paint order
+decides, so the drum showed a back where a front belonged. `WheelUtils.getHasWedgeBacks` is the guard and it
+is a count test rather than an apothem test on purpose — the apothem is also zero while a consumer's wedge
+size is still being measured, and backs must not flicker in and out during a measurement.
+
+**A picked wedge and a picked drum face wear the same treatment, and the colour is decided by contrast
+rather than by taste.** Asked for by the user, who found the drums had no visible highlight at all: the card
+changed its border from `primary.main` to `primary.light` and nothing else, which is not something anyone
+notices on a barrel that is turning. Both now take `secondary.light` behind `secondary.contrast` text — the
+flat wedge as a `fill` on its shape, the drum face as a `backgroundImage` on its card, because one is SVG and
+the other is a div, and that is the whole of the difference.
+
+**The purple does not meet WCAG 1.4.3, and stays as it is because the user said so.** It was changed to
+`secondary.dark` once and put back on their instruction: the measurement was wanted, the edit to their
+colours was not — see _"A contrast finding in the Playground's own look is a warning"_ in `CLAUDE.md`. The
+numbers, so nobody has to take them again:
+
+- **The flat wheel's label**, 17.35px regular on a 340px wheel, so normal text needing 4.5:1.
+  `secondary.contrast` on `secondary.light` is **3.41:1**. The size is set in container units, so a smaller
+  wheel only makes it worse.
+- **The drum card's text**, 14px regular, the same pairing and so the same **3.41:1**.
+- **The drum card's rank badge**, 24px regular, which is large text needing 3:1. `primary.main` on
+  `secondary.light` is **2.61:1**. This one arrived with the highlight rather than predating it: before the
+  card had a picked background the badge sat on black at 12.2:1.
+
+Two ways out, if it is ever wanted. `secondary.dark` behind the same text gives **7.11:1** for both labels and
+takes the badge to **5.44:1**. Black text on the lighter purple gives **4.69:1** for the labels and leaves the
+badge where it is.
+
+**Only the front faces can be picked, and the back's stripes are left alone.** A back face carries the same
+index as its front, so it is flagged as picked at the same moment — but `backface-visibility` means a back is
+visible exactly when its front has turned away, and a face that has turned away is not at the marker. The two
+conditions cannot both hold, so nothing was needed to keep the highlight off the striped side.
 
 **The marker is drawn by the Playground, not by the wheel, and it needs no arithmetic at all.** All three
 demos put a `PageWheelPip` — a filled triangle — against the edge of the box that the wedge at rest fills, so

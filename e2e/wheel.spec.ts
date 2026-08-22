@@ -47,6 +47,20 @@ const FETCH_MS = 400;
 const LONG_REST_MS = 6000;
 const SHORT_REST_MS = 500;
 const OFF_HUB_POINT = { x: 20, y: 170 };
+const MEDIUM_REST_MS = 1500;
+const PICK_SAMPLE_COUNT = 14;
+const PICK_SAMPLE_GAP_MS = 120;
+const TWO_WEDGE_COUNT = "2";
+const SPIN_STYLE_FIELD = `${prop("spinStyleKey")} [role="combobox"]`;
+const FEW_TURNS = 1;
+const MANY_TURNS = 6;
+const WHOLE_TURN_DEG = 360;
+const ROUNDING_TURNS = 2;
+const ALL_WHEELS = [
+    { key: "flat", scope: FLAT },
+    { key: "sideways", scope: SIDEWAYS },
+    { key: "reel", scope: REEL },
+];
 const SPIN_TOTAL_MS = FETCH_MS + DURATION_MS * 2 + 600;
 
 const transformOf = (page: import("@playwright/test").Page, scope: string) =>
@@ -54,6 +68,55 @@ const transformOf = (page: import("@playwright/test").Page, scope: string) =>
         .locator(wedge(scope))
         .first()
         .evaluate((element) => (element as HTMLElement).style.transform);
+
+/**
+ * Which wedges the wheel has picked out, by index. The Playground paints a picked wedge by changing the fill
+ * on its shape and nothing else, so there is no attribute to read — but the comparison is still exact rather
+ * than a colour match, because whatever fill the majority of the wedges share is the unpicked one by
+ * definition, and anything else is a pick. That holds in either theme and survives a palette change.
+ */
+const pickedWedges = (page: import("@playwright/test").Page, scope: string) =>
+    page.evaluate((selector) => {
+        const fills = [...document.querySelectorAll(`${selector} path`)].map((path) => getComputedStyle(path).fill);
+        const tally = new Map<string, number>();
+
+        fills.forEach((fill) => tally.set(fill, (tally.get(fill) ?? 0) + 1));
+
+        const commonest = [...tally.entries()].sort((first, second) => second[1] - first[1])[0][0];
+
+        return fills.flatMap((fill, index) => (fill === commonest ? [] : [index]));
+    }, wedge(scope));
+
+/**
+ * How far round the wheel has been, in degrees, read off the first wedge. Every variant writes the angle as
+ * the first number in the wedge's transform — a flat wedge is `rotate(a)` and a drum face is `rotateY(-a)`
+ * before its own offset — and the first wedge has no offset, so the sign is the only difference and the
+ * magnitude is the angle. The angle only ever increases, so the difference across a spin is the distance
+ * travelled rather than a position modulo a turn.
+ */
+const turnedAngle = async (page: import("@playwright/test").Page, scope: string) =>
+    Math.abs(Number(/-?[\d.]+/.exec(await transformOf(page, scope))![0]));
+
+/**
+ * The same question as `pickedWedges`, asked of a drum. A drum face is a card rather than a slice of an SVG,
+ * so what changes when it is picked out is the card's own background rather than a `fill` — but the reading
+ * is the same either way: whatever the majority of the faces share is the unpicked look, and anything else
+ * is a pick. Only the front faces are counted, since a back is never at the marker.
+ */
+const pickedCards = (page: import("@playwright/test").Page, scope: string) =>
+    page.evaluate((selector) => {
+        const cards = [...document.querySelectorAll(`${selector} > div`)].filter(
+            (card) => (card as HTMLElement).innerText !== "",
+        );
+        const backgrounds = cards.map((card) => getComputedStyle(card).backgroundImage);
+        const tally = new Map<string, number>();
+
+        backgrounds.forEach((background) => tally.set(background, (tally.get(background) ?? 0) + 1));
+
+        const commonest = [...tally.entries()].sort((first, second) => second[1] - first[1])[0][0];
+
+        return backgrounds.flatMap((background, index) => (background === commonest ? [] : [index]));
+    }, wedge(scope));
 
 const setField = async (page: import("@playwright/test").Page, key: string, value: string) => {
     await page.locator(numberField(key)).fill(value);
@@ -195,6 +258,134 @@ test("a visitor who has asked for less motion gets a wheel that waits to be spun
         .not.toBe(before);
 });
 
+/**
+ * What a picked wedge means, and when there is one. A wheel turning by itself has not picked anything — the
+ * wedge passing the marker this instant is not a selection, it is where the turn happens to be, and painting
+ * it would tell a visitor the wheel had chosen something it has not. A wheel that has stopped, on the other
+ * hand, is sitting on a wedge and saying so.
+ *
+ * Between the two, a spin is the interesting case: the pick tracks the wedge under the marker the whole way
+ * round rather than appearing at the end, which is what the angle being computed per frame buys. These two
+ * pin the whole sequence — nothing while idling, moving while spinning, the prize once settled, and nothing
+ * again once the rest runs out and the wheel picks up.
+ */
+test("an idling wheel has picked nothing, and goes back to having picked nothing after a spin", async ({ page }) => {
+    await setField(page, "restDurationMs", String(MEDIUM_REST_MS));
+
+    expect(await pickedWedges(page, FLAT), "the turn is not a selection").toEqual([]);
+
+    await page.locator(spin("flat")).click();
+    await page.mouse.move(0, 0);
+
+    await expect
+        .poll(() => pickedWedges(page, FLAT), {
+            message: "the wheel comes to rest on one wedge and says which",
+            timeout: SPIN_TOTAL_MS * 2,
+        })
+        .toHaveLength(1);
+
+    await expect
+        .poll(() => pickedWedges(page, FLAT), {
+            message: "and lets go of it when the rest runs out and it starts turning again",
+            timeout: MEDIUM_REST_MS + IDLE_DELAY_MS * 4,
+        })
+        .toEqual([]);
+});
+
+test("and the pick moves with the wheel while it spins, rather than appearing at the end", async ({ page }) => {
+    await page.locator(spin("flat")).click();
+    await page.mouse.move(0, 0);
+
+    const seen = new Set<number>();
+
+    for (let sample = 0; sample < PICK_SAMPLE_COUNT; sample++) {
+        (await pickedWedges(page, FLAT)).forEach((index) => seen.add(index));
+
+        await page.waitForTimeout(PICK_SAMPLE_GAP_MS);
+    }
+
+    expect(seen.size, "several wedges pass the marker and each is picked out in turn").toBeGreaterThan(1);
+
+    const settled = await pickedWedges(page, FLAT);
+
+    expect(settled, "and the last one is the prize").toHaveLength(1);
+    await expect(page.locator(ANNOUNCER)).toContainText(`, ${settled[0] + 1} of 8`);
+});
+
+/**
+ * The spin duration says how long a spin takes and the turn count says how far it goes in that time, so the
+ * two together are what makes a spin look fast or stately — a knob for one without the other only ever
+ * changes the pace. The arithmetic being asserted is `getSpinAngle`: it rounds the angle up to a whole turn,
+ * adds the turns asked for, then adds the chosen wedge's own angle. The rounding and the wedge are each
+ * under one turn, so a spin of `n` turns covers at least `n` turns and always less than `n + 2` — which is
+ * tight enough that one turn and six cannot be confused, without the spec having to know which wedge won.
+ *
+ * The style is switched to the one that does not randomise first, because the lively one picks a count
+ * between one and the knob and the point here is the knob rather than the range under it. All three wheels
+ * are driven, since a panel control that reaches one example and not its neighbours is the failure this page
+ * is most prone to.
+ */
+test("the turn count decides how far a spin goes, and it reaches all three wheels", async ({ page }) => {
+    await page.locator(checkField("isIdlingAllowed")).uncheck();
+
+    await page.locator(SPIN_STYLE_FIELD).click();
+    await expect(page.locator(SPIN_STYLE_FIELD)).toHaveAttribute("aria-activedescendant", /.+/);
+    await page.keyboard.press("ArrowUp");
+    await page.keyboard.press("Enter");
+
+    for (const turns of [FEW_TURNS, MANY_TURNS]) {
+        await setField(page, "turns", String(turns));
+
+        const before = await Promise.all(ALL_WHEELS.map((wheelUnderTest) => turnedAngle(page, wheelUnderTest.scope)));
+
+        for (const wheelUnderTest of ALL_WHEELS) {
+            await page.locator(spin(wheelUnderTest.key)).click();
+        }
+
+        await page.waitForTimeout(SPIN_TOTAL_MS);
+
+        for (const [index, wheelUnderTest] of ALL_WHEELS.entries()) {
+            const travelled = (await turnedAngle(page, wheelUnderTest.scope)) - before[index];
+
+            expect(travelled, `${wheelUnderTest.key} went round at least ${turns} times`).toBeGreaterThanOrEqual(
+                turns * WHOLE_TURN_DEG,
+            );
+            expect(travelled, `${wheelUnderTest.key} did not go round ${turns + ROUNDING_TURNS} times`).toBeLessThan(
+                (turns + ROUNDING_TURNS) * WHOLE_TURN_DEG,
+            );
+        }
+    }
+});
+
+/**
+ * A drum picks out its face the same way and at the same moments a flat wheel picks out its wedge — the
+ * user asked for the two to match, and a card that only changed its border shade was not a highlight anyone
+ * would notice. Driven on the sideways drum alone, since the reel is the same component with its axis
+ * turned and shares every line of the paint.
+ */
+test("a drum picks out the face at its marker, the same as a flat wheel picks out its wedge", async ({ page }) => {
+    await setField(page, "restDurationMs", String(MEDIUM_REST_MS));
+
+    expect(await pickedCards(page, SIDEWAYS), "an idling drum has picked nothing").toEqual([]);
+
+    await page.locator(spin("sideways")).click();
+    await page.mouse.move(0, 0);
+
+    await expect
+        .poll(() => pickedCards(page, SIDEWAYS), {
+            message: "the drum comes to rest on one face and says which",
+            timeout: SPIN_TOTAL_MS * 2,
+        })
+        .toHaveLength(1);
+
+    await expect
+        .poll(() => pickedCards(page, SIDEWAYS), {
+            message: "and lets go of it once the rest runs out",
+            timeout: MEDIUM_REST_MS + IDLE_DELAY_MS * 4,
+        })
+        .toEqual([]);
+});
+
 test("a disabled wheel neither spins nor turns", async ({ page }) => {
     await page.locator(checkField("isDisabled")).check();
 
@@ -214,6 +405,21 @@ test("a drum hides the faces that have turned away, rather than only obscuring t
 
     await expect(reachable, "only the one at the marker is reachable").toHaveCount(1);
     await expect(reachable).toHaveAttribute("aria-label", "Free spin, 1 of 8");
+});
+
+/**
+ * A drum of three or more faces is a barrel, and a face that has turned away shows the reverse printed on its
+ * card — which is why every wedge renders a front and a back. A drum of two has no barrel: the two faces are
+ * flat against each other with nothing between them, so the reverse of one *is* the other, and rendering
+ * backs as well puts a blank card in the same plane as a prize and lets it win. Two wedges means two faces.
+ */
+test("a two-faced drum is two fronts back to back, with no reverse to print", async ({ page }) => {
+    await setField(page, "wedgeCount", TWO_WEDGE_COUNT);
+
+    await expect(page.locator(wedge(SIDEWAYS)), "one face per prize and nothing behind it").toHaveCount(2);
+
+    await expect(page.locator(wedge(SIDEWAYS)).first()).toContainText("Free spin");
+    await expect(page.locator(wedge(SIDEWAYS)).last()).toContainText("Ten coins");
 });
 
 test("the two drums turn about different axes, which is the whole of what separates them", async ({ page }) => {

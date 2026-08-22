@@ -33,6 +33,7 @@ export const Wheel = <T,>(props: WheelProps<T>) => {
         computeSpinTarget: props.computeSpinTarget,
         computeSpinDefs: props.computeSpinDefs,
         computeStepLabel: props.computeWedgeLabel,
+        onStepChange: props.onSelectedWedgeChange,
         indexSignal: props.indexSignal,
         autoSpinSignal: props.autoSpinSignal,
         onSpinEnd: props.onSpinEnd,
@@ -49,16 +50,15 @@ export const Wheel = <T,>(props: WheelProps<T>) => {
         WheelUtils.getGirth(WheelUtils.getWedgeExtent(getWedgeSize(), getAxis()), getWedgeCount()),
     );
 
-    const getTransitionStyle = () => ({
-        "transition-duration": `${rotation.getTransitionDurationMs()}ms`,
-        "transition-timing-function": rotation.getTimingFunction(),
-    });
+    const getSelectedIndex = createMemo(() =>
+        rotation.getPhase() === "idling" ? undefined : rotation.getSelectedIndex(),
+    );
 
     const getWedgeState = (index: number, face: WheelFace): WheelWedgeState => ({
         index,
         wedgeCount: getWedgeCount(),
         face,
-        isSelected: index === rotation.getIndex(),
+        isSelected: index === getSelectedIndex(),
     });
 
     const controller: WheelController = {
@@ -79,7 +79,6 @@ export const Wheel = <T,>(props: WheelProps<T>) => {
             <div
                 class={props.getVariant() === "flat" ? styles.flatWheelWedge : styles.drumWheelWedge}
                 style={{
-                    ...getTransitionStyle(),
                     transform:
                         props.getVariant() === "flat"
                             ? `rotate(${index * rotation.getStepAngle() + rotation.getAngle()}deg)`
@@ -130,7 +129,10 @@ export const Wheel = <T,>(props: WheelProps<T>) => {
                                     {(getWedge, index) => (
                                         <>
                                             {renderWedgeFace(getWedge, index, "front")}
-                                            {renderWedgeFace(getWedge, index, "back")}
+
+                                            <Show when={WheelUtils.getHasWedgeBacks(getWedgeCount())}>
+                                                {renderWedgeFace(getWedge, index, "back")}
+                                            </Show>
                                         </>
                                     )}
                                 </Index>

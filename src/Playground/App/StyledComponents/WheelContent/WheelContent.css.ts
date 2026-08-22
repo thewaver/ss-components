@@ -97,7 +97,7 @@ export const wheelPipShape = style({
     display: "block",
     width: "100%",
     height: "100%",
-    fill: themeVars.color.secondary.main,
+    fill: themeVars.color.secondary.dark,
     stroke: themeVars.color.secondary.light,
     strokeWidth: 2,
     strokeLinejoin: "round",
@@ -175,7 +175,9 @@ export const wheelCard = style({
 
     selectors: {
         [`&.${isSelected}`]: {
+            backgroundImage: `linear-gradient(160deg, ${themeVars.color.secondary.light}, ${themeVars.color.secondary.light})`,
             borderColor: themeVars.color.primary.light,
+            color: themeVars.color.secondary.contrast,
         },
     },
 });

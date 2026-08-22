@@ -4,7 +4,6 @@ const wheelWedge = style({
     position: "absolute",
     inset: 0,
     transformOrigin: "center center",
-    transitionProperty: "transform",
 });
 
 export const flatWheelRoot = style({

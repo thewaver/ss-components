@@ -79,3 +79,30 @@ describe("getJitterAngle", () => {
         expect(RotationUtils.getJitterAngle(-5, 8)).toBe(-22.5);
     });
 });
+
+describe("getAngleIndex", () => {
+    it("names the step the marker is pointing at", () => {
+        expect(RotationUtils.getAngleIndex(0, 8)).toBe(0);
+        expect(RotationUtils.getAngleIndex(315, 8)).toBe(1);
+        expect(RotationUtils.getAngleIndex(45, 8)).toBe(7);
+    });
+
+    it("is the inverse of getIndexAngle", () => {
+        for (let index = 0; index < 8; index++) {
+            expect(RotationUtils.getAngleIndex(RotationUtils.getIndexAngle(index, 8), 8)).toBe(index);
+        }
+    });
+
+    it("holds a step until the marker is past the middle of the gap", () => {
+        expect(RotationUtils.getAngleIndex(-22, 8)).toBe(0);
+        expect(RotationUtils.getAngleIndex(-23, 8)).toBe(1);
+    });
+
+    it("reads an angle many turns along the same as the first turn", () => {
+        expect(RotationUtils.getAngleIndex(315 + 360 * 4, 8)).toBe(1);
+    });
+
+    it("has nowhere to point when there are no steps", () => {
+        expect(RotationUtils.getAngleIndex(123, 0)).toBe(0);
+    });
+});

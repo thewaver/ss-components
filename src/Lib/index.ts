@@ -193,4 +193,5 @@ export * from "./Fundamentals/Tree/Tree";
 export type * from "./Fundamentals/Tree/Tree.types";
 export * from "./Fundamentals/Tree/Tree.utils";
 
+export * from "./Utils/easing";
 export type * from "./Utils/typeUtils";

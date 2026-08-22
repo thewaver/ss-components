@@ -103,6 +103,16 @@ conflict, the convention is the thing that is wrong, and fixing it is the work �
 not weighing them against each other, and not asking whether this case is special. Cite the criterion, say
 which convention it displaces, and change the convention.
 
+**A contrast finding in the Playground's own look is a warning, not an edit.** Stated by the user after the
+wheel's picked-wedge purple was darkened to take a label from 3.41:1 to 7.11:1: the analysis was welcome, the
+change to their colours was not. So measure it, name the criterion, give the ratio and the sizes it was taken
+at, and set out the ways out — then leave the styling alone until they choose. Their theme is theirs.
+
+This does **not** loosen the rule above. They said contrast and they said their styling; nothing was said
+about behaviour, structure, markup or naming, so nothing else moves, and a criterion that a component _fails
+by what it does_ is still fixed on sight. Where the boundary between the two actually falls has not been
+argued — if a case turns up that is plainly neither, ask rather than deciding it from this paragraph.
+
 **Do not ship an approximation plus a note about what CSS cannot reach.** When the user says two things
 must behave or look the same, find and eliminate whatever makes them structurally different, and weigh
 the cost of that, rather than layering a rule on top of a divergence and logging the residual as an open

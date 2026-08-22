@@ -52,6 +52,9 @@ export const exampleDemo = style({
 });
 
 export const exampleReadout = style({
+    width: 0,
+    minWidth: "100%",
+
     fontFamily: "monospace",
     fontSize: themeVars.fontSize.xSmall,
     textAlign: "center",

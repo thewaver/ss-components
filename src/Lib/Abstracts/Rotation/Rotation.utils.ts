@@ -18,6 +18,12 @@ export namespace RotationUtils {
         return (360 - getStepAngle(stepCount) * wrapIndex(index, stepCount)) % 360;
     };
 
+    export const getAngleIndex = (angle: number, stepCount: number) => {
+        if (stepCount < 1) return 0;
+
+        return wrapIndex(Math.round(-angle / getStepAngle(stepCount)), stepCount);
+    };
+
     export const getSpinAngle = (fromAngle: number, index: number, stepCount: number, turns: number) => {
         const wholeTurns = Math.ceil(fromAngle / 360);
         const extraTurns = Math.max(MIN_SPIN_TURNS, Math.trunc(turns));

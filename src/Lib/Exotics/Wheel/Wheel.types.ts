@@ -47,6 +47,7 @@ export type WheelSlots<T> = {
     computeSpinTarget: () => number | Promise<number>;
     computeSpinDefs?: (index: number, wedgeCount: number) => RotationSpinDefs;
     renderWedge: (getWedge: Accessor<T>, getState: Accessor<WheelWedgeState>) => JSX.Element;
+    onSelectedWedgeChange?: (index: number) => void;
     onSpinEnd?: (index: number) => void;
     onMount?: (controller: WheelController) => void;
 };
