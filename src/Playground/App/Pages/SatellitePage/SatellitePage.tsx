@@ -22,8 +22,6 @@ const MIN_BADGE_SIZE = 12;
 const MAX_BADGE_SIZE = 96;
 const BADGE_SIZE_STEP = 4;
 const FIELD_WIDTH = 110;
-const HOST_WIDTH = 260;
-const HOST_HEIGHT = 200;
 const EXAMPLES_ROOT = "/src/Playground/App/Pages/SatellitePage/Examples";
 
 const STARTING_H_PLACEMENT: AnchorHPlacement = "right-out";
@@ -34,7 +32,7 @@ const STARTING_BADGE_SIZE = 28;
 
 const DefaultExampleWrapper = (props: SatelliteExampleProps) => {
     return (
-        <PageMeasureBox getWidth={() => HOST_WIDTH} getHeight={() => HOST_HEIGHT}>
+        <PageMeasureBox>
             <DefaultExample {...props} />
         </PageMeasureBox>
     );

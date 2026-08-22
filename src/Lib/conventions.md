@@ -5435,6 +5435,23 @@ could not. Padding inverts it: the root's box is the subject's box plus the over
 absolutely positioned satellite is placed against the **padding box** so its offset needs no correction, and
 before anything is measured the padding is zero and the layout is simply the subject. Nothing flashes.
 
+**The wrapper shrinks to its subject, because otherwise it measures a box nobody drew.** The padding
+scheme only works if the number fed to `computeLayout` as the subject's size is the subject's size. What is
+observed is not the child the consumer passed but the `satelliteSubject` div wrapped around it, and that div
+is an ordinary block: it takes the full width of whatever contains it. A 140px subject inside a 260px parent
+therefore measured 232px wide, and `right-out` put the satellite 92px past the subject's right edge, floating
+in space. `satelliteRoot` carries `width: fit-content`, so the root shrinks to the subject's own width, the
+wrapper reports that width, and the placement lands on the corner. The horizontal case is the only one that
+was ever wrong — a block already shrinks to its content vertically, which is why the growth up and down looked
+correct all along.
+
+The subject still fills the root: `satelliteSubject` has no width of its own, so it takes the whole content
+box, and the root's width is the subject's intrinsic width plus the overhang. What the root will not do is
+stretch to a parent wider than the pair, which is the premise rather than a cost — the component exists to
+hand the parent a box that is exactly the pair, and a box that grows to fill cannot also be a measurement of
+what is inside it. Where a satellite needs to sit somewhere the placement vocabulary does not name, the
+offset reaches it. Confirmed by the user as working as designed.
+
 **The offset is a nudge in screen space, and that differs from `Anchor` on purpose.** For a floating layer the
 offset means a **gap**, so `AnchorUtils.getHPlacementOffset` signs it by the placement and discards it entirely
 on a centred axis. A consumer placing a badge is aligning it rather than clearing a gutter, and "nudge it two
@@ -5957,7 +5974,10 @@ expressions are gone. **`TypewriterPage` is the one exception and opts in**, bec
 read; `MEASURE_BOX_PADDING` stays exported for it.
 
 **The box hugs its content, and that is the same point from the other end.** It reports what the component asked for and
-nothing else, so the outline around a demo is a measurement rather than a frame. The consequence, stated by the
+nothing else, so the outline around a demo is a measurement rather than a frame. That was intent and not yet
+code: `measureBoxRoot` was a plain block, so a box given no `getWidth` stretched to its card and the outline
+was drawn wider than the thing it measured. `width: fit-content` on the class makes it true, and it reaches
+only the boxes that pass no width, since an inline `getWidth` overrides it. The consequence, stated by the
 user when this was written up the other way round: a component that asks for a share of its parent —
 `Formation` and `Staircase` both size themselves as a fraction of their container — has no appetite of its own,
 and collapses to nothing inside a box that only grants appetite. That is the box being truthful, not being in
