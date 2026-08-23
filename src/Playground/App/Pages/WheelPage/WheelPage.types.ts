@@ -1,4 +1,4 @@
-import type { Accessor, Signal } from "solid-js";
+import type { Signal } from "solid-js";
 
 import type { RotationSpinDefs } from "../../../../Lib/Abstracts/Rotation/Rotation.types";
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
@@ -11,9 +11,8 @@ export type WheelExampleProps = AccessorProps<{
     spinDurationMs: number;
     settleDurationMs: number;
     restDurationMs: number;
+    idleDelayMs: number | undefined;
     indexSignal: Signal<number>;
     computeSpinDefs: (index: number, wedgeCount: number) => RotationSpinDefs;
     onSelectedWedgeChange: (index: number) => void;
-}> & {
-    getIdleDelayMs?: Accessor<number | undefined>;
-};
+}>;

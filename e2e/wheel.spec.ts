@@ -19,7 +19,7 @@ import { example, prop } from "./helpers";
  * turning under the pointer, it rests after a spin, and it comes back once the rest has run out.
  *
  * No wheel renders a button any more: the page builds its own and drives it through the handle the wheel hands
- * over at mount. The flat one sits in the hub, which is the only slot the wheel still offers, and each drum's
+ * over at mount. The flat one is centred over the wheel by a box the page owns, and each drum's
  * sits in a bar the page puts under the barrel — outside the wheel altogether. That is why the spin locator is
  * scoped to the example rather than to the wheel, and why the button's disabled state is checked here at all:
  * it is now the page reading `getIsSpinnable` off the handle rather than the library disabling its own control.
@@ -46,7 +46,7 @@ const TURN_SAMPLE_GAP_MS = 150;
 const FETCH_MS = 400;
 const LONG_REST_MS = 6000;
 const SHORT_REST_MS = 500;
-const OFF_HUB_POINT = { x: 20, y: 170 };
+const OFF_CENTRE_POINT = { x: 20, y: 170 };
 const MEDIUM_REST_MS = 1500;
 const PICK_SAMPLE_COUNT = 14;
 const PICK_SAMPLE_GAP_MS = 120;
@@ -222,12 +222,12 @@ test("and the rest is only a rest, so the wheel picks up again once it has run o
 });
 
 /**
- * Hovering lands away from the middle on purpose: the page's spin button now sits over the hub, and it is a
- * neighbour of the wheel rather than something nested inside it, so a press at the centre would not reach the
- * wheel at all. Away from the hub the pointer is unambiguously on the wheel — and it still does not stop it.
+ * Hovering lands away from the middle on purpose: the page's spin button now sits over the wheel's centre, and it
+ * is a neighbour of the wheel rather than something nested inside it, so a press at the centre would not reach the
+ * wheel at all. Away from the centre the pointer is unambiguously on the wheel — and it still does not stop it.
  */
 test("it keeps turning under the pointer, because stopping for one is the consumer's to build", async ({ page }) => {
-    await page.locator(wheel(FLAT)).hover({ position: OFF_HUB_POINT });
+    await page.locator(wheel(FLAT)).hover({ position: OFF_CENTRE_POINT });
 
     const hovered = await transformOf(page, FLAT);
 

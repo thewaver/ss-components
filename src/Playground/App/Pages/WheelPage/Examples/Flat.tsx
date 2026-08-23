@@ -4,7 +4,7 @@ import { FlatWheel } from "../../../../../Lib/Exotics/FlatWheel/FlatWheel";
 import type { WheelController } from "../../../../../Lib/Exotics/Wheel/Wheel.types";
 import { Button } from "../../../../../Lib/Fundamentals/Button/Button";
 import {
-    PageWheelHub,
+    PageWheelCentre,
     PageWheelPip,
     PageWheelSpin,
     PageWheelStack,
@@ -38,7 +38,7 @@ export const FlatExample = ({ getWedges, ...otherProps }: Props) => {
 
             <PageWheelPip getSide={() => "top"} />
 
-            <PageWheelHub>
+            <PageWheelCentre>
                 <Button
                     getId={() => "flatSpin"}
                     getAriaLabel={() => "Spin the wheel"}
@@ -48,7 +48,7 @@ export const FlatExample = ({ getWedges, ...otherProps }: Props) => {
                     )}
                     onClick={() => getController()?.spin()}
                 />
-            </PageWheelHub>
+            </PageWheelCentre>
         </PageWheelStack>
     );
 };

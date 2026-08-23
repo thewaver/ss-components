@@ -1,5 +1,3 @@
-import type { ParentProps } from "solid-js";
-
 import type { InteractionFlags } from "../../../../Lib/Abstracts/Interaction/Interaction.types";
 import type {
     CarouselPickFlags,
@@ -9,11 +7,9 @@ import type {
 } from "../../../../Lib/Fundamentals/Carousel/Carousel.types";
 import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
-export type CarouselSlideProps = ParentProps<
-    AccessorProps<{
-        state: CarouselSlideState;
-    }>
->;
+export type CarouselSlideProps = AccessorProps<{
+    state: CarouselSlideState;
+}>;
 
 export type CarouselStepProps = AccessorProps<{
     flags: InteractionFlags<CarouselStepFlags>;

@@ -46,6 +46,7 @@ export const SatellitePage = () => {
     const [getSubjectWidth, setSubjectWidth] = createSignal(STARTING_SUBJECT_WIDTH);
     const [getSubjectHeight, setSubjectHeight] = createSignal(STARTING_SUBJECT_HEIGHT);
     const [getBadgeSize, setBadgeSize] = createSignal(STARTING_BADGE_SIZE);
+    const [getHasSatellite, setHasSatellite] = createSignal(true);
     const [getIsBehindSubject, setIsBehindSubject] = createSignal(false);
 
     const getPlacement = createMemo(() => ({ x: getHPlacement(), y: getVPlacement() }));
@@ -60,6 +61,7 @@ export const SatellitePage = () => {
             getSubjectWidth,
             getSubjectHeight,
             getBadgeSize,
+            getHasSatellite,
         };
 
         return [
@@ -140,6 +142,14 @@ export const SatellitePage = () => {
                         getWidth={() => FIELD_WIDTH}
                         getAriaLabel={() => "Subject height"}
                         onInput={setSubjectHeight}
+                    />
+                </PageProp>
+
+                <PageProp getKey={() => "hasSatellite"} getLabel={() => "Render a satellite"}>
+                    <PageCheckField
+                        getValue={getHasSatellite}
+                        getAriaLabel={() => "Render a satellite"}
+                        onChange={setHasSatellite}
                     />
                 </PageProp>
 

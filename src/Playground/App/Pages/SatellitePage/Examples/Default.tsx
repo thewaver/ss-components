@@ -4,11 +4,21 @@ import type { SatelliteExampleProps } from "../SatellitePage.types";
 
 type Props = SatelliteExampleProps;
 
-export const DefaultExample = ({ getSubjectWidth, getSubjectHeight, getBadgeSize, ...otherProps }: Props) => {
+export const DefaultExample = ({
+    getSubjectWidth,
+    getSubjectHeight,
+    getBadgeSize,
+    getHasSatellite,
+    ...otherProps
+}: Props) => {
     return (
         <Satellite
             {...otherProps}
-            renderSatellite={() => <PageSatelliteBadge getSize={getBadgeSize}>{getBadgeSize()}</PageSatelliteBadge>}
+            renderSatellite={
+                getHasSatellite()
+                    ? () => <PageSatelliteBadge getSize={getBadgeSize}>{getBadgeSize()}</PageSatelliteBadge>
+                    : undefined
+            }
         >
             <PageSatelliteSubject getWidth={getSubjectWidth} getHeight={getSubjectHeight}>
                 Subject

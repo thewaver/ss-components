@@ -1,8 +1,10 @@
+import type { ParentProps } from "solid-js";
+
 import type { PageMosaicLinkProps, PageMosaicTileProps } from "./MosaicContent.types";
 
 import * as styles from "./MosaicContent.css";
 
-export const PageMosaicTile = (props: PageMosaicTileProps) => (
+export const PageMosaicTile = (props: ParentProps<PageMosaicTileProps>) => (
     <div class={styles.mosaicTile} style={{ width: `${props.getWidth()}px`, height: `${props.getHeight()}px` }}>
         <div class={styles.mosaicTileName}>{props.children}</div>
 
@@ -12,7 +14,7 @@ export const PageMosaicTile = (props: PageMosaicTileProps) => (
     </div>
 );
 
-export const PageMosaicLink = (props: PageMosaicLinkProps) => (
+export const PageMosaicLink = (props: ParentProps<PageMosaicLinkProps>) => (
     <a class={styles.mosaicLink} href={props.getHref()}>
         {props.children}
 

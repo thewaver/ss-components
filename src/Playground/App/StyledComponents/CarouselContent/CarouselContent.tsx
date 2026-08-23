@@ -20,7 +20,7 @@ const ROTATION_GLYPHS = {
     stopped: "▶",
 };
 
-export const PageCarouselSlide = (props: CarouselSlideProps) => (
+export const PageCarouselSlide = (props: ParentProps<CarouselSlideProps>) => (
     <div class={styles.carouselSlide}>
         <div class={styles.carouselSlideTitle}>{props.children}</div>
         <div class={styles.carouselSlideBody}>{`slide ${props.getState().index + 1} of ${props.getState().count}`}</div>

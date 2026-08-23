@@ -10,7 +10,7 @@ outstanding work. They are at the end of `backlog.md`.
 | Section                                                 | Count |
 | ------------------------------------------------------- | ----: |
 | [Missing components](#missing-components)               |     7 |
-| [Pending abstractions](#pending-abstractions)           |    11 |
+| [Pending abstractions](#pending-abstractions)           |    12 |
 | [Blockers and known issues](#blockers-and-known-issues) |    16 |
 | [Accessibility gaps](#accessibility-gaps)               |     5 |
 | [Planned projects](#planned-projects)                   |     1 |
@@ -34,19 +34,20 @@ Ordered by the user on 2026-08-15. A toolbar, a segmented control, a rating inpu
 
 ## Pending abstractions
 
-| #      | What                                          | What it would serve                                         |
-| ------ | --------------------------------------------- | ----------------------------------------------------------- |
-| 2, 9   | **One-shot pointer geometry**                 | Where a single activation landed, for ripples               |
-| 13     | **A shared measuring abstract**               | Neighbour heights for a toast pile, auto-height elsewhere   |
-| 19     | **One flattener instead of two**              | `SelectUtils.getFlatOptions` and `TreeUtils.getVisibleRows` |
-| 11     | **Geometry split out of markup**              | Three SVG defs files, ~950 lines currently untestable       |
-| 5, 19  | **Shared `CheckedState`**                     | `Select`'s group header and a multi-select `Tree`           |
-| 5, 19  | **Windowing over nested lists**               | A group box straddling the window edge, unanswered for both |
-| 20, 23 | **Outward position signals**                  | `SlideButton`'s progress, `Scroller`'s scroll position      |
-| 9      | **Getter-plus-setter on controls**            | Today a consumer wraps one in a `SignalMirror` first        |
-| 4      | **Easing on the cell timeline**               | Cell animation is linear-only                               |
-| 7      | **A typed sign, a non-uniform group pattern** | No negative currency; `en-IN` groups wrong today            |
-| 7      | **`TextSyncUtils` exported**                  | Three in-library consumers now argue for it                 |
+| #      | What                                            | What it would serve                                          |
+| ------ | ----------------------------------------------- | ------------------------------------------------------------ |
+| 2, 9   | **One-shot pointer geometry**                   | Where a single activation landed, for ripples                |
+| 13     | **A shared measuring abstract**                 | Neighbour heights for a toast pile, auto-height elsewhere    |
+| 19     | **One flattener instead of two**                | `SelectUtils.getFlatOptions` and `TreeUtils.getVisibleRows`  |
+| 11     | **Geometry split out of markup**                | Three SVG defs files, ~950 lines currently untestable        |
+| 5, 19  | **Shared `CheckedState`**                       | `Select`'s group header and a multi-select `Tree`            |
+| 5, 19  | **Windowing over nested lists**                 | A group box straddling the window edge, unanswered for both  |
+| 20, 23 | **Outward position signals**                    | `SlideButton`'s progress, `Scroller`'s scroll position       |
+| 9      | **Getter-plus-setter on controls**              | Today a consumer wraps one in a `SignalMirror` first         |
+| 4      | **Easing on the cell timeline**                 | Cell animation is linear-only                                |
+| 7      | **A typed sign, a non-uniform group pattern**   | No negative currency; `en-IN` groups wrong today             |
+| 7      | **`TextSyncUtils` exported**                    | Three in-library consumers now argue for it                  |
+| 28     | **A plain value where an accessor is required** | Every constant prop is wrapped in `() =>` at every call site |
 
 ## Blockers and known issues
 

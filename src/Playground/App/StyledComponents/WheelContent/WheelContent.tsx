@@ -44,7 +44,7 @@ const getWedgeGeometry = (wedgeCount: number) => {
     };
 };
 
-export const PageWheelWedge = (props: PageWheelWedgeProps) => {
+export const PageWheelWedge = (props: ParentProps<PageWheelWedgeProps>) => {
     const getGeometry = createMemo(() => getWedgeGeometry(props.getState().wedgeCount));
     const gradientId = createUniqueId();
 
@@ -80,7 +80,7 @@ export const PageWheelWedge = (props: PageWheelWedgeProps) => {
     );
 };
 
-export const PageWheelCard = (props: PageWheelCardProps) => (
+export const PageWheelCard = (props: ParentProps<PageWheelCardProps>) => (
     <div
         class={styles.wheelCard}
         classList={{
@@ -110,7 +110,7 @@ export const PageWheelPip = (props: PageWheelPipProps) => (
     </div>
 );
 
-export const PageWheelHub = (props: ParentProps) => <div class={styles.wheelHub}>{props.children}</div>;
+export const PageWheelCentre = (props: ParentProps) => <div class={styles.wheelCentre}>{props.children}</div>;
 
 export const PageWheelBar = (props: ParentProps) => <div class={styles.wheelBar}>{props.children}</div>;
 

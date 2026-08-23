@@ -52,6 +52,7 @@ reading.
 25. The four components ported from React — one thing to retest, one deliberately not built — _open_
 26. `Typewriter` cannot render a blank line, and the fix is in `ss-utils` — _open_
 27. The suite finds things by strings a person is free to reword — _open_
+28. `AccessorProps` should take a plain value as well as an accessor — _open_
 
 ### Build order
 
@@ -1198,6 +1199,132 @@ came across verbatim, so the only change was the two explicit sites gaining a co
 `Typewriter` is handed the list. The corrected file is parked at `src/Lib/JSXTextParser.utils.ts`, commented out —
 see _"A file in transit"_ in `conventions.md` — and this item closes when `ss-utils` ships it and the dependency
 is bumped.
+
+---
+
+## 28. `AccessorProps` should take a plain value as well as an accessor
+
+_Agreed with the user. The shape below is settled; what is left is the work, which spans the whole project._
+
+**What a consumer runs into.** Every reactive prop is an accessor, so a value that will never change still has
+to be wrapped in a function before it can be passed at all — `getMin={() => MIN_OFFSET}`,
+`getStep={() => OFFSET_STEP}`, `getAriaLabel={() => "Offset across"}`. The Playground's props panels are the
+densest example but every consumer pays it. The aim is to let a constant be written as a constant, while a
+reactive value keeps working exactly as it does today.
+
+**This is a known pattern and does not need inventing.** `solid-primitives` publishes it as `MaybeAccessor<T>`
+with an `access()` helper. What is different here is that the `get` prefix is kept, for the reason in the next
+paragraph, so the two forms end up under two different names rather than sharing one.
+
+### The shape
+
+Each accessorised prop becomes a choice of two names, and exactly one of them may be supplied:
+
+```ts
+type EitherForm<K extends string, V> =
+    | ({ [P in K]: V } & { [P in `get${Capitalize<K>}`]?: never })
+    | ({ [P in K]?: never } & { [P in `get${Capitalize<K>}`]: Accessor<V> });
+```
+
+`AccessorProps<T>` then produces an intersection of one `EitherForm` per accessorised key. Function-valued and
+`Signal`-valued keys keep passing through untouched, exactly as they do now — the `IsSkippable` test is
+unchanged.
+
+This was checked against the compiler before being written down. Supplying `count` and `getCount` together is
+rejected; supplying neither is rejected; and supplying a plain value for one prop and an accessor for another
+in the same call is accepted, which is the case that matters most in practice. The type-level inverse — mapping
+the union back to a pure `getX` shape — also resolves, so the resolver below can be typed properly rather than
+returning `any`.
+
+### Why the name transform is kept
+
+The obvious simplification is to drop the prefix and type the single prop as `T | Accessor<T>`. It was
+considered and rejected, because it makes reactivity something you can lose without being told. Concretely,
+dragging a knob on any Playground page:
+
+**As it works today**
+
+1. You drag the "Offset across" slider and `setOffsetX` fires.
+2. `getExamples`, the memo that builds the example list, does not re-run — it never read `getOffsetX`, because
+   `commonProps` holds the accessor itself rather than its value.
+3. `<For>` still has the same array of the same objects, so the mounted examples stay mounted.
+4. Inside the example, `props.getOffset()` re-reads and the badge moves.
+
+**With one prop name taking either form**
+
+1. You drag the "Offset across" slider and `setOffsetX` fires.
+2. `getExamples` now does re-run, because building `commonProps` means writing `offset: getOffset()`, and that
+   reads the signal inside the memo.
+3. The memo hands back a new array of new objects. `<For>` matches by reference, recognises none of them, and
+   discards every example.
+4. Every example is destroyed and rebuilt: the wheel stops mid-spin, focus is lost, an open source view closes.
+
+Step 2 is the defect, and every page builds `commonProps` the same way. Keeping the two forms under two names
+avoids it entirely, because a consumer who wants reactivity still passes an accessor under `getX` and nothing
+about `commonProps` changes.
+
+### Why resolution happens once, at the component root
+
+The tempting alternative is a helper called at each read — `access(props, "count")`. Two problems: it has to be
+written `() => access(props, "count")` or the value is read once and frozen, which puts the same trap back that
+the paragraph above removed; and it is a call per read, in paths like the wheel's per-wedge render.
+
+Instead, normalise the whole props object once at the top of the component:
+
+```ts
+const p = resolveProps(props);
+```
+
+`p` has the shape components already expect — every accessorised key present as a `getX` function, whatever
+form the caller used. Every line below it stays exactly as written today, `p.getCount()` and
+`p.getState().index`. So the union exists only at the component boundary, the migration is one added line per
+component rather than an edit at every read, and the cost is one object per instance rather than a call per
+read.
+
+Underneath, `resolveProps` is a proxy whose `get` trap sees `getCount` and returns
+`() => props.getCount ? props.getCount() : props.count`. Returning the thunk rather than a value is what keeps
+reactivity: nothing is read at wrap time. The one fiddly part is the runtime name inverse — strip `get`, then
+lowercase the first character only, which mirrors the `Capitalize` the type does.
+
+### What to build, in order
+
+**This is a whole-project change, not a trial.** It lands across `src/Lib` and `src/Playground` together and is
+not considered done while any component still reads `props.getX` directly. `grep -rl "props\.get[A-Z]" src`
+lists the components to convert and `grep -rl AccessorProps src` the types behind them — run both first, the
+counts are in the low hundreds across the two trees.
+
+1. **`resolveProps` and its type**, in `src/Lib/Utils`. It stands alone and is testable on its own, against a
+   props object supplied in each form, before anything consumes it. Cover the name inverse here — `getIsMixed`
+   must resolve `isMixed`, not `iSMixed`.
+2. **Change `AccessorProps` to emit `EitherForm` per key.** Nothing breaks at this point: every existing call
+   site passes accessors, which the union still accepts. The whole repo should typecheck unchanged, and that is
+   the checkpoint — if it does not, the union is wrong, not the call sites.
+3. **Add the `resolveProps` line to every component that reads accessorised props**, renaming `props.` to `p.`
+   in the body. `src/Lib` first, then `src/Playground`. Mechanical, and each one is verifiable on its own by
+   the typecheck.
+4. **Convert call sites to plain values wherever the value is genuinely constant.** This is the part that pays
+   for the rest, and it is also the part with judgment in it: a value read from a signal keeps its accessor, a
+   literal or a module constant loses the wrapper. The Playground props panels are the densest concentration —
+   `getMin`, `getMax`, `getStep`, `getWidth`, `getAriaLabel` are constants on nearly every field on every page.
+5. **Re-run the typecheck and both suites.** A reactivity lost in step 3 or 4 shows up as a value that stops
+   updating on screen rather than as a type error, so `npm run verify:dom` is the one that catches it — the
+   unit tests and the compiler will both stay green through a regression of this kind.
+
+### Known costs, accepted going in
+
+**The props type becomes an intersection of one binary union per prop.** That is sound, but two things get
+noisier: autocomplete offers both `count` and `getCount` on every prop, and a genuine type error inside a large
+props type produces a message listing both branches of every field. On something the size of `WheelProps` that
+may be hard to read. Neither is a reason to stop; they are named so that the first person to hit an unreadable
+error message knows where it comes from.
+
+**Every component gains a line of boilerplate.** `const p = resolveProps(props)` at the top of each one, and
+the discipline that nothing below it may read `props` directly. A component that reads both is the failure mode
+to watch for, since the half still reading `props` silently stops accepting the plain form.
+
+The reasoning behind the current `AccessorProps` — what it skips, the generic hole, the `undefined`-valued
+optional hole, and why intersections handed to it are sound — is in `conventions.md` under _"`AccessorProps`"_.
+Any change here has to keep those entries true or correct them.
 
 ---
 

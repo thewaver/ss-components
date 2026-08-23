@@ -107,3 +107,25 @@ test("the satellite can be sent behind the subject without moving", async ({ pag
 
     expect(await paddings(page, BADGE), "and the box it needs is unchanged by the stacking order").toEqual(before);
 });
+
+/**
+ * The branch nothing else reaches: a `Satellite` handed no `renderSatellite` is a passthrough, and renders the
+ * subject on its own with none of the wrapper around it. So the assertion is the absence of the padded box the
+ * other tests match on — not merely a box whose four paddings have gone to zero, which is what an inside-corner
+ * placement gives and which the test above already covers.
+ *
+ * The subject has to be found by its text, because with the wrapper gone there is no inline style left to match
+ * on, and the measure box around the demo is padded whether or not there is a satellite.
+ */
+test("a satellite that was never handed one renders the subject and nothing else", async ({ page }) => {
+    await page.locator(checkField("hasSatellite")).uncheck();
+
+    await expect
+        .poll(() => page.locator(wrapper(BADGE)).count(), {
+            message: "no satellite means no wrapper at all, rather than a wrapper that has collapsed",
+        })
+        .toBe(0);
+
+    await expect(page.locator(satellite(BADGE))).toHaveCount(0);
+    await expect(page.locator(BADGE).getByText("Subject")).toBeVisible();
+});

@@ -105,14 +105,11 @@ export const wheelPipShape = style({
     strokeLinejoin: "round",
 });
 
-export const wheelHub = style({
+export const wheelCentre = style({
     position: "absolute",
-    inset: "35%",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "visible",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
 });
 
 export const wheelBar = style({

@@ -10,4 +10,5 @@ export type SatelliteExampleProps = AccessorProps<{
     subjectWidth: number;
     subjectHeight: number;
     badgeSize: number;
+    hasSatellite: boolean;
 }>;

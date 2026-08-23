@@ -1,8 +1,8 @@
-import type { Accessor } from "solid-js";
-
 import type { ScrollerStep, ScrollerStepper } from "../../../../Lib/Fundamentals/Scroller/Scroller.types";
+import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
-export type ScrollerButtonProps = {
-    getStep: Accessor<ScrollerStep>;
+export type ScrollerButtonProps = AccessorProps<{
+    step: ScrollerStep;
+}> & {
     stepper: ScrollerStepper;
 };

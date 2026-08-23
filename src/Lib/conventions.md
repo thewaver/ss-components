@@ -294,6 +294,39 @@ wheel props types therefore all declare `getIdleDelayMs?: Accessor<number | unde
 because the ref cases read as being about refs: **any optional prop whose meaningful "off" value is `undefined`
 is in the same position**, and the type error arrives at the call site rather than at the declaration.
 
+**Outside those two holes, a props type is one `AccessorProps` block and nothing else.** Stated by the user
+after a sweep of the Playground turned up sixteen types declaring `getX: Accessor<T>` by hand where no type
+parameter and no `undefined`-valued optional was involved. Writing the accessor out is the exception the two
+paragraphs above license, so a hand-written one carries the claim "this is one of those cases" — and when it
+is not, the claim is false and the reader has to check the mapped type themselves to find that out. Where a
+prop genuinely cannot go through, it sits in an intersection beside the block rather than replacing it:
+`ScrollerButtonProps` is `AccessorProps<{ step: ScrollerStep }> & { stepper: ScrollerStepper }`, because
+`ScrollerStepper` is an object of functions rather than a function, so the mapped type would accessorize it.
+
+**An intersection handed _to_ `AccessorProps` is fine, and it is the `ScrollerStepper` shape that is not — the
+two are easy to confuse.** `AccessorProps<A & B>` was checked against the flattened equivalent and the two are
+mutually assignable with identical keys, for plain aliases, for interfaces, for nested intersections and for
+overlapping keys; optional modifiers survive and function-valued keys are still skipped. This matters because
+`WheelProps` and `ButtonProps` are both built that way and would have to be unpicked if the opposite were
+believed. What actually caught `ScrollerStepper` is the `IsSkippable` test: it asks whether the value **is** a
+function, and an object whose fields are all functions is not one.
+
+**A required prop typed `T | undefined` is the way through the second hole, and it beats an optional one.**
+The Playground's `WheelExampleProps` declares `idleDelayMs: number | undefined`, which accessorizes to
+`getIdleDelayMs: Accessor<number | undefined>` — the shape the library wants — where `idleDelayMs?: number`
+would have produced `Accessor<number>` and refused the "off" value. The cost is that the prop can no longer be
+omitted. That is the right trade for an example page, whose props all arrive from one `commonProps` object
+that supplies every field anyway; a library prop a consumer may legitimately leave out is still written by
+hand, which is why `WheelSlots.getIdleDelayMs` stays optional.
+
+**`ParentProps` wraps the parameter, never the type.** Stated by the user. A props type describes what the
+component is configured with; children are how the caller nests markup inside the element, which is a fact
+about the JSX call rather than about the configuration. So the declaration stays bare —
+`type PageWheelCardProps = AccessorProps<{ state: WheelWedgeState }>` — and the signature reads
+`(props: ParentProps<PageWheelCardProps>)`. It also keeps the type composable: a `ParentProps<X>` cannot be
+intersected or `Omit`-ed without dragging `children` along, and every type that spreads into another would
+inherit a `children` it never renders.
+
 ### Prop prefixes
 
 | Kind                                          | Prefix                        | Examples                                                                                       |

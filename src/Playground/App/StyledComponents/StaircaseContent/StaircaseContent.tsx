@@ -1,8 +1,10 @@
+import type { ParentProps } from "solid-js";
+
 import type { PageStaircaseStepProps } from "./StaircaseContent.types";
 
 import * as styles from "./StaircaseContent.css";
 
-export const PageStaircaseStep = (props: PageStaircaseStepProps) => (
+export const PageStaircaseStep = (props: ParentProps<PageStaircaseStepProps>) => (
     <div class={styles.staircaseStep}>
         <div>{props.children}</div>
 

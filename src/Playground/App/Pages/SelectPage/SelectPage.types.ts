@@ -1,6 +1,7 @@
 import type { Signal } from "solid-js";
 
 import type { SelectItem, SelectOption } from "../../../../Lib/Fundamentals/Input/Select/Select.types";
+import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 
 export type Airport = {
     code: string;
@@ -12,10 +13,10 @@ export type Delivery = {
     description: string;
 };
 
-export type SelectExampleProps = {
+export type SelectExampleProps = AccessorProps<{
     valueSignal: Signal<string | undefined>;
-    getOptions?: () => SelectItem<string>[];
-};
+    options?: SelectItem<string>[];
+}>;
 
 export type SelectAirportExampleProps = {
     valueSignal: Signal<Airport | undefined>;
@@ -25,9 +26,10 @@ export type SelectDeliveryExampleProps = {
     valueSignal: Signal<Delivery | undefined>;
 };
 
-export type SelectRoutesExampleProps = SelectDeliveryExampleProps & {
-    getOptions: () => SelectOption<Delivery>[];
-    getHasMore: () => boolean;
-    getIsFetching: () => boolean;
-    onReachEnd: () => void;
-};
+export type SelectRoutesExampleProps = SelectDeliveryExampleProps &
+    AccessorProps<{
+        options: SelectOption<Delivery>[];
+        hasMore: boolean;
+        isFetching: boolean;
+        onReachEnd: () => void;
+    }>;

@@ -5,8 +5,8 @@ import { CSSUtils } from "@thewaver/ss-utils";
 import { Surface } from "../../../../../../Lib/Composites/Surface/Surface";
 import type { SurfaceProps } from "../../../../../../Lib/Composites/Surface/Surface.types";
 import { Preview } from "../../../../../../Lib/Fundamentals/Preview/Preview";
-import knight_profile from "../../../../knight_profile.webp";
 import { PageButtonContent } from "../../../../StyledComponents/ButtonContent/ButtonContent";
+import knight_profile from "../../../../knight_profile.webp";
 
 import { themeVars } from "../../../../Theme.css";
 import * as styles from "./Card.css";
