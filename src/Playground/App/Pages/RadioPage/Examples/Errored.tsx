@@ -14,18 +14,18 @@ export const ErroredExample = (props: Props) => {
     return (
         <RadioGroup
             valueSignal={props.valueSignal}
-            getAriaLabel={() => "Required size"}
-            getGap={() => RADIO_GROUP_GAP}
-            getHasError={getHasError}
+            ariaLabel={"Required size"}
+            gap={() => RADIO_GROUP_GAP}
+            hasError={getHasError}
         >
             <For each={SIZE_OPTIONS}>
                 {(option) => (
                     <Radio
-                        getValue={() => option.value}
-                        getAriaLabel={() => option.label}
-                        getHasError={getHasError}
+                        value={() => option.value}
+                        ariaLabel={() => option.label}
+                        hasError={getHasError}
                         renderContent={(getFlags) => (
-                            <PageRadioContent getFlags={getFlags}>{option.label}</PageRadioContent>
+                            <PageRadioContent flags={getFlags}>{option.label}</PageRadioContent>
                         )}
                     />
                 )}

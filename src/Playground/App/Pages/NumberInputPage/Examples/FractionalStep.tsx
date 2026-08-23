@@ -14,14 +14,14 @@ type Props = NumberInputExampleProps;
 export const FractionalStepExample = (props: Props) => (
     <NumberInput
         valueSignal={props.valueSignal}
-        getMin={() => RATING_MIN}
-        getMax={() => RATING_MAX}
-        getStep={() => RATING_STEP}
-        getPadding={() => FIELD_STEPPER_PADDING}
-        getGap={() => FIELD_GAP}
-        getAriaLabel={() => "Rating"}
+        min={() => RATING_MIN}
+        max={() => RATING_MAX}
+        step={() => RATING_STEP}
+        padding={() => FIELD_STEPPER_PADDING}
+        gap={() => FIELD_GAP}
+        ariaLabel={"Rating"}
         computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} />}
-        renderTrailing={(getFlags, stepper) => <PageNumberInputStepper getFlags={getFlags} stepper={stepper} />}
+        renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} />}
+        renderTrailing={(getFlags, stepper) => <PageNumberInputStepper flags={getFlags} stepper={stepper} />}
     />
 );

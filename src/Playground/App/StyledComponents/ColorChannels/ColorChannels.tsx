@@ -78,18 +78,13 @@ export const PageColorChannels = (props: PageColorChannelsProps) => {
     return (
         <>
             <PageColorPickerRow>
-                <RadioGroup
-                    valueSignal={spaceSignal}
-                    getDir={() => "row"}
-                    getGap={() => 5}
-                    getAriaLabel={() => "Colour space"}
-                >
+                <RadioGroup valueSignal={spaceSignal} dir={"row"} gap={5} ariaLabel={"Colour space"}>
                     {SPACES.map((space) => (
                         <Radio
-                            getValue={() => space}
-                            getAriaLabel={() => space.toUpperCase()}
+                            value={() => space}
+                            ariaLabel={() => space.toUpperCase()}
                             renderContent={(getFlags) => (
-                                <PageRadioContent getFlags={getFlags}>{space.toUpperCase()}</PageRadioContent>
+                                <PageRadioContent flags={getFlags}>{space.toUpperCase()}</PageRadioContent>
                             )}
                         />
                     ))}
@@ -101,12 +96,12 @@ export const PageColorChannels = (props: PageColorChannelsProps) => {
                     {RGB_CHANNELS.map((channel) => (
                         <PageColorChannel label={channel}>
                             <PageNumberField
-                                getValue={() => Math.round(getRgba()[channel])}
-                                getMin={() => 0}
-                                getMax={() => CHANNEL_MAX}
-                                getWidth={() => CHANNEL_FIELD_WIDTH}
-                                getId={() => `channel${channel.toUpperCase()}`}
-                                getAriaLabel={() => `Red green blue channel ${channel}`}
+                                value={() => Math.round(getRgba()[channel])}
+                                min={0}
+                                max={() => CHANNEL_MAX}
+                                width={() => CHANNEL_FIELD_WIDTH}
+                                id={() => `channel${channel.toUpperCase()}`}
+                                ariaLabel={() => `Red green blue channel ${channel}`}
                                 onInput={(value) => setRgbaChannel(channel, value)}
                             />
                         </PageColorChannel>
@@ -114,13 +109,13 @@ export const PageColorChannels = (props: PageColorChannelsProps) => {
 
                     <PageColorChannel label="a">
                         <PageNumberField
-                            getValue={getAlpha}
-                            getId={() => "channelA"}
-                            getMin={() => 0}
-                            getMax={() => ALPHA_MAX}
-                            getStep={() => ALPHA_STEP}
-                            getWidth={() => CHANNEL_FIELD_WIDTH}
-                            getAriaLabel={() => "Alpha"}
+                            value={getAlpha}
+                            id={"channelA"}
+                            min={0}
+                            max={() => ALPHA_MAX}
+                            step={() => ALPHA_STEP}
+                            width={() => CHANNEL_FIELD_WIDTH}
+                            ariaLabel={"Alpha"}
                             onInput={setAlpha}
                         />
                     </PageColorChannel>
@@ -131,12 +126,12 @@ export const PageColorChannels = (props: PageColorChannelsProps) => {
                 <PageColorChannelGrid>
                     <PageColorChannel label="h">
                         <PageNumberField
-                            getValue={() => Math.round(getHsla().h)}
-                            getMin={() => 0}
-                            getMax={() => HUE_MAX}
-                            getWidth={() => CHANNEL_FIELD_WIDTH}
-                            getId={() => "channelH"}
-                            getAriaLabel={() => "Hue channel"}
+                            value={() => Math.round(getHsla().h)}
+                            min={0}
+                            max={() => HUE_MAX}
+                            width={() => CHANNEL_FIELD_WIDTH}
+                            id={"channelH"}
+                            ariaLabel={"Hue channel"}
                             onInput={(value) => setHslaChannel("h", value)}
                         />
                     </PageColorChannel>
@@ -144,12 +139,12 @@ export const PageColorChannels = (props: PageColorChannelsProps) => {
                     {HSL_CHANNELS.map((channel) => (
                         <PageColorChannel label={channel}>
                             <PageNumberField
-                                getValue={() => Math.round(getHsla()[channel] * PERCENT)}
-                                getMin={() => 0}
-                                getMax={() => PERCENT}
-                                getWidth={() => CHANNEL_FIELD_WIDTH}
-                                getId={() => `channel${channel.toUpperCase()}`}
-                                getAriaLabel={() => `Hue saturation lightness channel ${channel}`}
+                                value={() => Math.round(getHsla()[channel] * PERCENT)}
+                                min={0}
+                                max={() => PERCENT}
+                                width={() => CHANNEL_FIELD_WIDTH}
+                                id={() => `channel${channel.toUpperCase()}`}
+                                ariaLabel={() => `Hue saturation lightness channel ${channel}`}
                                 onInput={(value) => setHslaChannel(channel, value)}
                             />
                         </PageColorChannel>
@@ -157,13 +152,13 @@ export const PageColorChannels = (props: PageColorChannelsProps) => {
 
                     <PageColorChannel label="a">
                         <PageNumberField
-                            getValue={getAlpha}
-                            getId={() => "channelA"}
-                            getMin={() => 0}
-                            getMax={() => ALPHA_MAX}
-                            getStep={() => ALPHA_STEP}
-                            getWidth={() => CHANNEL_FIELD_WIDTH}
-                            getAriaLabel={() => "Alpha"}
+                            value={getAlpha}
+                            id={"channelA"}
+                            min={0}
+                            max={() => ALPHA_MAX}
+                            step={() => ALPHA_STEP}
+                            width={() => CHANNEL_FIELD_WIDTH}
+                            ariaLabel={"Alpha"}
                             onInput={setAlpha}
                         />
                     </PageColorChannel>
@@ -175,13 +170,13 @@ export const PageColorChannels = (props: PageColorChannelsProps) => {
                     <PageColorChannel label="hexa">
                         <TextInput
                             valueSignal={hexSignal}
-                            getId={() => "channelHexa"}
-                            getAriaLabel={() => "Hex with alpha"}
-                            getPadding={() => FIELD_PADDING}
-                            getGap={() => FIELD_GAP}
+                            id={"channelHexa"}
+                            ariaLabel={"Hex with alpha"}
+                            padding={() => FIELD_PADDING}
+                            gap={() => FIELD_GAP}
                             computeTextStyle={computePageTextFieldTextStyle}
                             renderContent={(getFlags) => (
-                                <PageTextFieldContent getFlags={getFlags} getWidth={() => HEX_FIELD_WIDTH} />
+                                <PageTextFieldContent flags={getFlags} width={() => HEX_FIELD_WIDTH} />
                             )}
                         />
                     </PageColorChannel>

@@ -6,23 +6,25 @@ import type { ButtonPressedExampleProps } from "../ButtonPage.types";
 
 type Props = ButtonPressedExampleProps;
 
-export const DecoratedExample = (props: Props) => (
-    <Button
-        getIsPressed={props.getIsPressed}
-        renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Toggle Me</PageButtonContent>}
-        renderDecoration={(getFlags) => <Corners getColor={() => (getFlags().isPressed ? "yellow" : "transparent")} />}
-        getTooltipDefs={() => ({
-            getPlacement: () => ({ x: "center", y: "top-out" }),
-            getOffset: () => ({ x: 0, y: 5 }),
-            renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                <PageTooltipContent
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
-                >
-                    Click me to toggle me.
-                </PageTooltipContent>
-            ),
-        })}
-        onClick={props.onClick}
-    />
-);
+export const DecoratedExample = (props: Props) => {
+    return (
+        <Button
+            isPressed={props.isPressed}
+            renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Toggle Me</PageButtonContent>}
+            renderDecoration={(getFlags) => <Corners color={() => (getFlags().isPressed ? "yellow" : "transparent")} />}
+            tooltipDefs={() => ({
+                placement: () => ({ x: "center", y: "top-out" }),
+                offset: () => ({ x: 0, y: 5 }),
+                renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
+                    <PageTooltipContent
+                        visibilityTarget={getVisibilityTarget}
+                        transitionDurationMs={getTransitionDurationMs}
+                    >
+                        Click me to toggle me.
+                    </PageTooltipContent>
+                ),
+            })}
+            onClick={props.onClick}
+        />
+    );
+};

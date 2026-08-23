@@ -7,12 +7,12 @@ type Props = TreeRecordExampleProps;
 
 export const RecordValuesExample = (props: Props) => (
     <Tree
-        getNodes={() => ASSETS}
+        nodes={() => ASSETS}
         valueSignal={props.valueSignal}
         expandedSignal={props.expandedSignal}
-        getAriaLabel={() => "Assets"}
+        ariaLabel={"Assets"}
         renderNode={(getNode, getFlags) => (
-            <PageTreeNodeContent getFlags={getFlags} getDetail={() => getNode().value.kind}>
+            <PageTreeNodeContent flags={getFlags} detail={() => getNode().value.kind}>
                 {getNode().value.name}
             </PageTreeNodeContent>
         )}

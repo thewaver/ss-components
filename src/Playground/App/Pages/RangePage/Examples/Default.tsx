@@ -9,8 +9,8 @@ type Props = RangeExampleProps;
 export const DefaultExample = (props: Props) => (
     <Range
         valueSignal={props.valueSignal}
-        getAriaLabel={() => "Volume"}
-        getThumbSize={() => RANGE_THUMB_SIZE}
-        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
+        ariaLabel={"Volume"}
+        thumbSize={() => RANGE_THUMB_SIZE}
+        renderContent={(getFlags) => <PageRangeContent flags={getFlags} />}
     />
 );

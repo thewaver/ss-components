@@ -44,12 +44,12 @@ export const COUNTRIES_WITH_REACHABLE: SelectOption<string>[] = [
         isDisabled: true,
         isReachableWhenDisabled: true,
         tooltipDefs: {
-            getPlacement: () => ({ x: "right-out", y: "center" }),
-            getOffset: () => ({ x: 10, y: 0 }),
+            placement: () => ({ x: "right-out", y: "center" }),
+            offset: () => ({ x: 10, y: 0 }),
             renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
                 <PageTooltipContent
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
+                    visibilityTarget={getVisibilityTarget}
+                    transitionDurationMs={getTransitionDurationMs}
                 >
                     Not shipping here until the new depot opens.
                 </PageTooltipContent>
@@ -62,12 +62,12 @@ export const COUNTRIES_WITH_REACHABLE: SelectOption<string>[] = [
         isDisabled: true,
         isReachableWhenDisabled: true,
         tooltipDefs: {
-            getPlacement: () => ({ x: "right-out", y: "center" }),
-            getOffset: () => ({ x: 10, y: 0 }),
+            placement: () => ({ x: "right-out", y: "center" }),
+            offset: () => ({ x: 10, y: 0 }),
             renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
                 <PageTooltipContent
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
+                    visibilityTarget={getVisibilityTarget}
+                    transitionDurationMs={getTransitionDurationMs}
                 >
                     Out of stock for the rest of the quarter.
                 </PageTooltipContent>
@@ -148,9 +148,9 @@ export const renderSelectPopup = (
     getPlacement: () => AnchorPlacement,
 ) => (
     <PagePopoverSurface
-        getVisibilityTarget={getVisibilityTarget}
-        getTransitionDurationMs={getTransitionDurationMs}
-        getPlacement={getPlacement}
+        visibilityTarget={getVisibilityTarget}
+        transitionDurationMs={getTransitionDurationMs}
+        placement={getPlacement}
     >
         {renderOptions()}
     </PagePopoverSurface>

@@ -6,19 +6,12 @@ type IsSkippable<T> = NonNullish<T> extends ((...args: any) => any) | symbol | S
 
 type IsOptional<T, K extends keyof T> = {} extends Pick<T, K> ? true : false;
 
-type PrefixKeyWithGet<K> = K extends string ? `get${Capitalize<K>}` : never;
+export type MaybeAccessor<T> = T | Accessor<T>;
 
-type AccessorizedPart<T extends object> = {
-    [K in keyof T as IsSkippable<T[K]> extends false ? PrefixKeyWithGet<K & string> : never]: IsOptional<
-        T,
-        K
-    > extends true
-        ? Accessor<Exclude<T[K], undefined>> | undefined
-        : Accessor<T[K]>;
+export type AccessorProps<T extends object> = {
+    [K in keyof T]: IsSkippable<T[K]> extends true
+        ? T[K]
+        : IsOptional<T, K> extends true
+          ? MaybeAccessor<Exclude<T[K], undefined>>
+          : MaybeAccessor<T[K]>;
 };
-
-type SkippedPart<T extends object> = {
-    [K in keyof T as IsSkippable<T[K]> extends true ? K : never]: T[K];
-};
-
-export type AccessorProps<T extends object> = AccessorizedPart<T> & SkippedPart<T>;

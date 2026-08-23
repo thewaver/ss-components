@@ -2,6 +2,7 @@ import { For, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
 import { ObjectUtils, ShapeUtils, type Size2d } from "@thewaver/ss-utils";
 
+import { access } from "../../Utils/propUtils";
 import type { ShapeProps, ShapeStrokeGeom } from "./Shape.types";
 
 import * as styles from "./Shape.css";
@@ -24,10 +25,10 @@ export const Shape = (props: ShapeProps) => {
         const pts = props.computePoints(getRootSize());
         const cache: Record<string, ReturnType<typeof ShapeUtils.getPaths>> = {};
         const strokeDefs = getStrokeDefs();
-        const strokeGeom = props.getStrokeGeom?.() ?? [];
+        const strokeGeom = access(props.strokeGeom) ?? [];
 
         if (!strokeDefs?.length) {
-            return [ShapeUtils.getPaths(pts, [0], props.getJoinRadii?.(), props.getLameExponents?.())];
+            return [ShapeUtils.getPaths(pts, [0], access(props.joinRadii), access(props.lameExponents))];
         }
 
         const pairs = ObjectUtils.zipArray(
@@ -45,8 +46,8 @@ export const Shape = (props: ShapeProps) => {
             const paths = ShapeUtils.getPaths(
                 pts,
                 thicknesses,
-                props.getJoinRadii?.(),
-                props.getLameExponents?.(),
+                access(props.joinRadii),
+                access(props.lameExponents),
                 offset,
             );
             cache[key] = paths;

@@ -14,12 +14,12 @@ type Props = NumberInputExampleProps;
 export const DisabledExample = (props: Props) => (
     <NumberInput
         valueSignal={props.valueSignal}
-        getIsDisabled={() => true}
-        getPadding={() => FIELD_STEPPER_PADDING}
-        getGap={() => FIELD_GAP}
-        getAriaLabel={() => "Disabled amount"}
+        isDisabled={true}
+        padding={() => FIELD_STEPPER_PADDING}
+        gap={() => FIELD_GAP}
+        ariaLabel={"Disabled amount"}
         computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} />}
-        renderTrailing={(getFlags, stepper) => <PageNumberInputStepper getFlags={getFlags} stepper={stepper} />}
+        renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} />}
+        renderTrailing={(getFlags, stepper) => <PageNumberInputStepper flags={getFlags} stepper={stepper} />}
     />
 );

@@ -3,7 +3,7 @@ import type { Accessor, JSX, Signal } from "solid-js";
 import type { Size2d } from "@thewaver/ss-utils";
 
 import type { RotationPhase, RotationSpinDefs } from "../../Abstracts/Rotation/Rotation.types";
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 
 export type WheelVariant = "flat" | "drum";
 
@@ -40,8 +40,8 @@ export type WheelLabels = {
 };
 
 export type WheelSlots<T> = {
-    getWedges: Accessor<T[]>;
-    getIdleDelayMs?: Accessor<number | undefined>;
+    wedges: MaybeAccessor<T[]>;
+    idleDelayMs?: MaybeAccessor<number | undefined>;
     indexSignal?: Signal<number>;
     autoSpinSignal?: Signal<boolean>;
     computeSpinTarget: () => number | Promise<number>;

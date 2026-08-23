@@ -1,17 +1,18 @@
 import { Formation } from "../../../../../Lib/Exotics/Formation/Formation";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import { FormationLayouts } from "../../../Samples/FormationLayouts/FormationLayouts.const";
 import { PageFormationItem } from "../../../StyledComponents/FormationContent/FormationContent";
 import type { FormationExampleProps } from "../FormationPage.types";
 
 type Props = FormationExampleProps;
 
-export const DefaultExample = ({ getLayoutKey, getShapeKind, ...otherProps }: Props) => {
+export const DefaultExample = ({ layoutKey, shapeKind, ...otherProps }: Props) => {
     return (
         <Formation
             {...otherProps}
-            computeLayout={(itemCount) => FormationLayouts.SAMPLE_LAYOUTS[getLayoutKey()](itemCount)}
+            computeLayout={(itemCount) => FormationLayouts.SAMPLE_LAYOUTS[access(layoutKey)](itemCount)}
             renderItem={(getItem, getState) => (
-                <PageFormationItem getState={getState} getShapeKind={getShapeKind}>
+                <PageFormationItem state={getState} shapeKind={shapeKind}>
                     {getItem()}
                 </PageFormationItem>
             )}

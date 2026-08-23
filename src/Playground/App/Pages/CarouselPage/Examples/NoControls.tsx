@@ -4,12 +4,14 @@ import type { CarouselExampleProps } from "../CarouselPage.types";
 
 type Props = CarouselExampleProps;
 
-export const NoControlsExample = (props: Props) => (
-    <Carousel
-        getSlides={props.getSlides}
-        indexSignal={props.indexSignal}
-        getIsDisabled={props.getIsDisabled}
-        getAriaLabel={() => "Bare sampler"}
-        renderSlide={(getSlide, getState) => <PageCarouselSlide getState={getState}>{getSlide()}</PageCarouselSlide>}
-    />
-);
+export const NoControlsExample = (props: Props) => {
+    return (
+        <Carousel
+            slides={props.slides}
+            indexSignal={props.indexSignal}
+            isDisabled={props.isDisabled}
+            ariaLabel={"Bare sampler"}
+            renderSlide={(getSlide, getState) => <PageCarouselSlide state={getState}>{getSlide()}</PageCarouselSlide>}
+        />
+    );
+};

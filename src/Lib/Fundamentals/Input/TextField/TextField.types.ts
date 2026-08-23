@@ -82,7 +82,7 @@ export type TextFieldElementProps = AccessorProps<
 
 export type TextFieldProps = Omit<
     InteractionWrapperProps<TextFieldFlags>,
-    "renderControl" | "getExtraFlags" | "getMinWidth" | "getMinHeight"
+    "renderControl" | "extraFlags" | "minWidth" | "minHeight"
 > &
     AccessorProps<
         TextFieldCbs &
@@ -96,5 +96,5 @@ export type TextFieldProps = Omit<
 
 export type TextFieldPresetProps = Omit<
     TextFieldProps,
-    "getElement" | "getIsSpinButton" | "getIsAutoSizing" | "getMinRows" | "getMaxRows" | "onKeyDown" | "onBlur"
+    "element" | "isSpinButton" | "isAutoSizing" | "minRows" | "maxRows" | "onKeyDown" | "onBlur"
 >;

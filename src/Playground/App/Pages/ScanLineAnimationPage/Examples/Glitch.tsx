@@ -1,6 +1,7 @@
 import { createEffect, createMemo, createSignal } from "solid-js";
 
 import { ScanlineAnimation } from "../../../../../Lib/Exotics/ScanlineAnimation/ScanlineAnimation";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import { CellAnimationBreakpoints } from "../../../Samples/CellAnimationBreakpoints/CellAnimationBreakpoints.const";
 import { CellAnimationWeights } from "../../../Samples/CellAnimationWeights/CellAnimationWeights.const";
@@ -43,9 +44,9 @@ type Props = ScanlineAnimationExampleProps &
         keyframeOpts: { count: number; shiftPercent: number; chunkyness: number };
     }>;
 
-export const GlitchExample = ({ getKeyframeOpts, getWeightType, ...otherProps }: Props) => {
+export const GlitchExample = ({ keyframeOpts, weightType, ...otherProps }: Props) => {
     const getBreakpointGroups = createMemo(() => {
-        const count = getKeyframeOpts().count;
+        const count = access(keyframeOpts).count;
         const shift = Math.min(0.25, count * 0.05);
 
         return getGlitchBreakpointGroups(count, 0.5 - shift, 0.5 + shift);
@@ -54,9 +55,9 @@ export const GlitchExample = ({ getKeyframeOpts, getWeightType, ...otherProps }:
     const generateShifts = () => {
         return getRandomShifts(
             getBreakpointGroups().length,
-            otherProps.getLineCount(),
-            getKeyframeOpts().shiftPercent,
-            getKeyframeOpts().chunkyness,
+            access(otherProps.lineCount),
+            access(keyframeOpts).shiftPercent,
+            access(keyframeOpts).chunkyness,
         );
     };
 
@@ -70,7 +71,7 @@ export const GlitchExample = ({ getKeyframeOpts, getWeightType, ...otherProps }:
         <ScanlineAnimation
             {...otherProps}
             computeCellWeights={(count) =>
-                CellAnimationWeights.computeCellWeights(getWeightType(), count, WEIGHT_ORIGIN)
+                CellAnimationWeights.computeCellWeights(access(weightType), count, WEIGHT_ORIGIN)
             }
             computeRootAnimation={(timeline) => {
                 const breakpointGroups = getBreakpointGroups();

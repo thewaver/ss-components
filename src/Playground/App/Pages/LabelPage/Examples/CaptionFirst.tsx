@@ -12,7 +12,7 @@ export const CaptionFirstExample = (props: Props) => (
 
         <Toggle
             checkedSignal={props.checkedSignal}
-            renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
+            renderContent={(getFlags) => <PageToggleContent flags={getFlags} />}
         />
     </Label>
 );

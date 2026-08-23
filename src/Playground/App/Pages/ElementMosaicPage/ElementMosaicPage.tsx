@@ -1,6 +1,7 @@
 import { createMemo, createSignal } from "solid-js";
 
 import type { MosaicSizeAnchor } from "../../../../Lib/Exotics/Mosaic/Mosaic.types";
+import { access } from "../../../../Lib/Utils/propUtils";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
@@ -43,8 +44,8 @@ const TILES: PageMosaicTileDefs[] = [
 const DefaultExampleWrapper = (props: ElementMosaicExampleProps) => {
     return (
         <PageMeasureBox
-            getWidth={props.getSizeAnchor() === "width" ? () => MOSAIC_EXTENT : undefined}
-            getHeight={props.getSizeAnchor() === "height" ? () => MOSAIC_EXTENT : undefined}
+            width={access(props.sizeAnchor) === "width" ? () => MOSAIC_EXTENT : undefined}
+            height={access(props.sizeAnchor) === "height" ? () => MOSAIC_EXTENT : undefined}
         >
             <DefaultExample {...props} />
         </PageMeasureBox>
@@ -60,9 +61,9 @@ export const ElementMosaicPage = () => {
 
     const getExamples = createMemo(() => {
         const commonProps: ElementMosaicExampleProps = {
-            getItems,
-            getGap,
-            getSizeAnchor,
+            items: getItems,
+            gap: getGap,
+            sizeAnchor: getSizeAnchor,
         };
 
         return [
@@ -77,43 +78,43 @@ export const ElementMosaicPage = () => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "itemCount"} getLabel={() => "Items"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"itemCount"} label={"Items"}>
                     <PageNumberField
-                        getValue={getItemCount}
-                        getMin={() => MIN_ITEM_COUNT}
-                        getMax={() => MAX_ITEM_COUNT}
-                        getStep={() => ITEM_COUNT_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Items"}
+                        value={getItemCount}
+                        min={() => MIN_ITEM_COUNT}
+                        max={() => MAX_ITEM_COUNT}
+                        step={() => ITEM_COUNT_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Items"}
                         onInput={setItemCount}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "gap"} getLabel={() => "Gap"}>
+                <PageProp key={"gap"} label={"Gap"}>
                     <PageNumberField
-                        getValue={getGap}
-                        getMin={() => MIN_GAP}
-                        getMax={() => MAX_GAP}
-                        getStep={() => GAP_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Gap"}
+                        value={getGap}
+                        min={() => MIN_GAP}
+                        max={() => MAX_GAP}
+                        step={() => GAP_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Gap"}
                         onInput={setGap}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "sizeAnchor"} getLabel={() => "Fixed side"}>
+                <PageProp key={"sizeAnchor"} label={"Fixed side"}>
                     <PageSelectField
-                        getValue={getSizeAnchor}
-                        getValues={() => SIZE_ANCHORS}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Fixed side"}
+                        value={getSizeAnchor}
+                        values={() => SIZE_ANCHORS}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Fixed side"}
                         onChange={(anchor) => setSizeAnchor(() => anchor)}
                     />
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} getLayout={() => "flow"} />
+            <PageExamples items={getExamples} layout={"flow"} />
         </>
     );
 };

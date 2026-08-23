@@ -13,20 +13,22 @@ const FIELD_WIDTH = 200;
 
 type Props = CurrencyInputExampleProps;
 
-export const BoundedExample = (props: Props) => (
-    <CurrencyInput
-        valueSignal={props.valueSignal}
-        getMax={() => BUDGET_MAX}
-        getAriaLabel={() => "Budget"}
-        getPadding={() => FIELD_STEPPER_PADDING}
-        getGap={() => FIELD_GAP}
-        getLocale={props.getLocale}
-        getDecimals={props.getDecimals}
-        getGroupSize={props.getGroupSize}
-        computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} />}
-        renderPlaceholder={(getFlags, hint) => (
-            <PageTextFieldPlaceholder getFlags={getFlags}>{hint}</PageTextFieldPlaceholder>
-        )}
-    />
-);
+export const BoundedExample = (props: Props) => {
+    return (
+        <CurrencyInput
+            valueSignal={props.valueSignal}
+            max={() => BUDGET_MAX}
+            ariaLabel={"Budget"}
+            padding={() => FIELD_STEPPER_PADDING}
+            gap={() => FIELD_GAP}
+            locale={props.locale}
+            decimals={props.decimals}
+            groupSize={props.groupSize}
+            computeTextStyle={computePageTextFieldTextStyle}
+            renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} />}
+            renderPlaceholder={(getFlags, hint) => (
+                <PageTextFieldPlaceholder flags={getFlags}>{hint}</PageTextFieldPlaceholder>
+            )}
+        />
+    );
+};

@@ -5,6 +5,7 @@ import { CSSUtils } from "@thewaver/ss-utils";
 import { FPSUtils } from "../../../../Lib/Abstracts/FPS/FPS.utils";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
+import { access } from "../../../../Lib/Utils/propUtils";
 import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import { PageModalOverlay } from "../../StyledComponents/ModalOverlay/ModalOverlay";
 import { PageModalPanel } from "../../StyledComponents/ModalPanel/ModalPanel";
@@ -20,7 +21,7 @@ export const StressTest = (props: StressTestProps) => {
     const [getConfigIndex, setConfigIndex] = createSignal(0);
 
     const getArr = createMemo(() =>
-        Array.from({ length: props.getConfigs()[getConfigIndex()].count }, (_, idx) => idx),
+        Array.from({ length: access(props.configs)[getConfigIndex()].count }, (_, idx) => idx),
     );
 
     const getIsMonitoringDisabled = createMemo(() => {
@@ -34,17 +35,17 @@ export const StressTest = (props: StressTestProps) => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "local"}>
-                <For each={props.getConfigs()}>
+            <PagePropsPanel scope={"local"}>
+                <For each={access(props.configs)}>
                     {(items, getIndex) => (
                         <Button
-                            getSizing={() => "fill"}
+                            sizing={"fill"}
                             onClick={async () => {
                                 setConfigIndex(getIndex());
                                 setModalOpen(true);
                             }}
                             renderContent={(getFlags) => (
-                                <PageButtonContent getFlags={getFlags}>{props.renderLabel(getIndex)}</PageButtonContent>
+                                <PageButtonContent flags={getFlags}>{props.renderLabel(getIndex)}</PageButtonContent>
                             )}
                         />
                     )}
@@ -52,22 +53,22 @@ export const StressTest = (props: StressTestProps) => {
             </PagePropsPanel>
 
             <Modal
-                getMargins={() => CSSUtils.spreadMargin(40)}
+                margins={() => CSSUtils.spreadMargin(40)}
                 visibilitySignal={modalVisibility}
-                getAriaLabel={() => "Stress test"}
+                ariaLabel={"Stress test"}
                 onShow={props.onShowModal}
                 onHide={props.onHideModal}
                 onTransitionStatusChange={setModalTransitionFinished}
                 renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
                     <PageModalOverlay
-                        getVisibilityTarget={getVisibilityTarget}
-                        getTransitionDurationMs={getTransitionDurationMs}
+                        visibilityTarget={getVisibilityTarget}
+                        transitionDurationMs={getTransitionDurationMs}
                     />
                 )}
                 renderContent={(getVisibilityTarget, getTransitionDurationMs) => (
                     <PageModalPanel
-                        getVisibilityTarget={getVisibilityTarget}
-                        getTransitionDurationMs={getTransitionDurationMs}
+                        visibilityTarget={getVisibilityTarget}
+                        transitionDurationMs={getTransitionDurationMs}
                     >
                         <div
                             class={[
@@ -80,8 +81,8 @@ export const StressTest = (props: StressTestProps) => {
                         <div
                             class={styles.itemGrid}
                             style={{
-                                "grid-template-columns": `repeat(${props.getConfigs()[getConfigIndex()].cols}, auto)`,
-                                "gap": `${props.getConfigs()[getConfigIndex()].gap}px`,
+                                "grid-template-columns": `repeat(${access(props.configs)[getConfigIndex()].cols}, auto)`,
+                                "gap": `${access(props.configs)[getConfigIndex()].gap}px`,
                             }}
                         >
                             <For each={getArr()}>{(_, getIndex) => props.renderItem(getConfigIndex, getIndex)}</For>

@@ -29,8 +29,8 @@ export const PreviewPage = () => {
             component: () => (
                 <TextExample
                     expandedSignal={longSignal}
-                    getCollapsedHeight={() => COLLAPSED_HEIGHT}
-                    getParagraphs={() => LONG_PARAGRAPHS}
+                    collapsedHeight={() => COLLAPSED_HEIGHT}
+                    paragraphs={() => LONG_PARAGRAPHS}
                 />
             ),
             path: `${EXAMPLES_ROOT}/Text.tsx`,
@@ -42,8 +42,8 @@ export const PreviewPage = () => {
             component: () => (
                 <TextExample
                     expandedSignal={shortSignal}
-                    getCollapsedHeight={() => COLLAPSED_HEIGHT}
-                    getParagraphs={() => SHORT_PARAGRAPHS}
+                    collapsedHeight={() => COLLAPSED_HEIGHT}
+                    paragraphs={() => SHORT_PARAGRAPHS}
                 />
             ),
             path: `${EXAMPLES_ROOT}/Text.tsx`,
@@ -56,13 +56,13 @@ export const PreviewPage = () => {
             component: () => (
                 <ScrolledExample
                     expandedSignal={scrolledSignal}
-                    getCollapsedHeight={() => COLLAPSED_HEIGHT}
-                    getParagraphs={() => LONG_PARAGRAPHS}
+                    collapsedHeight={() => COLLAPSED_HEIGHT}
+                    paragraphs={() => LONG_PARAGRAPHS}
                 />
             ),
             path: `${EXAMPLES_ROOT}/Scrolled.tsx`,
         },
     ]);
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

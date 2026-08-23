@@ -47,7 +47,10 @@ export const TagInputPage = () => {
     };
 
     const getExamples = createMemo(() => {
-        const commonProps: Omit<TagInputExampleProps, "valueSignal"> = { getIsDisabled, getHasError };
+        const commonProps: Omit<TagInputExampleProps, "valueSignal"> = {
+            isDisabled: getIsDisabled,
+            hasError: getHasError,
+        };
 
         return [
             {
@@ -62,7 +65,7 @@ export const TagInputPage = () => {
                 name: "Empty",
                 readout: () => `tags: ${emptySignal[0]().join(", ") || "none"}`,
                 component: () => (
-                    <DefaultExample {...commonProps} valueSignal={emptySignal} getAriaLabel={() => "Empty topics"} />
+                    <DefaultExample {...commonProps} valueSignal={emptySignal} ariaLabel={"Empty topics"} />
                 ),
                 path: `${EXAMPLES_ROOT}/Default.tsx`,
             },
@@ -86,18 +89,18 @@ export const TagInputPage = () => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "isDisabled"} getLabel={() => "Disabled"}>
-                    <PageCheckField getValue={getIsDisabled} getAriaLabel={() => "Disabled"} onChange={setIsDisabled} />
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"isDisabled"} label={"Disabled"}>
+                    <PageCheckField value={getIsDisabled} ariaLabel={"Disabled"} onChange={setIsDisabled} />
                 </PageProp>
 
-                <PageProp getKey={() => "hasError"} getLabel={() => "Error"}>
-                    <PageCheckField getValue={getHasError} getAriaLabel={() => "Error"} onChange={setHasError} />
+                <PageProp key={"hasError"} label={"Error"}>
+                    <PageCheckField value={getHasError} ariaLabel={"Error"} onChange={setHasError} />
                 </PageProp>
 
-                <PageProp getKey={() => "tags"} getLabel={() => "Tags"}>
+                <PageProp key={"tags"} label={"Tags"}>
                     <Button
-                        renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Reset</PageButtonContent>}
+                        renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Reset</PageButtonContent>}
                         onClick={async () => {
                             reset();
                         }}
@@ -105,7 +108,7 @@ export const TagInputPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} />
+            <PageExamples items={getExamples} />
         </>
     );
 };

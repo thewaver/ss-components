@@ -87,5 +87,5 @@ export const RangePage = () => {
         },
     ]);
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

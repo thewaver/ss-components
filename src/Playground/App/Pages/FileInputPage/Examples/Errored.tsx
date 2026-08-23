@@ -7,8 +7,8 @@ type Props = FileInputExampleProps;
 export const ErroredExample = (props: Props) => (
     <FileInput
         filesSignal={props.filesSignal}
-        getHasError={() => props.filesSignal[0]().length < 1}
-        getAriaLabel={() => "Required attachment"}
-        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
+        hasError={() => props.filesSignal[0]().length < 1}
+        ariaLabel={"Required attachment"}
+        renderContent={(getFlags) => <PageFileInputContent flags={getFlags} />}
     />
 );

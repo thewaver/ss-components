@@ -5,6 +5,7 @@ import { DecimalUtils } from "@thewaver/ss-utils";
 import { MaskedField } from "../../../Abstracts/MaskedField/MaskedField";
 import type { TextSyncGroupDefs } from "../../../Abstracts/TextSync/TextSync.utils";
 import { TextSyncUtils } from "../../../Abstracts/TextSync/TextSync.utils";
+import { access } from "../../../Utils/propUtils";
 import { TextField } from "../TextField/TextField";
 import type { CurrencyInputProps } from "./CurrencyInput.types";
 
@@ -12,11 +13,11 @@ const DEFAULT_CURRENCY_INPUT_DECIMALS = 2;
 const DEFAULT_CURRENCY_INPUT_GROUP_SIZE = 3;
 
 export const CurrencyInput = (props: CurrencyInputProps) => {
-    const getDecimals = createMemo(() => props.getDecimals?.() ?? DEFAULT_CURRENCY_INPUT_DECIMALS);
+    const getDecimals = createMemo(() => access(props.decimals) ?? DEFAULT_CURRENCY_INPUT_DECIMALS);
 
     const getGroupDefs = createMemo((): TextSyncGroupDefs => ({
-        ...DecimalUtils.getSeparators(props.getLocale?.()),
-        groupSize: props.getGroupSize?.() ?? DEFAULT_CURRENCY_INPUT_GROUP_SIZE,
+        ...DecimalUtils.getSeparators(access(props.locale)),
+        groupSize: access(props.groupSize) ?? DEFAULT_CURRENCY_INPUT_GROUP_SIZE,
         decimals: getDecimals(),
     }));
 
@@ -28,8 +29,8 @@ export const CurrencyInput = (props: CurrencyInputProps) => {
 
         if (parsed === undefined) return undefined;
 
-        const min = props.getMin?.();
-        const max = props.getMax?.();
+        const min = access(props.min);
+        const max = access(props.max);
 
         return (min !== undefined && parsed < min) || (max !== undefined && parsed > max) ? undefined : parsed;
     };
@@ -49,13 +50,13 @@ export const CurrencyInput = (props: CurrencyInputProps) => {
         <TextField
             {...props}
             valueSignal={field.textSignal}
-            getElement={() => "input"}
-            getInputMode={() => "decimal"}
+            element={"input"}
+            inputMode={"decimal"}
             computeMaskedText={(previous, next, caret) =>
                 TextSyncUtils.applyGroupedMask(getGroupDefs(), previous, next, caret)
             }
-            getPlaceholderHint={getHint}
-            getHasError={() => (props.getHasError?.() ?? false) || field.getHasIssue()}
+            placeholderHint={getHint}
+            hasError={() => (access(props.hasError) ?? false) || field.getHasIssue()}
             onInput={field.onInput}
             onBlur={field.onBlur}
         />

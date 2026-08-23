@@ -49,7 +49,7 @@ export const MenuPage = () => {
             readout: () => `${getLastDisabledAction()} — arrows skip Paste and Duplicate`,
             component: () => (
                 <DefaultExample
-                    getItems={() => ACTIONS_WITH_DISABLED}
+                    items={() => ACTIONS_WITH_DISABLED}
                     onActivate={(action) => setLastDisabledAction(action.name)}
                 />
             ),
@@ -61,7 +61,7 @@ export const MenuPage = () => {
             readout: () => `${getLastReachableAction()} — arrows stop on Paste, hover explains why`,
             component: () => (
                 <DefaultExample
-                    getItems={() => ACTIONS_WITH_REACHABLE}
+                    items={() => ACTIONS_WITH_REACHABLE}
                     onActivate={(action) => setLastReachableAction(action.name)}
                 />
             ),
@@ -87,8 +87,8 @@ export const MenuPage = () => {
             readout: () => `${getLastLayerAction()} — Home and End reach both ends`,
             component: () => (
                 <DefaultExample
-                    getItems={() => LAYERS}
-                    getCaption={() => "Layers"}
+                    items={() => LAYERS}
+                    caption={"Layers"}
                     onActivate={(action) => setLastLayerAction(action.name)}
                 />
             ),
@@ -110,5 +110,5 @@ export const MenuPage = () => {
         },
     ]);
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

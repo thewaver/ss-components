@@ -12,11 +12,11 @@ type Props = TextInputExampleProps;
 export const ReadOnlyExample = (props: Props) => (
     <TextInput
         valueSignal={props.valueSignal}
-        getPadding={() => FIELD_PADDING}
-        getGap={() => FIELD_GAP}
-        getIsReadOnly={() => true}
-        getAriaLabel={() => "Read-only field"}
+        padding={() => FIELD_PADDING}
+        gap={() => FIELD_GAP}
+        isReadOnly={true}
+        ariaLabel={"Read-only field"}
         computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
+        renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} />}
     />
 );

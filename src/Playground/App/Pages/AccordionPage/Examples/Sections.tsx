@@ -1,5 +1,6 @@
 import { Accordion } from "../../../../../Lib/Fundamentals/Accordion/Accordion";
 import type { AccordionItem } from "../../../../../Lib/Fundamentals/Accordion/Accordion.types";
+import type { MaybeAccessor } from "../../../../../Lib/Utils/typeUtils";
 import { PageAccordionHeader, PageAccordionPanel } from "../../../StyledComponents/AccordionContent/AccordionContent";
 import type { AccordionExampleProps } from "../AccordionPage.types";
 
@@ -19,26 +20,28 @@ const ITEMS: AccordionItem<string>[] = [
     { value: "Unavailable", isDisabled: true },
 ];
 
-type Props = AccordionExampleProps & { getIsSingleExpand?: () => boolean };
+type Props = AccordionExampleProps & { isSingleExpand?: MaybeAccessor<boolean> };
 
-export const SectionsExample = (props: Props) => (
-    <Accordion
-        getItems={() => ITEMS}
-        expandedSignal={props.expandedSignal}
-        getIsSingleExpand={props.getIsSingleExpand}
-        getGap={() => GAP}
-        renderHeader={(getItem, getFlags) => (
-            <PageAccordionHeader getFlags={getFlags}>{getItem().value}</PageAccordionHeader>
-        )}
-        renderPanel={(getItem, getVisibilityTarget, getTransitionDurationMs) => (
-            <PageAccordionPanel
-                getVisibilityTarget={getVisibilityTarget}
-                getTransitionDurationMs={getTransitionDurationMs}
-            >
-                {SECTION_BODIES[getItem().value].map((line) => (
-                    <div>{line}</div>
-                ))}
-            </PageAccordionPanel>
-        )}
-    />
-);
+export const SectionsExample = (props: Props) => {
+    return (
+        <Accordion
+            items={() => ITEMS}
+            expandedSignal={props.expandedSignal}
+            isSingleExpand={props.isSingleExpand}
+            gap={() => GAP}
+            renderHeader={(getItem, getFlags) => (
+                <PageAccordionHeader flags={getFlags}>{getItem().value}</PageAccordionHeader>
+            )}
+            renderPanel={(getItem, getVisibilityTarget, getTransitionDurationMs) => (
+                <PageAccordionPanel
+                    visibilityTarget={getVisibilityTarget}
+                    transitionDurationMs={getTransitionDurationMs}
+                >
+                    {SECTION_BODIES[getItem().value].map((line) => (
+                        <div>{line}</div>
+                    ))}
+                </PageAccordionPanel>
+            )}
+        />
+    );
+};

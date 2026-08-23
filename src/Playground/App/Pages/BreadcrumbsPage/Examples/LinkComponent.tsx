@@ -11,15 +11,17 @@ type Props = BreadcrumbsExampleProps;
 
 const PageBreadcrumbLink = (props: TabLinkProps) => <a {...props} data-link-component />;
 
-export const LinkComponentExample = (props: Props) => (
-    <Breadcrumbs
-        getCrumbs={props.getCrumbs}
-        getGap={() => BREADCRUMBS_GAP}
-        getAriaLabel={() => "Routed trail"}
-        linkComponent={PageBreadcrumbLink}
-        renderCrumb={(getCrumb, getFlags) => (
-            <PageBreadcrumbContent getFlags={getFlags}>{labelOf(getCrumb().value)}</PageBreadcrumbContent>
-        )}
-        renderSeparator={() => <PageBreadcrumbSeparator />}
-    />
-);
+export const LinkComponentExample = (props: Props) => {
+    return (
+        <Breadcrumbs
+            crumbs={props.crumbs}
+            gap={() => BREADCRUMBS_GAP}
+            ariaLabel={"Routed trail"}
+            linkComponent={PageBreadcrumbLink}
+            renderCrumb={(getCrumb, getFlags) => (
+                <PageBreadcrumbContent flags={getFlags}>{labelOf(getCrumb().value)}</PageBreadcrumbContent>
+            )}
+            renderSeparator={() => <PageBreadcrumbSeparator />}
+        />
+    );
+};

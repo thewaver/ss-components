@@ -36,17 +36,17 @@ type Props = AccordionExampleProps;
 export const ScrolledExample = (props: Props) => (
     <div class={styles.scrollBox} data-scroll-box>
         <Accordion
-            getItems={() => ITEMS}
+            items={() => ITEMS}
             expandedSignal={props.expandedSignal}
-            getIsScrolledIntoViewOnExpand={() => true}
-            getGap={() => GAP}
+            isScrolledIntoViewOnExpand={true}
+            gap={() => GAP}
             renderHeader={(getItem, getFlags) => (
-                <PageAccordionHeader getFlags={getFlags}>{getItem().value}</PageAccordionHeader>
+                <PageAccordionHeader flags={getFlags}>{getItem().value}</PageAccordionHeader>
             )}
             renderPanel={(getItem, getVisibilityTarget, getTransitionDurationMs) => (
                 <PageAccordionPanel
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
+                    visibilityTarget={getVisibilityTarget}
+                    transitionDurationMs={getTransitionDurationMs}
                 >
                     {SECTION_BODIES[getItem().value].map((line) => (
                         <div>{line}</div>

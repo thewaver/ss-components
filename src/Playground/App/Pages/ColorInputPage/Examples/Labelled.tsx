@@ -10,13 +10,13 @@ const LABEL_GAP = 5;
 type Props = ColorInputExampleProps;
 
 export const LabelledExample = (props: Props) => (
-    <Label getDir={() => "column"} getGap={() => LABEL_GAP}>
+    <Label dir={"column"} gap={() => LABEL_GAP}>
         <PageLabelCaption>Accent</PageLabelCaption>
 
         <ColorInput
             {...pageColorPickerSlots}
             valueSignal={props.valueSignal}
-            renderContent={(getFlags) => <PageColorInputContent getFlags={getFlags} />}
+            renderContent={(getFlags) => <PageColorInputContent flags={getFlags} />}
         />
     </Label>
 );

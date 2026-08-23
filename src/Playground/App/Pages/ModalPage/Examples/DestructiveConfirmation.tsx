@@ -25,9 +25,7 @@ export const DestructiveConfirmationExample = (props: Props) => {
     return (
         <>
             <Button
-                renderContent={(getFlags) => (
-                    <PageButtonContent getFlags={getFlags}>Delete the project</PageButtonContent>
-                )}
+                renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Delete the project</PageButtonContent>}
                 onClick={() => {
                     props.onDecide("nothing decided yet");
                     props.visibilitySignal[1](true);
@@ -36,32 +34,32 @@ export const DestructiveConfirmationExample = (props: Props) => {
 
             <Modal
                 visibilitySignal={props.visibilitySignal}
-                getRole={() => "alertdialog"}
-                getInitialFocusRef={getCancelRef}
-                getIsDismissableOnOverlayClick={() => false}
-                getAriaLabelledBy={() => ALERT_TITLE_ID}
-                getAriaDescribedBy={() => ALERT_BODY_ID}
+                role={"alertdialog"}
+                initialFocusRef={getCancelRef}
+                isDismissableOnOverlayClick={false}
+                ariaLabelledBy={() => ALERT_TITLE_ID}
+                ariaDescribedBy={() => ALERT_BODY_ID}
                 renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
                     <PageModalScrim
-                        getVisibilityTarget={getVisibilityTarget}
-                        getTransitionDurationMs={getTransitionDurationMs}
+                        visibilityTarget={getVisibilityTarget}
+                        transitionDurationMs={getTransitionDurationMs}
                     />
                 )}
                 renderContent={(getVisibilityTarget, getTransitionDurationMs) => (
                     <PageModalPanel
-                        getVisibilityTarget={getVisibilityTarget}
-                        getTransitionDurationMs={getTransitionDurationMs}
+                        visibilityTarget={getVisibilityTarget}
+                        transitionDurationMs={getTransitionDurationMs}
                     >
                         <div id={ALERT_TITLE_ID}>Delete this project?</div>
 
-                        <PageModalHint getId={() => ALERT_BODY_ID}>
+                        <PageModalHint id={() => ALERT_BODY_ID}>
                             Clicking the overlay does nothing here — an alert has to be answered.
                         </PageModalHint>
 
                         <div class={styles.buttons}>
                             <Button
                                 renderContent={(getFlags) => (
-                                    <PageButtonContent getFlags={getFlags}>Delete</PageButtonContent>
+                                    <PageButtonContent flags={getFlags}>Delete</PageButtonContent>
                                 )}
                                 onClick={() => decide("deleted")}
                             />
@@ -69,7 +67,7 @@ export const DestructiveConfirmationExample = (props: Props) => {
                             <Button
                                 ref={setCancelRef}
                                 renderContent={(getFlags) => (
-                                    <PageButtonContent getFlags={getFlags}>Cancel</PageButtonContent>
+                                    <PageButtonContent flags={getFlags}>Cancel</PageButtonContent>
                                 )}
                                 onClick={() => decide("cancelled")}
                             />

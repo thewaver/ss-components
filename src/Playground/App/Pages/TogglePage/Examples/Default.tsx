@@ -7,7 +7,7 @@ type Props = ToggleExampleProps;
 export const DefaultExample = (props: Props) => (
     <Toggle
         checkedSignal={props.checkedSignal}
-        getAriaLabel={() => "Default toggle"}
-        renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
+        ariaLabel={"Default toggle"}
+        renderContent={(getFlags) => <PageToggleContent flags={getFlags} />}
     />
 );

@@ -15,21 +15,21 @@ type Props = TextInputExampleProps;
 export const BothAdornmentsExample = (props: Props) => (
     <TextInput
         valueSignal={props.valueSignal}
-        getPadding={() => FIELD_PADDING}
-        getGap={() => FIELD_GAP}
-        getAriaLabel={() => "Amount"}
-        getInputMode={() => "decimal"}
+        padding={() => FIELD_PADDING}
+        gap={() => FIELD_GAP}
+        ariaLabel={"Amount"}
+        inputMode={"decimal"}
         computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
-        renderPlaceholder={(getFlags) => <PageTextFieldPlaceholder getFlags={getFlags}>0.00</PageTextFieldPlaceholder>}
-        renderLeading={(getFlags) => <PageTextFieldAdornment getFlags={getFlags}>USD</PageTextFieldAdornment>}
+        renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} />}
+        renderPlaceholder={(getFlags) => <PageTextFieldPlaceholder flags={getFlags}>0.00</PageTextFieldPlaceholder>}
+        renderLeading={(getFlags) => <PageTextFieldAdornment flags={getFlags}>USD</PageTextFieldAdornment>}
         renderTrailing={() => (
             <Button
-                getIsDisabled={() => props.valueSignal[0]() === ""}
+                isDisabled={() => props.valueSignal[0]() === ""}
                 onClick={() => {
                     props.valueSignal[1]("");
                 }}
-                renderContent={(getFlags) => <PageTextFieldAdornment getFlags={getFlags}>Clear</PageTextFieldAdornment>}
+                renderContent={(getFlags) => <PageTextFieldAdornment flags={getFlags}>Clear</PageTextFieldAdornment>}
             />
         )}
     />

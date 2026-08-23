@@ -1,5 +1,6 @@
 import type { ParentProps } from "solid-js";
 
+import { access } from "../../../../Lib/Utils/propUtils";
 import type { SlideButtonContentProps } from "./SlideButtonContent.types";
 
 import * as styles from "./SlideButtonContent.css";
@@ -12,19 +13,19 @@ const covered = (ratio: number) =>
     `calc(${ratio} * (100% - ${styles.SLIDE_BUTTON_THUMB_SIZE}px) + ${styles.SLIDE_BUTTON_THUMB_SIZE / 2}px)`;
 
 export const PageSlideButtonContent = (props: ParentProps<SlideButtonContentProps>) => {
-    const getWidth = () => props.getWidth?.() ?? DEFAULT_SLIDE_BUTTON_CONTENT_WIDTH;
+    const getWidth = () => access(props.width) ?? DEFAULT_SLIDE_BUTTON_CONTENT_WIDTH;
 
-    const getRatio = () => (props.getFlags().isPressed ? 1 : props.getFlags().progressRatio);
+    const getRatio = () => (access(props.flags).isPressed ? 1 : access(props.flags).progressRatio);
 
-    const getIsTracking = () => props.getFlags().isDragging || props.getFlags().isHolding;
+    const getIsTracking = () => access(props.flags).isDragging || access(props.flags).isHolding;
 
     return (
         <div
             class={styles.slideButtonContent}
             style={{ width: `${getWidth()}px` }}
             classList={{
-                [styles.isDisabled]: props.getFlags().isDisabled,
-                [styles.hasError]: props.getFlags().hasError,
+                [styles.isDisabled]: access(props.flags).isDisabled,
+                [styles.hasError]: access(props.flags).hasError,
             }}
         >
             <div
@@ -41,7 +42,7 @@ export const PageSlideButtonContent = (props: ParentProps<SlideButtonContentProp
                 class={styles.slideButtonThumb}
                 classList={{
                     [styles.isTracking]: getIsTracking(),
-                    [styles.isFocused]: props.getFlags().isFocused,
+                    [styles.isFocused]: access(props.flags).isFocused,
                 }}
                 style={{ left: travel(getRatio()) }}
             >

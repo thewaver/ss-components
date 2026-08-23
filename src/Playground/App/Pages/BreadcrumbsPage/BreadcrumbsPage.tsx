@@ -51,7 +51,7 @@ export const BreadcrumbsPage = () => {
     };
 
     const getExamples = createMemo(() => {
-        const commonProps: BreadcrumbsExampleProps = { getCrumbs };
+        const commonProps: BreadcrumbsExampleProps = { crumbs: getCrumbs };
 
         return [
             {
@@ -83,7 +83,7 @@ export const BreadcrumbsPage = () => {
                 readout: () => `pressed: ${getLinkPressed() ?? "nothing yet"} — an href makes a crumb an anchor`,
                 component: () => (
                     <LinkedExample
-                        getCrumbs={getLinkCrumbs}
+                        crumbs={getLinkCrumbs}
                         onSelect={(value) => {
                             setLinkPressed(value);
                             navigate(value);
@@ -96,7 +96,7 @@ export const BreadcrumbsPage = () => {
                 key: "linkComponent",
                 name: "Links through a component",
                 readout: () => "the same links rendered by a consumer's own link component",
-                component: () => <LinkComponentExample getCrumbs={getLinkCrumbs} />,
+                component: () => <LinkComponentExample crumbs={getLinkCrumbs} />,
                 path: `${EXAMPLES_ROOT}/LinkComponent.tsx`,
             },
         ];
@@ -104,26 +104,26 @@ export const BreadcrumbsPage = () => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "depth"} getLabel={() => "Depth"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"depth"} label={"Depth"}>
                     <PageNumberField
-                        getValue={getDepth}
-                        getMin={() => MIN_DEPTH}
-                        getMax={() => MAX_DEPTH}
-                        getStep={() => DEPTH_STEP}
-                        getWidth={() => DEPTH_FIELD_WIDTH}
-                        getAriaLabel={() => "Depth"}
+                        value={getDepth}
+                        min={() => MIN_DEPTH}
+                        max={() => MAX_DEPTH}
+                        step={() => DEPTH_STEP}
+                        width={() => DEPTH_FIELD_WIDTH}
+                        ariaLabel={"Depth"}
                         onInput={setDepth}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "isDisabled"} getLabel={() => "Disabled"}>
-                    <PageCheckField getValue={getIsDisabled} getAriaLabel={() => "Disabled"} onChange={setIsDisabled} />
+                <PageProp key={"isDisabled"} label={"Disabled"}>
+                    <PageCheckField value={getIsDisabled} ariaLabel={"Disabled"} onChange={setIsDisabled} />
                 </PageProp>
 
-                <PageProp getKey={() => "trail"} getLabel={() => "Trail"}>
+                <PageProp key={"trail"} label={"Trail"}>
                     <Button
-                        renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Reset</PageButtonContent>}
+                        renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Reset</PageButtonContent>}
                         onClick={async () => {
                             reset();
                         }}
@@ -131,7 +131,7 @@ export const BreadcrumbsPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} />
+            <PageExamples items={getExamples} />
         </>
     );
 };

@@ -2,6 +2,7 @@ import type { Accessor, JSX } from "solid-js";
 import { Index, Show, createMemo } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
+import { access } from "../../Utils/propUtils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import type {
     PaginatorGapEntry,
@@ -33,7 +34,7 @@ const STEP_LABELS: Record<PaginatorStep, string> = {
 };
 
 const PaginatorItem = (props: PaginatorItemProps) => {
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
     const handleClick = (e: MouseEvent) => {
         if (getIsDisabled()) {
@@ -47,53 +48,53 @@ const PaginatorItem = (props: PaginatorItemProps) => {
     const commonProps: Omit<JSX.HTMLAttributes<HTMLElement>, "ref"> = {
         "class": styles.paginatorItem,
         get "id"() {
-            return props.getId?.();
+            return access(props.id);
         },
         get "aria-label"() {
-            return props.getAriaLabel?.();
+            return access(props.ariaLabel);
         },
         get "aria-disabled"() {
             return getIsDisabled() || undefined;
         },
         get "aria-current"() {
-            return props.getIsCurrent() ? "page" : undefined;
+            return access(props.isCurrent) ? "page" : undefined;
         },
     };
 
     return (
         <Show
-            when={props.getHref()}
+            when={access(props.href)}
             fallback={
                 <button type="button" ref={(element) => props.ref?.(element)} {...commonProps} onClick={handleClick}>
-                    {props.renderContent(props.getFlags)}
+                    {props.renderContent(() => access(props.flags))}
                 </button>
             }
         >
             <Dynamic
                 component={props.linkComponent ?? "a"}
                 ref={(element: HTMLElement) => props.ref?.(element)}
-                href={props.getHref()!}
+                href={access(props.href)!}
                 {...commonProps}
                 onClick={handleClick}
             >
-                {props.renderContent(props.getFlags)}
+                {props.renderContent(() => access(props.flags))}
             </Dynamic>
         </Show>
     );
 };
 
 export const Paginator = (props: PaginatorProps) => {
-    const getPageCount = createMemo(() => Math.max(Math.trunc(props.getPageCount()), 0));
+    const getPageCount = createMemo(() => Math.max(Math.trunc(access(props.pageCount)), 0));
 
-    const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
+    const getIsDisabled = createMemo(() => access(props.isDisabled) ?? false);
 
-    const getSteps = createMemo(() => props.getSteps?.() ?? DEFAULT_PAGINATOR_STEPS);
+    const getSteps = createMemo(() => access(props.steps) ?? DEFAULT_PAGINATOR_STEPS);
 
     const getEntries = createMemo(() =>
-        PaginatorUtils.getEntries(props.getPage(), {
+        PaginatorUtils.getEntries(access(props.page), {
             pageCount: getPageCount(),
-            siblingCount: props.getSiblingCount?.() ?? DEFAULT_PAGINATOR_SIBLING_COUNT,
-            boundaryCount: props.getBoundaryCount?.() ?? DEFAULT_PAGINATOR_BOUNDARY_COUNT,
+            siblingCount: access(props.siblingCount) ?? DEFAULT_PAGINATOR_SIBLING_COUNT,
+            boundaryCount: access(props.boundaryCount) ?? DEFAULT_PAGINATOR_BOUNDARY_COUNT,
         }),
     );
 
@@ -102,29 +103,27 @@ export const Paginator = (props: PaginatorProps) => {
     const getTrailingSteps = createMemo(() => TRAILING_STEPS.filter((step) => getSteps().includes(step)));
 
     const goTo = (page: number) => {
-        if (page === props.getPage()) return;
+        if (page === access(props.page)) return;
 
         void props.onPageChange?.(page);
     };
 
     const renderStepControl = (getStep: Accessor<PaginatorStep>) => {
-        const getTargetPage = () => PaginatorUtils.getStepTarget(getStep(), props.getPage(), getPageCount());
+        const getTargetPage = () => PaginatorUtils.getStepTarget(getStep(), access(props.page), getPageCount());
 
-        const getIsStepDisabled = () => getIsDisabled() || getTargetPage() === props.getPage();
+        const getIsStepDisabled = () => getIsDisabled() || getTargetPage() === access(props.page);
 
         return (
             <InteractionWrapper<PaginatorStepFlags>
-                getIsDisabled={getIsStepDisabled}
-                getExtraFlags={() => ({ step: getStep(), targetPage: getTargetPage() })}
+                isDisabled={getIsStepDisabled}
+                extraFlags={() => ({ step: getStep(), targetPage: getTargetPage() })}
                 renderControl={(setElementRef, getFlags) => (
                     <PaginatorItem
                         ref={setElementRef}
-                        getHref={() => (getIsStepDisabled() ? undefined : props.computeHref?.(getTargetPage()))}
-                        getIsCurrent={() => false}
-                        getAriaLabel={() =>
-                            props.computeStepLabel?.(getStep(), getTargetPage()) ?? STEP_LABELS[getStep()]
-                        }
-                        getFlags={getFlags}
+                        href={() => (getIsStepDisabled() ? undefined : props.computeHref?.(getTargetPage()))}
+                        isCurrent={false}
+                        ariaLabel={() => props.computeStepLabel?.(getStep(), getTargetPage()) ?? STEP_LABELS[getStep()]}
+                        flags={getFlags}
                         linkComponent={props.linkComponent}
                         renderContent={() => props.renderStep(getStep, getFlags)}
                         onActivate={() => goTo(getTargetPage())}
@@ -136,20 +135,20 @@ export const Paginator = (props: PaginatorProps) => {
 
     const renderPageControl = (getEntry: Accessor<PaginatorPageEntry>) => (
         <InteractionWrapper<PaginatorPageFlags>
-            getIsDisabled={getIsDisabled}
-            getExtraFlags={() => ({
+            isDisabled={getIsDisabled}
+            extraFlags={() => ({
                 page: getEntry().page,
-                isCurrent: getEntry().page === props.getPage(),
+                isCurrent: getEntry().page === access(props.page),
             })}
             renderControl={(setElementRef, getFlags) => (
                 <PaginatorItem
                     ref={setElementRef}
-                    getHref={() => props.computeHref?.(getEntry().page)}
-                    getIsCurrent={() => getFlags().isCurrent}
-                    getAriaLabel={() =>
+                    href={() => props.computeHref?.(getEntry().page)}
+                    isCurrent={() => getFlags().isCurrent}
+                    ariaLabel={() =>
                         props.computePageLabel?.(getEntry().page, getPageCount()) ?? `Page ${getEntry().page}`
                     }
-                    getFlags={getFlags}
+                    flags={getFlags}
                     linkComponent={props.linkComponent}
                     renderContent={() => props.renderPage(getEntry, getFlags)}
                     onActivate={() => goTo(getEntry().page)}
@@ -167,8 +166,8 @@ export const Paginator = (props: PaginatorProps) => {
     return (
         <nav
             class={styles.paginatorRoot}
-            style={{ gap: `${props.getGap?.() ?? DEFAULT_PAGINATOR_GAP}px` }}
-            aria-label={props.getAriaLabel?.() ?? DEFAULT_PAGINATOR_LABEL}
+            style={{ gap: `${access(props.gap) ?? DEFAULT_PAGINATOR_GAP}px` }}
+            aria-label={access(props.ariaLabel) ?? DEFAULT_PAGINATOR_LABEL}
         >
             <Index each={getLeadingSteps()}>{renderStepControl}</Index>
 

@@ -1,6 +1,6 @@
-import type { Accessor, Signal } from "solid-js";
+import type { Signal } from "solid-js";
 
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 
 export type RotationPhase = "still" | "idling" | "spinning" | "settling";
 
@@ -18,7 +18,7 @@ export type RotationDefs = AccessorProps<{
     computeSpinDefs?: (index: number, stepCount: number) => RotationSpinDefs;
     computeStepLabel?: (index: number, stepCount: number) => string;
 }> & {
-    getIdleDelayMs?: Accessor<number | undefined>;
+    idleDelayMs?: MaybeAccessor<number | undefined>;
     indexSignal?: Signal<number>;
     autoSpinSignal?: Signal<boolean>;
     onStepChange?: (index: number) => void;

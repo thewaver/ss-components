@@ -5,6 +5,7 @@ import type { TimeValue, TimeValueMeridiem, TimeValueUnit } from "@thewaver/ss-u
 
 import { MaskedField } from "../../../Abstracts/MaskedField/MaskedField";
 import { TextSyncUtils } from "../../../Abstracts/TextSync/TextSync.utils";
+import { access } from "../../../Utils/propUtils";
 import { TextField } from "../TextField/TextField";
 import type { TimeInputMeridiem, TimeInputProps } from "./TimeInput.types";
 
@@ -53,7 +54,7 @@ const getHasImpossibleSegment = (digits: string, segmentCount: number, isTwelveH
 };
 
 export const TimeInput = (props: TimeInputProps) => {
-    const getIsTwelveHour = () => props.getIsTwelveHour?.() ?? false;
+    const getIsTwelveHour = () => access(props.isTwelveHour) ?? false;
 
     const [getMeridiem, setMeridiem] = createSignal<TimeValueMeridiem>(
         untrack(() => {
@@ -69,7 +70,7 @@ export const TimeInput = (props: TimeInputProps) => {
     const parseText = (text: string) =>
         getIsTwelveHour() ? TimeUtils.fromTwelveHourText(text, untrack(getMeridiem)) : TimeUtils.fromIso(text);
 
-    const getSegmentCount = () => (props.getHasSeconds?.() ? SEGMENT_UNITS.length : SEGMENT_UNITS.length - 1);
+    const getSegmentCount = () => (access(props.hasSeconds) ? SEGMENT_UNITS.length : SEGMENT_UNITS.length - 1);
 
     const getMask = createMemo(() => computeMask(getSegmentCount()));
 
@@ -78,7 +79,7 @@ export const TimeInput = (props: TimeInputProps) => {
 
         const parsed = parseText(TextSyncUtils.formatWithMask(untrack(getMask), digits));
 
-        return parsed && TimeUtils.getIsInRange(parsed, props.getMinTime?.(), props.getMaxTime?.())
+        return parsed && TimeUtils.getIsInRange(parsed, access(props.minTime), access(props.maxTime))
             ? parsed
             : undefined;
     };
@@ -110,7 +111,7 @@ export const TimeInput = (props: TimeInputProps) => {
             if (!value) return;
 
             field.commit(
-                TimeUtils.clamp(TimeUtils.withMeridiem(value, next), props.getMinTime?.(), props.getMaxTime?.()),
+                TimeUtils.clamp(TimeUtils.withMeridiem(value, next), access(props.minTime), access(props.maxTime)),
             );
         },
         toggle: () => {
@@ -128,8 +129,8 @@ export const TimeInput = (props: TimeInputProps) => {
         const segment = getSegmentAt(element.selectionStart ?? 0);
         const stepped = TimeUtils.clamp(
             TimeUtils.addUnit(value, segment.unit, delta),
-            props.getMinTime?.(),
-            props.getMaxTime?.(),
+            access(props.minTime),
+            access(props.maxTime),
         );
 
         e.preventDefault();
@@ -143,11 +144,11 @@ export const TimeInput = (props: TimeInputProps) => {
         <TextField
             {...props}
             valueSignal={field.textSignal}
-            getElement={() => "input"}
-            getInputMode={() => "numeric"}
+            element={"input"}
+            inputMode={"numeric"}
             computeMaskedText={(previous, next, caret) => TextSyncUtils.applyMask(getMask(), previous, next, caret)}
-            getPlaceholderHint={() => computeHint(getSegmentCount())}
-            getHasError={() => (props.getHasError?.() ?? false) || field.getHasIssue()}
+            placeholderHint={() => computeHint(getSegmentCount())}
+            hasError={() => (access(props.hasError) ?? false) || field.getHasIssue()}
             renderTrailing={props.renderTrailing && ((getFlags) => props.renderTrailing!(getFlags, meridiem))}
             onInput={field.onInput}
             onKeyDown={handleKeyDown}

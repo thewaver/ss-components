@@ -10,21 +10,23 @@ import type { CalendarExampleProps } from "../CalendarPage.types";
 
 type Props = CalendarExampleProps;
 
-export const BoundedExample = (props: Props) => (
-    <PageCalendarFrame>
-        <PageCalendarCaption monthSignal={props.monthSignal} getKey={() => "bounded"} getLocale={() => LOCALE} />
+export const BoundedExample = (props: Props) => {
+    return (
+        <PageCalendarFrame>
+            <PageCalendarCaption monthSignal={props.monthSignal} key={"bounded"} locale={() => LOCALE} />
 
-        <Calendar
-            valueSignal={props.valueSignal}
-            monthSignal={props.monthSignal}
-            getToday={() => TODAY}
-            getLocale={() => LOCALE}
-            getWeekStartsOn={props.getWeekStartsOn}
-            getMin={() => MIN_DATE}
-            getMax={() => MAX_DATE}
-            getAriaLabel={() => "Choose a date within August"}
-            renderDay={(_unused, getFlags) => <PageCalendarDay getFlags={getFlags} />}
-            renderWeekday={(name) => <PageCalendarWeekday>{name}</PageCalendarWeekday>}
-        />
-    </PageCalendarFrame>
-);
+            <Calendar
+                valueSignal={props.valueSignal}
+                monthSignal={props.monthSignal}
+                today={() => TODAY}
+                locale={() => LOCALE}
+                weekStartsOn={props.weekStartsOn}
+                min={() => MIN_DATE}
+                max={() => MAX_DATE}
+                ariaLabel={"Choose a date within August"}
+                renderDay={(_unused, getFlags) => <PageCalendarDay flags={getFlags} />}
+                renderWeekday={(name) => <PageCalendarWeekday>{name}</PageCalendarWeekday>}
+            />
+        </PageCalendarFrame>
+    );
+};

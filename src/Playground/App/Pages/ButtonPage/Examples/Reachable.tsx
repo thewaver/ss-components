@@ -7,16 +7,16 @@ type Props = ButtonExampleProps;
 
 export const ReachableExample = (props: Props) => (
     <Button
-        getIsDisabled={() => true}
-        getIsReachableWhenDisabled={() => true}
-        renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Click Me</PageButtonContent>}
-        getTooltipDefs={() => ({
-            getPlacement: () => ({ x: "center", y: "top-out" }),
-            getOffset: () => ({ x: 0, y: 5 }),
+        isDisabled={true}
+        isReachableWhenDisabled={true}
+        renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Click Me</PageButtonContent>}
+        tooltipDefs={() => ({
+            placement: () => ({ x: "center", y: "top-out" }),
+            offset: () => ({ x: 0, y: 5 }),
             renderContent: (getVisibilityTarget, getTransitionDurationMs, _getPlacement, getFlags) => (
                 <PageTooltipContent
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
+                    visibilityTarget={getVisibilityTarget}
+                    transitionDurationMs={getTransitionDurationMs}
                 >
                     {`Focusable so this tooltip can be read, but clicking and pressing Enter must leave the count at zero. The shell reports isDisabled: ${getFlags().isDisabled}.`}
                 </PageTooltipContent>

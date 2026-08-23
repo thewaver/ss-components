@@ -461,10 +461,10 @@ export function AppContent(props: RouteSectionProps) {
             <div class={styles.leftMenu}>
                 <div class={styles.searchContainer}>
                     <PageTextField
-                        getValue={getSearchTerm}
-                        getWidth={() => SEARCH_FIELD_WIDTH}
-                        getPlaceholder={() => "Search"}
-                        getAriaLabel={() => "Search components"}
+                        value={getSearchTerm}
+                        width={() => SEARCH_FIELD_WIDTH}
+                        placeholder={"Search"}
+                        ariaLabel={"Search components"}
                         onInput={setSearchTerm}
                     />
                 </div>
@@ -475,10 +475,10 @@ export function AppContent(props: RouteSectionProps) {
                             <h2 class={styles.menuCategory}>{getCategory().name}</h2>
 
                             <Tabs
-                                getDir={() => "column"}
-                                getAriaLabel={() => getCategory().name}
-                                getTabs={() => getCategory().tabs}
-                                getSelectedValue={getSelectedConfig}
+                                dir={"column"}
+                                ariaLabel={() => getCategory().name}
+                                tabs={() => getCategory().tabs}
+                                selectedValue={getSelectedConfig}
                                 onSelectionChange={(config) => setSelectedConfig(() => config)}
                                 linkComponent={A}
                                 renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
@@ -506,8 +506,8 @@ export function AppContent(props: RouteSectionProps) {
                 <Show when={getSelectedConfig()} fallback={props.children}>
                     {(getConfig) => (
                         <TabPanel
-                            getId={() => componentToPanelId(getConfig().name)}
-                            getTabId={() => componentToTabId(getConfig().name)}
+                            id={() => componentToPanelId(getConfig().name)}
+                            tabId={() => componentToTabId(getConfig().name)}
                         >
                             <div class={styles.tabPanelBody}>
                                 <div class={styles.tabPageHeader}>
@@ -559,7 +559,7 @@ export function App() {
                 <Route
                     path="/"
                     component={(props: RouteSectionProps) => (
-                        <Viewport getSize={getViewportSize}>
+                        <Viewport size={getViewportSize}>
                             <AppContent {...props} />
                         </Viewport>
                     )}

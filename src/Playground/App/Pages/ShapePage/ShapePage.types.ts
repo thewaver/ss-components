@@ -5,7 +5,7 @@ import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
 import type { SVGDefsSamples } from "../../Samples/SVGDefs/SVGDefs.const";
 import type { SVGDefsColors } from "../../Samples/SVGDefs/SVGDefs.types";
 
-export type ShapeExampleProps = Pick<ShapeProps, "getLameExponents" | "getJoinRadii"> &
+export type ShapeExampleProps = Pick<ShapeProps, "lameExponents" | "joinRadii"> &
     AccessorProps<{
         shouldClipChildren?: boolean;
         shouldPadChildren?: boolean;

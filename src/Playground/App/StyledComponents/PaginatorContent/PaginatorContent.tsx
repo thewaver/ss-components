@@ -1,4 +1,5 @@
 import type { PaginatorStep } from "../../../../Lib/Fundamentals/Paginator/Paginator.types";
+import { access } from "../../../../Lib/Utils/propUtils";
 import type {
     PaginatorGapContentProps,
     PaginatorPageContentProps,
@@ -14,37 +15,43 @@ const STEP_GLYPHS: Record<PaginatorStep, string> = {
     last: "»",
 };
 
-export const PagePaginatorPage = (props: PaginatorPageContentProps) => (
-    <div
-        class={styles.paginatorPage}
-        classList={{
-            [styles.isCurrent]: props.getFlags().isCurrent,
-            [styles.isHovered]: props.getFlags().isHovered,
-            [styles.isActive]: props.getFlags().isActive,
-            [styles.isDisabled]: props.getFlags().isDisabled,
-        }}
-        aria-hidden
-    >
-        {props.getFlags().page}
-    </div>
-);
+export const PagePaginatorPage = (props: PaginatorPageContentProps) => {
+    return (
+        <div
+            class={styles.paginatorPage}
+            classList={{
+                [styles.isCurrent]: access(props.flags).isCurrent,
+                [styles.isHovered]: access(props.flags).isHovered,
+                [styles.isActive]: access(props.flags).isActive,
+                [styles.isDisabled]: access(props.flags).isDisabled,
+            }}
+            aria-hidden
+        >
+            {access(props.flags).page}
+        </div>
+    );
+};
 
-export const PagePaginatorStep = (props: PaginatorStepContentProps) => (
-    <div
-        class={styles.paginatorStep}
-        classList={{
-            [styles.isHovered]: props.getFlags().isHovered,
-            [styles.isActive]: props.getFlags().isActive,
-            [styles.isDisabled]: props.getFlags().isDisabled,
-        }}
-        aria-hidden
-    >
-        {STEP_GLYPHS[props.getFlags().step]}
-    </div>
-);
+export const PagePaginatorStep = (props: PaginatorStepContentProps) => {
+    return (
+        <div
+            class={styles.paginatorStep}
+            classList={{
+                [styles.isHovered]: access(props.flags).isHovered,
+                [styles.isActive]: access(props.flags).isActive,
+                [styles.isDisabled]: access(props.flags).isDisabled,
+            }}
+            aria-hidden
+        >
+            {STEP_GLYPHS[access(props.flags).step]}
+        </div>
+    );
+};
 
-export const PagePaginatorGap = (props: PaginatorGapContentProps) => (
-    <div class={styles.paginatorGap} title={`Pages ${props.getEntry().from} to ${props.getEntry().to}`}>
-        …
-    </div>
-);
+export const PagePaginatorGap = (props: PaginatorGapContentProps) => {
+    return (
+        <div class={styles.paginatorGap} title={`Pages ${access(props.entry).from} to ${access(props.entry).to}`}>
+            …
+        </div>
+    );
+};

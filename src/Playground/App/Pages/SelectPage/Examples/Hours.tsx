@@ -6,17 +6,19 @@ import type { SelectExampleProps } from "../SelectPage.types";
 
 type Props = SelectExampleProps;
 
-export const HoursExample = (props: Props) => (
-    <Select
-        valueSignal={props.valueSignal}
-        getOptions={() => HOURS}
-        getAriaLabel={() => "Departure hour"}
-        renderContent={(getSelectedOption, getFlags) => (
-            <PageSelectContent getFlags={getFlags}>{getSelectedOption()?.value ?? PLACEHOLDER}</PageSelectContent>
-        )}
-        renderOption={(getOption, getFlags) => (
-            <PageSelectOptionContent getFlags={getFlags}>{getOption().value}</PageSelectOptionContent>
-        )}
-        renderPopup={renderSelectPopup}
-    />
-);
+export const HoursExample = (props: Props) => {
+    return (
+        <Select
+            valueSignal={props.valueSignal}
+            options={() => HOURS}
+            ariaLabel={"Departure hour"}
+            renderContent={(getSelectedOption, getFlags) => (
+                <PageSelectContent flags={getFlags}>{getSelectedOption()?.value ?? PLACEHOLDER}</PageSelectContent>
+            )}
+            renderOption={(getOption, getFlags) => (
+                <PageSelectOptionContent flags={getFlags}>{getOption().value}</PageSelectOptionContent>
+            )}
+            renderPopup={renderSelectPopup}
+        />
+    );
+};

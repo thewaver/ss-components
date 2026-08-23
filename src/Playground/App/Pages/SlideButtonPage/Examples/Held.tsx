@@ -1,5 +1,6 @@
 import { Button } from "../../../../../Lib/Fundamentals/Button/Button";
 import { SlideButton } from "../../../../../Lib/Fundamentals/SlideButton/SlideButton";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import { PageControlColumn } from "../../../PageComponents/ControlRow/ControlRow";
 import { PageButtonContent } from "../../../StyledComponents/ButtonContent/ButtonContent";
 import { PageSlideButtonContent } from "../../../StyledComponents/SlideButtonContent/SlideButtonContent";
@@ -9,21 +10,23 @@ import { SLIDE_BUTTON_THUMB_SIZE } from "../../../StyledComponents/SlideButtonCo
 
 type Props = SlideButtonHeldExampleProps;
 
-export const HeldExample = (props: Props) => (
-    <PageControlColumn>
-        <SlideButton
-            getIsPressed={props.getIsArmed}
-            getThumbSize={() => SLIDE_BUTTON_THUMB_SIZE}
-            renderContent={(getFlags) => (
-                <PageSlideButtonContent getFlags={getFlags}>Slide or hold to arm</PageSlideButtonContent>
-            )}
-            onActivate={props.onActivate}
-        />
+export const HeldExample = (props: Props) => {
+    return (
+        <PageControlColumn>
+            <SlideButton
+                isPressed={props.isArmed}
+                thumbSize={() => SLIDE_BUTTON_THUMB_SIZE}
+                renderContent={(getFlags) => (
+                    <PageSlideButtonContent flags={getFlags}>Slide or hold to arm</PageSlideButtonContent>
+                )}
+                onActivate={props.onActivate}
+            />
 
-        <Button
-            getIsDisabled={() => !props.getIsArmed()}
-            renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Reset</PageButtonContent>}
-            onClick={props.onReset}
-        />
-    </PageControlColumn>
-);
+            <Button
+                isDisabled={() => !access(props.isArmed)}
+                renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Reset</PageButtonContent>}
+                onClick={props.onReset}
+            />
+        </PageControlColumn>
+    );
+};

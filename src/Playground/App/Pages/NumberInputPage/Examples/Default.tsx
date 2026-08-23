@@ -15,14 +15,12 @@ type Props = NumberInputExampleProps;
 export const DefaultExample = (props: Props) => (
     <NumberInput
         valueSignal={props.valueSignal}
-        getPadding={() => FIELD_STEPPER_PADDING}
-        getGap={() => FIELD_GAP}
-        getAriaLabel={() => "How many"}
+        padding={() => FIELD_STEPPER_PADDING}
+        gap={() => FIELD_GAP}
+        ariaLabel={"How many"}
         computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} />}
-        renderPlaceholder={(getFlags) => (
-            <PageTextFieldPlaceholder getFlags={getFlags}>How many</PageTextFieldPlaceholder>
-        )}
-        renderTrailing={(getFlags, stepper) => <PageNumberInputStepper getFlags={getFlags} stepper={stepper} />}
+        renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} />}
+        renderPlaceholder={(getFlags) => <PageTextFieldPlaceholder flags={getFlags}>How many</PageTextFieldPlaceholder>}
+        renderTrailing={(getFlags, stepper) => <PageNumberInputStepper flags={getFlags} stepper={stepper} />}
     />
 );

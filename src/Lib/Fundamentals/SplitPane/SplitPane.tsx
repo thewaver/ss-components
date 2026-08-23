@@ -2,6 +2,7 @@ import { Index, Show, createMemo, createSignal } from "solid-js";
 
 import { MathUtils } from "@thewaver/ss-utils";
 
+import { access } from "../../Utils/propUtils";
 import type { SplitPaneDir, SplitPaneProps } from "./SplitPane.types";
 
 import * as styles from "./SplitPane.css";
@@ -16,23 +17,23 @@ export const SplitPane = (props: SplitPaneProps) => {
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
     const [getDraggingIndex, setDraggingIndex] = createSignal(NO_GUTTER_DRAGGING);
 
-    const getDir = createMemo(() => props.getDir?.() ?? DEFAULT_SPLIT_PANE_DIR);
+    const getDir = createMemo(() => access(props.dir) ?? DEFAULT_SPLIT_PANE_DIR);
 
-    const getGutterSize = createMemo(() => props.getGutterSize?.() ?? DEFAULT_SPLIT_PANE_GUTTER_SIZE);
+    const getGutterSize = createMemo(() => access(props.gutterSize) ?? DEFAULT_SPLIT_PANE_GUTTER_SIZE);
 
-    const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
+    const getIsDisabled = createMemo(() => access(props.isDisabled) ?? false);
 
-    const getTotalGutterSize = createMemo(() => getGutterSize() * Math.max(props.getPanes().length - 1, 0));
+    const getTotalGutterSize = createMemo(() => getGutterSize() * Math.max(access(props.panes).length - 1, 0));
 
     const getRatios = createMemo(() => {
-        const panes = props.getPanes();
+        const panes = access(props.panes);
         const stored = props.ratiosSignal[0]();
 
         return panes.map((_, index) => stored[index] ?? 1 / panes.length);
     });
 
     const computeTrack = (index: number) => {
-        const pane = props.getPanes()[index];
+        const pane = access(props.panes)[index];
         const size = `calc(${getRatios()[index]} * (100% - ${getTotalGutterSize()}px))`;
 
         if (pane.minPx === undefined && pane.maxPx === undefined) return size;
@@ -41,8 +42,7 @@ export const SplitPane = (props: SplitPaneProps) => {
     };
 
     const getTemplate = createMemo(() =>
-        props
-            .getPanes()
+        access(props.panes)
             .map((_, index) => computeTrack(index))
             .join(` ${getGutterSize()}px `),
     );
@@ -61,7 +61,7 @@ export const SplitPane = (props: SplitPaneProps) => {
     };
 
     const computeRatioBounds = (index: number, available: number) => {
-        const pane = props.getPanes()[index];
+        const pane = access(props.panes)[index];
 
         if (available <= 0) return { min: 0, max: 1 };
 
@@ -142,7 +142,7 @@ export const SplitPane = (props: SplitPaneProps) => {
 
         e.preventDefault();
 
-        const step = props.getKeyStep?.() ?? DEFAULT_SPLIT_PANE_KEY_STEP;
+        const step = access(props.keyStep) ?? DEFAULT_SPLIT_PANE_KEY_STEP;
 
         moveBoundary(index, getBoundary(index) + (e.key === decreaseKey ? -step : step));
     };
@@ -155,9 +155,9 @@ export const SplitPane = (props: SplitPaneProps) => {
                 [getDir() === "row" ? "grid-template-columns" : "grid-template-rows"]: getTemplate(),
             }}
             role="group"
-            aria-label={props.getAriaLabel?.()}
+            aria-label={access(props.ariaLabel)}
         >
-            <Index each={props.getPanes()}>
+            <Index each={access(props.panes)}>
                 {(getPane, index) => (
                     <>
                         <Show when={index > 0}>

@@ -9,6 +9,7 @@ import { FileInput } from "../../../../Lib/Fundamentals/Input/FileInput/FileInpu
 import { NumberInput } from "../../../../Lib/Fundamentals/Input/NumberInput/NumberInput";
 import { Select } from "../../../../Lib/Fundamentals/Input/Select/Select";
 import { TextInput } from "../../../../Lib/Fundamentals/Input/TextInput/TextInput";
+import { access } from "../../../../Lib/Utils/propUtils";
 import { PageCheckboxContent } from "../../StyledComponents/CheckboxContent/CheckboxContent";
 import { pageColorPickerSlots } from "../../StyledComponents/ColorAreaContent/ColorAreaContent";
 import { PageColorInputContent } from "../../StyledComponents/ColorInputContent/ColorInputContent";
@@ -56,99 +57,101 @@ const renderFieldPopup = (
     getPlacement: () => AnchorPlacement,
 ) => (
     <PagePopoverSurface
-        getVisibilityTarget={getVisibilityTarget}
-        getTransitionDurationMs={getTransitionDurationMs}
-        getPlacement={getPlacement}
+        visibilityTarget={getVisibilityTarget}
+        transitionDurationMs={getTransitionDurationMs}
+        placement={getPlacement}
     >
         {renderOptions()}
     </PagePopoverSurface>
 );
 
 export const PageNumberField = (props: PageNumberFieldProps) => {
-    const valueSignal = SignalMirror.createValueMirror<number | undefined>(props.getValue, (value) => {
-        if (value === undefined) return;
+    const valueSignal = SignalMirror.createValueMirror<number | undefined>(
+        () => access(props.value),
+        (value) => {
+            if (value === undefined) return;
 
-        props.onInput(value);
-    });
+            props.onInput(value);
+        },
+    );
 
     return (
         <NumberInput
             valueSignal={valueSignal}
-            getId={props.getId}
-            getMin={props.getMin}
-            getMax={props.getMax}
-            getStep={props.getStep}
-            getIsDisabled={props.getIsDisabled}
-            getAriaLabel={props.getAriaLabel}
-            getPadding={() => FIELD_STEPPER_PADDING}
-            getGap={() => FIELD_GAP}
+            id={props.id}
+            min={props.min}
+            max={props.max}
+            step={props.step}
+            isDisabled={props.isDisabled}
+            ariaLabel={props.ariaLabel}
+            padding={() => FIELD_STEPPER_PADDING}
+            gap={() => FIELD_GAP}
             computeTextStyle={computePageTextFieldTextStyle}
             renderContent={(getFlags) => (
                 <PageTextFieldContent
-                    getFlags={getFlags}
-                    getWidth={() => props.getWidth?.() ?? DEFAULT_NUMBER_FIELD_WIDTH}
+                    flags={getFlags}
+                    width={() => access(props.width) ?? DEFAULT_NUMBER_FIELD_WIDTH}
                 />
             )}
-            renderTrailing={(getFlags, stepper) => <PageNumberInputStepper getFlags={getFlags} stepper={stepper} />}
+            renderTrailing={(getFlags, stepper) => <PageNumberInputStepper flags={getFlags} stepper={stepper} />}
             onInput={(value) => {
                 if (value === undefined) return;
 
-                props.onInput(clampToRange(value, props.getMin?.(), props.getMax?.()));
+                props.onInput(clampToRange(value, access(props.min), access(props.max)));
             }}
         />
     );
 };
 
 export const PageTextField = (props: PageTextFieldProps) => {
-    const textSignal = SignalMirror.createValueMirror(props.getValue, props.onInput);
+    const textSignal = SignalMirror.createValueMirror(() => access(props.value), props.onInput);
 
     return (
         <TextInput
             valueSignal={textSignal}
-            getIsDisabled={props.getIsDisabled}
-            getAriaLabel={props.getAriaLabel}
-            getPadding={() => FIELD_PADDING}
-            getGap={() => FIELD_GAP}
+            isDisabled={props.isDisabled}
+            ariaLabel={props.ariaLabel}
+            padding={() => FIELD_PADDING}
+            gap={() => FIELD_GAP}
             computeTextStyle={computePageTextFieldTextStyle}
-            renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} getWidth={props.getWidth} />}
+            renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} width={props.width} />}
             renderPlaceholder={
-                props.getPlaceholder &&
-                ((getFlags) => (
-                    <PageTextFieldPlaceholder getFlags={getFlags}>{props.getPlaceholder!()}</PageTextFieldPlaceholder>
-                ))
+                props.placeholder === undefined
+                    ? undefined
+                    : (getFlags) => (
+                          <PageTextFieldPlaceholder flags={getFlags}>
+                              {access(props.placeholder)}
+                          </PageTextFieldPlaceholder>
+                      )
             }
         />
     );
 };
 
 export const PageSelectField = <T,>(props: PageSelectFieldProps<T>) => {
-    const valueSignal: Signal<T | undefined> = SignalMirror.createValueMirror<T | undefined>(
-        props.getValue,
-        (value) => {
-            if (value === undefined) return;
+    const getValue = () => access(props.value);
 
-            props.onChange(value);
-        },
-    );
+    const valueSignal: Signal<T | undefined> = SignalMirror.createValueMirror<T | undefined>(getValue, (value) => {
+        if (value === undefined) return;
+
+        props.onChange(value);
+    });
 
     return (
         <Select
             valueSignal={valueSignal}
-            getOptions={() => props.getValues().map((value) => ({ value }))}
-            getIsDisabled={props.getIsDisabled}
-            getAriaLabel={props.getAriaLabel}
+            options={() => access(props.values).map((value) => ({ value }))}
+            isDisabled={props.isDisabled}
+            ariaLabel={props.ariaLabel}
             renderContent={(getSelectedOption, getFlags) => (
-                <PageSelectContent
-                    getFlags={getFlags}
-                    getWidth={() => props.getWidth?.() ?? DEFAULT_SELECT_FIELD_WIDTH}
-                >
+                <PageSelectContent flags={getFlags} width={() => access(props.width) ?? DEFAULT_SELECT_FIELD_WIDTH}>
                     {getSelectedOption() !== undefined
                         ? (props.computeLabel?.(getSelectedOption()!.value) ?? String(getSelectedOption()!.value))
                         : EMPTY_TEXT}
                 </PageSelectContent>
             )}
             renderOption={(getOption, getFlags) => (
-                <PageSelectOptionContent getFlags={getFlags}>
+                <PageSelectOptionContent flags={getFlags}>
                     {props.computeLabel?.(getOption().value) ?? String(getOption().value)}
                 </PageSelectOptionContent>
             )}
@@ -158,28 +161,24 @@ export const PageSelectField = <T,>(props: PageSelectFieldProps<T>) => {
 };
 
 export const PageGroupedSelectField = <T,>(props: PageGroupedSelectFieldProps<T>) => {
-    const valueSignal: Signal<T | undefined> = SignalMirror.createValueMirror<T | undefined>(
-        props.getValue,
-        (value) => {
-            if (value === undefined) return;
+    const getValue = () => access(props.value);
 
-            props.onChange(value);
-        },
-    );
+    const valueSignal: Signal<T | undefined> = SignalMirror.createValueMirror<T | undefined>(getValue, (value) => {
+        if (value === undefined) return;
+
+        props.onChange(value);
+    });
 
     return (
         <Select
             valueSignal={valueSignal}
-            getOptions={() =>
-                props.getGroups().map(([label, values]) => ({ label, options: values.map((value) => ({ value })) }))
+            options={() =>
+                access(props.groups).map(([label, values]) => ({ label, options: values.map((value) => ({ value })) }))
             }
-            getIsDisabled={props.getIsDisabled}
-            getAriaLabel={props.getAriaLabel}
+            isDisabled={props.isDisabled}
+            ariaLabel={props.ariaLabel}
             renderContent={(getSelectedOption, getFlags) => (
-                <PageSelectContent
-                    getFlags={getFlags}
-                    getWidth={() => props.getWidth?.() ?? DEFAULT_SELECT_FIELD_WIDTH}
-                >
+                <PageSelectContent flags={getFlags} width={() => access(props.width) ?? DEFAULT_SELECT_FIELD_WIDTH}>
                     {getSelectedOption() !== undefined
                         ? (props.computeLabel?.(getSelectedOption()!.value) ?? String(getSelectedOption()!.value))
                         : EMPTY_TEXT}
@@ -187,7 +186,7 @@ export const PageGroupedSelectField = <T,>(props: PageGroupedSelectFieldProps<T>
             )}
             renderGroup={(getGroup) => <PageSelectGroupContent>{getGroup().label}</PageSelectGroupContent>}
             renderOption={(getOption, getFlags) => (
-                <PageSelectOptionContent getFlags={getFlags}>
+                <PageSelectOptionContent flags={getFlags}>
                     {props.computeLabel?.(getOption().value) ?? String(getOption().value)}
                 </PageSelectOptionContent>
             )}
@@ -197,27 +196,27 @@ export const PageGroupedSelectField = <T,>(props: PageGroupedSelectFieldProps<T>
 };
 
 export const PageCheckField = (props: PageCheckFieldProps) => {
-    const checkedSignal = SignalMirror.createValueMirror(props.getValue, props.onChange);
+    const checkedSignal = SignalMirror.createValueMirror(() => access(props.value), props.onChange);
 
     return (
         <Checkbox
             checkedSignal={checkedSignal}
-            getIsDisabled={props.getIsDisabled}
-            getAriaLabel={props.getAriaLabel}
-            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+            isDisabled={props.isDisabled}
+            ariaLabel={props.ariaLabel}
+            renderContent={(getFlags) => <PageCheckboxContent flags={getFlags} />}
         />
     );
 };
 
 export const PageColorField = (props: PageColorFieldProps) => {
-    const valueSignal = SignalMirror.createValueMirror(props.getValue, props.onInput);
+    const valueSignal = SignalMirror.createValueMirror(() => access(props.value), props.onInput);
 
     return (
         <ColorInput
             valueSignal={valueSignal}
-            getIsDisabled={props.getIsDisabled}
-            getAriaLabel={props.getAriaLabel}
-            renderContent={(getFlags) => <PageColorInputContent getFlags={getFlags} getIsCompact={() => true} />}
+            isDisabled={props.isDisabled}
+            ariaLabel={props.ariaLabel}
+            renderContent={(getFlags) => <PageColorInputContent flags={getFlags} isCompact={true} />}
             {...pageColorPickerSlots}
         />
     );
@@ -229,10 +228,10 @@ export const PageFileField = (props: PageFileFieldProps) => {
     return (
         <FileInput
             filesSignal={filesSignal}
-            getAccept={props.getAccept}
-            getIsDisabled={props.getIsDisabled}
-            getAriaLabel={props.getAriaLabel}
-            renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
+            accept={props.accept}
+            isDisabled={props.isDisabled}
+            ariaLabel={props.ariaLabel}
+            renderContent={(getFlags) => <PageFileInputContent flags={getFlags} />}
             onChange={(files) => {
                 if (!files.length) return;
 

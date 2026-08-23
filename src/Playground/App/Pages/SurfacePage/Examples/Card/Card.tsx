@@ -14,8 +14,8 @@ import * as styles from "./Card.css";
 const COLLAPSED_HEIGHT = 200;
 
 const config: SurfaceProps = {
-    getBorderRadii: () => CSSUtils.spreadRadius(styles.borderRadius),
-    getBorderWidths: () => CSSUtils.spreadWidth(2),
+    borderRadii: () => CSSUtils.spreadRadius(styles.borderRadius),
+    borderWidths: () => CSSUtils.spreadWidth(2),
     computeStrokeDefs: () => [
         {
             color: themeVars.color.primary.main,
@@ -48,7 +48,7 @@ export const CardExample = () => {
                     <div class={styles.surfaceCntent}>
                         <Preview
                             expandedSignal={expandedSignal}
-                            getCollapsedHeight={() => COLLAPSED_HEIGHT}
+                            collapsedHeight={() => COLLAPSED_HEIGHT}
                             renderContent={() => (
                                 <div class={styles.bios}>
                                     <div class={styles.bio}>
@@ -78,7 +78,7 @@ export const CardExample = () => {
                                 />
                             )}
                             renderTrigger={(getFlags) => (
-                                <PageButtonContent getFlags={getFlags}>
+                                <PageButtonContent flags={getFlags}>
                                     {getFlags().isExpanded ? "Show less" : "Read more"}
                                 </PageButtonContent>
                             )}

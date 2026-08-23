@@ -12,10 +12,10 @@ type Props = {
 export const MultiSelectCountriesExample = (props: Props) => (
     <MultiSelect
         valuesSignal={props.valuesSignal}
-        getOptions={() => COUNTRIES}
-        getAriaLabel={() => "Countries"}
+        options={() => COUNTRIES}
+        ariaLabel={"Countries"}
         renderContent={(getSelectedOptions, getFlags) => (
-            <PageSelectContent getFlags={getFlags}>
+            <PageSelectContent flags={getFlags}>
                 {getSelectedOptions().length
                     ? getSelectedOptions()
                           .map((option) => option.value)
@@ -24,7 +24,7 @@ export const MultiSelectCountriesExample = (props: Props) => (
             </PageSelectContent>
         )}
         renderOption={(getOption, getFlags) => (
-            <PageSelectOptionContent getFlags={getFlags}>{getOption().value}</PageSelectOptionContent>
+            <PageSelectOptionContent flags={getFlags}>{getOption().value}</PageSelectOptionContent>
         )}
         renderPopup={renderSelectPopup}
     />

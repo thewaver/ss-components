@@ -1,5 +1,6 @@
 import { createMemo, createSignal } from "solid-js";
 
+import { access } from "../../Utils/propUtils";
 import { FormContextProvider } from "./Form.context";
 import type { FormEntry } from "./Form.context.types";
 import type { FormProps, FormState } from "./Form.types";
@@ -14,10 +15,10 @@ export const Form = (props: FormProps) => {
 
     return (
         <form
-            id={props.getId?.()}
-            name={props.getName?.()}
-            aria-label={props.getAriaLabel?.()}
-            aria-labelledby={props.getAriaLabelledBy?.()}
+            id={access(props.id)}
+            name={access(props.name)}
+            aria-label={access(props.ariaLabel)}
+            aria-labelledby={access(props.ariaLabelledBy)}
             noValidate
             onSubmit={(e) => {
                 e.preventDefault();

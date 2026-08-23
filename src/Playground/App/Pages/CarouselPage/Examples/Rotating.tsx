@@ -22,19 +22,21 @@ const renderBar = (controls: CarouselControls) => (
     </PageCarouselBar>
 );
 
-export const RotatingExample = (props: Props) => (
-    <Carousel
-        getSlides={props.getSlides}
-        indexSignal={props.indexSignal}
-        playingSignal={props.playingSignal}
-        getIsDisabled={props.getIsDisabled}
-        getAutoplayDelayMs={props.getAutoplayDelayMs}
-        getGap={() => CAROUSEL_GAP}
-        getAriaLabel={() => "Rotating sampler"}
-        renderSlide={(getSlide, getState) => <PageCarouselSlide getState={getState}>{getSlide()}</PageCarouselSlide>}
-        renderStep={(_getStep, getFlags) => <PageCarouselStep getFlags={getFlags} />}
-        renderPick={(_getIndex, getFlags) => <PageCarouselPick getFlags={getFlags} />}
-        renderRotationControl={(getFlags) => <PageCarouselRotation getFlags={getFlags} />}
-        renderControls={renderBar}
-    />
-);
+export const RotatingExample = (props: Props) => {
+    return (
+        <Carousel
+            slides={props.slides}
+            indexSignal={props.indexSignal}
+            playingSignal={props.playingSignal}
+            isDisabled={props.isDisabled}
+            autoplayDelayMs={props.autoplayDelayMs}
+            gap={() => CAROUSEL_GAP}
+            ariaLabel={"Rotating sampler"}
+            renderSlide={(getSlide, getState) => <PageCarouselSlide state={getState}>{getSlide()}</PageCarouselSlide>}
+            renderStep={(_getStep, getFlags) => <PageCarouselStep flags={getFlags} />}
+            renderPick={(_getIndex, getFlags) => <PageCarouselPick flags={getFlags} />}
+            renderRotationControl={(getFlags) => <PageCarouselRotation flags={getFlags} />}
+            renderControls={renderBar}
+        />
+    );
+};

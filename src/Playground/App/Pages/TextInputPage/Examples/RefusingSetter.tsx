@@ -14,18 +14,18 @@ type Props = TextInputExampleProps;
 export const RefusingSetterExample = (props: Props) => (
     <TextInput
         valueSignal={props.valueSignal}
-        getPadding={() => FIELD_PADDING}
-        getGap={() => FIELD_GAP}
-        getAriaLabel={() => "PIN"}
-        getInputMode={() => "numeric"}
-        getHasError={() => props.valueSignal[0]().length > 0 && props.valueSignal[0]().length < PIN_LENGTH}
+        padding={() => FIELD_PADDING}
+        gap={() => FIELD_GAP}
+        ariaLabel={"PIN"}
+        inputMode={"numeric"}
+        hasError={() => props.valueSignal[0]().length > 0 && props.valueSignal[0]().length < PIN_LENGTH}
         onInput={(value) => {
             props.valueSignal[1](value.replace(/\D/g, "").slice(0, PIN_LENGTH));
         }}
         computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
+        renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} />}
         renderPlaceholder={(getFlags) => (
-            <PageTextFieldPlaceholder getFlags={getFlags}>Digits only</PageTextFieldPlaceholder>
+            <PageTextFieldPlaceholder flags={getFlags}>Digits only</PageTextFieldPlaceholder>
         )}
     />
 );

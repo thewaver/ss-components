@@ -1,4 +1,6 @@
 import { TagInput } from "../../../../../Lib/Fundamentals/Input/TagInput/TagInput";
+import { access } from "../../../../../Lib/Utils/propUtils";
+import type { MaybeAccessor } from "../../../../../Lib/Utils/typeUtils";
 import {
     PageTagContent,
     PageTagInputContent,
@@ -13,20 +15,22 @@ import {
     FIELD_PADDING,
 } from "../../../StyledComponents/TextFieldContent/TextFieldContent.css";
 
-type Props = TagInputExampleProps & { getAriaLabel?: () => string };
+type Props = TagInputExampleProps & { ariaLabel?: MaybeAccessor<string> };
 
-export const DefaultExample = (props: Props) => (
-    <TagInput
-        valueSignal={props.valueSignal}
-        getAriaLabel={() => props.getAriaLabel?.() ?? "Topics"}
-        getGap={() => FIELD_GAP}
-        getPadding={() => FIELD_PADDING}
-        getMinHeight={() => FIELD_HEIGHT}
-        getIsDisabled={props.getIsDisabled}
-        getHasError={props.getHasError}
-        computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTagInputContent getFlags={getFlags} />}
-        renderPlaceholder={() => <PageTagInputPlaceholder>Type and press Enter</PageTagInputPlaceholder>}
-        renderTag={(getTag, getFlags) => <PageTagContent getFlags={getFlags}>{getTag()}</PageTagContent>}
-    />
-);
+export const DefaultExample = (props: Props) => {
+    return (
+        <TagInput
+            valueSignal={props.valueSignal}
+            ariaLabel={() => access(props.ariaLabel) ?? "Topics"}
+            gap={() => FIELD_GAP}
+            padding={() => FIELD_PADDING}
+            minHeight={() => FIELD_HEIGHT}
+            isDisabled={props.isDisabled}
+            hasError={props.hasError}
+            computeTextStyle={computePageTextFieldTextStyle}
+            renderContent={(getFlags) => <PageTagInputContent flags={getFlags} />}
+            renderPlaceholder={() => <PageTagInputPlaceholder>Type and press Enter</PageTagInputPlaceholder>}
+            renderTag={(getTag, getFlags) => <PageTagContent flags={getFlags}>{getTag()}</PageTagContent>}
+        />
+    );
+};

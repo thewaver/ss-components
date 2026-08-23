@@ -3,6 +3,7 @@ import { createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
 import { FunctionUtils, RectUtils, Size2d } from "@thewaver/ss-utils";
 
+import { access } from "../../Utils/propUtils";
 import { ViewportContextProvider, useParentViewportContext } from "./Viewport.context";
 import type { ViewportProps } from "./Viewport.types";
 import { ViewportUtils } from "./Viewport.utils";
@@ -32,7 +33,7 @@ export const Viewport = (props: ParentProps<ViewportProps>) => {
     const getAvailableSize = createMemo(() => (parentContext ? getHostSize() : getWindowSize()));
 
     const getSizeData = createMemo(() => {
-        const rect = getFit(props.getSize(), getAvailableSize());
+        const rect = getFit(access(props.size), getAvailableSize());
 
         return {
             scale: rect.scale,
@@ -85,15 +86,15 @@ export const Viewport = (props: ParentProps<ViewportProps>) => {
             <div
                 class={styles.viewportRoot}
                 style={{
-                    width: `${props.getSize().width}px`,
-                    height: `${props.getSize().height}px`,
+                    width: `${access(props.size).width}px`,
+                    height: `${access(props.size).height}px`,
                     transform: `translate(${getSizeData().scaleRect.left}px, ${getSizeData().scaleRect.top}px) scale(${getSizeData().scale}, ${getSizeData().scale})`,
                 }}
             >
                 <ViewportContextProvider
                     value={{
                         getPortalRef,
-                        getSize: props.getSize,
+                        getSize: () => access(props.size),
                         getScale,
                         getScaledRect,
                     }}

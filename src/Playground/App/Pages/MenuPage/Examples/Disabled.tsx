@@ -4,10 +4,10 @@ import { ACTIONS, renderMenuItem, renderMenuPopup } from "../MenuPage.const";
 
 export const DisabledExample = () => (
     <Menu
-        getItems={() => ACTIONS}
-        getIsDisabled={() => true}
-        getAriaLabel={() => "Edit actions"}
-        renderContent={(getFlags) => <PageMenuTriggerContent getFlags={getFlags}>Edit</PageMenuTriggerContent>}
+        items={() => ACTIONS}
+        isDisabled={true}
+        ariaLabel={"Edit actions"}
+        renderContent={(getFlags) => <PageMenuTriggerContent flags={getFlags}>Edit</PageMenuTriggerContent>}
         renderItem={renderMenuItem}
         renderPopup={renderMenuPopup}
         onActivate={() => undefined}

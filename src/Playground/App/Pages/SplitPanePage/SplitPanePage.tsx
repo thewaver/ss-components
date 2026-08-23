@@ -49,7 +49,10 @@ export const SplitPanePage = () => {
     };
 
     const getExamples = createMemo(() => {
-        const commonProps: Omit<SplitPaneExampleProps, "ratiosSignal"> = { getGutterSize, getIsDisabled };
+        const commonProps: Omit<SplitPaneExampleProps, "ratiosSignal"> = {
+            gutterSize: getGutterSize,
+            isDisabled: getIsDisabled,
+        };
 
         return [
             {
@@ -95,26 +98,26 @@ export const SplitPanePage = () => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "gutterSize"} getLabel={() => "Gutter size"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"gutterSize"} label={"Gutter size"}>
                     <PageNumberField
-                        getValue={getGutterSize}
-                        getMin={() => MIN_GUTTER}
-                        getMax={() => MAX_GUTTER}
-                        getStep={() => GUTTER_STEP}
-                        getWidth={() => GUTTER_FIELD_WIDTH}
-                        getAriaLabel={() => "Gutter size"}
+                        value={getGutterSize}
+                        min={() => MIN_GUTTER}
+                        max={() => MAX_GUTTER}
+                        step={() => GUTTER_STEP}
+                        width={() => GUTTER_FIELD_WIDTH}
+                        ariaLabel={"Gutter size"}
                         onInput={setGutterSize}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "isDisabled"} getLabel={() => "Disabled"}>
-                    <PageCheckField getValue={getIsDisabled} getAriaLabel={() => "Disabled"} onChange={setIsDisabled} />
+                <PageProp key={"isDisabled"} label={"Disabled"}>
+                    <PageCheckField value={getIsDisabled} ariaLabel={"Disabled"} onChange={setIsDisabled} />
                 </PageProp>
 
-                <PageProp getKey={() => "ratios"} getLabel={() => "Ratios"}>
+                <PageProp key={"ratios"} label={"Ratios"}>
                     <Button
-                        renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Reset</PageButtonContent>}
+                        renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Reset</PageButtonContent>}
                         onClick={async () => {
                             reset();
                         }}
@@ -122,7 +125,7 @@ export const SplitPanePage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} getMinColumnWidth={() => MIN_COLUMN_WIDTH} />
+            <PageExamples items={getExamples} minColumnWidth={() => MIN_COLUMN_WIDTH} />
         </>
     );
 };

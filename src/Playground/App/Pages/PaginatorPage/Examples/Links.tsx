@@ -10,19 +10,21 @@ const PAGINATOR_GAP = 5;
 
 type Props = PaginatorExampleProps;
 
-export const LinksExample = (props: Props) => (
-    <Paginator
-        getPage={props.getPage}
-        getPageCount={props.getPageCount}
-        getSiblingCount={props.getSiblingCount}
-        getBoundaryCount={props.getBoundaryCount}
-        getIsDisabled={props.getIsDisabled}
-        getGap={() => PAGINATOR_GAP}
-        getAriaLabel={() => "Linked results"}
-        computeHref={(page) => `#paginator-page-${page}`}
-        onPageChange={props.onPageChange}
-        renderPage={(_getEntry, getFlags) => <PagePaginatorPage getFlags={getFlags} />}
-        renderGap={(getEntry) => <PagePaginatorGap getEntry={getEntry} />}
-        renderStep={(_getStep, getFlags) => <PagePaginatorStep getFlags={getFlags} />}
-    />
-);
+export const LinksExample = (props: Props) => {
+    return (
+        <Paginator
+            page={props.page}
+            pageCount={props.pageCount}
+            siblingCount={props.siblingCount}
+            boundaryCount={props.boundaryCount}
+            isDisabled={props.isDisabled}
+            gap={() => PAGINATOR_GAP}
+            ariaLabel={"Linked results"}
+            computeHref={(page) => `#paginator-page-${page}`}
+            onPageChange={props.onPageChange}
+            renderPage={(_getEntry, getFlags) => <PagePaginatorPage flags={getFlags} />}
+            renderGap={(getEntry) => <PagePaginatorGap entry={getEntry} />}
+            renderStep={(_getStep, getFlags) => <PagePaginatorStep flags={getFlags} />}
+        />
+    );
+};

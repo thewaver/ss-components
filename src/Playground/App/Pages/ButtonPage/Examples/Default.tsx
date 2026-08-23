@@ -6,7 +6,7 @@ type Props = ButtonExampleProps;
 
 export const DefaultExample = (props: Props) => (
     <Button
-        renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Click Me</PageButtonContent>}
+        renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Click Me</PageButtonContent>}
         onClick={props.onClick}
     />
 );

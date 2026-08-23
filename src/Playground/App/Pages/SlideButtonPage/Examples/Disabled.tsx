@@ -8,10 +8,10 @@ type Props = SlideButtonExampleProps;
 
 export const DisabledExample = (props: Props) => (
     <SlideButton
-        getIsDisabled={() => true}
-        getThumbSize={() => SLIDE_BUTTON_THUMB_SIZE}
+        isDisabled={true}
+        thumbSize={() => SLIDE_BUTTON_THUMB_SIZE}
         renderContent={(getFlags) => (
-            <PageSlideButtonContent getFlags={getFlags}>Slide or hold to send</PageSlideButtonContent>
+            <PageSlideButtonContent flags={getFlags}>Slide or hold to send</PageSlideButtonContent>
         )}
         onActivate={props.onActivate}
     />

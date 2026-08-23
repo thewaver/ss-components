@@ -9,7 +9,7 @@ export const DefaultExample = (props: Props) => (
     <ColorInput
         {...pageColorPickerSlots}
         valueSignal={props.valueSignal}
-        getAriaLabel={() => "Brand colour"}
-        renderContent={(getFlags) => <PageColorInputContent getFlags={getFlags} />}
+        ariaLabel={"Brand colour"}
+        renderContent={(getFlags) => <PageColorInputContent flags={getFlags} />}
     />
 );

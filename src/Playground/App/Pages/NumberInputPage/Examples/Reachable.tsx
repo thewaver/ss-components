@@ -15,21 +15,21 @@ type Props = NumberInputExampleProps;
 export const ReachableExample = (props: Props) => (
     <NumberInput
         valueSignal={props.valueSignal}
-        getIsDisabled={() => true}
-        getIsReachableWhenDisabled={() => true}
-        getPadding={() => FIELD_STEPPER_PADDING}
-        getGap={() => FIELD_GAP}
-        getAriaLabel={() => "Disabled but reachable amount"}
+        isDisabled={true}
+        isReachableWhenDisabled={true}
+        padding={() => FIELD_STEPPER_PADDING}
+        gap={() => FIELD_GAP}
+        ariaLabel={"Disabled but reachable amount"}
         computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} />}
-        renderTrailing={(getFlags, stepper) => <PageNumberInputStepper getFlags={getFlags} stepper={stepper} />}
-        getTooltipDefs={() => ({
-            getPlacement: () => ({ x: "center", y: "top-out" }),
-            getOffset: () => ({ x: 0, y: 5 }),
+        renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} />}
+        renderTrailing={(getFlags, stepper) => <PageNumberInputStepper flags={getFlags} stepper={stepper} />}
+        tooltipDefs={() => ({
+            placement: () => ({ x: "center", y: "top-out" }),
+            offset: () => ({ x: 0, y: 5 }),
             renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
                 <PageTooltipContent
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
+                    visibilityTarget={getVisibilityTarget}
+                    transitionDurationMs={getTransitionDurationMs}
                 >
                     Focusable so this tooltip can be read, but neither the arrows nor the stepper may move the value.
                 </PageTooltipContent>

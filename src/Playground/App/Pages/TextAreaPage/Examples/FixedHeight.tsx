@@ -14,15 +14,15 @@ type Props = TextAreaExampleProps;
 export const FixedHeightExample = (props: Props) => (
     <TextArea
         valueSignal={props.valueSignal}
-        getPadding={() => FIELD_PADDING}
-        getGap={() => FIELD_GAP}
-        getAriaLabel={() => "Notes"}
+        padding={() => FIELD_PADDING}
+        gap={() => FIELD_GAP}
+        ariaLabel={"Notes"}
         computeTextStyle={computePageTextFieldTextStyle}
         renderContent={(getFlags) => (
-            <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} getHeight={() => FIXED_HEIGHT} />
+            <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} height={() => FIXED_HEIGHT} />
         )}
         renderPlaceholder={(getFlags) => (
-            <PageTextFieldPlaceholder getFlags={getFlags} getIsTopAligned={() => true}>
+            <PageTextFieldPlaceholder flags={getFlags} isTopAligned={true}>
                 Notes
             </PageTextFieldPlaceholder>
         )}

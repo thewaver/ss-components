@@ -8,6 +8,7 @@ import type {
 import { DateValueUtils } from "../../../Abstracts/DateValue/DateValue.utils";
 import { LiveAnnouncer } from "../../../Abstracts/LiveAnnouncer/LiveAnnouncer";
 import { NavigationUtils } from "../../../Abstracts/Navigation/Navigation.utils";
+import { access } from "../../../Utils/propUtils";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import type { CalendarDayProps, CalendarFlags, CalendarProps } from "./Calendar.types";
 
@@ -27,17 +28,17 @@ const PAST_ERA_DAY_LABEL_OPTIONS: Intl.DateTimeFormatOptions = { ...DAY_LABEL_OP
 const PAST_ERA_MONTH_ANNOUNCE_OPTIONS: Intl.DateTimeFormatOptions = { ...MONTH_ANNOUNCE_OPTIONS, era: "short" };
 
 const CalendarDay = (props: CalendarDayProps) => {
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
     return (
         <div
-            id={props.getId?.()}
+            id={access(props.id)}
             ref={(element) => props.ref?.(element)}
             class={styles.calendarDay}
             role="gridcell"
-            aria-label={props.getAriaLabel()}
-            aria-selected={props.getFlags().isSelected}
-            aria-current={props.getFlags().isToday ? "date" : undefined}
+            aria-label={access(props.ariaLabel)}
+            aria-selected={access(props.flags).isSelected}
+            aria-current={access(props.flags).isToday ? "date" : undefined}
             aria-disabled={getIsDisabled() || undefined}
             onClick={() => {
                 if (getIsDisabled()) return;
@@ -45,7 +46,7 @@ const CalendarDay = (props: CalendarDayProps) => {
                 props.onSelect();
             }}
         >
-            {props.renderContent(props.getFlags)}
+            {props.renderContent(() => access(props.flags))}
         </div>
     );
 };
@@ -57,13 +58,13 @@ export const Calendar = (props: CalendarProps) => {
     const [getDayRefs, setDayRefs] = createSignal<(HTMLElement | undefined)[]>([]);
     const [getHighlighted, setHighlighted] = createSignal<DateValue | undefined>();
 
-    const getWeekStartsOn = createMemo(() => props.getWeekStartsOn?.() ?? DEFAULT_CALENDAR_WEEK_STARTS_ON);
+    const getWeekStartsOn = createMemo(() => access(props.weekStartsOn) ?? DEFAULT_CALENDAR_WEEK_STARTS_ON);
 
     const getMonth = createMemo(() => props.monthSignal[0]());
 
     const getToday = createMemo(() =>
         DateValueUtils.withCalendar(
-            props.getToday?.() ?? DateValueUtils.fromDate(new Date()),
+            access(props.today) ?? DateValueUtils.fromDate(new Date()),
             DateValueUtils.getCalendarId(getMonth()),
         ),
     );
@@ -71,7 +72,7 @@ export const Calendar = (props: CalendarProps) => {
     const getGrid = createMemo(() => DateValueUtils.getMonthGrid(getMonth(), getWeekStartsOn()));
 
     const getCurrentEraId = createMemo(() => {
-        const eras = DateValueUtils.getEras(getMonth(), props.getLocale?.());
+        const eras = DateValueUtils.getEras(getMonth(), access(props.locale));
 
         return eras[eras.length - 1].id;
     });
@@ -84,14 +85,14 @@ export const Calendar = (props: CalendarProps) => {
     const getWeekdayNames = createMemo(() =>
         DateValueUtils.getWeekdayNames(
             getWeekStartsOn(),
-            props.getWeekdayWidth?.() ?? DEFAULT_CALENDAR_WEEKDAY_WIDTH,
-            props.getLocale?.(),
+            access(props.weekdayWidth) ?? DEFAULT_CALENDAR_WEEKDAY_WIDTH,
+            access(props.locale),
         ),
     );
 
     const getIsDayDisabled = (day: DateValue) =>
-        (props.getIsDisabled?.() ?? false) ||
-        !DateValueUtils.getIsInRange(day, props.getMin?.(), props.getMax?.()) ||
+        (access(props.isDisabled) ?? false) ||
+        !DateValueUtils.getIsInRange(day, access(props.min), access(props.max)) ||
         (props.computeIsDayDisabled?.(day) ?? false);
 
     const getRovingDay = createMemo(() => {
@@ -121,7 +122,7 @@ export const Calendar = (props: CalendarProps) => {
     };
 
     const moveTo = (day: DateValue) => {
-        const clamped = DateValueUtils.clamp(day, props.getMin?.(), props.getMax?.());
+        const clamped = DateValueUtils.clamp(day, access(props.min), access(props.max));
 
         const month = DateValueUtils.getStartOfMonth(clamped);
 
@@ -158,7 +159,7 @@ export const Calendar = (props: CalendarProps) => {
                 DateValueUtils.format(
                     month,
                     month.era === getCurrentEraId() ? MONTH_ANNOUNCE_OPTIONS : PAST_ERA_MONTH_ANNOUNCE_OPTIONS,
-                    props.getLocale?.(),
+                    access(props.locale),
                 ),
             );
         }
@@ -214,10 +215,10 @@ export const Calendar = (props: CalendarProps) => {
             ref={setRootRef}
             id={gridId}
             class={styles.calendarRoot}
-            style={{ gap: `${props.getGap?.() ?? DEFAULT_CALENDAR_GAP}px` }}
+            style={{ gap: `${access(props.gap) ?? DEFAULT_CALENDAR_GAP}px` }}
             role="grid"
-            aria-label={props.getAriaLabel?.()}
-            aria-disabled={props.getIsDisabled?.() || undefined}
+            aria-label={access(props.ariaLabel)}
+            aria-disabled={access(props.isDisabled) || undefined}
             onKeyDown={handleKeyDown}
         >
             <div class={styles.calendarRow} role="row">
@@ -236,10 +237,10 @@ export const Calendar = (props: CalendarProps) => {
                         <Index each={getWeek()}>
                             {(getDay, dayIndex) => (
                                 <InteractionWrapper
-                                    getSizing={() => "fill"}
-                                    getIsDisabled={() => getIsDayDisabled(getDay())}
-                                    getIsTabbable={() => DateValueUtils.isSame(getDay(), getRovingDay())}
-                                    getExtraFlags={(): CalendarFlags => ({
+                                    sizing={"fill"}
+                                    isDisabled={() => getIsDayDisabled(getDay())}
+                                    isTabbable={() => DateValueUtils.isSame(getDay(), getRovingDay())}
+                                    extraFlags={(): CalendarFlags => ({
                                         day: getDay(),
                                         isSelected: DateValueUtils.isSame(getDay(), props.valueSignal[0]()),
                                         isToday: DateValueUtils.isSame(getDay(), getToday()),
@@ -250,13 +251,13 @@ export const Calendar = (props: CalendarProps) => {
                                     renderControl={(setElementRef, getFlags) => (
                                         <CalendarDay
                                             ref={setElementRef}
-                                            getId={() => `${gridId}-day-${DateValueUtils.toIso(getDay())}`}
-                                            getFlags={getFlags}
-                                            getAriaLabel={() =>
+                                            id={() => `${gridId}-day-${DateValueUtils.toIso(getDay())}`}
+                                            flags={getFlags}
+                                            ariaLabel={() =>
                                                 DateValueUtils.format(
                                                     getDay(),
                                                     getDayLabelOptions(getDay()),
-                                                    props.getLocale?.(),
+                                                    access(props.locale),
                                                 )
                                             }
                                             renderContent={(getDayFlags) => props.renderDay(getDay, getDayFlags)}

@@ -1,5 +1,6 @@
 import { createEffect, createMemo, createSignal, onCleanup, untrack } from "solid-js";
 
+import { access } from "../../../Utils/propUtils";
 import { TextField } from "../TextField/TextField";
 import type { TextFieldMode } from "../TextField/TextField.types";
 import type { NumberInputProps, NumberInputStepDefs, NumberInputStepper } from "./NumberInput.types";
@@ -14,12 +15,12 @@ export const NumberInput = (props: NumberInputProps) => {
     const textSignal = createSignal(NumberInputUtils.formatValue(props.valueSignal[0]()));
 
     const getStepDefs = createMemo((): NumberInputStepDefs => ({
-        min: props.getMin?.(),
-        max: props.getMax?.(),
-        step: props.getStep?.() ?? DEFAULT_NUMBER_INPUT_STEP,
+        min: access(props.min),
+        max: access(props.max),
+        step: access(props.step) ?? DEFAULT_NUMBER_INPUT_STEP,
     }));
 
-    const getIsWritable = () => !(props.getIsDisabled?.() ?? false) && !(props.getIsReadOnly?.() ?? false);
+    const getIsWritable = () => !(access(props.isDisabled) ?? false) && !(access(props.isReadOnly) ?? false);
 
     const reportValue = (value: number | undefined) => {
         props.valueSignal[1](value);
@@ -54,12 +55,15 @@ export const NumberInput = (props: NumberInputProps) => {
         stopStepping();
         stepValue(direction);
 
-        repeatDelay = setTimeout(() => {
-            repeatInterval = setInterval(
-                () => stepValue(direction),
-                props.getRepeatIntervalMs?.() ?? DEFAULT_NUMBER_INPUT_REPEAT_INTERVAL_MS,
-            );
-        }, props.getRepeatDelayMs?.() ?? DEFAULT_NUMBER_INPUT_REPEAT_DELAY_MS);
+        repeatDelay = setTimeout(
+            () => {
+                repeatInterval = setInterval(
+                    () => stepValue(direction),
+                    access(props.repeatIntervalMs) ?? DEFAULT_NUMBER_INPUT_REPEAT_INTERVAL_MS,
+                );
+            },
+            access(props.repeatDelayMs) ?? DEFAULT_NUMBER_INPUT_REPEAT_DELAY_MS,
+        );
     };
 
     onCleanup(stopStepping);
@@ -96,10 +100,10 @@ export const NumberInput = (props: NumberInputProps) => {
         <TextField
             {...props}
             valueSignal={textSignal}
-            getElement={() => "input"}
-            getType={() => "text"}
-            getInputMode={() => props.getInputMode?.() ?? DEFAULT_NUMBER_INPUT_MODE}
-            getIsSpinButton={() => true}
+            element={"input"}
+            type={"text"}
+            inputMode={() => access(props.inputMode) ?? DEFAULT_NUMBER_INPUT_MODE}
+            isSpinButton={true}
             renderTrailing={props.renderTrailing && ((getFlags) => props.renderTrailing!(getFlags, stepper))}
             onInput={(text) => {
                 const sanitized = NumberInputUtils.sanitizeText(text);

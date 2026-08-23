@@ -110,5 +110,5 @@ export const TextInputPage = () => {
         },
     ]);
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

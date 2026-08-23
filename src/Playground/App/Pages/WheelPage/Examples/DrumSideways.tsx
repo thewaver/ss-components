@@ -5,6 +5,7 @@ import type { Size2d } from "@thewaver/ss-utils";
 import { DrumWheel } from "../../../../../Lib/Exotics/DrumWheel/DrumWheel";
 import type { WheelController } from "../../../../../Lib/Exotics/Wheel/Wheel.types";
 import { Button } from "../../../../../Lib/Fundamentals/Button/Button";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import { PageButtonContent } from "../../../StyledComponents/ButtonContent/ButtonContent";
 import {
     PageWheelBar,
@@ -24,7 +25,9 @@ const pickPrizeIndex = (wedgeCount: number) =>
         setTimeout(() => resolve(Math.floor(Math.random() * wedgeCount)), PRIZE_FETCH_DELAY_MS);
     });
 
-export const DrumSidewaysExample = ({ getWedges, ...otherProps }: Props) => {
+export const DrumSidewaysExample = ({ wedges, ...otherProps }: Props) => {
+    const getWedges = () => access(wedges);
+
     const [getController, setController] = createSignal<WheelController>();
 
     return (
@@ -32,28 +35,26 @@ export const DrumSidewaysExample = ({ getWedges, ...otherProps }: Props) => {
             <PageWheelMount>
                 <DrumWheel
                     {...otherProps}
-                    getWedges={getWedges}
-                    getAxis={() => "row"}
-                    getWedgeSize={() => WEDGE_SIZE}
-                    getAriaLabel={() => "Prize drum, turning sideways"}
+                    wedges={getWedges}
+                    axis={"row"}
+                    wedgeSize={() => WEDGE_SIZE}
+                    ariaLabel={"Prize drum, turning sideways"}
                     computeSpinTarget={() => pickPrizeIndex(getWedges().length)}
                     computeWedgeLabel={(index) => `${getWedges()[index]}, ${index + 1} of ${getWedges().length}`}
-                    renderWedge={(getWedge, getState) => (
-                        <PageWheelCard getState={getState}>{getWedge()}</PageWheelCard>
-                    )}
-                    renderWedgeBack={(_getWedge, getState) => <PageWheelCard getState={getState} />}
+                    renderWedge={(getWedge, getState) => <PageWheelCard state={getState}>{getWedge()}</PageWheelCard>}
+                    renderWedgeBack={(_getWedge, getState) => <PageWheelCard state={getState} />}
                     onMount={setController}
                 />
 
-                <PageWheelPip getSide={() => "top"} />
+                <PageWheelPip side={"top"} />
             </PageWheelMount>
 
             <PageWheelBar>
                 <Button
-                    getId={() => "sidewaysSpin"}
-                    getAriaLabel={() => "Spin the wheel"}
-                    getIsDisabled={() => !getController()?.getIsSpinnable()}
-                    renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Spin</PageButtonContent>}
+                    id={"sidewaysSpin"}
+                    ariaLabel={"Spin the wheel"}
+                    isDisabled={() => !getController()?.getIsSpinnable()}
+                    renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Spin</PageButtonContent>}
                     onClick={() => getController()?.spin()}
                 />
             </PageWheelBar>

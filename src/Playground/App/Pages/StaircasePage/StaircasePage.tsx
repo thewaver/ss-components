@@ -46,7 +46,7 @@ const STAGES = [
 
 const DefaultExampleWrapper = (props: StaircaseExampleProps) => {
     return (
-        <PageMeasureBox getWidth={() => STAIRCASE_WIDTH}>
+        <PageMeasureBox width={() => STAIRCASE_WIDTH}>
             <DefaultExample {...props} />
         </PageMeasureBox>
     );
@@ -63,11 +63,11 @@ export const StaircasePage = () => {
 
     const getExamples = createMemo(() => {
         const commonProps: StaircaseExampleProps = {
-            getSteps,
-            getIndent,
-            getGap,
-            getDir,
-            getIndentKey,
+            steps: getSteps,
+            indent: getIndent,
+            gap: getGap,
+            dir: getDir,
+            indentKey: getIndentKey,
         };
 
         return [
@@ -82,65 +82,65 @@ export const StaircasePage = () => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "stepCount"} getLabel={() => "Steps"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"stepCount"} label={"Steps"}>
                     <PageNumberField
-                        getValue={getStepCount}
-                        getMin={() => MIN_STEP_COUNT}
-                        getMax={() => MAX_STEP_COUNT}
-                        getStep={() => STEP_COUNT_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Steps"}
+                        value={getStepCount}
+                        min={() => MIN_STEP_COUNT}
+                        max={() => MAX_STEP_COUNT}
+                        step={() => STEP_COUNT_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Steps"}
                         onInput={setStepCount}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "indent"} getLabel={() => "Indent (px)"}>
+                <PageProp key={"indent"} label={"Indent (px)"}>
                     <PageNumberField
-                        getValue={getIndent}
-                        getMin={() => MIN_INDENT}
-                        getMax={() => MAX_INDENT}
-                        getStep={() => INDENT_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Indent"}
+                        value={getIndent}
+                        min={() => MIN_INDENT}
+                        max={() => MAX_INDENT}
+                        step={() => INDENT_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Indent"}
                         onInput={setIndent}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "gap"} getLabel={() => "Gap (px)"}>
+                <PageProp key={"gap"} label={"Gap (px)"}>
                     <PageNumberField
-                        getValue={getGap}
-                        getMin={() => MIN_GAP}
-                        getMax={() => MAX_GAP}
-                        getStep={() => GAP_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Gap"}
+                        value={getGap}
+                        min={() => MIN_GAP}
+                        max={() => MAX_GAP}
+                        step={() => GAP_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Gap"}
                         onInput={setGap}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "dir"} getLabel={() => "Direction"}>
+                <PageProp key={"dir"} label={"Direction"}>
                     <PageSelectField
-                        getValue={getDir}
-                        getValues={() => DIRS}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Direction"}
+                        value={getDir}
+                        values={() => DIRS}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Direction"}
                         onChange={(dir) => setDir(() => dir)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "indentKey"} getLabel={() => "Indent function"}>
+                <PageProp key={"indentKey"} label={"Indent function"}>
                     <PageSelectField
-                        getValue={getIndentKey}
-                        getValues={() => StaircaseIndents.SAMPLE_KEYS}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Indent function"}
+                        value={getIndentKey}
+                        values={() => StaircaseIndents.SAMPLE_KEYS}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Indent function"}
                         onChange={(key) => setIndentKey(() => key)}
                     />
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} getLayout={() => "flow"} />
+            <PageExamples items={getExamples} layout={"flow"} />
         </>
     );
 };

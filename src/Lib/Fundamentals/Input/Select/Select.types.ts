@@ -4,7 +4,7 @@ import { type CSSPadding, Point2d, Size2d } from "@thewaver/ss-utils";
 
 import type { AnchorPlacement } from "../../../Abstracts/Anchor/Anchor.types";
 import type { InteractionFlags } from "../../../Abstracts/Interaction/Interaction.types";
-import type { AccessorProps } from "../../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../../Utils/typeUtils";
 import type {
     InteractionControlProps,
     InteractionTooltipDefs,
@@ -61,7 +61,7 @@ export type SelectOptionItemProps = AccessorProps<
     onSelect: () => void;
 };
 
-export type SelectCompositeProps<T> = Omit<InteractionWrapperProps<SelectFlags>, "renderControl" | "getExtraFlags"> &
+export type SelectCompositeProps<T> = Omit<InteractionWrapperProps<SelectFlags>, "renderControl" | "extraFlags"> &
     AccessorProps<{
         id?: string;
         ariaLabel?: string;
@@ -75,8 +75,8 @@ export type SelectCompositeProps<T> = Omit<InteractionWrapperProps<SelectFlags>,
         computeTextStyle?: (getFlags: () => InteractionFlags<SelectFlags>) => TextFieldTextStyle;
     }> & {
         visibilitySignal?: Signal<boolean>;
-        getOptions: Accessor<SelectItem<T>[]>;
-        getSelectedOptions: Accessor<SelectOption<T>[]>;
+        options: MaybeAccessor<SelectItem<T>[]>;
+        selectedOptions: MaybeAccessor<SelectOption<T>[]>;
         querySignal?: Signal<string>;
         computeIsSelected: (value: T) => boolean;
         computeCustomText?: (option: SelectOption<T>) => string;
@@ -103,7 +103,7 @@ export type SelectCompositeProps<T> = Omit<InteractionWrapperProps<SelectFlags>,
 
 export type SelectPresetProps<T> = Omit<
     SelectCompositeProps<T>,
-    "getSelectedOptions" | "getIsMultiple" | "computeIsSelected" | "renderContent" | "onPick"
+    "selectedOptions" | "isMultiple" | "computeIsSelected" | "renderContent" | "onPick"
 >;
 
 export type SelectProps<T> = SelectPresetProps<T> & {

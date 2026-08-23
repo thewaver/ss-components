@@ -2,7 +2,7 @@ import type { Accessor, JSX, Signal } from "solid-js";
 
 import type { CSSMargin } from "@thewaver/ss-utils";
 
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 
 export type ToastsVerticalAlignment = "top" | "middle" | "bottom";
 
@@ -49,7 +49,7 @@ export type ToastsItemProps<T> = AccessorProps<{
     onElapse: () => void;
     onExitEnd: () => void;
 }> & {
-    getToast: Accessor<Toast<T>>;
+    toast: MaybeAccessor<Toast<T>>;
     renderToast: ToastRenderer<T>;
 };
 
@@ -63,7 +63,7 @@ export type ToastsProps<T> = AccessorProps<{
     overflow?: ToastsOverflow;
     transitionDurationMs?: number;
 }> & {
-    getLimit?: Accessor<number | undefined>;
+    limit?: MaybeAccessor<number | undefined>;
     toastsSignal: Signal<Toast<T>[]>;
     renderToast: ToastRenderer<T>;
 };

@@ -87,90 +87,90 @@ export const ToastsPage = () => {
 
     return (
         <div class={styles.root}>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "alignment"} getLabel={() => "Alignment"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"alignment"} label={"Alignment"}>
                     <PageSelectField
-                        getValue={getAlignment}
-                        getValues={() => ALIGNMENTS}
-                        getAriaLabel={() => "Alignment"}
+                        value={getAlignment}
+                        values={() => ALIGNMENTS}
+                        ariaLabel={"Alignment"}
                         onChange={(alignment) => setAlignment(() => alignment)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "dir"} getLabel={() => "Dir"}>
+                <PageProp key={"dir"} label={"Dir"}>
                     <PageSelectField
-                        getValue={getDir}
-                        getValues={() => DIRS}
-                        getAriaLabel={() => "Dir"}
+                        value={getDir}
+                        values={() => DIRS}
+                        ariaLabel={"Dir"}
                         onChange={(dir) => setDir(() => dir)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "limit"} getLabel={() => "Limit"}>
+                <PageProp key={"limit"} label={"Limit"}>
                     <PageSelectField
-                        getValue={getLimit}
-                        getValues={() => LIMITS}
-                        getAriaLabel={() => "Limit"}
+                        value={getLimit}
+                        values={() => LIMITS}
+                        ariaLabel={"Limit"}
                         computeLabel={(limit) => (limit === NO_LIMIT ? "none" : `${limit}`)}
                         onChange={setLimit}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "overflow"} getLabel={() => "Overflow"}>
+                <PageProp key={"overflow"} label={"Overflow"}>
                     <PageSelectField
-                        getValue={getOverflow}
-                        getValues={() => OVERFLOWS}
-                        getAriaLabel={() => "Overflow"}
+                        value={getOverflow}
+                        values={() => OVERFLOWS}
+                        ariaLabel={"Overflow"}
                         onChange={(overflow) => setOverflow(() => overflow)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "durationMs"} getLabel={() => "Duration"}>
+                <PageProp key={"durationMs"} label={"Duration"}>
                     <PageSelectField
-                        getValue={getDurationMs}
-                        getValues={() => DURATIONS_MS}
-                        getAriaLabel={() => "Duration"}
+                        value={getDurationMs}
+                        values={() => DURATIONS_MS}
+                        ariaLabel={"Duration"}
                         computeLabel={(durationMs) => (durationMs === STICKY ? "sticky" : `${durationMs}ms`)}
                         onChange={setDurationMs}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "animation"} getLabel={() => "Animation"}>
+                <PageProp key={"animation"} label={"Animation"}>
                     <PageSelectField
-                        getValue={getAnimation}
-                        getValues={() => ANIMATIONS}
-                        getAriaLabel={() => "Animation"}
+                        value={getAnimation}
+                        values={() => ANIMATIONS}
+                        ariaLabel={"Animation"}
                         onChange={(animation) => setAnimation(() => animation)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "gap"} getLabel={() => "Gap"}>
+                <PageProp key={"gap"} label={"Gap"}>
                     <PageNumberField
-                        getValue={getGap}
-                        getMin={() => MIN_GAP}
-                        getMax={() => MAX_GAP}
-                        getAriaLabel={() => "Gap"}
+                        value={getGap}
+                        min={() => MIN_GAP}
+                        max={() => MAX_GAP}
+                        ariaLabel={"Gap"}
                         onInput={setGap}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "margin"} getLabel={() => "Margin"}>
+                <PageProp key={"margin"} label={"Margin"}>
                     <PageNumberField
-                        getValue={getMargin}
-                        getMin={() => MIN_MARGIN}
-                        getMax={() => MAX_MARGIN}
-                        getAriaLabel={() => "Margin"}
+                        value={getMargin}
+                        min={() => MIN_MARGIN}
+                        max={() => MAX_MARGIN}
+                        ariaLabel={"Margin"}
                         onInput={setMargin}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "transitionDurationMs"} getLabel={() => "Transition duration (ms)"}>
+                <PageProp key={"transitionDurationMs"} label={"Transition duration (ms)"}>
                     <PageNumberField
-                        getValue={getTransitionDurationMs}
-                        getMin={() => MIN_TRANSITION_DURATION_MS}
-                        getMax={() => MAX_TRANSITION_DURATION_MS}
-                        getStep={() => TRANSITION_DURATION_STEP_MS}
-                        getAriaLabel={() => "Transition duration"}
+                        value={getTransitionDurationMs}
+                        min={() => MIN_TRANSITION_DURATION_MS}
+                        max={() => MAX_TRANSITION_DURATION_MS}
+                        step={() => TRANSITION_DURATION_STEP_MS}
+                        ariaLabel={"Transition duration"}
                         onInput={setTransitionDurationMs}
                     />
                 </PageProp>
@@ -178,32 +178,32 @@ export const ToastsPage = () => {
 
             <div class={styles.raiseRow}>
                 <Button
-                    getId={() => "raiseInfo"}
-                    renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Info</PageButtonContent>}
+                    id={"raiseInfo"}
+                    renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Info</PageButtonContent>}
                     onClick={() => raiseToast("info", getDurationMs())}
                 />
                 <Button
-                    getId={() => "raiseSuccess"}
-                    renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Success</PageButtonContent>}
+                    id={"raiseSuccess"}
+                    renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Success</PageButtonContent>}
                     onClick={() => raiseToast("success", getDurationMs())}
                 />
                 <Button
-                    getId={() => "raiseError"}
-                    renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Error</PageButtonContent>}
+                    id={"raiseError"}
+                    renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Error</PageButtonContent>}
                     onClick={() => raiseToast("error", getDurationMs())}
                 />
                 <Button
-                    getId={() => "raiseBurst"}
+                    id={"raiseBurst"}
                     renderContent={(getFlags) => (
-                        <PageButtonContent getFlags={getFlags}>Raise {BURST_SIZE}</PageButtonContent>
+                        <PageButtonContent flags={getFlags}>Raise {BURST_SIZE}</PageButtonContent>
                     )}
                     onClick={() => {
                         for (let index = 0; index < BURST_SIZE; index += 1) raiseToast("info", getDurationMs());
                     }}
                 />
                 <Button
-                    getId={() => "clearToasts"}
-                    renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Clear</PageButtonContent>}
+                    id={"clearToasts"}
+                    renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Clear</PageButtonContent>}
                     onClick={() => {
                         setToasts([]);
                     }}
@@ -217,26 +217,26 @@ export const ToastsPage = () => {
 
             <Toasts
                 toastsSignal={toastQueue}
-                getAriaLabel={() => "Notifications"}
-                getAlignment={getAlignment}
-                getDir={getDir}
-                getLimit={() => (getLimit() === NO_LIMIT ? undefined : getLimit())}
-                getOverflow={getOverflow}
-                getGap={getGap}
-                getMargins={() => ({
+                ariaLabel={"Notifications"}
+                alignment={getAlignment}
+                dir={getDir}
+                limit={() => (getLimit() === NO_LIMIT ? undefined : getLimit())}
+                overflow={getOverflow}
+                gap={getGap}
+                margins={() => ({
                     marginTop: getMargin(),
                     marginRight: getMargin(),
                     marginBottom: getMargin(),
                     marginLeft: getMargin(),
                 })}
-                getTransitionDurationMs={getTransitionDurationMs}
+                transitionDurationMs={getTransitionDurationMs}
                 renderToast={(getToast, getVisibilityTarget, getToastTransitionDurationMs, getState) => (
                     <PageToastContent
-                        getToast={getToast}
-                        getState={getState}
-                        getAnimation={getAnimation}
-                        getVisibilityTarget={getVisibilityTarget}
-                        getTransitionDurationMs={getToastTransitionDurationMs}
+                        toast={getToast}
+                        state={getState}
+                        animation={getAnimation}
+                        visibilityTarget={getVisibilityTarget}
+                        transitionDurationMs={getToastTransitionDurationMs}
                         onDismiss={() => setToasts((prev) => prev.filter((toast) => toast.id !== getToast().id))}
                     />
                 )}

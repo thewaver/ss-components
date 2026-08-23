@@ -1,5 +1,6 @@
 import { Index, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
+import { access } from "../../Utils/propUtils";
 import type { ScrollerButtonPlacement, ScrollerProps, ScrollerStep, ScrollerStepper } from "./Scroller.types";
 
 import * as styles from "./Scroller.css";
@@ -55,11 +56,11 @@ export const Scroller = (props: ScrollerProps) => {
     const [getTrackRef, setTrackRef] = createSignal<HTMLElement>();
     const [getMetrics, setMetrics] = createSignal({ start: 0, visible: 0, total: 0 });
 
-    const getGap = createMemo(() => props.getGap?.() ?? DEFAULT_SCROLLER_GAP);
+    const getGap = createMemo(() => access(props.gap) ?? DEFAULT_SCROLLER_GAP);
 
-    const getPadding = createMemo(() => props.getPadding?.() ?? DEFAULT_SCROLLER_PADDING);
+    const getPadding = createMemo(() => access(props.padding) ?? DEFAULT_SCROLLER_PADDING);
 
-    const getButtonPlacement = createMemo(() => props.getButtonPlacement?.() ?? DEFAULT_SCROLLER_BUTTON_PLACEMENT);
+    const getButtonPlacement = createMemo(() => access(props.buttonPlacement) ?? DEFAULT_SCROLLER_BUTTON_PLACEMENT);
 
     const stepper: ScrollerStepper = {
         getIsAtStart: () => getMetrics().start <= SCROLL_EPSILON,

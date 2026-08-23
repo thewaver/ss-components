@@ -1,6 +1,6 @@
 import type { Accessor, JSX } from "solid-js";
 
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 
 export type StaircaseDir = "down" | "up";
 
@@ -19,7 +19,7 @@ export type StaircaseProps<T> = AccessorProps<{
     gap?: number;
     dir?: StaircaseDir;
 }> & {
-    getSteps: Accessor<T[]>;
+    steps: MaybeAccessor<T[]>;
     computeStepIndent?: (defs: StaircaseStepDefs) => number;
     renderStep: (getStep: Accessor<T>, getState: Accessor<StaircaseStepState>) => JSX.Element;
 };

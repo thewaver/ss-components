@@ -5,6 +5,7 @@ import { Color } from "@thewaver/ss-utils";
 
 import type { AnchorPlacement } from "../../../Abstracts/Anchor/Anchor.types";
 import { SignalMirror } from "../../../Abstracts/SignalMirror/SignalMirror";
+import { access } from "../../../Utils/propUtils";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { Popover } from "../../Popover/Popover";
 import { ColorArea } from "../ColorArea/ColorArea";
@@ -29,24 +30,26 @@ const getIsSameValue = (a: string, b: string) =>
     Color.Hexa.isHexa(a) && Color.Hexa.isHexa(b) ? Color.Hexa.getIsSameHexa(a, b) : a === b;
 
 const ColorInputField = (props: ColorInputFieldProps) => {
-    const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
+    const getAriaLabel = LabelUtils.resolveAriaLabel(
+        props.ariaLabel === undefined ? undefined : () => access(props.ariaLabel)!,
+    );
     const getAriaDescribedBy = FormFieldUtils.resolveAriaDescribedBy();
 
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
     return (
         <button
-            id={props.getId?.()}
+            id={access(props.id)}
             ref={(element) => props.ref?.(element)}
             type="button"
             class={styles.colorInputField}
             aria-label={getAriaLabel()}
             aria-describedby={getAriaDescribedBy()}
             aria-haspopup="dialog"
-            aria-expanded={props.getIsOpen()}
-            aria-controls={props.getIsOpen() ? props.getPopupId() : undefined}
+            aria-expanded={access(props.isOpen)}
+            aria-controls={access(props.isOpen) ? access(props.popupId) : undefined}
             aria-disabled={getIsDisabled() || undefined}
-            aria-invalid={props.getFlags().hasError || undefined}
+            aria-invalid={access(props.flags).hasError || undefined}
             onClick={() => {
                 if (getIsDisabled()) return;
 
@@ -63,7 +66,7 @@ const ColorInputField = (props: ColorInputFieldProps) => {
                 void props.onMouseLeave?.(e);
             }}
         >
-            {props.renderContent(props.getFlags)}
+            {props.renderContent(() => access(props.flags))}
         </button>
     );
 };
@@ -82,7 +85,7 @@ export const ColorInput = (props: ColorInputProps) => {
     const hsvSignal: Signal<Color.HSVA> = [getHsv, setHsv];
     const hueSignal: Signal<number> = [() => getHsv().h, (hue) => setHueValue(hue)];
 
-    const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
+    const getIsDisabled = createMemo(() => access(props.isDisabled) ?? false);
 
     const setHueValue = (hue: number | ((prev: number) => number)) => {
         const next = typeof hue === "function" ? hue(untrack(() => getHsv().h)) : hue;
@@ -129,19 +132,19 @@ export const ColorInput = (props: ColorInputProps) => {
         <>
             <ColorArea
                 hsvSignal={hsvSignal}
-                getSizing={() => "fill"}
-                getIsDisabled={getIsDisabled}
-                getAriaLabel={() => props.getAreaLabel?.() ?? DEFAULT_COLOR_INPUT_AREA_LABEL}
+                sizing={"fill"}
+                isDisabled={getIsDisabled}
+                ariaLabel={() => access(props.areaLabel) ?? DEFAULT_COLOR_INPUT_AREA_LABEL}
                 renderContent={props.renderArea}
             />
 
             <Range
                 valueSignal={hueSignal}
-                getSizing={() => "fill"}
-                getIsDisabled={getIsDisabled}
-                getMax={() => HUE_MAX}
-                getStep={() => HUE_STEP}
-                getAriaLabel={() => props.getHueLabel?.() ?? DEFAULT_COLOR_INPUT_HUE_LABEL}
+                sizing={"fill"}
+                isDisabled={getIsDisabled}
+                max={() => HUE_MAX}
+                step={() => HUE_STEP}
+                ariaLabel={() => access(props.hueLabel) ?? DEFAULT_COLOR_INPUT_HUE_LABEL}
                 renderContent={props.renderHue}
             />
         </>
@@ -151,7 +154,7 @@ export const ColorInput = (props: ColorInputProps) => {
         <>
             <InteractionWrapper
                 {...props}
-                getExtraFlags={(): ColorInputFlags => ({
+                extraFlags={(): ColorInputFlags => ({
                     value: props.valueSignal[0](),
                     hsv: getHsv(),
                     isOpen: getIsOpen(),
@@ -163,11 +166,11 @@ export const ColorInput = (props: ColorInputProps) => {
                 renderControl={(setElementRef, getFlags) => (
                     <ColorInputField
                         ref={setElementRef}
-                        getId={props.getId}
-                        getAriaLabel={props.getAriaLabel}
-                        getPopupId={() => popupId}
-                        getIsOpen={getIsOpen}
-                        getFlags={getFlags}
+                        id={props.id}
+                        ariaLabel={props.ariaLabel}
+                        popupId={() => popupId}
+                        isOpen={getIsOpen}
+                        flags={getFlags}
                         renderContent={props.renderContent}
                         onToggle={() => setIsOpen((prev) => !prev)}
                         onMouseEnter={props.onMouseEnter}
@@ -177,14 +180,14 @@ export const ColorInput = (props: ColorInputProps) => {
             />
 
             <Popover
-                getId={() => popupId}
-                getRole={() => "dialog"}
-                getAriaAttributes={() => ({ "aria-label": props.getAriaLabel?.() })}
-                getIsOpen={getIsOpen}
-                getAnchorRef={getFieldRef}
-                getPlacement={() => props.getPlacement?.() ?? DEFAULT_COLOR_INPUT_PLACEMENT}
-                getOffset={props.getOffset}
-                getTransitionDurationMs={props.getTransitionDurationMs}
+                id={() => popupId}
+                role={"dialog"}
+                ariaAttributes={() => ({ "aria-label": access(props.ariaLabel) })}
+                isOpen={getIsOpen}
+                anchorRef={getFieldRef}
+                placement={() => access(props.placement) ?? DEFAULT_COLOR_INPUT_PLACEMENT}
+                offset={props.offset}
+                transitionDurationMs={props.transitionDurationMs}
                 onDismiss={(reason) => (reason === "escape" ? dismiss() : setIsOpen(false))}
                 renderContent={(getVisibilityTarget, getTransitionDurationMs) =>
                     props.renderPopup(renderSurface, hsvSignal, getVisibilityTarget, getTransitionDurationMs)

@@ -9,10 +9,10 @@ type Props = MenuExampleProps;
 
 export const SubmenusExample = (props: Props) => (
     <Menu
-        getItems={() => NESTED_ACTIONS}
-        getAriaLabel={() => "File actions"}
-        getSubmenuOffset={() => ({ x: POPOVER_SURFACE_INSET, y: -POPOVER_SURFACE_INSET })}
-        renderContent={(getFlags) => <PageMenuTriggerContent getFlags={getFlags}>File</PageMenuTriggerContent>}
+        items={() => NESTED_ACTIONS}
+        ariaLabel={"File actions"}
+        submenuOffset={() => ({ x: POPOVER_SURFACE_INSET, y: -POPOVER_SURFACE_INSET })}
+        renderContent={(getFlags) => <PageMenuTriggerContent flags={getFlags}>File</PageMenuTriggerContent>}
         renderItem={renderMenuItem}
         renderPopup={renderMenuPopup}
         onActivate={props.onActivate}

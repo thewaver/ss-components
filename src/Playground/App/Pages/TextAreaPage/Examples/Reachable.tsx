@@ -14,22 +14,22 @@ type Props = TextAreaExampleProps;
 export const ReachableExample = (props: Props) => (
     <TextArea
         valueSignal={props.valueSignal}
-        getIsDisabled={() => true}
-        getIsReachableWhenDisabled={() => true}
-        getPadding={() => FIELD_PADDING}
-        getGap={() => FIELD_GAP}
-        getAriaLabel={() => "Disabled but reachable notes"}
+        isDisabled={true}
+        isReachableWhenDisabled={true}
+        padding={() => FIELD_PADDING}
+        gap={() => FIELD_GAP}
+        ariaLabel={"Disabled but reachable notes"}
         computeTextStyle={computePageTextFieldTextStyle}
         renderContent={(getFlags) => (
-            <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} getHeight={() => FIXED_HEIGHT} />
+            <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} height={() => FIXED_HEIGHT} />
         )}
-        getTooltipDefs={() => ({
-            getPlacement: () => ({ x: "center", y: "top-out" }),
-            getOffset: () => ({ x: 0, y: 5 }),
+        tooltipDefs={() => ({
+            placement: () => ({ x: "center", y: "top-out" }),
+            offset: () => ({ x: 0, y: 5 }),
             renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
                 <PageTooltipContent
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
+                    visibilityTarget={getVisibilityTarget}
+                    transitionDurationMs={getTransitionDurationMs}
                 >
                     Focusable so this tooltip can be read, but typing must leave the value alone.
                 </PageTooltipContent>

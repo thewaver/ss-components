@@ -49,7 +49,7 @@ export const DatePickerPage = () => {
             name: "Typed only",
             readout: () => `value: ${describe(typedSignal[0]())} — a half-typed date reports nothing`,
             component: () => (
-                <TypedExample valueSignal={typedSignal} getCalendar={getCalendarId} getAriaLabel={() => "Start date"} />
+                <TypedExample valueSignal={typedSignal} calendar={getCalendarId} ariaLabel={"Start date"} />
             ),
             path: `${EXAMPLES_ROOT}/Typed.tsx`,
         },
@@ -61,9 +61,9 @@ export const DatePickerPage = () => {
             component: () => (
                 <TypedExample
                     valueSignal={localeSignal}
-                    getCalendar={getCalendarId}
-                    getFormat={() => "day-month-year"}
-                    getAriaLabel={() => "Day-first date"}
+                    calendar={getCalendarId}
+                    format={"day-month-year"}
+                    ariaLabel={"Day-first date"}
                 />
             ),
             path: `${EXAMPLES_ROOT}/Typed.tsx`,
@@ -74,11 +74,7 @@ export const DatePickerPage = () => {
             readout: () =>
                 `value: ${describe(eraSignal[0]())} — the era is a control in the leading slot, offering whatever the calendar reports`,
             component: () => (
-                <TypedExample
-                    valueSignal={eraSignal}
-                    getCalendar={getCalendarId}
-                    getAriaLabel={() => "Historical date"}
-                />
+                <TypedExample valueSignal={eraSignal} calendar={getCalendarId} ariaLabel={"Historical date"} />
             ),
             path: `${EXAMPLES_ROOT}/Typed.tsx`,
         },
@@ -86,9 +82,7 @@ export const DatePickerPage = () => {
             key: "picked",
             name: "With a calendar",
             readout: () => `value: ${describe(pickedSignal[0]())} — typing and picking write the same signal`,
-            component: () => (
-                <PickedExample valueSignal={pickedSignal} getCalendar={getCalendarId} getKey={() => "picked"} />
-            ),
+            component: () => <PickedExample valueSignal={pickedSignal} calendar={getCalendarId} key={"picked"} />,
             path: `${EXAMPLES_ROOT}/Picked.tsx`,
         },
         {
@@ -99,10 +93,10 @@ export const DatePickerPage = () => {
             component: () => (
                 <PickedExample
                     valueSignal={boundedSignal}
-                    getCalendar={getCalendarId}
-                    getKey={() => "bounded"}
-                    getMinDate={() => MIN_DATE}
-                    getMaxDate={() => MAX_DATE}
+                    calendar={getCalendarId}
+                    key={"bounded"}
+                    minDate={() => MIN_DATE}
+                    maxDate={() => MAX_DATE}
                 />
             ),
             path: `${EXAMPLES_ROOT}/Picked.tsx`,
@@ -115,8 +109,8 @@ export const DatePickerPage = () => {
             component: () => (
                 <PickedExample
                     valueSignal={weekdaySignal}
-                    getCalendar={getCalendarId}
-                    getKey={() => "weekdays"}
+                    calendar={getCalendarId}
+                    key={"weekdays"}
                     computeIsDayDisabled={getIsWeekend}
                 />
             ),
@@ -127,7 +121,7 @@ export const DatePickerPage = () => {
             name: "A time, typed or stepped",
             readout: () =>
                 `value: ${describeTime(timeSignal[0]())} — the arrows step whichever segment the caret is in`,
-            component: () => <TimeExample valueSignal={timeSignal} getAriaLabel={() => "Start time"} />,
+            component: () => <TimeExample valueSignal={timeSignal} ariaLabel={"Start time"} />,
             path: `${EXAMPLES_ROOT}/Time.tsx`,
         },
         {
@@ -136,11 +130,7 @@ export const DatePickerPage = () => {
             readout: () =>
                 `value: ${describeTime(twelveHourSignal[0]())} — the value stays 24-hour, the field reads it as 12`,
             component: () => (
-                <TimeExample
-                    valueSignal={twelveHourSignal}
-                    getIsTwelveHour={() => true}
-                    getAriaLabel={() => "Meeting time"}
-                />
+                <TimeExample valueSignal={twelveHourSignal} isTwelveHour={true} ariaLabel={"Meeting time"} />
             ),
             path: `${EXAMPLES_ROOT}/Time.tsx`,
         },
@@ -148,9 +138,7 @@ export const DatePickerPage = () => {
             key: "precise",
             name: "To the second",
             readout: () => `value: ${describeTime(preciseSignal[0]())} — three segments instead of two`,
-            component: () => (
-                <TimeExample valueSignal={preciseSignal} getHasSeconds={() => true} getAriaLabel={() => "Exact time"} />
-            ),
+            component: () => <TimeExample valueSignal={preciseSignal} hasSeconds={true} ariaLabel={"Exact time"} />,
             path: `${EXAMPLES_ROOT}/Time.tsx`,
         },
         {
@@ -161,9 +149,9 @@ export const DatePickerPage = () => {
             component: () => (
                 <TimeExample
                     valueSignal={shiftSignal}
-                    getMinTime={() => OPENING_TIME}
-                    getMaxTime={() => CLOSING_TIME}
-                    getAriaLabel={() => "Shift start"}
+                    minTime={() => OPENING_TIME}
+                    maxTime={() => CLOSING_TIME}
+                    ariaLabel={"Shift start"}
                 />
             ),
             path: `${EXAMPLES_ROOT}/Time.tsx`,
@@ -174,11 +162,7 @@ export const DatePickerPage = () => {
             readout: () =>
                 `value: ${describeTime(clockedSignal[0]())} — one column per unit, so typing and picking cover the same times`,
             component: () => (
-                <ClockedExample
-                    valueSignal={clockedSignal}
-                    getKey={() => "clocked"}
-                    getAriaLabel={() => "Appointment time"}
-                />
+                <ClockedExample valueSignal={clockedSignal} key={"clocked"} ariaLabel={"Appointment time"} />
             ),
             path: `${EXAMPLES_ROOT}/Clocked.tsx`,
         },
@@ -190,9 +174,9 @@ export const DatePickerPage = () => {
             component: () => (
                 <ClockedExample
                     valueSignal={clockedTwelveSignal}
-                    getKey={() => "clockedTwelve"}
-                    getIsTwelveHour={() => true}
-                    getAriaLabel={() => "Call time"}
+                    key={"clockedTwelve"}
+                    isTwelveHour={true}
+                    ariaLabel={"Call time"}
                 />
             ),
             path: `${EXAMPLES_ROOT}/Clocked.tsx`,
@@ -205,11 +189,11 @@ export const DatePickerPage = () => {
             component: () => (
                 <ClockedExample
                     valueSignal={bookingSignal}
-                    getKey={() => "booking"}
-                    getClockSteps={() => BOOKING_STEPS}
-                    getMinTime={() => OPENING_TIME}
-                    getMaxTime={() => CLOSING_TIME}
-                    getAriaLabel={() => "Booking time"}
+                    key={"booking"}
+                    clockSteps={() => BOOKING_STEPS}
+                    minTime={() => OPENING_TIME}
+                    maxTime={() => CLOSING_TIME}
+                    ariaLabel={"Booking time"}
                 />
             ),
             path: `${EXAMPLES_ROOT}/Clocked.tsx`,
@@ -218,19 +202,19 @@ export const DatePickerPage = () => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "calendarId"} getLabel={() => "Calendar"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"calendarId"} label={"Calendar"}>
                     <PageSelectField
-                        getValue={getCalendarId}
-                        getValues={DateValueUtils.getCalendarIds}
-                        getWidth={() => CALENDAR_FIELD_WIDTH}
-                        getAriaLabel={() => "Calendar system"}
+                        value={getCalendarId}
+                        values={DateValueUtils.getCalendarIds}
+                        width={() => CALENDAR_FIELD_WIDTH}
+                        ariaLabel={"Calendar system"}
                         onChange={(id) => setCalendarId(() => id)}
                     />
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} />
+            <PageExamples items={getExamples} />
         </>
     );
 };

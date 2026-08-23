@@ -1,5 +1,6 @@
 import { type ParentProps, createMemo, createUniqueId } from "solid-js";
 
+import { access } from "../../../../Lib/Utils/propUtils";
 import type {
     PageWheelCardProps,
     PageWheelPipProps,
@@ -45,11 +46,11 @@ const getWedgeGeometry = (wedgeCount: number) => {
 };
 
 export const PageWheelWedge = (props: ParentProps<PageWheelWedgeProps>) => {
-    const getGeometry = createMemo(() => getWedgeGeometry(props.getState().wedgeCount));
+    const getGeometry = createMemo(() => getWedgeGeometry(access(props.state).wedgeCount));
     const gradientId = createUniqueId();
 
     return (
-        <div class={styles.wheelWedge} classList={{ [styles.isSelected]: props.getState().isSelected }}>
+        <div class={styles.wheelWedge} classList={{ [styles.isSelected]: access(props.state).isSelected }}>
             <svg class={styles.wheelWedgeSVG} width="100%" height="100%" viewBox="0 0 100 100">
                 <defs>
                     <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
@@ -60,7 +61,7 @@ export const PageWheelWedge = (props: ParentProps<PageWheelWedgeProps>) => {
 
                 <path
                     class={styles.wheelWedgeShape}
-                    style={{ fill: props.getState().isSelected ? `url(#${gradientId})` : undefined }}
+                    style={{ fill: access(props.state).isSelected ? `url(#${gradientId})` : undefined }}
                     d={getGeometry().path}
                 />
             </svg>
@@ -80,50 +81,56 @@ export const PageWheelWedge = (props: ParentProps<PageWheelWedgeProps>) => {
     );
 };
 
-export const PageWheelCard = (props: ParentProps<PageWheelCardProps>) => (
-    <div
-        class={styles.wheelCard}
-        classList={{
-            [styles.wheelCardBack]: props.getState().face === "back",
-            [styles.isSelected]: props.getState().isSelected,
-        }}
-    >
-        {props.getState().face === "front" && (
-            <>
-                <div class={styles.wheelCardRank}>{props.getRank?.() ?? props.getState().index + 1}</div>
+export const PageWheelCard = (props: ParentProps<PageWheelCardProps>) => {
+    return (
+        <div
+            class={styles.wheelCard}
+            classList={{
+                [styles.wheelCardBack]: access(props.state).face === "back",
+                [styles.isSelected]: access(props.state).isSelected,
+            }}
+        >
+            {access(props.state).face === "front" && (
+                <>
+                    <div class={styles.wheelCardRank}>{access(props.rank) ?? access(props.state).index + 1}</div>
 
-                {props.children}
-            </>
-        )}
-    </div>
-);
+                    {props.children}
+                </>
+            )}
+        </div>
+    );
+};
 
 export const PageWheelStack = (props: ParentProps) => <div class={styles.wheelStack}>{props.children}</div>;
 
 export const PageWheelMount = (props: ParentProps) => <div class={styles.wheelMount}>{props.children}</div>;
 
-export const PageWheelPip = (props: PageWheelPipProps) => (
-    <div class={PIP_SIDE_STYLES[props.getSide()]} aria-hidden>
-        <svg class={styles.wheelPipShape} viewBox="0 0 20 20">
-            <path d={PIP_PATH} />
-        </svg>
-    </div>
-);
+export const PageWheelPip = (props: PageWheelPipProps) => {
+    return (
+        <div class={PIP_SIDE_STYLES[access(props.side)]} aria-hidden>
+            <svg class={styles.wheelPipShape} viewBox="0 0 20 20">
+                <path d={PIP_PATH} />
+            </svg>
+        </div>
+    );
+};
 
 export const PageWheelCentre = (props: ParentProps) => <div class={styles.wheelCentre}>{props.children}</div>;
 
 export const PageWheelBar = (props: ParentProps) => <div class={styles.wheelBar}>{props.children}</div>;
 
-export const PageWheelSpin = (props: PageWheelSpinProps) => (
-    <div
-        class={styles.wheelSpin}
-        classList={{
-            [styles.isHovered]: props.getFlags().isHovered,
-            [styles.isActive]: props.getFlags().isActive,
-            [styles.isDisabled]: props.getFlags().isDisabled,
-        }}
-        aria-hidden
-    >
-        {props.getPhase() === "spinning" || props.getPhase() === "settling" ? "…" : "Spin"}
-    </div>
-);
+export const PageWheelSpin = (props: PageWheelSpinProps) => {
+    return (
+        <div
+            class={styles.wheelSpin}
+            classList={{
+                [styles.isHovered]: access(props.flags).isHovered,
+                [styles.isActive]: access(props.flags).isActive,
+                [styles.isDisabled]: access(props.flags).isDisabled,
+            }}
+            aria-hidden
+        >
+            {access(props.phase) === "spinning" || access(props.phase) === "settling" ? "…" : "Spin"}
+        </div>
+    );
+};

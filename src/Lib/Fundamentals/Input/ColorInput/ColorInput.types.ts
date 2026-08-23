@@ -45,7 +45,7 @@ export type ColorInputFieldProps = AccessorProps<
         }
 >;
 
-export type ColorInputProps = Omit<InteractionWrapperProps<ColorInputFlags>, "renderControl" | "getExtraFlags"> &
+export type ColorInputProps = Omit<InteractionWrapperProps<ColorInputFlags>, "renderControl" | "extraFlags"> &
     AccessorProps<
         ColorInputCbs &
             Pick<InteractionControlProps<ColorInputFlags>, "id" | "renderContent"> &

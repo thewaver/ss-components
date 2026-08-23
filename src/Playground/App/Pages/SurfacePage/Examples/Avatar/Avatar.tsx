@@ -10,8 +10,8 @@ import knight_profile from "../../../../knight_profile.webp";
 import * as styles from "./Avatar.css";
 
 const getConfig = (strokeId: string): SurfaceProps => ({
-    getBorderRadii: () => CSSUtils.spreadRadius(styles.width * 0.5),
-    getBorderWidths: () => CSSUtils.spreadWidth(4),
+    borderRadii: () => CSSUtils.spreadRadius(styles.width * 0.5),
+    borderWidths: () => CSSUtils.spreadWidth(4),
     computeStrokeDefs: (getSize) =>
         SVGDefsSamples.Gradient.SAMPLE_CONFIGS["sweep_diag_async_4"].computeSVGDefs(strokeId, undefined, {
             getSize,

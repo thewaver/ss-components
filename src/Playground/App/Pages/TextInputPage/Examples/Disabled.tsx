@@ -12,11 +12,11 @@ type Props = TextInputExampleProps;
 export const DisabledExample = (props: Props) => (
     <TextInput
         valueSignal={props.valueSignal}
-        getPadding={() => FIELD_PADDING}
-        getGap={() => FIELD_GAP}
-        getIsDisabled={() => true}
-        getAriaLabel={() => "Disabled field"}
+        padding={() => FIELD_PADDING}
+        gap={() => FIELD_GAP}
+        isDisabled={true}
+        ariaLabel={"Disabled field"}
         computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
+        renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} />}
     />
 );

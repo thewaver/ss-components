@@ -9,9 +9,9 @@ type Props = RangeExampleProps;
 export const DisabledExample = (props: Props) => (
     <Range
         valueSignal={props.valueSignal}
-        getAriaLabel={() => "Disabled range"}
-        getIsDisabled={() => true}
-        getThumbSize={() => RANGE_THUMB_SIZE}
-        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
+        ariaLabel={"Disabled range"}
+        isDisabled={true}
+        thumbSize={() => RANGE_THUMB_SIZE}
+        renderContent={(getFlags) => <PageRangeContent flags={getFlags} />}
     />
 );

@@ -1,8 +1,8 @@
-import type { Accessor, JSX } from "solid-js";
+import type { JSX } from "solid-js";
 
 import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
 import type { ExternalInteractionFlags, InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 import type { TooltipProps } from "../Tooltip/Tooltip.types";
 
 export type InteractionSizing = "fit-content" | "fill";
@@ -15,10 +15,7 @@ export type InteractionControlProps<TExtra extends object = {}> = {
     renderContent: (getFlags: () => InteractionFlags<TExtra>) => JSX.Element;
 };
 
-export type InteractionTooltipDefs<TExtra extends object = {}> = Omit<
-    TooltipProps,
-    "getAnchorRef" | "renderContent"
-> & {
+export type InteractionTooltipDefs<TExtra extends object = {}> = Omit<TooltipProps, "anchorRef" | "renderContent"> & {
     renderContent: (
         getVisibilityTarget: () => 0 | 1,
         getTransitionDurationMs: () => number,
@@ -38,8 +35,8 @@ export type InteractionWrapperProps<TExtra extends object = {}> = AccessorProps<
         ref?: (element: HTMLElement) => void;
     }
 > & {
-    getExtraFlags?: Accessor<TExtra>;
-    getTooltipDefs?: Accessor<InteractionTooltipDefs<TExtra> | undefined>;
+    extraFlags?: MaybeAccessor<TExtra>;
+    tooltipDefs?: MaybeAccessor<InteractionTooltipDefs<TExtra> | undefined>;
     renderDecoration?: (getFlags: () => InteractionFlags<TExtra>) => JSX.Element;
     renderControl: (
         setElementRef: (element: HTMLElement) => void,

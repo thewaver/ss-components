@@ -10,13 +10,13 @@ type Props = TreeExampleProps;
 
 export const LinkComponentExample = (props: Props) => (
     <Tree
-        getNodes={() => DOCS}
+        nodes={() => DOCS}
         valueSignal={props.valueSignal}
         expandedSignal={props.expandedSignal}
-        getAriaLabel={() => "Routed documentation"}
+        ariaLabel={"Routed documentation"}
         linkComponent={PageTreeLink}
         renderNode={(getNode, getFlags) => (
-            <PageTreeNodeContent getFlags={getFlags}>{getNode().value}</PageTreeNodeContent>
+            <PageTreeNodeContent flags={getFlags}>{getNode().value}</PageTreeNodeContent>
         )}
     />
 );

@@ -52,7 +52,7 @@ export const TogglePage = () => {
                     allSignal={allSignal}
                     firstChildSignal={firstChildSignal}
                     secondChildSignal={secondChildSignal}
-                    getIsMixed={getIsAllMixed}
+                    isMixed={getIsAllMixed}
                 />
             ),
             path: `${EXAMPLES_ROOT}/Mixed.tsx`,
@@ -80,5 +80,5 @@ export const TogglePage = () => {
         },
     ]);
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

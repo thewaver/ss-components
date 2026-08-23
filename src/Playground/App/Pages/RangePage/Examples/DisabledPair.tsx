@@ -9,10 +9,10 @@ type Props = RangePairExampleProps;
 export const DisabledPairExample = (props: Props) => (
     <Range
         rangeSignal={props.rangeSignal}
-        getAriaLabel={() => "Locked band"}
-        getThumbLabels={() => ["Locked floor", "Locked ceiling"]}
-        getIsDisabled={() => true}
-        getThumbSize={() => RANGE_THUMB_SIZE}
-        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
+        ariaLabel={"Locked band"}
+        thumbLabels={() => ["Locked floor", "Locked ceiling"]}
+        isDisabled={true}
+        thumbSize={() => RANGE_THUMB_SIZE}
+        renderContent={(getFlags) => <PageRangeContent flags={getFlags} />}
     />
 );

@@ -7,10 +7,10 @@ type Props = MenuExampleProps;
 
 export const PlacedAboveExample = (props: Props) => (
     <Menu
-        getItems={() => ACTIONS}
-        getAriaLabel={() => "Edit actions"}
-        getPlacement={() => ({ x: "left-in", y: "top-out" })}
-        renderContent={(getFlags) => <PageMenuTriggerContent getFlags={getFlags}>Edit</PageMenuTriggerContent>}
+        items={() => ACTIONS}
+        ariaLabel={"Edit actions"}
+        placement={() => ({ x: "left-in", y: "top-out" })}
+        renderContent={(getFlags) => <PageMenuTriggerContent flags={getFlags}>Edit</PageMenuTriggerContent>}
         renderItem={renderMenuItem}
         renderPopup={renderMenuPopup}
         onActivate={props.onActivate}

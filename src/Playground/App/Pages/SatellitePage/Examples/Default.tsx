@@ -1,26 +1,21 @@
 import { Satellite } from "../../../../../Lib/Exotics/Satellite/Satellite";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import { PageSatelliteBadge, PageSatelliteSubject } from "../../../StyledComponents/SatelliteContent/SatelliteContent";
 import type { SatelliteExampleProps } from "../SatellitePage.types";
 
 type Props = SatelliteExampleProps;
 
-export const DefaultExample = ({
-    getSubjectWidth,
-    getSubjectHeight,
-    getBadgeSize,
-    getHasSatellite,
-    ...otherProps
-}: Props) => {
+export const DefaultExample = ({ subjectWidth, subjectHeight, badgeSize, hasSatellite, ...otherProps }: Props) => {
     return (
         <Satellite
             {...otherProps}
             renderSatellite={
-                getHasSatellite()
-                    ? () => <PageSatelliteBadge getSize={getBadgeSize}>{getBadgeSize()}</PageSatelliteBadge>
+                access(hasSatellite)
+                    ? () => <PageSatelliteBadge size={badgeSize}>{access(badgeSize)}</PageSatelliteBadge>
                     : undefined
             }
         >
-            <PageSatelliteSubject getWidth={getSubjectWidth} getHeight={getSubjectHeight}>
+            <PageSatelliteSubject width={subjectWidth} height={subjectHeight}>
                 Subject
             </PageSatelliteSubject>
         </Satellite>

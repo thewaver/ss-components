@@ -55,13 +55,13 @@ export const SatellitePage = () => {
 
     const getExamples = createMemo(() => {
         const commonProps: SatelliteExampleProps = {
-            getPlacement,
-            getOffset,
-            getIsBehindSubject,
-            getSubjectWidth,
-            getSubjectHeight,
-            getBadgeSize,
-            getHasSatellite,
+            placement: getPlacement,
+            offset: getOffset,
+            isBehindSubject: getIsBehindSubject,
+            subjectWidth: getSubjectWidth,
+            subjectHeight: getSubjectHeight,
+            badgeSize: getBadgeSize,
+            hasSatellite: getHasSatellite,
         };
 
         return [
@@ -76,105 +76,105 @@ export const SatellitePage = () => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "hPlacement"} getLabel={() => "Placement across"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"hPlacement"} label={"Placement across"}>
                     <PageSelectField
-                        getValue={getHPlacement}
-                        getValues={() => H_PLACEMENTS}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Placement across"}
+                        value={getHPlacement}
+                        values={() => H_PLACEMENTS}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Placement across"}
                         onChange={(placement) => setHPlacement(() => placement)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "vPlacement"} getLabel={() => "Placement down"}>
+                <PageProp key={"vPlacement"} label={"Placement down"}>
                     <PageSelectField
-                        getValue={getVPlacement}
-                        getValues={() => V_PLACEMENTS}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Placement down"}
+                        value={getVPlacement}
+                        values={() => V_PLACEMENTS}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Placement down"}
                         onChange={(placement) => setVPlacement(() => placement)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "offsetX"} getLabel={() => "Offset across (px)"}>
+                <PageProp key={"offsetX"} label={"Offset across (px)"}>
                     <PageNumberField
-                        getValue={getOffsetX}
-                        getMin={() => MIN_OFFSET}
-                        getMax={() => MAX_OFFSET}
-                        getStep={() => OFFSET_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Offset across"}
+                        value={getOffsetX}
+                        min={() => MIN_OFFSET}
+                        max={() => MAX_OFFSET}
+                        step={() => OFFSET_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Offset across"}
                         onInput={setOffsetX}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "offsetY"} getLabel={() => "Offset down (px)"}>
+                <PageProp key={"offsetY"} label={"Offset down (px)"}>
                     <PageNumberField
-                        getValue={getOffsetY}
-                        getMin={() => MIN_OFFSET}
-                        getMax={() => MAX_OFFSET}
-                        getStep={() => OFFSET_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Offset down"}
+                        value={getOffsetY}
+                        min={() => MIN_OFFSET}
+                        max={() => MAX_OFFSET}
+                        step={() => OFFSET_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Offset down"}
                         onInput={setOffsetY}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "subjectWidth"} getLabel={() => "Subject width (px)"}>
+                <PageProp key={"subjectWidth"} label={"Subject width (px)"}>
                     <PageNumberField
-                        getValue={getSubjectWidth}
-                        getMin={() => MIN_SUBJECT_SIZE}
-                        getMax={() => MAX_SUBJECT_SIZE}
-                        getStep={() => SUBJECT_SIZE_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Subject width"}
+                        value={getSubjectWidth}
+                        min={() => MIN_SUBJECT_SIZE}
+                        max={() => MAX_SUBJECT_SIZE}
+                        step={() => SUBJECT_SIZE_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Subject width"}
                         onInput={setSubjectWidth}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "subjectHeight"} getLabel={() => "Subject height (px)"}>
+                <PageProp key={"subjectHeight"} label={"Subject height (px)"}>
                     <PageNumberField
-                        getValue={getSubjectHeight}
-                        getMin={() => MIN_SUBJECT_SIZE}
-                        getMax={() => MAX_SUBJECT_SIZE}
-                        getStep={() => SUBJECT_SIZE_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Subject height"}
+                        value={getSubjectHeight}
+                        min={() => MIN_SUBJECT_SIZE}
+                        max={() => MAX_SUBJECT_SIZE}
+                        step={() => SUBJECT_SIZE_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Subject height"}
                         onInput={setSubjectHeight}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "hasSatellite"} getLabel={() => "Render a satellite"}>
+                <PageProp key={"hasSatellite"} label={"Render a satellite"}>
                     <PageCheckField
-                        getValue={getHasSatellite}
-                        getAriaLabel={() => "Render a satellite"}
+                        value={getHasSatellite}
+                        ariaLabel={"Render a satellite"}
                         onChange={setHasSatellite}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "badgeSize"} getLabel={() => "Satellite size (px)"}>
+                <PageProp key={"badgeSize"} label={"Satellite size (px)"}>
                     <PageNumberField
-                        getValue={getBadgeSize}
-                        getMin={() => MIN_BADGE_SIZE}
-                        getMax={() => MAX_BADGE_SIZE}
-                        getStep={() => BADGE_SIZE_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Satellite size"}
+                        value={getBadgeSize}
+                        min={() => MIN_BADGE_SIZE}
+                        max={() => MAX_BADGE_SIZE}
+                        step={() => BADGE_SIZE_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Satellite size"}
                         onInput={setBadgeSize}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "isBehindSubject"} getLabel={() => "Behind the subject"}>
+                <PageProp key={"isBehindSubject"} label={"Behind the subject"}>
                     <PageCheckField
-                        getValue={getIsBehindSubject}
-                        getAriaLabel={() => "Behind the subject"}
+                        value={getIsBehindSubject}
+                        ariaLabel={"Behind the subject"}
                         onChange={setIsBehindSubject}
                     />
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} getLayout={() => "flow"} />
+            <PageExamples items={getExamples} layout={"flow"} />
         </>
     );
 };

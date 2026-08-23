@@ -73,5 +73,5 @@ export const ColorInputPage = () => {
         },
     ]);
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

@@ -9,17 +9,19 @@ import type { SplitPaneExampleProps } from "../SplitPanePage.types";
 
 type Props = SplitPaneExampleProps;
 
-export const StackedExample = (props: Props) => (
-    <PageSplitPaneFrame>
-        <SplitPane
-            getPanes={() => PAIR}
-            ratiosSignal={props.ratiosSignal}
-            getDir={() => "column"}
-            getGutterSize={props.getGutterSize}
-            getIsDisabled={props.getIsDisabled}
-            getAriaLabel={() => "Stacked panes"}
-            renderPane={(_getPane, index) => <PageSplitPaneBox>{index === 0 ? "Top" : "Bottom"}</PageSplitPaneBox>}
-            renderGutter={(getFlags) => <PageSplitPaneGutter getFlags={getFlags} getDir={() => "column"} />}
-        />
-    </PageSplitPaneFrame>
-);
+export const StackedExample = (props: Props) => {
+    return (
+        <PageSplitPaneFrame>
+            <SplitPane
+                panes={() => PAIR}
+                ratiosSignal={props.ratiosSignal}
+                dir={"column"}
+                gutterSize={props.gutterSize}
+                isDisabled={props.isDisabled}
+                ariaLabel={"Stacked panes"}
+                renderPane={(_getPane, index) => <PageSplitPaneBox>{index === 0 ? "Top" : "Bottom"}</PageSplitPaneBox>}
+                renderGutter={(getFlags) => <PageSplitPaneGutter flags={getFlags} dir={"column"} />}
+            />
+        </PageSplitPaneFrame>
+    );
+};

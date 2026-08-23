@@ -19,5 +19,5 @@ export const renderOverlay = (getVisibilityTarget: () => 0 | 1, getTransitionDur
 );
 
 export const renderHighlight = (getVisibilityTarget: () => 0 | 1) => (
-    <Corners getColor={() => (getVisibilityTarget() === 1 ? "yellow" : "transparent")} />
+    <Corners color={() => (getVisibilityTarget() === 1 ? "yellow" : "transparent")} />
 );

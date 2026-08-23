@@ -14,15 +14,15 @@ const LABEL_GAP = 5;
 type Props = TextInputExampleProps;
 
 export const LabelledExample = (props: Props) => (
-    <Label getDir={() => "column"} getGap={() => LABEL_GAP}>
+    <Label dir={"column"} gap={() => LABEL_GAP}>
         <PageLabelCaption>Display name</PageLabelCaption>
 
         <TextInput
             valueSignal={props.valueSignal}
-            getPadding={() => FIELD_PADDING}
-            getGap={() => FIELD_GAP}
+            padding={() => FIELD_PADDING}
+            gap={() => FIELD_GAP}
             computeTextStyle={computePageTextFieldTextStyle}
-            renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
+            renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} />}
         />
     </Label>
 );

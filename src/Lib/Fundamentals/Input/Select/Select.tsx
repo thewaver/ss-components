@@ -11,6 +11,7 @@ import { TextSync } from "../../../Abstracts/TextSync/TextSync";
 import { Typeahead } from "../../../Abstracts/Typeahead/Typeahead";
 import { TypeaheadUtils } from "../../../Abstracts/Typeahead/Typeahead.utils";
 import { Virtualizer } from "../../../Abstracts/Virtualizer/Virtualizer";
+import { access } from "../../../Utils/propUtils";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { Popover } from "../../Popover/Popover";
 import { FormFieldUtils } from "../FormField/FormField.utils";
@@ -33,16 +34,18 @@ const EMPTY_QUERY = "";
 const EMPTY_SELECTION: never[] = [];
 
 const SelectField = (props: SelectFieldProps) => {
-    const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
+    const getAriaLabel = LabelUtils.resolveAriaLabel(
+        props.ariaLabel === undefined ? undefined : () => access(props.ariaLabel)!,
+    );
     const getAriaDescribedBy = FormFieldUtils.resolveAriaDescribedBy();
 
     const [getElementRef, setElementRef] = createSignal<HTMLInputElement>();
 
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
     const { handleInput, handleCompositionStart, handleCompositionEnd } = TextSync.createValueSync(
         getElementRef,
-        props.getQuery,
+        () => access(props.query),
         { onInput: props.onQueryInput },
     );
 
@@ -59,26 +62,26 @@ const SelectField = (props: SelectFieldProps) => {
             return getIsDisabled() || undefined;
         },
         get "aria-invalid"() {
-            return props.getFlags().hasError || undefined;
+            return access(props.flags).hasError || undefined;
         },
         get "aria-expanded"() {
-            return props.getFlags().isOpen;
+            return access(props.flags).isOpen;
         },
         get "aria-controls"() {
-            return props.getFlags().isOpen ? props.getListboxId() : undefined;
+            return access(props.flags).isOpen ? access(props.listboxId) : undefined;
         },
         get "aria-activedescendant"() {
-            return props.getActiveOptionId();
+            return access(props.activeOptionId);
         },
         "onKeyDown": props.onKeyDown,
     };
 
     return (
         <Show
-            when={props.getIsFilterable()}
+            when={access(props.isFilterable)}
             fallback={
                 <button
-                    id={props.getId?.()}
+                    id={access(props.id)}
                     ref={(element) => props.ref?.(element)}
                     type="button"
                     class={styles.selectField}
@@ -89,21 +92,21 @@ const SelectField = (props: SelectFieldProps) => {
                         props.onToggle();
                     }}
                 >
-                    {props.renderContent(props.getFlags)}
+                    {props.renderContent(() => access(props.flags))}
                 </button>
             }
         >
-            {props.renderContent(props.getFlags)}
+            {props.renderContent(() => access(props.flags))}
 
             <input
-                id={props.getId?.()}
+                id={access(props.id)}
                 ref={(element) => {
                     setElementRef(element);
                     props.ref?.(element);
                 }}
                 type="text"
                 class={styles.selectFilterField}
-                style={{ ...props.getTextInset(), ...props.computeTextStyle?.(props.getFlags) }}
+                style={{ ...access(props.textInset), ...props.computeTextStyle?.(() => access(props.flags)) }}
                 autocomplete="off"
                 readOnly={getIsDisabled()}
                 aria-autocomplete="list"
@@ -124,17 +127,17 @@ const SelectField = (props: SelectFieldProps) => {
 const SelectOptionItem = (props: SelectOptionItemProps) => {
     const [getElementRef, setElementRef] = createSignal<HTMLElement>();
 
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
     createEffect(() => {
-        if (!props.getFlags().isHighlighted || !props.getIsSelfScrolling()) return;
+        if (!access(props.flags).isHighlighted || !access(props.isSelfScrolling)) return;
 
         getElementRef()?.scrollIntoView({ block: "nearest" });
     });
 
     return (
         <div
-            id={props.getId?.()}
+            id={access(props.id)}
             ref={(element) => {
                 setElementRef(element);
                 props.ref?.(element);
@@ -142,14 +145,14 @@ const SelectOptionItem = (props: SelectOptionItemProps) => {
             class={styles.selectOption}
             role="option"
             aria-disabled={getIsDisabled() || undefined}
-            aria-selected={props.getFlags().isSelected}
+            aria-selected={access(props.flags).isSelected}
             onClick={() => {
                 if (getIsDisabled()) return;
 
                 props.onSelect();
             }}
         >
-            {props.renderContent(props.getFlags)}
+            {props.renderContent(() => access(props.flags))}
         </div>
     );
 };
@@ -166,20 +169,20 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
 
     const typeahead = Typeahead.createBuffer();
 
-    const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
+    const getIsDisabled = createMemo(() => access(props.isDisabled) ?? false);
 
-    const getIsMultiple = createMemo(() => props.getIsMultiple?.() ?? false);
+    const getIsMultiple = createMemo(() => access(props.isMultiple) ?? false);
 
     const getIsFilterable = createMemo(() => props.querySignal !== undefined);
 
-    const getHasMoreOptions = createMemo(() => props.getHasMoreOptions?.() ?? false);
+    const getHasMoreOptions = createMemo(() => access(props.hasMoreOptions) ?? false);
 
     const getQuery = createMemo(() => props.querySignal?.[0]() ?? EMPTY_QUERY);
 
     const getIsFiltering = createMemo(() => getQuery() !== EMPTY_QUERY);
 
     const getSpreadPadding = createMemo(() => {
-        const padding = props.getPadding?.() ?? DEFAULT_SELECT_PADDING;
+        const padding = access(props.padding) ?? DEFAULT_SELECT_PADDING;
 
         return typeof padding === "number" ? CSSUtils.spreadPadding(padding) : padding;
     });
@@ -189,7 +192,7 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
     const getItemOffsets = createMemo(() => {
         let offset = 0;
 
-        return props.getOptions().map((item) => {
+        return access(props.options).map((item) => {
             const start = offset;
 
             offset += SelectUtils.getIsGroup(item) ? item.options.length : 1;
@@ -198,10 +201,10 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
         });
     });
 
-    const getFlatOptions = createMemo(() => SelectUtils.getFlatOptions(props.getOptions()));
+    const getFlatOptions = createMemo(() => SelectUtils.getFlatOptions(access(props.options)));
 
     const getIsVirtualized = createMemo(
-        () => props.computeEstimatedOptionHeight !== undefined && !props.getOptions().some(SelectUtils.getIsGroup),
+        () => props.computeEstimatedOptionHeight !== undefined && !access(props.options).some(SelectUtils.getIsGroup),
     );
 
     const getIsAtEnd = ElementObserver.createViewportIntersectionObserver(getEndMarkerRef, getIsOpen);
@@ -211,7 +214,7 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
     createEffect(() => {
         if (!getIsAtEnd() || !getHasMoreOptions()) return;
 
-        const options = untrack(props.getOptions);
+        const options = untrack(() => access(props.options));
 
         if (askedForOptions === options) return;
 
@@ -249,7 +252,7 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
 
         if (highlightedIndex !== undefined) return highlightedIndex;
 
-        const selectedValue = props.getSelectedOptions()[0]?.value;
+        const selectedValue = access(props.selectedOptions)[0]?.value;
         const selectedIndex = navigable.find((index) => options[index].value === selectedValue);
 
         if (!getIsFiltering() && selectedIndex !== undefined) return selectedIndex;
@@ -408,21 +411,21 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
 
     const renderOptionSlot = (getOption: Accessor<SelectOption<T>>, getFlatIndex: Accessor<number>) => (
         <InteractionWrapper
-            getSizing={() => "fill"}
-            getIsDisabled={() => getOption().isDisabled ?? false}
-            getIsReachableWhenDisabled={() => getOption().isReachableWhenDisabled ?? false}
-            getIsTabbable={() => false}
-            getTooltipDefs={() => getOption().tooltipDefs}
-            getExtraFlags={() => ({
+            sizing={"fill"}
+            isDisabled={() => getOption().isDisabled ?? false}
+            isReachableWhenDisabled={() => getOption().isReachableWhenDisabled ?? false}
+            isTabbable={false}
+            tooltipDefs={() => getOption().tooltipDefs}
+            extraFlags={() => ({
                 isHighlighted: getFlatIndex() === getHighlightedIndex(),
                 isSelected: props.computeIsSelected(getOption().value),
             })}
             renderControl={(setElementRef, getFlags) => (
                 <SelectOptionItem
                     ref={setElementRef}
-                    getId={() => getOptionId(getFlatIndex())}
-                    getIsSelfScrolling={() => !getIsVirtualized()}
-                    getFlags={getFlags}
+                    id={() => getOptionId(getFlatIndex())}
+                    isSelfScrolling={() => !getIsVirtualized()}
+                    flags={getFlags}
                     renderContent={(getOptionFlags) => props.renderOption(getOption, getOptionFlags)}
                     onSelect={() => pickValue(getOption().value)}
                 />
@@ -431,7 +434,7 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
     );
 
     const renderMountedOptions = () => (
-        <Index each={props.getOptions()}>
+        <Index each={access(props.options)}>
             {(getItem, index) => (
                 <Show
                     when={SelectUtils.getIsGroup(getItem())}
@@ -479,7 +482,7 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
                 {renderWindowedOptions()}
             </Show>
 
-            <Show when={getHasMoreOptions() && props.getOptions()} keyed>
+            <Show when={getHasMoreOptions() && access(props.options)} keyed>
                 {(_items: SelectItem<T>[]) => <div ref={setEndMarkerRef} class={styles.selectEndMarker} aria-hidden />}
             </Show>
         </>
@@ -488,9 +491,9 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
     return (
         <InteractionWrapper
             {...props}
-            getExtraFlags={() => ({
+            extraFlags={() => ({
                 isOpen: getIsOpen(),
-                isEmpty: props.getSelectedOptions().length < 1,
+                isEmpty: access(props.selectedOptions).length < 1,
                 isFiltering: getIsFiltering(),
             })}
             ref={(element) => {
@@ -501,16 +504,18 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
                 <>
                     <SelectField
                         ref={setElementRef}
-                        getId={props.getId}
-                        getAriaLabel={props.getAriaLabel}
-                        getListboxId={() => listboxId}
-                        getActiveOptionId={getActiveOptionId}
-                        getIsFilterable={getIsFilterable}
-                        getQuery={getQuery}
-                        getTextInset={getTextInset}
-                        getFlags={getFlags}
+                        id={props.id}
+                        ariaLabel={props.ariaLabel}
+                        listboxId={() => listboxId}
+                        activeOptionId={getActiveOptionId}
+                        isFilterable={getIsFilterable}
+                        query={getQuery}
+                        textInset={getTextInset}
+                        flags={getFlags}
                         computeTextStyle={props.computeTextStyle}
-                        renderContent={(getFieldFlags) => props.renderContent(props.getSelectedOptions, getFieldFlags)}
+                        renderContent={(getFieldFlags) =>
+                            props.renderContent(() => access(props.selectedOptions), getFieldFlags)
+                        }
                         onToggle={() => (getIsOpen() && !getIsFilterable() ? close() : open())}
                         onKeyDown={handleKeyDown}
                         onQueryInput={(query) => {
@@ -522,16 +527,16 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
                     />
 
                     <Popover
-                        getId={() => listboxId}
-                        getRole={() => "listbox"}
-                        getAriaAttributes={() => ({ "aria-multiselectable": getIsMultiple() || undefined })}
-                        getPlacement={props.getPlacement}
-                        getOffset={props.getOffset}
-                        getReservedScreenSize={props.getReservedScreenSize}
-                        getTransitionDurationMs={props.getTransitionDurationMs}
-                        getHasAnchorMinWidth={() => true}
-                        getIsOpen={getIsOpen}
-                        getAnchorRef={getFieldRef}
+                        id={() => listboxId}
+                        role={"listbox"}
+                        ariaAttributes={() => ({ "aria-multiselectable": getIsMultiple() || undefined })}
+                        placement={props.placement}
+                        offset={props.offset}
+                        reservedScreenSize={props.reservedScreenSize}
+                        transitionDurationMs={props.transitionDurationMs}
+                        hasAnchorMinWidth={true}
+                        isOpen={getIsOpen}
+                        anchorRef={getFieldRef}
                         onDismiss={close}
                         onTransitionStatusChange={setHasPopoverSettled}
                         renderContent={(getVisibilityTarget, getTransitionDurationMs, getPlacement) =>
@@ -553,7 +558,7 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
 export const Select = <T,>(props: SelectProps<T>) => {
     const getSelectedOptions = createMemo(() => {
         const selectedValue = props.valueSignal[0]();
-        const selectedOption = SelectUtils.getFlatOptions(props.getOptions()).find(
+        const selectedOption = SelectUtils.getFlatOptions(access(props.options)).find(
             (option) => option.value === selectedValue,
         );
 
@@ -563,7 +568,7 @@ export const Select = <T,>(props: SelectProps<T>) => {
     return (
         <SelectComposite
             {...props}
-            getSelectedOptions={getSelectedOptions}
+            selectedOptions={getSelectedOptions}
             computeIsSelected={(value) => value === props.valueSignal[0]()}
             renderContent={(getSelectedOptions, getFlags) =>
                 props.renderContent(() => getSelectedOptions()[0], getFlags)

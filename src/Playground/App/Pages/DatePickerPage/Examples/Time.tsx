@@ -1,6 +1,8 @@
 import type { TimeValue } from "@thewaver/ss-utils";
 
 import { TimeInput } from "../../../../../Lib/Fundamentals/Input/TimeInput/TimeInput";
+import { access } from "../../../../../Lib/Utils/propUtils";
+import type { MaybeAccessor } from "../../../../../Lib/Utils/typeUtils";
 import { PageMeridiemToggle } from "../../../StyledComponents/MeridiemToggle/MeridiemToggle";
 import {
     PageTextFieldContent,
@@ -13,38 +15,40 @@ import type { TimeExampleProps } from "../DatePickerPage.types";
 import { FIELD_GAP, FIELD_STEPPER_PADDING } from "../../../StyledComponents/TextFieldContent/TextFieldContent.css";
 
 type Props = TimeExampleProps & {
-    getAriaLabel: () => string;
-    getIsTwelveHour?: () => boolean;
-    getHasSeconds?: () => boolean;
-    getMinTime?: () => TimeValue;
-    getMaxTime?: () => TimeValue;
+    ariaLabel: MaybeAccessor<string>;
+    isTwelveHour?: MaybeAccessor<boolean>;
+    hasSeconds?: MaybeAccessor<boolean>;
+    minTime?: MaybeAccessor<TimeValue>;
+    maxTime?: MaybeAccessor<TimeValue>;
 };
 
-export const TimeExample = (props: Props) => (
-    <TimeInput
-        valueSignal={props.valueSignal}
-        getIsTwelveHour={props.getIsTwelveHour}
-        getHasSeconds={props.getHasSeconds}
-        getMinTime={props.getMinTime}
-        getMaxTime={props.getMaxTime}
-        getAriaLabel={props.getAriaLabel}
-        getPadding={() => FIELD_STEPPER_PADDING}
-        getGap={() => FIELD_GAP}
-        computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} />}
-        renderPlaceholder={(getFlags, hint) => (
-            <PageTextFieldPlaceholder getFlags={getFlags}>{hint}</PageTextFieldPlaceholder>
-        )}
-        renderTrailing={
-            props.getIsTwelveHour?.()
-                ? (getFlags, meridiem) => (
-                      <PageMeridiemToggle
-                          getMeridiem={meridiem.getValue}
-                          getIsDisabled={() => getFlags().isDisabled ?? false}
-                          onToggle={meridiem.toggle}
-                      />
-                  )
-                : undefined
-        }
-    />
-);
+export const TimeExample = (props: Props) => {
+    return (
+        <TimeInput
+            valueSignal={props.valueSignal}
+            isTwelveHour={props.isTwelveHour}
+            hasSeconds={props.hasSeconds}
+            minTime={props.minTime}
+            maxTime={props.maxTime}
+            ariaLabel={props.ariaLabel}
+            padding={() => FIELD_STEPPER_PADDING}
+            gap={() => FIELD_GAP}
+            computeTextStyle={computePageTextFieldTextStyle}
+            renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} />}
+            renderPlaceholder={(getFlags, hint) => (
+                <PageTextFieldPlaceholder flags={getFlags}>{hint}</PageTextFieldPlaceholder>
+            )}
+            renderTrailing={
+                access(props.isTwelveHour)
+                    ? (getFlags, meridiem) => (
+                          <PageMeridiemToggle
+                              meridiem={meridiem.getValue}
+                              isDisabled={() => getFlags().isDisabled ?? false}
+                              onToggle={meridiem.toggle}
+                          />
+                      )
+                    : undefined
+            }
+        />
+    );
+};

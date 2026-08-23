@@ -1,6 +1,7 @@
 import { createMemo, createSignal } from "solid-js";
 
 import type { MosaicSizeAnchor } from "../../../../Lib/Exotics/Mosaic/Mosaic.types";
+import { access } from "../../../../Lib/Utils/propUtils";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
@@ -31,8 +32,8 @@ const STARTING_SHAPE_KEY: MosaicImages.SampleShapeKey = "square";
 const DefaultExampleWrapper = (props: ImageMosaicExampleProps) => {
     return (
         <PageMeasureBox
-            getWidth={props.getSizeAnchor() === "width" ? () => MOSAIC_EXTENT : undefined}
-            getHeight={props.getSizeAnchor() === "height" ? () => MOSAIC_EXTENT : undefined}
+            width={access(props.sizeAnchor) === "width" ? () => MOSAIC_EXTENT : undefined}
+            height={access(props.sizeAnchor) === "height" ? () => MOSAIC_EXTENT : undefined}
         >
             <DefaultExample {...props} />
         </PageMeasureBox>
@@ -42,8 +43,8 @@ const DefaultExampleWrapper = (props: ImageMosaicExampleProps) => {
 const DecoratedExampleWrapper = (props: ImageMosaicExampleProps) => {
     return (
         <PageMeasureBox
-            getWidth={props.getSizeAnchor() === "width" ? () => MOSAIC_EXTENT : undefined}
-            getHeight={props.getSizeAnchor() === "height" ? () => MOSAIC_EXTENT : undefined}
+            width={access(props.sizeAnchor) === "width" ? () => MOSAIC_EXTENT : undefined}
+            height={access(props.sizeAnchor) === "height" ? () => MOSAIC_EXTENT : undefined}
         >
             <DecoratedExample {...props} />
         </PageMeasureBox>
@@ -60,10 +61,10 @@ export const ImageMosaicPage = () => {
 
     const getExamples = createMemo(() => {
         const commonProps: ImageMosaicExampleProps = {
-            getSources,
-            getGap,
-            getSizeAnchor,
-            getShapeKey,
+            sources: getSources,
+            gap: getGap,
+            sizeAnchor: getSizeAnchor,
+            shapeKey: getShapeKey,
         };
 
         return [
@@ -84,53 +85,53 @@ export const ImageMosaicPage = () => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "imageCount"} getLabel={() => "Images"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"imageCount"} label={"Images"}>
                     <PageNumberField
-                        getValue={getImageCount}
-                        getMin={() => MIN_IMAGE_COUNT}
-                        getMax={() => MAX_IMAGE_COUNT}
-                        getStep={() => IMAGE_COUNT_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Images"}
+                        value={getImageCount}
+                        min={() => MIN_IMAGE_COUNT}
+                        max={() => MAX_IMAGE_COUNT}
+                        step={() => IMAGE_COUNT_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Images"}
                         onInput={setImageCount}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "gap"} getLabel={() => "Gap"}>
+                <PageProp key={"gap"} label={"Gap"}>
                     <PageNumberField
-                        getValue={getGap}
-                        getMin={() => MIN_GAP}
-                        getMax={() => MAX_GAP}
-                        getStep={() => GAP_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Gap"}
+                        value={getGap}
+                        min={() => MIN_GAP}
+                        max={() => MAX_GAP}
+                        step={() => GAP_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Gap"}
                         onInput={setGap}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "sizeAnchor"} getLabel={() => "Fixed side"}>
+                <PageProp key={"sizeAnchor"} label={"Fixed side"}>
                     <PageSelectField
-                        getValue={getSizeAnchor}
-                        getValues={() => SIZE_ANCHORS}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Fixed side"}
+                        value={getSizeAnchor}
+                        values={() => SIZE_ANCHORS}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Fixed side"}
                         onChange={(anchor) => setSizeAnchor(() => anchor)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "shapeKey"} getLabel={() => "Target shape"}>
+                <PageProp key={"shapeKey"} label={"Target shape"}>
                     <PageSelectField
-                        getValue={getShapeKey}
-                        getValues={() => MosaicImages.SAMPLE_SHAPE_KEYS}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Target shape"}
+                        value={getShapeKey}
+                        values={() => MosaicImages.SAMPLE_SHAPE_KEYS}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Target shape"}
                         onChange={(key) => setShapeKey(() => key)}
                     />
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} getLayout={() => "flow"} />
+            <PageExamples items={getExamples} layout={"flow"} />
         </>
     );
 };

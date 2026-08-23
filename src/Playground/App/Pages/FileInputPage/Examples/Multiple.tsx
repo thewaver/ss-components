@@ -7,8 +7,8 @@ type Props = FileInputExampleProps;
 export const MultipleExample = (props: Props) => (
     <FileInput
         filesSignal={props.filesSignal}
-        getIsMultiple={() => true}
-        getAriaLabel={() => "Attachments"}
-        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
+        isMultiple={true}
+        ariaLabel={"Attachments"}
+        renderContent={(getFlags) => <PageFileInputContent flags={getFlags} />}
     />
 );

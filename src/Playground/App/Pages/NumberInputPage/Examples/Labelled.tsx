@@ -18,18 +18,18 @@ const GUEST_MAX = 8;
 type Props = NumberInputExampleProps;
 
 export const LabelledExample = (props: Props) => (
-    <Label getDir={() => "column"} getGap={() => LABEL_GAP}>
+    <Label dir={"column"} gap={() => LABEL_GAP}>
         <PageLabelCaption>Guests</PageLabelCaption>
 
         <NumberInput
             valueSignal={props.valueSignal}
-            getMin={() => GUEST_MIN}
-            getMax={() => GUEST_MAX}
-            getPadding={() => FIELD_STEPPER_PADDING}
-            getGap={() => FIELD_GAP}
+            min={() => GUEST_MIN}
+            max={() => GUEST_MAX}
+            padding={() => FIELD_STEPPER_PADDING}
+            gap={() => FIELD_GAP}
             computeTextStyle={computePageTextFieldTextStyle}
-            renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} />}
-            renderTrailing={(getFlags, stepper) => <PageNumberInputStepper getFlags={getFlags} stepper={stepper} />}
+            renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} />}
+            renderTrailing={(getFlags, stepper) => <PageNumberInputStepper flags={getFlags} stepper={stepper} />}
         />
     </Label>
 );

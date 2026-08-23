@@ -27,7 +27,7 @@ export type CollapsibleTriggerProps = AccessorProps<
 
 export type CollapsibleProps = Omit<
     InteractionWrapperProps<CollapsibleFlags>,
-    "renderControl" | "getExtraFlags" | "getSizing" | "getMinWidth" | "getMinHeight"
+    "renderControl" | "extraFlags" | "sizing" | "minWidth" | "minHeight"
 > &
     AccessorProps<{
         id?: string;

@@ -5,6 +5,7 @@ import { CSSUtils, type Point2d, StringUtils } from "@thewaver/ss-utils";
 
 import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
 import { ElementObserver } from "../../Abstracts/ElementObserver/ElementObserver";
+import { access } from "../../Utils/propUtils";
 import type { SatelliteProps } from "./Satellite.types";
 import { SatelliteUtils } from "./Satellite.utils";
 
@@ -23,9 +24,9 @@ export const Satellite = (props: ParentProps<SatelliteProps>) => {
 
     const getSatelliteSize = ElementObserver.createBorderBoxSizeObserver(getSatelliteRef);
 
-    const getPlacement = createMemo(() => props.getPlacement?.() ?? DEFAULT_SATELLITE_PLACEMENT);
+    const getPlacement = createMemo(() => access(props.placement) ?? DEFAULT_SATELLITE_PLACEMENT);
 
-    const getOffset = createMemo(() => props.getOffset?.() ?? DEFAULT_SATELLITE_OFFSET);
+    const getOffset = createMemo(() => access(props.offset) ?? DEFAULT_SATELLITE_OFFSET);
 
     const getLayout = createMemo(() =>
         SatelliteUtils.computeLayout(getSubjectSize(), getSatelliteSize(), getPlacement(), getOffset()),
@@ -41,7 +42,7 @@ export const Satellite = (props: ParentProps<SatelliteProps>) => {
                     ref={setSubjectRef}
                     class={styles.satelliteSubject}
                     style={{
-                        "z-index": props.getIsBehindSubject?.() ? RAISED_SUBJECT_Z_INDEX : SUBJECT_Z_INDEX,
+                        "z-index": access(props.isBehindSubject) ? RAISED_SUBJECT_Z_INDEX : SUBJECT_Z_INDEX,
                     }}
                 >
                     {props.children}

@@ -49,21 +49,21 @@ export const ScrollerPage = () => {
             name: "One button at each end",
             readout: () =>
                 `${getItemCount()} items — the buttons stop at the ends rather than wrapping round, and leave altogether once everything fits`,
-            component: () => <ChipsExample getLabels={getLabels} />,
+            component: () => <ChipsExample labels={getLabels} />,
             path: `${EXAMPLES_ROOT}/Chips.tsx`,
         },
         {
             key: "bothButtonsEnd",
             name: "Both buttons at the end",
             readout: () => "the same control with its buttons together instead of split",
-            component: () => <ChipsExample getLabels={getLabels} getButtonPlacement={() => "end"} />,
+            component: () => <ChipsExample labels={getLabels} buttonPlacement={"end"} />,
             path: `${EXAMPLES_ROOT}/Chips.tsx`,
         },
         {
             key: "bothButtonsStart",
             name: "Both buttons at the start",
             readout: () => "and the same pair on the other side",
-            component: () => <ChipsExample getLabels={getLabels} getButtonPlacement={() => "start"} />,
+            component: () => <ChipsExample labels={getLabels} buttonPlacement={"start"} />,
             path: `${EXAMPLES_ROOT}/Chips.tsx`,
         },
         {
@@ -73,8 +73,8 @@ export const ScrollerPage = () => {
                 `selected: ${getSelectedMonth()} — a tab already fully in view does not move the strip, and one cut off by the edge scrolls into view whole`,
             component: () => (
                 <TabbedExample
-                    getTabs={getMonthTabs}
-                    getSelectedValue={getSelectedMonth}
+                    tabs={getMonthTabs}
+                    selectedValue={getSelectedMonth}
                     onSelectionChange={setSelectedMonth}
                 />
             ),
@@ -84,27 +84,27 @@ export const ScrollerPage = () => {
             key: "focusableChildren",
             name: "Focusable children of any kind",
             readout: () => "the track holds whatever it is given, and tabbing through pulls the strip along",
-            component: () => <FocusableChildrenExample getLabels={getLabels} />,
+            component: () => <FocusableChildrenExample labels={getLabels} />,
             path: `${EXAMPLES_ROOT}/FocusableChildren.tsx`,
         },
     ]);
 
     return (
         <div class={styles.root}>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "itemCount"} getLabel={() => "Item count"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"itemCount"} label={"Item count"}>
                     <PageNumberField
-                        getValue={getItemCount}
-                        getMin={() => MIN_ITEM_COUNT}
-                        getMax={() => MAX_ITEM_COUNT}
-                        getStep={() => ITEM_COUNT_STEP}
-                        getAriaLabel={() => "Item count"}
+                        value={getItemCount}
+                        min={() => MIN_ITEM_COUNT}
+                        max={() => MAX_ITEM_COUNT}
+                        step={() => ITEM_COUNT_STEP}
+                        ariaLabel={"Item count"}
                         onInput={setItemCount}
                     />
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} getMinColumnWidth={() => MIN_COLUMN_WIDTH} />
+            <PageExamples items={getExamples} minColumnWidth={() => MIN_COLUMN_WIDTH} />
         </div>
     );
 };

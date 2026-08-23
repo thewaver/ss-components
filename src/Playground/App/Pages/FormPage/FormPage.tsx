@@ -37,5 +37,5 @@ export const FormPage = () => {
         ];
     });
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

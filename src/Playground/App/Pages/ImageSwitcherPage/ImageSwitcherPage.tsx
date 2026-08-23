@@ -34,7 +34,7 @@ const DEFAULT_EXAMPLE_PATH = "/src/Playground/App/Pages/ImageSwitcherPage/Exampl
 
 const DefaultExampleWrapper = (props: ImageSwitcherProps) => {
     return (
-        <PageMeasureBox getWidth={() => IMAGE_CONTAINER_SIZE} getHeight={() => IMAGE_CONTAINER_SIZE}>
+        <PageMeasureBox width={() => IMAGE_CONTAINER_SIZE} height={() => IMAGE_CONTAINER_SIZE}>
             <DefaultExample {...props} />
         </PageMeasureBox>
     );
@@ -57,8 +57,8 @@ export const ImageSwitcherPage = () => {
 
     const getExamples = createMemo(() => {
         const commonProps: ImageSwitcherProps = {
-            getSrc,
-            getTransitionDurationMs,
+            src: getSrc,
+            transitionDurationMs: getTransitionDurationMs,
             onLoad,
         };
 
@@ -75,29 +75,29 @@ export const ImageSwitcherPage = () => {
 
     return (
         <div class={styles.root}>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "sourceType"} getLabel={() => "Source"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"sourceType"} label={"Source"}>
                     <PageSelectField
-                        getValue={getSourceType}
-                        getValues={() => SOURCE_TYPES}
-                        getAriaLabel={() => "Source"}
+                        value={getSourceType}
+                        values={() => SOURCE_TYPES}
+                        ariaLabel={"Source"}
                         onChange={(sourceType) => setSourceType(() => sourceType)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "transitionDurationMs"} getLabel={() => "Transition duration (ms)"}>
+                <PageProp key={"transitionDurationMs"} label={"Transition duration (ms)"}>
                     <PageNumberField
-                        getValue={getTransitionDurationMs}
-                        getMin={() => MIN_DURATION_MS}
-                        getMax={() => MAX_DURATION_MS}
-                        getStep={() => DURATION_STEP_MS}
-                        getAriaLabel={() => "Transition duration"}
+                        value={getTransitionDurationMs}
+                        min={() => MIN_DURATION_MS}
+                        max={() => MAX_DURATION_MS}
+                        step={() => DURATION_STEP_MS}
+                        ariaLabel={"Transition duration"}
                         onInput={setTransitionDurationMs}
                     />
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} getLayout={() => "flow"} />
+            <PageExamples items={getExamples} layout={"flow"} />
         </div>
     );
 };

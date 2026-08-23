@@ -1,5 +1,6 @@
 import type { ParentProps } from "solid-js";
 
+import { access } from "../../../../Lib/Utils/propUtils";
 import type { StepConnectorProps, StepContentProps } from "./StepContent.types";
 
 import * as styles from "./StepContent.css";
@@ -12,23 +13,25 @@ const MARKER_GLYPHS = {
     ahead: "",
 } as const;
 
-export const PageStepContent = (props: ParentProps<StepContentProps>) => (
-    <div
-        class={props.getDir() === "row" ? styles.rowStep : styles.columnStep}
-        classList={{
-            [styles.isCurrent]: props.getFlags().isCurrent,
-            [styles.isHovered]: props.getFlags().isHovered,
-            [styles.isDisabled]: props.getFlags().isDisabled,
-        }}
-    >
-        <span class={styles.marker[props.getState()]} aria-hidden="true">
-            {MARKER_GLYPHS[props.getState()] || props.getOrdinal()}
-        </span>
+export const PageStepContent = (props: ParentProps<StepContentProps>) => {
+    return (
+        <div
+            class={access(props.dir) === "row" ? styles.rowStep : styles.columnStep}
+            classList={{
+                [styles.isCurrent]: access(props.flags).isCurrent,
+                [styles.isHovered]: access(props.flags).isHovered,
+                [styles.isDisabled]: access(props.flags).isDisabled,
+            }}
+        >
+            <span class={styles.marker[access(props.state)]} aria-hidden="true">
+                {MARKER_GLYPHS[access(props.state)] || access(props.ordinal)}
+            </span>
 
-        {props.children}
-    </div>
-);
+            {props.children}
+        </div>
+    );
+};
 
-export const PageStepConnector = (props: StepConnectorProps) => (
-    <span class={props.getDir() === "row" ? styles.rowConnector : styles.columnConnector} />
-);
+export const PageStepConnector = (props: StepConnectorProps) => {
+    return <span class={access(props.dir) === "row" ? styles.rowConnector : styles.columnConnector} />;
+};

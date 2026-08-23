@@ -6,6 +6,7 @@ import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils"
 import { NavigationUtils } from "../../Abstracts/Navigation/Navigation.utils";
 import { Typeahead } from "../../Abstracts/Typeahead/Typeahead";
 import { TypeaheadUtils } from "../../Abstracts/Typeahead/Typeahead.utils";
+import { access } from "../../Utils/propUtils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import type { TreeNodeItemProps, TreeProps, TreeRow } from "./Tree.types";
 import { TreeUtils } from "./Tree.utils";
@@ -15,7 +16,7 @@ import * as styles from "./Tree.css";
 const EXPAND_SIBLINGS_KEY = "*";
 
 const TreeNodeItem = (props: TreeNodeItemProps) => {
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
     const handleClick = (e: MouseEvent) => {
         if (getIsDisabled()) {
@@ -30,45 +31,45 @@ const TreeNodeItem = (props: TreeNodeItemProps) => {
         "class": styles.treeNode,
         "role": "treeitem",
         get "id"() {
-            return props.getId?.();
+            return access(props.id);
         },
         get "aria-disabled"() {
             return getIsDisabled() || undefined;
         },
         get "aria-selected"() {
-            return props.getFlags().isSelected;
+            return access(props.flags).isSelected;
         },
         get "aria-expanded"() {
-            return props.getFlags().isBranch ? props.getFlags().isExpanded : undefined;
+            return access(props.flags).isBranch ? access(props.flags).isExpanded : undefined;
         },
         get "aria-level"() {
-            return props.getLevel();
+            return access(props.level);
         },
         get "aria-posinset"() {
-            return props.getPosition();
+            return access(props.position);
         },
         get "aria-setsize"() {
-            return props.getSetSize();
+            return access(props.setSize);
         },
     };
 
     return (
         <Show
-            when={props.getHref()}
+            when={access(props.href)}
             fallback={
                 <div ref={(element) => props.ref?.(element)} {...commonProps} onClick={handleClick}>
-                    {props.renderContent(props.getFlags)}
+                    {props.renderContent(() => access(props.flags))}
                 </div>
             }
         >
             <Dynamic
                 component={props.linkComponent ?? "a"}
                 ref={(element: HTMLElement) => props.ref?.(element)}
-                href={props.getHref()!}
+                href={access(props.href)!}
                 {...commonProps}
                 onClick={handleClick}
             >
-                {props.renderContent(props.getFlags)}
+                {props.renderContent(() => access(props.flags))}
             </Dynamic>
         </Show>
     );
@@ -82,7 +83,7 @@ export const Tree = <T,>(props: TreeProps<T>) => {
     const typeahead = Typeahead.createBuffer();
 
     const getRows = createMemo(() =>
-        TreeUtils.getVisibleRows(props.getNodes(), (value) => props.expandedSignal[0]().includes(value)),
+        TreeUtils.getVisibleRows(access(props.nodes), (value) => props.expandedSignal[0]().includes(value)),
     );
 
     const getFlatRows = createMemo(() => TreeUtils.getFlatRows(getRows()));
@@ -318,12 +319,12 @@ export const Tree = <T,>(props: TreeProps<T>) => {
             {(getRow) => (
                 <>
                     <InteractionWrapper
-                        getSizing={() => "fill"}
-                        getIsDisabled={() => getRow().node.isDisabled ?? false}
-                        getIsReachableWhenDisabled={() => getRow().node.isReachableWhenDisabled ?? false}
-                        getIsTabbable={() => getRow().node.value === getRovingRow()?.node.value}
-                        getTooltipDefs={() => getRow().node.tooltipDefs}
-                        getExtraFlags={() => ({
+                        sizing={"fill"}
+                        isDisabled={() => getRow().node.isDisabled ?? false}
+                        isReachableWhenDisabled={() => getRow().node.isReachableWhenDisabled ?? false}
+                        isTabbable={() => getRow().node.value === getRovingRow()?.node.value}
+                        tooltipDefs={() => getRow().node.tooltipDefs}
+                        extraFlags={() => ({
                             isBranch: TreeUtils.getIsBranch(getRow().node),
                             isExpanded: getRow().isExpanded,
                             isSelected: getRow().node.value === props.valueSignal[0](),
@@ -332,12 +333,12 @@ export const Tree = <T,>(props: TreeProps<T>) => {
                         renderControl={(setElementRef, getFlags) => (
                             <TreeNodeItem
                                 ref={setElementRef}
-                                getId={() => getRowId(getRow())}
-                                getHref={() => getRow().node.href}
-                                getLevel={() => getRow().depth + 1}
-                                getPosition={() => getRow().position + 1}
-                                getSetSize={() => getRow().setSize}
-                                getFlags={getFlags}
+                                id={() => getRowId(getRow())}
+                                href={() => getRow().node.href}
+                                level={() => getRow().depth + 1}
+                                position={() => getRow().position + 1}
+                                setSize={() => getRow().setSize}
+                                flags={getFlags}
                                 linkComponent={props.linkComponent}
                                 renderContent={(getNodeFlags) => props.renderNode(() => getRow().node, getNodeFlags)}
                                 onActivate={() => activate(getRow())}
@@ -356,7 +357,7 @@ export const Tree = <T,>(props: TreeProps<T>) => {
     return (
         <div
             role="tree"
-            aria-label={props.getAriaLabel?.()}
+            aria-label={access(props.ariaLabel)}
             onKeyDown={handleKeyDown}
             onFocusIn={(e) => {
                 lastFocusedValue = findRowById((e.target as HTMLElement).id)?.node.value;

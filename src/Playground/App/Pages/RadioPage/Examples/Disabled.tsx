@@ -9,16 +9,14 @@ import type { RadioExampleProps } from "../RadioPage.types";
 type Props = RadioExampleProps;
 
 export const DisabledExample = (props: Props) => (
-    <RadioGroup valueSignal={props.valueSignal} getAriaLabel={() => "Disabled size"} getGap={() => RADIO_GROUP_GAP}>
+    <RadioGroup valueSignal={props.valueSignal} ariaLabel={"Disabled size"} gap={() => RADIO_GROUP_GAP}>
         <For each={SIZE_OPTIONS}>
             {(option) => (
                 <Radio
-                    getValue={() => option.value}
-                    getAriaLabel={() => option.label}
-                    getIsDisabled={() => true}
-                    renderContent={(getFlags) => (
-                        <PageRadioContent getFlags={getFlags}>{option.label}</PageRadioContent>
-                    )}
+                    value={() => option.value}
+                    ariaLabel={() => option.label}
+                    isDisabled={true}
+                    renderContent={(getFlags) => <PageRadioContent flags={getFlags}>{option.label}</PageRadioContent>}
                 />
             )}
         </For>

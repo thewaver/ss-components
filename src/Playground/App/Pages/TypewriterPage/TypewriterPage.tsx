@@ -43,44 +43,40 @@ type ExampleWrapperProps = TypewriterExampleProps &
         width: number;
     }>;
 
-const ComplexExampleWrapper = ({ getWidth, ...props }: ExampleWrapperProps) => {
+const ComplexExampleWrapper = ({ width, ...props }: ExampleWrapperProps) => {
     return (
-        <PageMeasureBox getWidth={getWidth} getPadding={() => MEASURE_BOX_PADDING}>
+        <PageMeasureBox width={width} padding={() => MEASURE_BOX_PADDING}>
             <ComplexExample {...props} />
         </PageMeasureBox>
     );
 };
 
-const CustomExampleWrapper = ({ getWidth, ...props }: ExampleWrapperProps) => {
+const CustomExampleWrapper = ({ width, ...props }: ExampleWrapperProps) => {
     const textSignal = createSignal("Line one\n\nline two");
 
     return (
         <>
             <TextArea
                 valueSignal={textSignal}
-                getIsAutoSizing={() => true}
-                getMinRows={() => CUSTOM_TEXT_MIN_ROWS}
-                getMaxRows={() => CUSTOM_TEXT_MAX_ROWS}
-                getPadding={() => FIELD_PADDING}
-                getGap={() => FIELD_GAP}
-                getAriaLabel={() => "Custom text"}
+                isAutoSizing={true}
+                minRows={() => CUSTOM_TEXT_MIN_ROWS}
+                maxRows={() => CUSTOM_TEXT_MAX_ROWS}
+                padding={() => FIELD_PADDING}
+                gap={() => FIELD_GAP}
+                ariaLabel={"Custom text"}
                 computeTextStyle={computePageTextFieldTextStyle}
                 renderContent={(getFlags) => (
-                    <PageTextFieldContent
-                        getFlags={getFlags}
-                        getWidth={() => CUSTOM_TEXT_WIDTH}
-                        getIsStretched={() => true}
-                    />
+                    <PageTextFieldContent flags={getFlags} width={() => CUSTOM_TEXT_WIDTH} isStretched={true} />
                 )}
                 renderPlaceholder={(getFlags) => (
-                    <PageTextFieldPlaceholder getFlags={getFlags} getIsTopAligned={() => true}>
+                    <PageTextFieldPlaceholder flags={getFlags} isTopAligned={true}>
                         Put custom text inside me
                     </PageTextFieldPlaceholder>
                 )}
             />
 
-            <PageMeasureBox getWidth={getWidth} getPadding={() => MEASURE_BOX_PADDING}>
-                <CustomExample {...props} getText={textSignal[0]} />
+            <PageMeasureBox width={width} padding={() => MEASURE_BOX_PADDING}>
+                <CustomExample {...props} text={textSignal[0]} />
             </PageMeasureBox>
         </>
     );
@@ -92,8 +88,8 @@ export const TypewriterPage = () => {
 
     const getExamples = createMemo(() => {
         const commonProps: ExampleWrapperProps = {
-            getWidth: getTextContainerWidth,
-            getAnimationName: () => TEXT_EFFECT_MAP[getTextEffect()],
+            width: getTextContainerWidth,
+            animationName: () => TEXT_EFFECT_MAP[getTextEffect()],
         };
 
         return [
@@ -114,29 +110,29 @@ export const TypewriterPage = () => {
 
     return (
         <div class={styles.root}>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "textContainerWidth"} getLabel={() => "Container width"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"textContainerWidth"} label={"Container width"}>
                     <PageNumberField
-                        getValue={getTextContainerWidth}
-                        getMin={() => MIN_CONTAINER_WIDTH}
-                        getMax={() => MAX_CONTAINER_WIDTH}
-                        getStep={() => CONTAINER_WIDTH_STEP}
-                        getAriaLabel={() => "Container width"}
+                        value={getTextContainerWidth}
+                        min={() => MIN_CONTAINER_WIDTH}
+                        max={() => MAX_CONTAINER_WIDTH}
+                        step={() => CONTAINER_WIDTH_STEP}
+                        ariaLabel={"Container width"}
                         onInput={setTextContainerWidth}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "textEffect"} getLabel={() => "Effect"}>
+                <PageProp key={"textEffect"} label={"Effect"}>
                     <PageSelectField
-                        getValue={getTextEffect}
-                        getValues={() => TEXT_EFFECTS}
-                        getAriaLabel={() => "Effect"}
+                        value={getTextEffect}
+                        values={() => TEXT_EFFECTS}
+                        ariaLabel={"Effect"}
                         onChange={(effect) => setTextEffect(() => effect)}
                     />
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} getLayout={() => "flow"} />
+            <PageExamples items={getExamples} layout={"flow"} />
         </div>
     );
 };

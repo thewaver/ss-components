@@ -13,11 +13,11 @@ type Props = RangeExampleProps;
 export const SteppedExample = (props: Props) => (
     <Range
         valueSignal={props.valueSignal}
-        getAriaLabel={() => "Difficulty"}
-        getMin={() => MIN}
-        getMax={() => MAX}
-        getStep={() => STEP}
-        getThumbSize={() => RANGE_THUMB_SIZE}
-        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
+        ariaLabel={"Difficulty"}
+        min={() => MIN}
+        max={() => MAX}
+        step={() => STEP}
+        thumbSize={() => RANGE_THUMB_SIZE}
+        renderContent={(getFlags) => <PageRangeContent flags={getFlags} />}
     />
 );

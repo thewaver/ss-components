@@ -1,6 +1,7 @@
 import { Show } from "solid-js";
 
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
+import { access } from "../../../../Lib/Utils/propUtils";
 import type { EraCycleProps } from "./EraCycle.types";
 
 import * as styles from "./EraCycle.css";
@@ -8,22 +9,22 @@ import * as styles from "./EraCycle.css";
 const SINGLE_ERA = 1;
 
 export const PageEraCycle = (props: EraCycleProps) => {
-    const getCurrent = () => props.getOptions().find((option) => option.id === props.getEra());
+    const getCurrent = () => access(props.options).find((option) => option.id === access(props.era));
 
-    const getLabel = () => getCurrent()?.name ?? props.getEra();
+    const getLabel = () => getCurrent()?.name ?? access(props.era);
 
     const advance = () => {
-        const options = props.getOptions();
-        const index = options.findIndex((option) => option.id === props.getEra());
+        const options = access(props.options);
+        const index = options.findIndex((option) => option.id === access(props.era));
 
         props.onChange(options[(index + 1) % options.length].id);
     };
 
     return (
-        <Show when={props.getOptions().length > SINGLE_ERA}>
+        <Show when={access(props.options).length > SINGLE_ERA}>
             <Button
-                getIsDisabled={props.getIsDisabled}
-                getAriaLabel={() => `Era: ${getLabel()}`}
+                isDisabled={props.isDisabled}
+                ariaLabel={() => `Era: ${getLabel()}`}
                 onClick={advance}
                 renderContent={(getFlags) => (
                     <div
@@ -34,7 +35,7 @@ export const PageEraCycle = (props: EraCycleProps) => {
                         }}
                         aria-hidden
                     >
-                        {getCurrent()?.shortName ?? props.getEra()}
+                        {getCurrent()?.shortName ?? access(props.era)}
                     </div>
                 )}
             />

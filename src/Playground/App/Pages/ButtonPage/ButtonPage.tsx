@@ -36,7 +36,7 @@ export const ButtonPage = () => {
             readout: () => `pressed: ${getToggleOn()}`,
             component: () => (
                 <DecoratedExample
-                    getIsPressed={getToggleOn}
+                    isPressed={getToggleOn}
                     onClick={() => {
                         setToggleOn((prev) => !prev);
                     }}
@@ -76,7 +76,7 @@ export const ButtonPage = () => {
             readout: () => `hasError: ${getHasError()}`,
             component: () => (
                 <ErroredExample
-                    getHasError={getHasError}
+                    hasError={getHasError}
                     onClick={() => {
                         setHasError((prev) => !prev);
                     }}
@@ -86,5 +86,5 @@ export const ButtonPage = () => {
         },
     ]);
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

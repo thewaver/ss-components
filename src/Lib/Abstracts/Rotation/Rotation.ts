@@ -5,6 +5,7 @@ import { MathUtils } from "@thewaver/ss-utils";
 
 import type { EasingFn } from "../../Utils/easing";
 import { EasingUtils } from "../../Utils/easing";
+import { access } from "../../Utils/propUtils";
 import { InteractionUtils } from "../Interaction/Interaction.utils";
 import { LiveAnnouncer } from "../LiveAnnouncer/LiveAnnouncer";
 import { SignalMirror } from "../SignalMirror/SignalMirror";
@@ -35,17 +36,17 @@ export namespace Rotation {
         let spinFrameId: number | undefined;
         let starvationHandle: ReturnType<typeof setTimeout> | undefined;
 
-        const getStepCount = createMemo(() => Math.max(0, Math.trunc(defs.getStepCount())));
+        const getStepCount = createMemo(() => Math.max(0, Math.trunc(access(defs.stepCount))));
 
         const getStepAngle = createMemo(() => RotationUtils.getStepAngle(getStepCount()));
 
-        const getSpinDurationMs = createMemo(() => defs.getSpinDurationMs?.() ?? DEFAULT_SPIN_DURATION_MS);
+        const getSpinDurationMs = createMemo(() => access(defs.spinDurationMs) ?? DEFAULT_SPIN_DURATION_MS);
 
-        const getSettleDurationMs = createMemo(() => defs.getSettleDurationMs?.() ?? DEFAULT_SETTLE_DURATION_MS);
+        const getSettleDurationMs = createMemo(() => access(defs.settleDurationMs) ?? DEFAULT_SETTLE_DURATION_MS);
 
-        const getRestDurationMs = createMemo(() => defs.getRestDurationMs?.() ?? DEFAULT_REST_DURATION_MS);
+        const getRestDurationMs = createMemo(() => access(defs.restDurationMs) ?? DEFAULT_REST_DURATION_MS);
 
-        const getIdleDelayMs = createMemo(() => defs.getIdleDelayMs?.());
+        const getIdleDelayMs = createMemo(() => access(defs.idleDelayMs));
 
         const getIsRotatable = createMemo(() => !getIsDisabled() && getStepCount() >= MIN_ROTATABLE_STEP_COUNT);
 

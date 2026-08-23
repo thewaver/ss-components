@@ -1,8 +1,8 @@
-import type { Accessor, JSX, Signal } from "solid-js";
+import type { JSX, Signal } from "solid-js";
 
 import type { CSSMargin } from "@thewaver/ss-utils";
 
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 
 export type ModalRole = "dialog" | "alertdialog";
 
@@ -24,5 +24,5 @@ export type ModalProps = AccessorProps<{
     renderOverlay: (getVisibilityTarget: () => 0 | 1, getTransitionDurationMs: () => number) => JSX.Element;
     renderContent: (getVisibilityTarget: () => 0 | 1, getTransitionDurationMs: () => number) => JSX.Element;
 }> & {
-    getInitialFocusRef?: Accessor<HTMLElement | undefined>;
+    initialFocusRef?: MaybeAccessor<HTMLElement | undefined>;
 };

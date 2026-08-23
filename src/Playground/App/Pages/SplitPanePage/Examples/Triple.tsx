@@ -9,16 +9,18 @@ import type { SplitPaneExampleProps } from "../SplitPanePage.types";
 
 type Props = SplitPaneExampleProps;
 
-export const TripleExample = (props: Props) => (
-    <PageSplitPaneFrame>
-        <SplitPane
-            getPanes={() => TRIPLE}
-            ratiosSignal={props.ratiosSignal}
-            getGutterSize={props.getGutterSize}
-            getIsDisabled={props.getIsDisabled}
-            getAriaLabel={() => "Three panes"}
-            renderPane={(_getPane, index) => <PageSplitPaneBox>Pane {index + 1}</PageSplitPaneBox>}
-            renderGutter={(getFlags) => <PageSplitPaneGutter getFlags={getFlags} getDir={() => "row"} />}
-        />
-    </PageSplitPaneFrame>
-);
+export const TripleExample = (props: Props) => {
+    return (
+        <PageSplitPaneFrame>
+            <SplitPane
+                panes={() => TRIPLE}
+                ratiosSignal={props.ratiosSignal}
+                gutterSize={props.gutterSize}
+                isDisabled={props.isDisabled}
+                ariaLabel={"Three panes"}
+                renderPane={(_getPane, index) => <PageSplitPaneBox>Pane {index + 1}</PageSplitPaneBox>}
+                renderGutter={(getFlags) => <PageSplitPaneGutter flags={getFlags} dir={"row"} />}
+            />
+        </PageSplitPaneFrame>
+    );
+};

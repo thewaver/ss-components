@@ -36,7 +36,7 @@ export const SlideButtonPage = () => {
             readout: () => `armed: ${getIsArmed()}`,
             component: () => (
                 <HeldExample
-                    getIsArmed={getIsArmed}
+                    isArmed={getIsArmed}
                     onActivate={() => {
                         setIsArmed(true);
                     }}
@@ -79,7 +79,7 @@ export const SlideButtonPage = () => {
             readout: () => `hasError: ${getHasError()}`,
             component: () => (
                 <ErroredExample
-                    getHasError={getHasError}
+                    hasError={getHasError}
                     onActivate={() => {
                         setHasError((prev) => !prev);
                     }}
@@ -89,5 +89,5 @@ export const SlideButtonPage = () => {
         },
     ]);
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

@@ -12,13 +12,13 @@ type Props = TextInputExampleProps;
 export const ErroredExample = (props: Props) => (
     <TextInput
         valueSignal={props.valueSignal}
-        getPadding={() => FIELD_PADDING}
-        getGap={() => FIELD_GAP}
-        getType={() => "email"}
-        getHasError={() => !props.valueSignal[0]().includes("@")}
-        getAriaLabel={() => "Email"}
-        getAutoComplete={() => "email"}
+        padding={() => FIELD_PADDING}
+        gap={() => FIELD_GAP}
+        type={"email"}
+        hasError={() => !props.valueSignal[0]().includes("@")}
+        ariaLabel={"Email"}
+        autoComplete={"email"}
         computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
+        renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} />}
     />
 );

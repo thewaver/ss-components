@@ -5,10 +5,10 @@ const STALLED_RATIO = 0.62;
 
 export const ErroredExample = () => (
     <Progress
-        getValue={() => STALLED_RATIO}
-        getHasError={() => true}
-        getAriaLabel={() => "Failed upload"}
-        getSizing={() => "fit-content"}
-        renderContent={(getState) => <PageProgressContent getState={getState} />}
+        value={() => STALLED_RATIO}
+        hasError={true}
+        ariaLabel={"Failed upload"}
+        sizing={"fit-content"}
+        renderContent={(getState) => <PageProgressContent state={getState} />}
     />
 );

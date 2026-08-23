@@ -1,7 +1,7 @@
 import type { Accessor, Component, JSX, ParentProps } from "solid-js";
 
 import type { InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 import type { InteractionControlProps } from "../InteractionWrapper/InteractionWrapper.types";
 
 export type TabsDir = "column" | "row";
@@ -29,7 +29,7 @@ export type TabsItemProps<T> = AccessorProps<
         linkComponent?: Component<TabLinkProps>;
     }
 > & {
-    getTab: Accessor<Tab<T>>;
+    tab: MaybeAccessor<Tab<T>>;
     onSelect: (value: T) => void;
 };
 
@@ -42,8 +42,8 @@ export type TabsProps<T> = AccessorProps<{
     renderGutter?: () => JSX.Element;
     renderFloater?: (getVisibilityTarget: () => 0 | 1, getTransitionDurationMs: () => number) => JSX.Element;
 }> & {
-    getTabs: Accessor<Tab<T>[]>;
-    getSelectedValue: Accessor<T | undefined>;
+    tabs: MaybeAccessor<Tab<T>[]>;
+    selectedValue: MaybeAccessor<T | undefined>;
     renderTab: (getTab: Accessor<Tab<T>>, getFlags: () => InteractionFlags) => JSX.Element;
     onSelectionChange?: (value: T) => void;
 };

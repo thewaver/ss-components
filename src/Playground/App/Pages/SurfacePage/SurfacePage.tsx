@@ -35,7 +35,7 @@ export const SurfacePage = () => {
 
     return (
         <div class={styles.root}>
-            <PageExamples getItems={getExamples} />
+            <PageExamples items={getExamples} />
         </div>
     );
 };

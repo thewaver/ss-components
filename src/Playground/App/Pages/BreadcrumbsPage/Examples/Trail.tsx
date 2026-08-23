@@ -8,15 +8,17 @@ import type { BreadcrumbsExampleProps } from "../BreadcrumbsPage.types";
 
 type Props = BreadcrumbsExampleProps;
 
-export const TrailExample = (props: Props) => (
-    <Breadcrumbs
-        getCrumbs={props.getCrumbs}
-        getGap={() => BREADCRUMBS_GAP}
-        getAriaLabel={() => "Trail"}
-        onSelect={props.onSelect}
-        renderCrumb={(getCrumb, getFlags) => (
-            <PageBreadcrumbContent getFlags={getFlags}>{labelOf(getCrumb().value)}</PageBreadcrumbContent>
-        )}
-        renderSeparator={() => <PageBreadcrumbSeparator />}
-    />
-);
+export const TrailExample = (props: Props) => {
+    return (
+        <Breadcrumbs
+            crumbs={props.crumbs}
+            gap={() => BREADCRUMBS_GAP}
+            ariaLabel={"Trail"}
+            onSelect={props.onSelect}
+            renderCrumb={(getCrumb, getFlags) => (
+                <PageBreadcrumbContent flags={getFlags}>{labelOf(getCrumb().value)}</PageBreadcrumbContent>
+            )}
+            renderSeparator={() => <PageBreadcrumbSeparator />}
+        />
+    );
+};

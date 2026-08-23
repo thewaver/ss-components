@@ -4,10 +4,12 @@ import type { ButtonErroredExampleProps } from "../ButtonPage.types";
 
 type Props = ButtonErroredExampleProps;
 
-export const ErroredExample = (props: Props) => (
-    <Button
-        getHasError={props.getHasError}
-        renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Toggle Error</PageButtonContent>}
-        onClick={props.onClick}
-    />
-);
+export const ErroredExample = (props: Props) => {
+    return (
+        <Button
+            hasError={props.hasError}
+            renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Toggle Error</PageButtonContent>}
+            onClick={props.onClick}
+        />
+    );
+};

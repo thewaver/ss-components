@@ -7,11 +7,11 @@ type Props = ElementMosaicExampleProps;
 export const DefaultExample = (props: Props) => {
     return (
         <ElementMosaic
-            getItems={props.getItems}
-            getGap={props.getGap}
-            getSizeAnchor={props.getSizeAnchor}
+            items={props.items}
+            gap={props.gap}
+            sizeAnchor={props.sizeAnchor}
             renderItem={(getItem, getState) => (
-                <PageMosaicTile getState={getState} getWidth={() => getItem().width} getHeight={() => getItem().height}>
+                <PageMosaicTile state={getState} width={() => getItem().width} height={() => getItem().height}>
                     {getItem().name}
                 </PageMosaicTile>
             )}

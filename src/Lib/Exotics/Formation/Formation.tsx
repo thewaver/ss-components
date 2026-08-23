@@ -1,5 +1,6 @@
 import { Index, createMemo } from "solid-js";
 
+import { access } from "../../Utils/propUtils";
 import type { FormationInset, FormationProps } from "./Formation.types";
 
 import * as styles from "./Formation.css";
@@ -9,7 +10,7 @@ const EMPTY_INSET: FormationInset = { top: 0, left: 0, width: 0, height: 0 };
 const toContainerWidth = (ratio: number) => `${ratio * 100}cqw`;
 
 export const Formation = <T,>(props: FormationProps<T>) => {
-    const getItemCount = createMemo(() => props.getItems().length);
+    const getItemCount = createMemo(() => access(props.items).length);
 
     const getLayout = createMemo(() => props.computeLayout(getItemCount()));
 
@@ -23,7 +24,7 @@ export const Formation = <T,>(props: FormationProps<T>) => {
                 aria-hidden="true"
             />
 
-            <Index each={props.getItems()}>
+            <Index each={access(props.items)}>
                 {(getItem, index) => (
                     <div
                         class={styles.formationItem}
@@ -32,7 +33,7 @@ export const Formation = <T,>(props: FormationProps<T>) => {
                             "top": toContainerWidth(getInset(index).top),
                             "width": toContainerWidth(getInset(index).width),
                             "height": toContainerWidth(getInset(index).height),
-                            "z-index": props.getIsStackedInReverse?.() ? getItemCount() - index : index + 1,
+                            "z-index": access(props.isStackedInReverse) ? getItemCount() - index : index + 1,
                         }}
                     >
                         {props.renderItem(getItem, () => ({

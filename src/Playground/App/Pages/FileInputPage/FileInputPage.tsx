@@ -57,7 +57,7 @@ export const FileInputPage = () => {
             component: () => (
                 <RejectingSetterExample
                     filesSignal={rejectingSignal}
-                    getRejection={getRejection}
+                    rejection={getRejection}
                     onRejectionChange={setRejection}
                 />
             ),
@@ -93,5 +93,5 @@ export const FileInputPage = () => {
         },
     ]);
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

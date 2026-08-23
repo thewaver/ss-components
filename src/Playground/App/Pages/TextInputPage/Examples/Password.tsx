@@ -15,23 +15,21 @@ type Props = TextInputPasswordExampleProps;
 export const PasswordExample = (props: Props) => (
     <TextInput
         valueSignal={props.valueSignal}
-        getPadding={() => FIELD_PADDING}
-        getGap={() => FIELD_GAP}
-        getType={() => (props.revealSignal[0]() ? "text" : "password")}
-        getAriaLabel={() => "Password"}
-        getAutoComplete={() => "current-password"}
+        padding={() => FIELD_PADDING}
+        gap={() => FIELD_GAP}
+        type={() => (props.revealSignal[0]() ? "text" : "password")}
+        ariaLabel={"Password"}
+        autoComplete={"current-password"}
         computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
-        renderPlaceholder={(getFlags) => (
-            <PageTextFieldPlaceholder getFlags={getFlags}>Password</PageTextFieldPlaceholder>
-        )}
+        renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} />}
+        renderPlaceholder={(getFlags) => <PageTextFieldPlaceholder flags={getFlags}>Password</PageTextFieldPlaceholder>}
         renderTrailing={() => (
             <Button
                 onClick={() => {
                     props.revealSignal[1]((prev) => !prev);
                 }}
                 renderContent={(getFlags) => (
-                    <PageTextFieldAdornment getFlags={getFlags}>
+                    <PageTextFieldAdornment flags={getFlags}>
                         {props.revealSignal[0]() ? "Hide" : "Show"}
                     </PageTextFieldAdornment>
                 )}

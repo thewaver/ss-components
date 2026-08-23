@@ -3,6 +3,7 @@ import type { ParentProps } from "solid-js";
 
 import { type ElementSegment, JSXTextParser } from "@thewaver/ss-utils";
 
+import { access } from "../../Utils/propUtils";
 import type { TypewriterProps, TypewriterUpdateCause } from "./Typewriter.types";
 
 import * as styles from "./Typewriter.css";
@@ -26,14 +27,14 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
         clearTimeout(animationToggleTimeout);
     });
 
-    const getAnimationName = createMemo(() => props.getAnimationName?.() ?? DEFAULT_TYPEWRITER_ANIMATION_NAME);
+    const getAnimationName = createMemo(() => access(props.animationName) ?? DEFAULT_TYPEWRITER_ANIMATION_NAME);
 
     const getAnimationDurationMs = createMemo(
-        () => props.getAnimationDurationMs?.() ?? DEFAULT_TYPEWRITER_ANIMATION_DURATION_MS,
+        () => access(props.animationDurationMs) ?? DEFAULT_TYPEWRITER_ANIMATION_DURATION_MS,
     );
 
     const getAnimationDelayMs = createMemo(
-        () => props.getAnimationDelayMs?.() ?? DEFAULT_TYPEWRITER_ANIMATION_DELAY_MS,
+        () => access(props.animationDelayMs) ?? DEFAULT_TYPEWRITER_ANIMATION_DELAY_MS,
     );
 
     const getAnimationBase = createMemo(() =>
@@ -42,7 +43,7 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
                   name: getAnimationName(),
                   durationMs: getAnimationDurationMs(),
                   delayMs: getAnimationDelayMs(),
-                  initialDelayMs: props.getInitialAnimationDelayMs?.() ?? 0,
+                  initialDelayMs: access(props.initialAnimationDelayMs) ?? 0,
               }
             : undefined,
     );
@@ -57,13 +58,13 @@ export const Typewriter = (props: ParentProps<TypewriterProps>) => {
 
         const timeoutDuration =
             getAnimatedElementCount() * getAnimationDelayMs() +
-            (props.getInitialAnimationDelayMs?.() ?? 0) +
+            (access(props.initialAnimationDelayMs) ?? 0) +
             getAnimationDurationMs();
 
         if (
             getHasAnimatedOnce() &&
-            ((cause === "content" && props.getResetAnimationOnContent?.() === false) ||
-                (cause === "layout" && props.getResetAnimationOnLayout?.() === false))
+            ((cause === "content" && access(props.resetAnimationOnContent) === false) ||
+                (cause === "layout" && access(props.resetAnimationOnLayout) === false))
         )
             return;
 

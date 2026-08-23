@@ -4,7 +4,7 @@ import { Point2d, Size2d } from "@thewaver/ss-utils";
 
 import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
 import type { InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 import type {
     InteractionControlProps,
     InteractionTooltipDefs,
@@ -79,7 +79,7 @@ export type MenuLevelProps<T> = AccessorProps<{
     transitionDurationMs?: number;
     openerFlags: InteractionFlags<MenuFlags>;
 }> & {
-    getItems: Accessor<MenuItem<T>[]>;
+    items: MaybeAccessor<MenuItem<T>[]>;
     computeCustomText?: (item: MenuItem<T>) => string;
     renderItem: MenuRenderItem<T>;
     renderPopup: MenuRenderPopup;
@@ -88,7 +88,7 @@ export type MenuLevelProps<T> = AccessorProps<{
     onDismiss: () => void;
 };
 
-export type MenuProps<T> = Omit<InteractionWrapperProps<MenuFlags>, "renderControl" | "getExtraFlags"> &
+export type MenuProps<T> = Omit<InteractionWrapperProps<MenuFlags>, "renderControl" | "extraFlags"> &
     AccessorProps<{
         id?: string;
         ariaLabel?: string;
@@ -100,8 +100,8 @@ export type MenuProps<T> = Omit<InteractionWrapperProps<MenuFlags>, "renderContr
         transitionDurationMs?: number;
     }> & {
         visibilitySignal?: Signal<boolean>;
-        getAnchorRef?: () => HTMLElement | undefined;
-        getItems: Accessor<MenuItem<T>[]>;
+        anchorRef?: MaybeAccessor<HTMLElement | undefined>;
+        items: MaybeAccessor<MenuItem<T>[]>;
         computeCustomText?: (item: MenuItem<T>) => string;
         renderContent: (getFlags: () => InteractionFlags<MenuFlags>) => JSX.Element;
         renderItem: MenuRenderItem<T>;

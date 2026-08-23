@@ -13,16 +13,16 @@ export const SinglePanelExample = (props: Props) => (
 
         <Collapsible
             expandedSignal={props.expandedSignal}
-            getSizing={() => "fit-content"}
+            sizing={"fit-content"}
             renderTrigger={(getFlags) => (
-                <PageAccordionHeader getFlags={getFlags}>
+                <PageAccordionHeader flags={getFlags}>
                     {getFlags().isExpanded ? "Show less" : "Show more"}
                 </PageAccordionHeader>
             )}
             renderPanel={(getVisibilityTarget, getTransitionDurationMs) => (
                 <PageAccordionPanel
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
+                    visibilityTarget={getVisibilityTarget}
+                    transitionDurationMs={getTransitionDurationMs}
                 >
                     <div>
                         Deliveries to the islands take a further two days, and a signature is required for anything

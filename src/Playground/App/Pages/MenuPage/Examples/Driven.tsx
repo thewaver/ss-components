@@ -16,10 +16,10 @@ export const DrivenExample = (props: Props) => {
         <>
             <Menu
                 visibilitySignal={props.visibilitySignal}
-                getAnchorRef={getAnchorRef}
-                getItems={() => ACTIONS}
-                getAriaLabel={() => "Edit actions"}
-                renderContent={(getFlags) => <PageMenuTriggerContent getFlags={getFlags}>Edit</PageMenuTriggerContent>}
+                anchorRef={getAnchorRef}
+                items={() => ACTIONS}
+                ariaLabel={"Edit actions"}
+                renderContent={(getFlags) => <PageMenuTriggerContent flags={getFlags}>Edit</PageMenuTriggerContent>}
                 renderItem={renderMenuItem}
                 renderPopup={renderMenuPopup}
                 onActivate={props.onActivate}
@@ -27,10 +27,10 @@ export const DrivenExample = (props: Props) => {
 
             <Button
                 ref={setAnchorRef}
-                getId={() => "menuToggle"}
-                getAriaLabel={() => "Toggle the menu from outside"}
+                id={"menuToggle"}
+                ariaLabel={"Toggle the menu from outside"}
                 renderContent={(getFlags) => (
-                    <PageButtonContent getFlags={getFlags}>
+                    <PageButtonContent flags={getFlags}>
                         {props.visibilitySignal[0]() ? "Close it" : "Open it"}
                     </PageButtonContent>
                 )}

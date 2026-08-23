@@ -1,4 +1,4 @@
-import type { AccessorProps } from "../../../../Lib/Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../../../Lib/Utils/typeUtils";
 
 export type PageNumberFieldProps = AccessorProps<{
     id?: string;
@@ -44,8 +44,8 @@ export type PageFileFieldProps = AccessorProps<{
 }>;
 
 export type PageSelectFieldProps<T> = {
-    getValue: () => T;
-    getValues: () => readonly T[];
+    value: MaybeAccessor<T>;
+    values: MaybeAccessor<readonly T[]>;
     computeLabel?: (value: T) => string;
     onChange: (value: T) => void;
 } & AccessorProps<{
@@ -54,6 +54,6 @@ export type PageSelectFieldProps<T> = {
     ariaLabel?: string;
 }>;
 
-export type PageGroupedSelectFieldProps<T> = Omit<PageSelectFieldProps<T>, "getValues"> & {
-    getGroups: () => readonly (readonly [string, readonly T[]])[];
+export type PageGroupedSelectFieldProps<T> = Omit<PageSelectFieldProps<T>, "values"> & {
+    groups: MaybeAccessor<readonly (readonly [string, readonly T[]])[]>;
 };

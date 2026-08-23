@@ -2,6 +2,7 @@ import { createMemo } from "solid-js";
 
 import { MathUtils } from "@thewaver/ss-utils";
 
+import { access } from "../../Utils/propUtils";
 import type { ProgressProps, ProgressSizing, ProgressState } from "./Progress.types";
 
 import * as styles from "./Progress.css";
@@ -12,17 +13,17 @@ const DEFAULT_PROGRESS_MAX = 1;
 const COMPLETE_RATIO = 1;
 
 export const Progress = (props: ProgressProps) => {
-    const getSizing = createMemo(() => props.getSizing?.() ?? DEFAULT_PROGRESS_SIZING);
+    const getSizing = createMemo(() => access(props.sizing) ?? DEFAULT_PROGRESS_SIZING);
 
-    const getMin = createMemo(() => props.getMin?.() ?? DEFAULT_PROGRESS_MIN);
+    const getMin = createMemo(() => access(props.min) ?? DEFAULT_PROGRESS_MIN);
 
-    const getMax = createMemo(() => props.getMax?.() ?? DEFAULT_PROGRESS_MAX);
+    const getMax = createMemo(() => access(props.max) ?? DEFAULT_PROGRESS_MAX);
 
     const getState = createMemo((): ProgressState => {
         const min = getMin();
         const max = getMax();
         const span = max - min;
-        const value = props.getValue?.();
+        const value = access(props.value);
 
         return {
             value,
@@ -34,7 +35,7 @@ export const Progress = (props: ProgressProps) => {
                     : span > 0
                       ? MathUtils.clamp(MathUtils.normalize(value, min, max), 0, COMPLETE_RATIO)
                       : COMPLETE_RATIO,
-            hasError: props.getHasError?.() ?? false,
+            hasError: access(props.hasError) ?? false,
         };
     });
 
@@ -46,15 +47,15 @@ export const Progress = (props: ProgressProps) => {
 
     return (
         <div
-            id={props.getId?.()}
+            id={access(props.id)}
             class={[styles.progressRoot, styles.progressSizingVariants[getSizing()]].join(" ")}
             role="progressbar"
-            aria-label={props.getAriaLabel?.()}
-            aria-labelledby={props.getAriaLabelledBy?.()}
+            aria-label={access(props.ariaLabel)}
+            aria-labelledby={access(props.ariaLabelledBy)}
             aria-valuemin={getMin()}
             aria-valuemax={getMax()}
             aria-valuenow={getState().value}
-            aria-valuetext={props.getAriaValueText?.()}
+            aria-valuetext={access(props.ariaValueText)}
             aria-invalid={getState().hasError || undefined}
         >
             {props.renderContent(getState)}

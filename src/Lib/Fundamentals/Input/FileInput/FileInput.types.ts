@@ -27,7 +27,7 @@ export type FileInputElementProps = AccessorProps<
     FileInputCbs & InteractionControlProps<FileInputFlags> & FileInputState & { files: File[] }
 >;
 
-export type FileInputProps = Omit<InteractionWrapperProps<FileInputFlags>, "renderControl" | "getExtraFlags"> &
+export type FileInputProps = Omit<InteractionWrapperProps<FileInputFlags>, "renderControl" | "extraFlags"> &
     AccessorProps<
         FileInputCbs &
             Pick<InteractionControlProps<FileInputFlags>, "id" | "renderContent"> &

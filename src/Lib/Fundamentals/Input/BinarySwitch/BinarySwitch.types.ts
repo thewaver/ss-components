@@ -33,10 +33,10 @@ export type BinarySwitchElementProps = AccessorProps<
     BinarySwitchCbs & InteractionControlProps<BinarySwitchFlags> & BinarySwitchState
 >;
 
-export type BinarySwitchProps = Omit<InteractionWrapperProps<BinarySwitchFlags>, "renderControl" | "getExtraFlags"> &
+export type BinarySwitchProps = Omit<InteractionWrapperProps<BinarySwitchFlags>, "renderControl" | "extraFlags"> &
     AccessorProps<
         BinarySwitchCbs & Pick<InteractionControlProps<BinarySwitchFlags>, "id" | "renderContent"> & BinarySwitchState
     >;
 
-export type BinarySwitchPresetProps = Omit<BinarySwitchProps, "getType" | "getIsSwitch" | "getName" | "getIsChecked"> &
+export type BinarySwitchPresetProps = Omit<BinarySwitchProps, "type" | "isSwitch" | "name" | "isChecked"> &
     AccessorProps<{ checkedSignal: Signal<boolean> }>;

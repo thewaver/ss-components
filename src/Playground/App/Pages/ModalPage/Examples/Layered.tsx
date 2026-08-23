@@ -19,8 +19,8 @@ type Props = ModalLayeredExampleProps;
 export const LayeredExample = (props: Props) => (
     <>
         <Button
-            getId={() => "openLayers"}
-            renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Open layers</PageButtonContent>}
+            id={"openLayers"}
+            renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Open layers</PageButtonContent>}
             onClick={() => {
                 props.visibilitySignal[1](true);
             }}
@@ -28,31 +28,25 @@ export const LayeredExample = (props: Props) => (
 
         <Modal
             visibilitySignal={props.visibilitySignal}
-            getAriaLabelledBy={() => LAYERED_TITLE_ID}
+            ariaLabelledBy={() => LAYERED_TITLE_ID}
             renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
-                <PageModalScrim
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
-                />
+                <PageModalScrim visibilityTarget={getVisibilityTarget} transitionDurationMs={getTransitionDurationMs} />
             )}
             renderContent={(getVisibilityTarget, getTransitionDurationMs) => (
-                <PageModalPanel
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
-                >
+                <PageModalPanel visibilityTarget={getVisibilityTarget} transitionDurationMs={getTransitionDurationMs}>
                     <div id={LAYERED_TITLE_ID}>Where are you flying from?</div>
 
                     <Select
                         valueSignal={props.valueSignal}
-                        getOptions={() => COUNTRIES}
-                        getAriaLabel={() => "Country"}
+                        options={() => COUNTRIES}
+                        ariaLabel={"Country"}
                         renderContent={(getSelectedOption, getFlags) => (
-                            <PageSelectContent getFlags={getFlags}>
+                            <PageSelectContent flags={getFlags}>
                                 {getSelectedOption()?.value ?? "Pick one"}
                             </PageSelectContent>
                         )}
                         renderOption={(getOption, getFlags) => (
-                            <PageSelectOptionContent getFlags={getFlags}>{getOption().value}</PageSelectOptionContent>
+                            <PageSelectOptionContent flags={getFlags}>{getOption().value}</PageSelectOptionContent>
                         )}
                         renderPopup={(
                             renderOptions,
@@ -61,9 +55,9 @@ export const LayeredExample = (props: Props) => (
                             getPlacement,
                         ) => (
                             <PagePopoverSurface
-                                getVisibilityTarget={getPopupVisibilityTarget}
-                                getTransitionDurationMs={getPopupTransitionDurationMs}
-                                getPlacement={getPlacement}
+                                visibilityTarget={getPopupVisibilityTarget}
+                                transitionDurationMs={getPopupTransitionDurationMs}
+                                placement={getPlacement}
                             >
                                 {renderOptions()}
                             </PagePopoverSurface>

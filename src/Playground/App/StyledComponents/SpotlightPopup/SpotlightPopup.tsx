@@ -1,21 +1,24 @@
 import type { ParentProps } from "solid-js";
 
+import { access } from "../../../../Lib/Utils/propUtils";
 import type { SpotlightPopupProps } from "./SpotlightPopup.types";
 
 import * as styles from "./SpotlightPopup.css";
 
-export const PageSpotlightPopup = (props: ParentProps<SpotlightPopupProps>) => (
-    <div
-        class={styles.spotlightPopup}
-        style={{
-            opacity: props.getVisibilityTarget(),
-            transition: `opacity ${props.getTransitionDurationMs()}ms`,
-        }}
-    >
-        <div class={styles.spotlightPopupTitle}>{props.getTitle()}</div>
-        {props.children}
-    </div>
-);
+export const PageSpotlightPopup = (props: ParentProps<SpotlightPopupProps>) => {
+    return (
+        <div
+            class={styles.spotlightPopup}
+            style={{
+                opacity: access(props.visibilityTarget),
+                transition: `opacity ${access(props.transitionDurationMs)}ms`,
+            }}
+        >
+            <div class={styles.spotlightPopupTitle}>{access(props.title)}</div>
+            {props.children}
+        </div>
+    );
+};
 
 export const PageSpotlightPopupText = (props: ParentProps) => (
     <div class={styles.spotlightPopupText}>{props.children}</div>

@@ -2,6 +2,7 @@ import { For } from "solid-js";
 
 import { Button } from "../../../../../Lib/Fundamentals/Button/Button";
 import { SpotlightHint } from "../../../../../Lib/Fundamentals/SpotlightHint/SpotlightHint";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import { PageButtonContent } from "../../../StyledComponents/ButtonContent/ButtonContent";
 import { PADDING, renderHighlight, renderOverlay } from "../SpotlightPage.const";
 import type { SpotlightHintExampleProps } from "../SpotlightPage.types";
@@ -32,7 +33,7 @@ export const HintExample = (props: Props) => {
                                 props.visibilitySignal[1]((prev) => !prev);
                             }}
                             renderContent={(getFlags) => (
-                                <PageButtonContent getFlags={getFlags}>Highlight Me</PageButtonContent>
+                                <PageButtonContent flags={getFlags}>Highlight Me</PageButtonContent>
                             )}
                         />
                     </div>
@@ -40,8 +41,8 @@ export const HintExample = (props: Props) => {
             </For>
 
             <SpotlightHint
-                getElementRef={() => anchorRefs[props.getIndex()]}
-                getPadding={() => PADDING}
+                elementRef={() => anchorRefs[access(props.index)]}
+                padding={() => PADDING}
                 visibilitySignal={props.visibilitySignal}
                 renderHighlight={renderHighlight}
                 renderOverlay={renderOverlay}

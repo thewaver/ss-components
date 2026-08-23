@@ -1,6 +1,7 @@
 import { Index, Show, createMemo } from "solid-js";
 
 import { SignalMirror } from "../../../Abstracts/SignalMirror/SignalMirror";
+import { access } from "../../../Utils/propUtils";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import type { TagInputProps } from "./TagInput.types";
 
@@ -15,7 +16,7 @@ export const TagInput = (props: TagInputProps) => {
 
     const textSignal = SignalMirror.createOptional(() => props.textSignal, "");
 
-    const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
+    const getIsDisabled = createMemo(() => access(props.isDisabled) ?? false);
 
     const getTags = () => props.valueSignal[0]();
 
@@ -115,7 +116,7 @@ export const TagInput = (props: TagInputProps) => {
     return (
         <InteractionWrapper
             {...props}
-            getExtraFlags={() => ({ isEmpty: getIsEmpty(), hasTags: getTags().length > 0 })}
+            extraFlags={() => ({ isEmpty: getIsEmpty(), hasTags: getTags().length > 0 })}
             renderControl={(setElementRef, getFlags) => (
                 <>
                     {props.renderContent?.(getFlags)}
@@ -123,11 +124,11 @@ export const TagInput = (props: TagInputProps) => {
                     <div
                         class={styles.tagInputRoot}
                         style={{
-                            gap: `${props.getGap?.() ?? DEFAULT_TAG_INPUT_GAP}px`,
-                            padding: `${props.getPadding?.() ?? DEFAULT_TAG_INPUT_PADDING}px`,
+                            gap: `${access(props.gap) ?? DEFAULT_TAG_INPUT_GAP}px`,
+                            padding: `${access(props.padding) ?? DEFAULT_TAG_INPUT_PADDING}px`,
                         }}
                         role="group"
-                        aria-label={props.getAriaLabel?.()}
+                        aria-label={access(props.ariaLabel)}
                         onPointerDown={(e) => {
                             if (e.target !== e.currentTarget) return;
 
@@ -138,7 +139,7 @@ export const TagInput = (props: TagInputProps) => {
                         <Index each={getTags()}>
                             {(getTag, index) => (
                                 <InteractionWrapper
-                                    getIsDisabled={() => getFlags().isDisabled ?? false}
+                                    isDisabled={() => getFlags().isDisabled ?? false}
                                     renderControl={(setTagRef, getTagFlags) => (
                                         <button
                                             type="button"
@@ -169,14 +170,14 @@ export const TagInput = (props: TagInputProps) => {
                                 fieldRef = element;
                                 setElementRef(element);
                             }}
-                            id={props.getId?.()}
+                            id={access(props.id)}
                             type="text"
-                            name={props.getName?.()}
+                            name={access(props.name)}
                             class={styles.tagInputField}
                             style={props.computeTextStyle?.(getFlags)}
                             value={textSignal[0]()}
                             readOnly={getFlags().isDisabled}
-                            aria-label={props.getAriaLabel?.()}
+                            aria-label={access(props.ariaLabel)}
                             aria-disabled={getFlags().isDisabled || undefined}
                             onInput={(e) => textSignal[1](e.currentTarget.value)}
                             onKeyDown={handleFieldKeyDown}

@@ -14,13 +14,13 @@ type Props = NumberInputExampleProps;
 export const ErroredExample = (props: Props) => (
     <NumberInput
         valueSignal={props.valueSignal}
-        getMin={() => 0}
-        getHasError={() => (props.valueSignal[0]() ?? 0) <= 0}
-        getPadding={() => FIELD_STEPPER_PADDING}
-        getGap={() => FIELD_GAP}
-        getAriaLabel={() => "Seats"}
+        min={0}
+        hasError={() => (props.valueSignal[0]() ?? 0) <= 0}
+        padding={() => FIELD_STEPPER_PADDING}
+        gap={() => FIELD_GAP}
+        ariaLabel={"Seats"}
         computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} />}
-        renderTrailing={(getFlags, stepper) => <PageNumberInputStepper getFlags={getFlags} stepper={stepper} />}
+        renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} />}
+        renderTrailing={(getFlags, stepper) => <PageNumberInputStepper flags={getFlags} stepper={stepper} />}
     />
 );

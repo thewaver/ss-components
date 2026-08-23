@@ -7,7 +7,7 @@ type Props = FileInputExampleProps;
 export const DefaultExample = (props: Props) => (
     <FileInput
         filesSignal={props.filesSignal}
-        getAriaLabel={() => "Attachment"}
-        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
+        ariaLabel={"Attachment"}
+        renderContent={(getFlags) => <PageFileInputContent flags={getFlags} />}
     />
 );

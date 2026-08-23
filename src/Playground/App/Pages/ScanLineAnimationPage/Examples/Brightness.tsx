@@ -1,4 +1,5 @@
 import { ScanlineAnimation } from "../../../../../Lib/Exotics/ScanlineAnimation/ScanlineAnimation";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import { CellAnimationBreakpoints } from "../../../Samples/CellAnimationBreakpoints/CellAnimationBreakpoints.const";
 import { CellAnimationWeights } from "../../../Samples/CellAnimationWeights/CellAnimationWeights.const";
@@ -13,19 +14,19 @@ type Props = ScanlineAnimationExampleProps &
         keyframeOpts: ScanlineAnimationKeyframes.HorizontalGrayscaleOpts;
     }>;
 
-export const BrightnessExample = ({ getKeyframeOpts, getBreakpointOpts, getWeightType, ...otherProps }: Props) => {
+export const BrightnessExample = ({ keyframeOpts, breakpointOpts, weightType, ...otherProps }: Props) => {
     return (
         <ScanlineAnimation
             {...otherProps}
             computeCellWeights={(count) =>
-                CellAnimationWeights.computeCellWeights(getWeightType(), count, WEIGHT_ORIGIN)
+                CellAnimationWeights.computeCellWeights(access(weightType), count, WEIGHT_ORIGIN)
             }
             computeScanlineAnimation={(defs, timeline) =>
                 ScanlineAnimationKeyframes.computeHorizontalBrightness(
-                    CellAnimationBreakpoints.computeBreakpoints(defs.weight, getBreakpointOpts()),
+                    CellAnimationBreakpoints.computeBreakpoints(defs.weight, access(breakpointOpts)),
                     defs,
                     timeline,
-                    getKeyframeOpts(),
+                    access(keyframeOpts),
                 )
             }
         />

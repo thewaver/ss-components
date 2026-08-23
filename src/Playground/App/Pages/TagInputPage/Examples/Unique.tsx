@@ -15,23 +15,25 @@ import {
 
 type Props = TagInputExampleProps;
 
-export const UniqueExample = (props: Props) => (
-    <TagInput
-        valueSignal={props.valueSignal}
-        getAriaLabel={() => "Unique topics"}
-        getGap={() => FIELD_GAP}
-        getPadding={() => FIELD_PADDING}
-        getMinHeight={() => FIELD_HEIGHT}
-        getIsDisabled={props.getIsDisabled}
-        getHasError={props.getHasError}
-        computeTextStyle={computePageTextFieldTextStyle}
-        computeTag={(text) => {
-            const tag = text.trim().toLowerCase();
+export const UniqueExample = (props: Props) => {
+    return (
+        <TagInput
+            valueSignal={props.valueSignal}
+            ariaLabel={"Unique topics"}
+            gap={() => FIELD_GAP}
+            padding={() => FIELD_PADDING}
+            minHeight={() => FIELD_HEIGHT}
+            isDisabled={props.isDisabled}
+            hasError={props.hasError}
+            computeTextStyle={computePageTextFieldTextStyle}
+            computeTag={(text) => {
+                const tag = text.trim().toLowerCase();
 
-            return tag && !props.valueSignal[0]().includes(tag) ? tag : undefined;
-        }}
-        renderContent={(getFlags) => <PageTagInputContent getFlags={getFlags} />}
-        renderPlaceholder={() => <PageTagInputPlaceholder>Type and press Enter</PageTagInputPlaceholder>}
-        renderTag={(getTag, getFlags) => <PageTagContent getFlags={getFlags}>{getTag()}</PageTagContent>}
-    />
-);
+                return tag && !props.valueSignal[0]().includes(tag) ? tag : undefined;
+            }}
+            renderContent={(getFlags) => <PageTagInputContent flags={getFlags} />}
+            renderPlaceholder={() => <PageTagInputPlaceholder>Type and press Enter</PageTagInputPlaceholder>}
+            renderTag={(getTag, getFlags) => <PageTagContent flags={getFlags}>{getTag()}</PageTagContent>}
+        />
+    );
+};

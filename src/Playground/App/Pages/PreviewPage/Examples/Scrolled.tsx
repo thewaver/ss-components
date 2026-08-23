@@ -13,17 +13,19 @@ const AFTERWARDS = [
 
 type Props = PreviewExampleProps;
 
-export const ScrolledExample = (props: Props) => (
-    <div class={styles.scrollBox} data-scroll-box>
-        <TextExample
-            expandedSignal={props.expandedSignal}
-            getCollapsedHeight={props.getCollapsedHeight}
-            getIsScrolledIntoViewOnCollapse={() => true}
-            getParagraphs={props.getParagraphs}
-        />
+export const ScrolledExample = (props: Props) => {
+    return (
+        <div class={styles.scrollBox} data-scroll-box>
+            <TextExample
+                expandedSignal={props.expandedSignal}
+                collapsedHeight={props.collapsedHeight}
+                isScrolledIntoViewOnCollapse={true}
+                paragraphs={props.paragraphs}
+            />
 
-        <div class={styles.afterwards}>
-            <For each={AFTERWARDS}>{(paragraph) => <div>{paragraph}</div>}</For>
+            <div class={styles.afterwards}>
+                <For each={AFTERWARDS}>{(paragraph) => <div>{paragraph}</div>}</For>
+            </div>
         </div>
-    </div>
-);
+    );
+};

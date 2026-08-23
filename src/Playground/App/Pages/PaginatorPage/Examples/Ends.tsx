@@ -13,19 +13,21 @@ const END_STEPS: PaginatorStep[] = ["first", "previous", "next", "last"];
 
 type Props = PaginatorExampleProps;
 
-export const EndsExample = (props: Props) => (
-    <Paginator
-        getPage={props.getPage}
-        getPageCount={props.getPageCount}
-        getSiblingCount={props.getSiblingCount}
-        getBoundaryCount={props.getBoundaryCount}
-        getIsDisabled={props.getIsDisabled}
-        getGap={() => PAGINATOR_GAP}
-        getAriaLabel={() => "Results with end jumps"}
-        getSteps={() => END_STEPS}
-        onPageChange={props.onPageChange}
-        renderPage={(_getEntry, getFlags) => <PagePaginatorPage getFlags={getFlags} />}
-        renderGap={(getEntry) => <PagePaginatorGap getEntry={getEntry} />}
-        renderStep={(_getStep, getFlags) => <PagePaginatorStep getFlags={getFlags} />}
-    />
-);
+export const EndsExample = (props: Props) => {
+    return (
+        <Paginator
+            page={props.page}
+            pageCount={props.pageCount}
+            siblingCount={props.siblingCount}
+            boundaryCount={props.boundaryCount}
+            isDisabled={props.isDisabled}
+            gap={() => PAGINATOR_GAP}
+            ariaLabel={"Results with end jumps"}
+            steps={() => END_STEPS}
+            onPageChange={props.onPageChange}
+            renderPage={(_getEntry, getFlags) => <PagePaginatorPage flags={getFlags} />}
+            renderGap={(getEntry) => <PagePaginatorGap entry={getEntry} />}
+            renderStep={(_getStep, getFlags) => <PagePaginatorStep flags={getFlags} />}
+        />
+    );
+};

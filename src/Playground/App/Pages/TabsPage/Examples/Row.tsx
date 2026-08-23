@@ -1,4 +1,5 @@
 import { Tabs } from "../../../../../Lib/Fundamentals/Tabs/Tabs";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import {
     PageTabContent,
     PageTabFloater,
@@ -12,39 +13,41 @@ import * as styles from "../TabsPage.css";
 
 type Props = TabsExampleProps;
 
-export const RowExample = (props: Props) => (
-    <div class={styles.rowDemo}>
-        <Tabs
-            getDir={() => "row"}
-            getTabGap={() => ROW_TAB_GAP}
-            getAriaLabel={() => "Example views"}
-            getTabs={() => ROW_TABS}
-            getSelectedValue={props.getSelectedValue}
-            onSelectionChange={props.onSelectionChange}
-            renderGutter={() => <PageTabGutter getDir={() => "row"} />}
-            renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
-                <PageTabFloater
-                    getDir={() => "row"}
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
-                />
-            )}
-            renderTab={(getTab, getFlags) => (
-                <PageTabContent
-                    getFlags={getFlags}
-                    getDir={() => "row"}
-                    getIsSelected={() => getTab().value === props.getSelectedValue()}
-                >
-                    {getTab().value}
-                </PageTabContent>
-            )}
-        />
+export const RowExample = (props: Props) => {
+    return (
+        <div class={styles.rowDemo}>
+            <Tabs
+                dir={"row"}
+                tabGap={() => ROW_TAB_GAP}
+                ariaLabel={"Example views"}
+                tabs={() => ROW_TABS}
+                selectedValue={props.selectedValue}
+                onSelectionChange={props.onSelectionChange}
+                renderGutter={() => <PageTabGutter dir={"row"} />}
+                renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
+                    <PageTabFloater
+                        dir={"row"}
+                        visibilityTarget={getVisibilityTarget}
+                        transitionDurationMs={getTransitionDurationMs}
+                    />
+                )}
+                renderTab={(getTab, getFlags) => (
+                    <PageTabContent
+                        flags={getFlags}
+                        dir={"row"}
+                        isSelected={() => getTab().value === access(props.selectedValue)}
+                    >
+                        {getTab().value}
+                    </PageTabContent>
+                )}
+            />
 
-        <PageTabPanel
-            getId={() => getPanelId("row", props.getSelectedValue() ?? "")}
-            getTabId={() => getTabId("row", props.getSelectedValue() ?? "")}
-        >
-            {PANEL_BODIES[props.getSelectedValue() ?? ""]}
-        </PageTabPanel>
-    </div>
-);
+            <PageTabPanel
+                id={() => getPanelId("row", access(props.selectedValue) ?? "")}
+                tabId={() => getTabId("row", access(props.selectedValue) ?? "")}
+            >
+                {PANEL_BODIES[access(props.selectedValue) ?? ""]}
+            </PageTabPanel>
+        </div>
+    );
+};

@@ -1,5 +1,6 @@
 import { Button } from "../../../../../Lib/Fundamentals/Button/Button";
 import { Tabs } from "../../../../../Lib/Fundamentals/Tabs/Tabs";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import { PageControlColumn } from "../../../PageComponents/ControlRow/ControlRow";
 import { PageButtonContent } from "../../../StyledComponents/ButtonContent/ButtonContent";
 import { PageTabContent, PageTabFloater, PageTabGutter } from "../../../StyledComponents/TabContent/TabContent";
@@ -10,39 +11,41 @@ export const CLEARABLE_TRANSITION_DURATION_MS = 600;
 
 type Props = TabsExampleProps & { onClear: () => void };
 
-export const ClearableExample = (props: Props) => (
-    <PageControlColumn>
-        <Tabs
-            getDir={() => "row"}
-            getTabGap={() => ROW_TAB_GAP}
-            getAriaLabel={() => "Clearable views"}
-            getTransitionDurationMs={() => CLEARABLE_TRANSITION_DURATION_MS}
-            getTabs={() => CLEARABLE_TABS}
-            getSelectedValue={props.getSelectedValue}
-            onSelectionChange={props.onSelectionChange}
-            renderGutter={() => <PageTabGutter getDir={() => "row"} />}
-            renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
-                <PageTabFloater
-                    getDir={() => "row"}
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
-                />
-            )}
-            renderTab={(getTab, getFlags) => (
-                <PageTabContent
-                    getFlags={getFlags}
-                    getDir={() => "row"}
-                    getIsSelected={() => getTab().value === props.getSelectedValue()}
-                >
-                    {getTab().value}
-                </PageTabContent>
-            )}
-        />
+export const ClearableExample = (props: Props) => {
+    return (
+        <PageControlColumn>
+            <Tabs
+                dir={"row"}
+                tabGap={() => ROW_TAB_GAP}
+                ariaLabel={"Clearable views"}
+                transitionDurationMs={() => CLEARABLE_TRANSITION_DURATION_MS}
+                tabs={() => CLEARABLE_TABS}
+                selectedValue={props.selectedValue}
+                onSelectionChange={props.onSelectionChange}
+                renderGutter={() => <PageTabGutter dir={"row"} />}
+                renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
+                    <PageTabFloater
+                        dir={"row"}
+                        visibilityTarget={getVisibilityTarget}
+                        transitionDurationMs={getTransitionDurationMs}
+                    />
+                )}
+                renderTab={(getTab, getFlags) => (
+                    <PageTabContent
+                        flags={getFlags}
+                        dir={"row"}
+                        isSelected={() => getTab().value === access(props.selectedValue)}
+                    >
+                        {getTab().value}
+                    </PageTabContent>
+                )}
+            />
 
-        <Button
-            getAriaLabel={() => "Clear the selection"}
-            renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Clear</PageButtonContent>}
-            onClick={async () => props.onClear()}
-        />
-    </PageControlColumn>
-);
+            <Button
+                ariaLabel={"Clear the selection"}
+                renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Clear</PageButtonContent>}
+                onClick={async () => props.onClear()}
+            />
+        </PageControlColumn>
+    );
+};

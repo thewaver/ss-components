@@ -33,7 +33,11 @@ export const CurrencyInputPage = () => {
     const bigSignal = createSignal<number | undefined>(STARTING_BIG);
 
     const getExamples = createMemo(() => {
-        const commonProps: Omit<CurrencyInputExampleProps, "valueSignal"> = { getLocale, getDecimals, getGroupSize };
+        const commonProps: Omit<CurrencyInputExampleProps, "valueSignal"> = {
+            locale: getLocale,
+            decimals: getDecimals,
+            groupSize: getGroupSize,
+        };
 
         return [
             {
@@ -48,9 +52,7 @@ export const CurrencyInputPage = () => {
                 key: "empty",
                 name: "Empty",
                 readout: () => `value: ${describe(emptySignal[0]())} — an empty field has no value at all`,
-                component: () => (
-                    <DefaultExample {...commonProps} valueSignal={emptySignal} getAriaLabel={() => "Amount"} />
-                ),
+                component: () => <DefaultExample {...commonProps} valueSignal={emptySignal} ariaLabel={"Amount"} />,
                 path: `${EXAMPLES_ROOT}/Default.tsx`,
             },
             {
@@ -74,9 +76,7 @@ export const CurrencyInputPage = () => {
                 name: "Many groups",
                 readout: () =>
                     `value: ${describe(bigSignal[0]())} — the group count grows with the value, which a fixed pattern cannot do`,
-                component: () => (
-                    <DefaultExample {...commonProps} valueSignal={bigSignal} getAriaLabel={() => "Large amount"} />
-                ),
+                component: () => <DefaultExample {...commonProps} valueSignal={bigSignal} ariaLabel={"Large amount"} />,
                 path: `${EXAMPLES_ROOT}/Default.tsx`,
             },
         ];
@@ -84,37 +84,37 @@ export const CurrencyInputPage = () => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "locale"} getLabel={() => "Locale"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"locale"} label={"Locale"}>
                     <PageSelectField
-                        getValue={getLocale}
-                        getValues={() => LOCALES}
-                        getWidth={() => LOCALE_FIELD_WIDTH}
-                        getAriaLabel={() => "Locale"}
+                        value={getLocale}
+                        values={() => LOCALES}
+                        width={() => LOCALE_FIELD_WIDTH}
+                        ariaLabel={"Locale"}
                         onChange={(locale) => setLocale(() => locale)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "decimals"} getLabel={() => "Decimals"}>
+                <PageProp key={"decimals"} label={"Decimals"}>
                     <PageSelectField
-                        getValue={getDecimals}
-                        getValues={() => DECIMALS}
-                        getAriaLabel={() => "Decimals"}
+                        value={getDecimals}
+                        values={() => DECIMALS}
+                        ariaLabel={"Decimals"}
                         onChange={setDecimals}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "groupSize"} getLabel={() => "Group size"}>
+                <PageProp key={"groupSize"} label={"Group size"}>
                     <PageSelectField
-                        getValue={getGroupSize}
-                        getValues={() => GROUP_SIZES}
-                        getAriaLabel={() => "Group size"}
+                        value={getGroupSize}
+                        values={() => GROUP_SIZES}
+                        ariaLabel={"Group size"}
                         onChange={setGroupSize}
                     />
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} />
+            <PageExamples items={getExamples} />
         </>
     );
 };

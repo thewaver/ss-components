@@ -9,12 +9,12 @@ const LABEL_GAP = 5;
 type Props = FileInputExampleProps;
 
 export const LabelledExample = (props: Props) => (
-    <Label getDir={() => "column"} getGap={() => LABEL_GAP}>
+    <Label dir={"column"} gap={() => LABEL_GAP}>
         <PageLabelCaption>Contract</PageLabelCaption>
 
         <FileInput
             filesSignal={props.filesSignal}
-            renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
+            renderContent={(getFlags) => <PageFileInputContent flags={getFlags} />}
         />
     </Label>
 );

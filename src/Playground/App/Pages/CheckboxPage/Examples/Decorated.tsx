@@ -11,14 +11,14 @@ type Props = CheckboxExampleProps;
 export const DecoratedExample = (props: Props) => (
     <Checkbox
         checkedSignal={props.checkedSignal}
-        getAriaLabel={() => "Decorated checkbox"}
-        getIsPressed={props.checkedSignal[0]}
-        renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+        ariaLabel={"Decorated checkbox"}
+        isPressed={props.checkedSignal[0]}
+        renderContent={(getFlags) => <PageCheckboxContent flags={getFlags} />}
         renderDecoration={(getFlags) => (
             <Corners
-                getColor={() => (getFlags().isPressed ? "yellow" : "transparent")}
-                getCornerLength={() => CORNER_LENGTH}
-                getStrokeThickness={() => STROKE_THICKNESS}
+                color={() => (getFlags().isPressed ? "yellow" : "transparent")}
+                cornerLength={() => CORNER_LENGTH}
+                strokeThickness={() => STROKE_THICKNESS}
             />
         )}
     />

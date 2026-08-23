@@ -5,6 +5,7 @@ import { Color } from "@thewaver/ss-utils";
 import { Button } from "../../../../../Lib/Fundamentals/Button/Button";
 import { Range } from "../../../../../Lib/Fundamentals/Input/Range/Range";
 import { Popover } from "../../../../../Lib/Fundamentals/Popover/Popover";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import {
     PageColorFieldTrigger,
     PageColorPickerPopup,
@@ -38,7 +39,7 @@ export const DropdownExample = (props: Props) => {
             const target = e.target as Node | null;
 
             if (!target) return;
-            if (document.getElementById(props.getPopupId())?.contains(target)) return;
+            if (document.getElementById(access(props.popupId))?.contains(target)) return;
             if (getTriggerRef()?.contains(target)) return;
 
             setIsOpen(false);
@@ -72,8 +73,8 @@ export const DropdownExample = (props: Props) => {
             <Button
                 ref={setTriggerRef}
                 renderContent={(getFlags) => (
-                    <PageColorFieldTrigger getFlags={getFlags}>
-                        <PageColorSwatch getValue={getCss} />
+                    <PageColorFieldTrigger flags={getFlags}>
+                        <PageColorSwatch value={getCss} />
                         {getHexa()}
                     </PageColorFieldTrigger>
                 )}
@@ -83,13 +84,13 @@ export const DropdownExample = (props: Props) => {
             />
 
             <Popover
-                getId={props.getPopupId}
-                getRole={() => "dialog"}
-                getAriaAttributes={() => ({ "aria-label": "Choose a colour" })}
-                getIsOpen={getIsOpen}
-                getAnchorRef={getTriggerRef}
-                getHasAutoFocus={() => true}
-                getOffset={() => ({ x: 0, y: 5 })}
+                id={props.popupId}
+                role={"dialog"}
+                ariaAttributes={() => ({ "aria-label": "Choose a colour" })}
+                isOpen={getIsOpen}
+                anchorRef={getTriggerRef}
+                hasAutoFocus={true}
+                offset={() => ({ x: 0, y: 5 })}
                 onKeyDown={(e) => {
                     if (e.key !== "Escape") return;
 
@@ -98,20 +99,20 @@ export const DropdownExample = (props: Props) => {
                 }}
                 renderContent={() => (
                     <PageColorPickerPopup>
-                        <PageColorPreview getValue={getCss} />
+                        <PageColorPreview value={getCss} />
 
                         <SurfaceExample hsvSignal={props.hsvSignal} />
 
                         <PageColorPickerRow>
                             <Range
                                 valueSignal={props.hueSignal}
-                                getSizing={() => "fill"}
-                                getMax={() => HUE_MAX}
-                                getStep={() => 1}
-                                getId={() => "hueSlider"}
-                                getAriaLabel={() => "Hue"}
-                                getThumbSize={() => HUE_THUMB_SIZE}
-                                renderContent={(getFlags) => <PageHueSlider getFlags={getFlags} />}
+                                sizing={"fill"}
+                                max={() => HUE_MAX}
+                                step={1}
+                                id={"hueSlider"}
+                                ariaLabel={"Hue"}
+                                thumbSize={() => HUE_THUMB_SIZE}
+                                renderContent={(getFlags) => <PageHueSlider flags={getFlags} />}
                             />
                         </PageColorPickerRow>
 

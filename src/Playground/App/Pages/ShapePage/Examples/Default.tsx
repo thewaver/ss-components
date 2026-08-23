@@ -4,23 +4,24 @@ import { ShapeConst, ShapeUtils } from "@thewaver/ss-utils";
 
 import { InteractionUtils } from "../../../../../Lib/Abstracts/Interaction/Interaction.utils";
 import { Shape } from "../../../../../Lib/Exotics/Shape/Shape";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import { SVGDefsSamples } from "../../../Samples/SVGDefs/SVGDefs.const";
 import type { ShapeExampleProps } from "../ShapePage.types";
 
 import * as styles from "../ShapePage.css";
 
 export const DefaultExample = ({
-    getShouldClipChildren,
-    getShouldPadChildren,
-    getShapeKind,
-    getStrokeConfigKey,
-    getFillConfigKey,
-    getIterationConfigKey,
-    getCellSize,
-    getAnimationDurationMs,
-    getColors,
-    getBlurWidth,
-    getEdgeThicknesses,
+    shouldClipChildren,
+    shouldPadChildren,
+    shapeKind,
+    strokeConfigKey,
+    fillConfigKey,
+    iterationConfigKey,
+    cellSize,
+    animationDurationMs,
+    colors,
+    blurWidth,
+    edgeThicknesses,
     ...otherProps
 }: ShapeExampleProps) => {
     const id = createUniqueId();
@@ -29,22 +30,22 @@ export const DefaultExample = ({
 
     const { getFlags } = InteractionUtils.wrapElement(getRootRef, () => false, { applyButtonSemantics: true });
 
-    const getStrokeConfig = () => SVGDefsSamples.Gradient.SAMPLE_CONFIGS[getStrokeConfigKey()];
-    const getFillConfig = () => SVGDefsSamples.Pattern.SAMPLE_CONFIGS[getFillConfigKey()];
-    const getIterationConfig = () => SVGDefsSamples.Iteration.SAMPLE_CONFIGS[getIterationConfigKey()];
+    const getStrokeConfig = () => SVGDefsSamples.Gradient.SAMPLE_CONFIGS[access(strokeConfigKey)];
+    const getFillConfig = () => SVGDefsSamples.Pattern.SAMPLE_CONFIGS[access(fillConfigKey)];
+    const getIterationConfig = () => SVGDefsSamples.Iteration.SAMPLE_CONFIGS[access(iterationConfigKey)];
 
     return (
         <div class={styles.exampleHost}>
             <Shape
                 {...otherProps}
-                computePoints={(size) => ShapeConst.getDefaultShapePoints(getShapeKind(), size)}
+                computePoints={(size) => ShapeConst.getDefaultShapePoints(access(shapeKind), size)}
                 computeStrokeDefs={(getSize) => {
                     const strokes = getStrokeConfig().computeSVGDefs(`stroke-${id}`, getFlags, {
                         getSize,
-                        animationDurationMs: getAnimationDurationMs(),
-                        colors: getColors(),
-                        blurWidth: getBlurWidth?.(),
-                        ...getIterationConfig().computeDefs(getAnimationDurationMs()),
+                        animationDurationMs: access(animationDurationMs),
+                        colors: access(colors),
+                        blurWidth: access(blurWidth),
+                        ...getIterationConfig().computeDefs(access(animationDurationMs)),
                     });
 
                     if (getFlags().isFocused) {
@@ -53,8 +54,8 @@ export const DefaultExample = ({
 
                     return strokes;
                 }}
-                getStrokeGeom={() => {
-                    const result = [{ thicknesses: getEdgeThicknesses() }];
+                strokeGeom={() => {
+                    const result = [{ thicknesses: access(edgeThicknesses) }];
 
                     if (getFlags().isFocused) {
                         result.push({ thicknesses: [2] });
@@ -65,27 +66,27 @@ export const DefaultExample = ({
                 computeFillDefs={(getSize) =>
                     getFillConfig().computeSVGDefs(`fill-${id}`, undefined, {
                         getSize,
-                        cellSize: getCellSize(),
-                        animationDurationMs: getAnimationDurationMs(),
-                        colors: getColors(),
-                        blurWidth: getBlurWidth?.(),
-                        ...getIterationConfig().computeDefs(getAnimationDurationMs()),
+                        cellSize: access(cellSize),
+                        animationDurationMs: access(animationDurationMs),
+                        colors: access(colors),
+                        blurWidth: access(blurWidth),
+                        ...getIterationConfig().computeDefs(access(animationDurationMs)),
                     })
                 }
                 renderChildren={(getSize, getClipPath, getClipPoints) => {
                     const getStyle = createMemo(() => {
                         const size = getSize();
-                        const shape = getShapeKind();
-                        const clipStyle = getShouldClipChildren?.() ? { "clip-path": `path("${getClipPath()}")` } : {};
+                        const shape = access(shapeKind);
+                        const clipStyle = access(shouldClipChildren) ? { "clip-path": `path("${getClipPath()}")` } : {};
 
-                        if (!getShouldPadChildren?.()) return clipStyle;
+                        if (!access(shouldPadChildren)) return clipStyle;
 
                         const paddingStyle =
                             shape === "square"
                                 ? ShapeUtils.getRectPadding(
-                                      getEdgeThicknesses(),
-                                      otherProps.getJoinRadii?.(),
-                                      otherProps.getLameExponents?.(),
+                                      access(edgeThicknesses),
+                                      access(otherProps.joinRadii),
+                                      access(otherProps.lameExponents),
                                   )
                                 : ShapeUtils.getPolygonPadding(size, getClipPoints());
 

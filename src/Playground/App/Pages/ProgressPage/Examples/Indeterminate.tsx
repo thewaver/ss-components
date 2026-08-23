@@ -3,8 +3,8 @@ import { PageProgressContent } from "../../../StyledComponents/ProgressContent/P
 
 export const IndeterminateExample = () => (
     <Progress
-        getAriaLabel={() => "Reticulating splines"}
-        getSizing={() => "fit-content"}
-        renderContent={(getState) => <PageProgressContent getState={getState} />}
+        ariaLabel={"Reticulating splines"}
+        sizing={"fit-content"}
+        renderContent={(getState) => <PageProgressContent state={getState} />}
     />
 );

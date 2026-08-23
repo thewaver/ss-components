@@ -24,7 +24,7 @@ export const TabsPage = () => {
             span: 2,
             name: "A row of tabs",
             readout: () => `selected: ${getRowValue()}`,
-            component: () => <RowExample getSelectedValue={getRowValue} onSelectionChange={setRowValue} />,
+            component: () => <RowExample selectedValue={getRowValue} onSelectionChange={setRowValue} />,
             path: `${EXAMPLES_ROOT}/Row.tsx`,
         },
         {
@@ -32,14 +32,14 @@ export const TabsPage = () => {
             span: 2,
             name: "A column of tabs",
             readout: () => `selected: ${getColumnValue()}`,
-            component: () => <ColumnExample getSelectedValue={getColumnValue} onSelectionChange={setColumnValue} />,
+            component: () => <ColumnExample selectedValue={getColumnValue} onSelectionChange={setColumnValue} />,
             path: `${EXAMPLES_ROOT}/Column.tsx`,
         },
         {
             key: "links",
             name: "Tabs that are links",
             readout: () => `selected: ${getLinkValue()} — every tab carries an href, so each one is an anchor`,
-            component: () => <LinksExample getSelectedValue={getLinkValue} onSelectionChange={setLinkValue} />,
+            component: () => <LinksExample selectedValue={getLinkValue} onSelectionChange={setLinkValue} />,
             path: `${EXAMPLES_ROOT}/Links.tsx`,
         },
         {
@@ -48,7 +48,7 @@ export const TabsPage = () => {
             readout: () =>
                 `selected: ${getCustomLinkValue()} — the same tabs rendered by a consumer's own link component`,
             component: () => (
-                <LinkComponentExample getSelectedValue={getCustomLinkValue} onSelectionChange={setCustomLinkValue} />
+                <LinkComponentExample selectedValue={getCustomLinkValue} onSelectionChange={setCustomLinkValue} />
             ),
             path: `${EXAMPLES_ROOT}/LinkComponent.tsx`,
         },
@@ -59,7 +59,7 @@ export const TabsPage = () => {
                 `selected: ${getClearableValue() ?? "nothing"} — the floater plays itself out over ${CLEARABLE_TRANSITION_DURATION_MS}ms when the selection goes, and plays itself back in when one returns`,
             component: () => (
                 <ClearableExample
-                    getSelectedValue={getClearableValue}
+                    selectedValue={getClearableValue}
                     onSelectionChange={setClearableValue}
                     onClear={() => setClearableValue(undefined)}
                 />
@@ -71,11 +71,11 @@ export const TabsPage = () => {
             name: "Every tab disabled",
             readout: () => `selected: ${getDisabledValue()} — nothing can move it, so no tab holds the tab stop`,
             component: () => (
-                <AllDisabledExample getSelectedValue={getDisabledValue} onSelectionChange={setDisabledValue} />
+                <AllDisabledExample selectedValue={getDisabledValue} onSelectionChange={setDisabledValue} />
             ),
             path: `${EXAMPLES_ROOT}/AllDisabled.tsx`,
         },
     ]);
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

@@ -6,6 +6,7 @@ import { MathUtils } from "@thewaver/ss-utils";
 import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
 import { LiveAnnouncer } from "../../Abstracts/LiveAnnouncer/LiveAnnouncer";
 import { SignalMirror } from "../../Abstracts/SignalMirror/SignalMirror";
+import { access } from "../../Utils/propUtils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import type {
     CarouselControlProps,
@@ -43,23 +44,23 @@ const ROTATION_LABELS = {
 };
 
 const CarouselControl = (props: CarouselControlProps) => {
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
     return (
         <button
             ref={(element) => props.ref?.(element)}
             type="button"
             class={styles.carouselControl}
-            aria-label={props.getAriaLabel?.()}
+            aria-label={access(props.ariaLabel)}
             aria-disabled={getIsDisabled() || undefined}
-            aria-current={props.getIsCurrent() || undefined}
+            aria-current={access(props.isCurrent) || undefined}
             onClick={() => {
                 if (getIsDisabled()) return;
 
                 props.onActivate();
             }}
         >
-            {props.renderContent(props.getFlags)}
+            {props.renderContent(() => access(props.flags))}
         </button>
     );
 };
@@ -72,17 +73,17 @@ export const Carousel = <T,>(props: CarouselProps<T>) => {
     const [getIndex, setIndex] = SignalMirror.createOptional(() => props.indexSignal, 0);
     const [getIsPlaying, setIsPlaying] = SignalMirror.createOptional(() => props.playingSignal, true);
 
-    const getCount = createMemo(() => props.getSlides().length);
+    const getCount = createMemo(() => access(props.slides).length);
 
     const getCurrentIndex = createMemo(() => CarouselUtils.wrapIndex(getIndex(), getCount()));
 
-    const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
+    const getIsDisabled = createMemo(() => access(props.isDisabled) ?? false);
 
     const getTransitionDurationMs = createMemo(
-        () => props.getTransitionDurationMs?.() ?? DEFAULT_CAROUSEL_TRANSITION_DURATION_MS,
+        () => access(props.transitionDurationMs) ?? DEFAULT_CAROUSEL_TRANSITION_DURATION_MS,
     );
 
-    const getAutoplayDelayMs = createMemo(() => props.getAutoplayDelayMs?.());
+    const getAutoplayDelayMs = createMemo(() => access(props.autoplayDelayMs));
 
     const getIsHeld = InteractionUtils.trackHold(getRootRef);
 
@@ -155,14 +156,14 @@ export const Carousel = <T,>(props: CarouselProps<T>) => {
 
         return (
             <InteractionWrapper<CarouselStepFlags>
-                getIsDisabled={() => getIsDisabled() || getCount() < MIN_ROTATABLE_COUNT}
-                getExtraFlags={() => ({ step, targetIndex: getTargetIndex() })}
+                isDisabled={() => getIsDisabled() || getCount() < MIN_ROTATABLE_COUNT}
+                extraFlags={() => ({ step, targetIndex: getTargetIndex() })}
                 renderControl={(setElementRef, getFlags) => (
                     <CarouselControl
                         ref={setElementRef}
-                        getIsCurrent={() => false}
-                        getAriaLabel={() => props.computeStepLabel?.(step) ?? STEP_LABELS[step]}
-                        getFlags={getFlags}
+                        isCurrent={false}
+                        ariaLabel={() => props.computeStepLabel?.(step) ?? STEP_LABELS[step]}
+                        flags={getFlags}
                         renderContent={() => props.renderStep?.(() => step, getFlags)}
                         onActivate={() => goTo(getTargetIndex())}
                     />
@@ -173,14 +174,14 @@ export const Carousel = <T,>(props: CarouselProps<T>) => {
 
     const renderPickControl = (index: number): JSX.Element => (
         <InteractionWrapper<CarouselPickFlags>
-            getIsDisabled={getIsDisabled}
-            getExtraFlags={() => ({ index, isCurrent: index === getCurrentIndex() })}
+            isDisabled={getIsDisabled}
+            extraFlags={() => ({ index, isCurrent: index === getCurrentIndex() })}
             renderControl={(setElementRef, getFlags) => (
                 <CarouselControl
                     ref={setElementRef}
-                    getIsCurrent={() => getFlags().isCurrent}
-                    getAriaLabel={() => getSlideLabel(index)}
-                    getFlags={getFlags}
+                    isCurrent={() => getFlags().isCurrent}
+                    ariaLabel={() => getSlideLabel(index)}
+                    flags={getFlags}
                     renderContent={() => props.renderPick?.(() => index, getFlags)}
                     onActivate={() => goTo(index)}
                 />
@@ -190,17 +191,17 @@ export const Carousel = <T,>(props: CarouselProps<T>) => {
 
     const renderRotationControl = (): JSX.Element => (
         <InteractionWrapper<CarouselRotationFlags>
-            getIsDisabled={getIsDisabled}
-            getExtraFlags={() => ({ isPlaying: getIsPlaying(), isHeld: getIsHeld() })}
+            isDisabled={getIsDisabled}
+            extraFlags={() => ({ isPlaying: getIsPlaying(), isHeld: getIsHeld() })}
             renderControl={(setElementRef, getFlags) => (
                 <CarouselControl
                     ref={setElementRef}
-                    getIsCurrent={() => false}
-                    getAriaLabel={() =>
+                    isCurrent={false}
+                    ariaLabel={() =>
                         props.computeRotationLabel?.(getIsPlaying()) ??
                         (getIsPlaying() ? ROTATION_LABELS.playing : ROTATION_LABELS.stopped)
                     }
-                    getFlags={getFlags}
+                    flags={getFlags}
                     renderContent={() => props.renderRotationControl?.(getFlags)}
                     onActivate={() => setIsPlaying((prev) => !prev)}
                 />
@@ -222,10 +223,10 @@ export const Carousel = <T,>(props: CarouselProps<T>) => {
         <div
             ref={setRootRef}
             class={styles.carouselRoot}
-            style={{ gap: `${props.getGap?.() ?? DEFAULT_CAROUSEL_GAP}px` }}
+            style={{ gap: `${access(props.gap) ?? DEFAULT_CAROUSEL_GAP}px` }}
             role="region"
             aria-roledescription={CAROUSEL_ROLE_DESCRIPTION}
-            aria-label={props.getAriaLabel()}
+            aria-label={access(props.ariaLabel)}
         >
             <div ref={setViewportRef} class={styles.carouselViewport}>
                 <div
@@ -235,7 +236,7 @@ export const Carousel = <T,>(props: CarouselProps<T>) => {
                         "transition-duration": `${getIsSwiping() ? 0 : getTransitionDurationMs()}ms`,
                     }}
                 >
-                    <Index each={props.getSlides()}>
+                    <Index each={access(props.slides)}>
                         {(getSlide, index) => {
                             const getIsCurrent = () => index === getCurrentIndex();
 

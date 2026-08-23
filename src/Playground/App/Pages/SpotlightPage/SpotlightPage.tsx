@@ -24,7 +24,7 @@ export const SpotlightPage = () => {
             name: "Hint",
             readout: () => `open: ${hintVisibility[0]()} — a click anywhere or any real key puts it away`,
             component: () => (
-                <HintExample visibilitySignal={hintVisibility} getIndex={getHintIndex} onIndexChange={setHintIndex} />
+                <HintExample visibilitySignal={hintVisibility} index={getHintIndex} onIndexChange={setHintIndex} />
             ),
             path: `${EXAMPLES_ROOT}/Hint.tsx`,
         },
@@ -49,7 +49,7 @@ export const SpotlightPage = () => {
             component: () => (
                 <GuideExample
                     visibilitySignal={tourVisibility}
-                    getStep={getStep}
+                    step={getStep}
                     onStepChange={setStep}
                     onStart={() => {
                         setStep(0);
@@ -65,5 +65,5 @@ export const SpotlightPage = () => {
         },
     ]);
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

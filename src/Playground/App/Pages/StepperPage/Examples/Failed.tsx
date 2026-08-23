@@ -11,42 +11,44 @@ const REASONS = { failed: FAILURE_REASON, ahead: LOCKED_REASON };
 
 type Props = StepperExampleProps;
 
-export const FailedExample = (props: Props) => (
-    <Stepper
-        getSteps={props.getSteps}
-        getCurrentValue={props.getCurrentValue}
-        getGap={() => STEPPER_GAP}
-        getAriaLabel={() => "Checkout with a failure"}
-        computeStepAriaLabel={props.computeStepAriaLabel}
-        computeTooltipDefs={(step) => {
-            const reason = step.state === "failed" || step.state === "ahead" ? REASONS[step.state] : undefined;
+export const FailedExample = (props: Props) => {
+    return (
+        <Stepper
+            steps={props.steps}
+            currentValue={props.currentValue}
+            gap={() => STEPPER_GAP}
+            ariaLabel={"Checkout with a failure"}
+            computeStepAriaLabel={props.computeStepAriaLabel}
+            computeTooltipDefs={(step) => {
+                const reason = step.state === "failed" || step.state === "ahead" ? REASONS[step.state] : undefined;
 
-            if (!reason) return undefined;
+                if (!reason) return undefined;
 
-            return {
-                getPlacement: () => ({ x: "center", y: "top-out" }),
-                getOffset: () => ({ x: 0, y: 5 }),
-                renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
-                    <PageTooltipContent
-                        getVisibilityTarget={getVisibilityTarget}
-                        getTransitionDurationMs={getTransitionDurationMs}
-                    >
-                        {reason}
-                    </PageTooltipContent>
-                ),
-            };
-        }}
-        onCurrentChange={props.onCurrentChange}
-        renderStep={(getStep, getFlags) => (
-            <PageStepContent
-                getFlags={getFlags}
-                getState={() => getStep().state}
-                getOrdinal={() => ORDER.indexOf(getStep().value) + 1}
-                getDir={() => "row"}
-            >
-                {LABELS[getStep().value]}
-            </PageStepContent>
-        )}
-        renderConnector={() => <PageStepConnector getDir={() => "row"} />}
-    />
-);
+                return {
+                    placement: () => ({ x: "center", y: "top-out" }),
+                    offset: () => ({ x: 0, y: 5 }),
+                    renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
+                        <PageTooltipContent
+                            visibilityTarget={getVisibilityTarget}
+                            transitionDurationMs={getTransitionDurationMs}
+                        >
+                            {reason}
+                        </PageTooltipContent>
+                    ),
+                };
+            }}
+            onCurrentChange={props.onCurrentChange}
+            renderStep={(getStep, getFlags) => (
+                <PageStepContent
+                    flags={getFlags}
+                    state={() => getStep().state}
+                    ordinal={() => ORDER.indexOf(getStep().value) + 1}
+                    dir={"row"}
+                >
+                    {LABELS[getStep().value]}
+                </PageStepContent>
+            )}
+            renderConnector={() => <PageStepConnector dir={"row"} />}
+        />
+    );
+};

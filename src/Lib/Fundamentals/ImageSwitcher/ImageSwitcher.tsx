@@ -2,6 +2,7 @@ import { createEffect, createMemo, createSignal, onCleanup, untrack } from "soli
 
 import { MathUtils } from "@thewaver/ss-utils";
 
+import { access } from "../../Utils/propUtils";
 import type { ImageSwitcherProps } from "./ImageSwitcher.types";
 
 import * as styles from "./ImageSwitcher.css";
@@ -14,13 +15,13 @@ export const ImageSwitcher = (props: ImageSwitcherProps) => {
     const [getVersion, setVersion] = createSignal(0);
 
     const getTransitionDurationMs = createMemo(
-        () => props.getTransitionDurationMs?.() ?? DEFAULT_IMAGE_SWITCHER_TRANSITION_DURATION_MS,
+        () => access(props.transitionDurationMs) ?? DEFAULT_IMAGE_SWITCHER_TRANSITION_DURATION_MS,
     );
 
     const isEven = createMemo(() => MathUtils.isEven(getVersion()));
 
     createEffect(() => {
-        const src = props.getSrc();
+        const src = access(props.src);
         const onLoad = props.onLoad;
 
         if (src === untrack(getCurrentImage)) return;

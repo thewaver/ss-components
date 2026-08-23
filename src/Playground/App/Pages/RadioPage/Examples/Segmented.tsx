@@ -16,23 +16,23 @@ export const SegmentedExample = (props: Props) => (
     <PageRadioSegmentGroup>
         <RadioGroup
             valueSignal={props.valueSignal}
-            getAriaLabel={() => "Segmented size"}
-            getDir={() => "row"}
-            getGap={() => 0}
+            ariaLabel={"Segmented size"}
+            dir={"row"}
+            gap={0}
             renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
                 <PageRadioSegmentFloater
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
+                    visibilityTarget={getVisibilityTarget}
+                    transitionDurationMs={getTransitionDurationMs}
                 />
             )}
         >
             <For each={SIZE_OPTIONS}>
                 {(option) => (
                     <Radio
-                        getValue={() => option.value}
-                        getAriaLabel={() => option.label}
+                        value={() => option.value}
+                        ariaLabel={() => option.label}
                         renderContent={(getFlags) => (
-                            <PageRadioSegmentContent getFlags={getFlags}>{option.label}</PageRadioSegmentContent>
+                            <PageRadioSegmentContent flags={getFlags}>{option.label}</PageRadioSegmentContent>
                         )}
                     />
                 )}

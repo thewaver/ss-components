@@ -1,5 +1,6 @@
 import { Index, Show, createMemo } from "solid-js";
 
+import { access } from "../../Utils/propUtils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import type { StepperDir, StepperItemProps, StepperProps } from "./Stepper.types";
 
@@ -9,12 +10,12 @@ const DEFAULT_STEPPER_DIR: StepperDir = "row";
 const DEFAULT_STEPPER_GAP = 0;
 
 const StepperItem = <TValue, TState>(props: StepperItemProps<TValue, TState>) => {
-    const getIsNavigable = () => props.getStep().isNavigable ?? false;
+    const getIsNavigable = () => access(props.step).isNavigable ?? false;
 
     const handleClick = () => {
         if (!getIsNavigable()) return;
 
-        props.onSelect(props.getStep().value);
+        props.onSelect(access(props.step).value);
     };
 
     return (
@@ -24,12 +25,12 @@ const StepperItem = <TValue, TState>(props: StepperItemProps<TValue, TState>) =>
                 <span
                     ref={(element) => props.ref?.(element)}
                     class={styles.stepperItem}
-                    id={props.getStep().id}
-                    aria-label={props.getAriaLabel?.()}
-                    aria-current={props.getFlags().isCurrent ? "step" : undefined}
-                    aria-disabled={props.getFlags().isDisabled || undefined}
+                    id={access(props.step).id}
+                    aria-label={access(props.ariaLabel)}
+                    aria-current={access(props.flags).isCurrent ? "step" : undefined}
+                    aria-disabled={access(props.flags).isDisabled || undefined}
                 >
-                    {props.renderContent(props.getFlags)}
+                    {props.renderContent(() => access(props.flags))}
                 </span>
             }
         >
@@ -37,21 +38,21 @@ const StepperItem = <TValue, TState>(props: StepperItemProps<TValue, TState>) =>
                 type="button"
                 ref={(element) => props.ref?.(element)}
                 class={styles.stepperItem}
-                id={props.getStep().id}
-                aria-label={props.getAriaLabel?.()}
-                aria-current={props.getFlags().isCurrent ? "step" : undefined}
+                id={access(props.step).id}
+                aria-label={access(props.ariaLabel)}
+                aria-current={access(props.flags).isCurrent ? "step" : undefined}
                 onClick={handleClick}
             >
-                {props.renderContent(props.getFlags)}
+                {props.renderContent(() => access(props.flags))}
             </button>
         </Show>
     );
 };
 
 export const Stepper = <TValue, TState>(props: StepperProps<TValue, TState>) => {
-    const getDir = createMemo(() => props.getDir?.() ?? DEFAULT_STEPPER_DIR);
+    const getDir = createMemo(() => access(props.dir) ?? DEFAULT_STEPPER_DIR);
 
-    const getLastIndex = createMemo(() => props.getSteps().length - 1);
+    const getLastIndex = createMemo(() => access(props.steps).length - 1);
 
     return (
         <ol
@@ -59,28 +60,28 @@ export const Stepper = <TValue, TState>(props: StepperProps<TValue, TState>) => 
             style={{
                 "flex-direction": getDir(),
                 "flex-wrap": getDir() === "row" ? "wrap" : undefined,
-                "gap": `${props.getGap?.() ?? DEFAULT_STEPPER_GAP}px`,
+                "gap": `${access(props.gap) ?? DEFAULT_STEPPER_GAP}px`,
             }}
-            aria-label={props.getAriaLabel?.()}
+            aria-label={access(props.ariaLabel)}
             aria-orientation={getDir() === "column" ? "vertical" : undefined}
         >
-            <Index each={props.getSteps()}>
+            <Index each={access(props.steps)}>
                 {(getStep, index) => {
                     const getTooltipDefs = () => props.computeTooltipDefs?.(getStep(), index);
 
                     return (
                         <li class={styles.stepperEntry} style={{ "flex-direction": getDir() }}>
                             <InteractionWrapper
-                                getIsDisabled={() => !(getStep().isNavigable ?? false)}
-                                getIsReachableWhenDisabled={() => getTooltipDefs() !== undefined}
-                                getTooltipDefs={getTooltipDefs}
-                                getExtraFlags={() => ({ isCurrent: getStep().value === props.getCurrentValue() })}
+                                isDisabled={() => !(getStep().isNavigable ?? false)}
+                                isReachableWhenDisabled={() => getTooltipDefs() !== undefined}
+                                tooltipDefs={getTooltipDefs}
+                                extraFlags={() => ({ isCurrent: getStep().value === access(props.currentValue) })}
                                 renderControl={(setElementRef, getFlags) => (
                                     <StepperItem
                                         ref={setElementRef}
-                                        getStep={getStep}
-                                        getFlags={getFlags}
-                                        getAriaLabel={() => props.computeStepAriaLabel(getStep(), index)}
+                                        step={getStep}
+                                        flags={getFlags}
+                                        ariaLabel={() => props.computeStepAriaLabel(getStep(), index)}
                                         renderContent={(getItemFlags) => props.renderStep(getStep, getItemFlags)}
                                         onSelect={(value) => props.onCurrentChange?.(value)}
                                     />

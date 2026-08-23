@@ -4,6 +4,7 @@ import { MathUtils, type Point2d, type Size2d } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { SignalMirror } from "../../Abstracts/SignalMirror/SignalMirror";
+import { access } from "../../Utils/propUtils";
 import type { CellAnimationEvaluationDefs, CellAnimationProps } from "./CellAnimation.types";
 import { CellAnimationUtils } from "./CellAnimation.utils";
 
@@ -19,20 +20,20 @@ const CELL_ANIMATION_BLEED_PX = 1;
 
 export const CellAnimation = (props: CellAnimationProps) => {
     const getAnimationDurationMs = createMemo(
-        () => props.getAnimationDurationMs?.() ?? DEFAULT_CELL_ANIMATION_DURATION_MS,
+        () => access(props.animationDurationMs) ?? DEFAULT_CELL_ANIMATION_DURATION_MS,
     );
 
     const getAnimationIterationCount = createMemo(
-        () => props.getAnimationIterationCount?.() ?? DEFAULT_CELL_ANIMATION_ITERATION_COUNT,
+        () => access(props.animationIterationCount) ?? DEFAULT_CELL_ANIMATION_ITERATION_COUNT,
     );
 
     const getAnimationIterationDelayMs = createMemo(
-        () => props.getAnimationIterationDelayMs?.() ?? DEFAULT_CELL_ANIMATION_ITERATION_DELAY_MS,
+        () => access(props.animationIterationDelayMs) ?? DEFAULT_CELL_ANIMATION_ITERATION_DELAY_MS,
     );
 
-    const getSizeAnchor = createMemo(() => props.getSizeAnchor?.() ?? DEFAULT_CELL_ANIMATION_SIZE_ANCHOR);
+    const getSizeAnchor = createMemo(() => access(props.sizeAnchor) ?? DEFAULT_CELL_ANIMATION_SIZE_ANCHOR);
 
-    const getAriaLabel = createMemo(() => props.getAriaLabel?.());
+    const getAriaLabel = createMemo(() => access(props.ariaLabel));
 
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
     const [getImgRef, setImgRef] = createSignal<HTMLElement>();
@@ -44,7 +45,7 @@ export const CellAnimation = (props: CellAnimationProps) => {
 
     const getCellCount = createMemo<Point2d, undefined>(
         () => {
-            const cellCount = props.getCellCount();
+            const cellCount = access(props.cellCount);
             const rootSize = getRootSize();
 
             return {
@@ -204,7 +205,7 @@ export const CellAnimation = (props: CellAnimationProps) => {
         >
             <img
                 ref={setImgRef}
-                src={props.getSrc()}
+                src={access(props.src)}
                 class={styles.cellAnimationAnchor}
                 width={getSizeAnchor() === "width" ? "100%" : "auto"}
                 height={getSizeAnchor() === "height" ? "100%" : "auto"}
@@ -216,7 +217,7 @@ export const CellAnimation = (props: CellAnimationProps) => {
                 class={styles.cellAnimationContainer}
                 style={{
                     ...assignInlineVars({
-                        [styles.cellSrcVar]: `url(${props.getSrc()})`,
+                        [styles.cellSrcVar]: `url(${access(props.src)})`,
                         [styles.cellSizeVar]: `${getRootSize().width}px ${getRootSize().height}px`,
                     }),
                     width: `${getRootSize().width}px`,

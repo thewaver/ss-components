@@ -2,7 +2,7 @@ import type { Accessor, JSX } from "solid-js";
 
 import type { Rect, Size2d } from "@thewaver/ss-utils";
 
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 
 export type MosaicSizeAnchor = "width" | "height";
 
@@ -29,7 +29,7 @@ export type MosaicState = {
 };
 
 export type MosaicProps = AccessorProps<MosaicState & { isItemSized: boolean }> & {
-    getSizes: Accessor<Size2d[]>;
+    sizes: MaybeAccessor<Size2d[]>;
     computePlacements: (defs: MosaicPackDefs) => MosaicPlacement[];
     renderItem: (index: number, getState: Accessor<MosaicItemState>) => JSX.Element;
 };
@@ -48,6 +48,6 @@ export type ImageMosaicProps = AccessorProps<
 >;
 
 export type ElementMosaicProps<T> = AccessorProps<MosaicState> & {
-    getItems: Accessor<T[]>;
+    items: MaybeAccessor<T[]>;
     renderItem: (getItem: Accessor<T>, getState: Accessor<MosaicItemState>) => JSX.Element;
 };

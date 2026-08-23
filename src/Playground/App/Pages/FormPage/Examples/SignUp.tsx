@@ -29,11 +29,11 @@ type Props = FormExampleProps;
 const renderTextField = (signal: Signal<string>, getHasError: () => boolean) => (
     <TextInput
         valueSignal={signal}
-        getHasError={getHasError}
-        getPadding={() => FIELD_PADDING}
-        getGap={() => FIELD_GAP}
+        hasError={getHasError}
+        padding={() => FIELD_PADDING}
+        gap={() => FIELD_GAP}
         computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} />}
+        renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} />}
     />
 );
 
@@ -49,17 +49,17 @@ export const SignUpExample = (props: Props) => {
 
     return (
         <Form
-            getAriaLabel={() => "Sign up"}
+            ariaLabel={"Sign up"}
             onSubmit={props.onSubmit}
             onReset={props.onReset}
             renderContent={(getState) => (
                 <PageFormStack>
                     <FormField
-                        getHasError={() => getEmailMessage().includes("not look")}
-                        getMessage={getEmailMessage}
+                        hasError={() => getEmailMessage().includes("not look")}
+                        message={getEmailMessage}
                         renderCaption={() => <PageFormFieldCaption>Email</PageFormFieldCaption>}
                         renderMessage={(getFieldState) => (
-                            <PageFormFieldMessage getState={getFieldState}>{getEmailMessage()}</PageFormFieldMessage>
+                            <PageFormFieldMessage state={getFieldState}>{getEmailMessage()}</PageFormFieldMessage>
                         )}
                         renderControl={(getFieldState) =>
                             renderTextField(props.emailSignal, () => getFieldState().hasError)
@@ -67,11 +67,11 @@ export const SignUpExample = (props: Props) => {
                     />
 
                     <FormField
-                        getHasError={() => getPasswordMessage().length > 0}
-                        getMessage={getPasswordMessage}
+                        hasError={() => getPasswordMessage().length > 0}
+                        message={getPasswordMessage}
                         renderCaption={() => <PageFormFieldCaption>Password</PageFormFieldCaption>}
                         renderMessage={(getFieldState) => (
-                            <PageFormFieldMessage getState={getFieldState}>{getPasswordMessage()}</PageFormFieldMessage>
+                            <PageFormFieldMessage state={getFieldState}>{getPasswordMessage()}</PageFormFieldMessage>
                         )}
                         renderControl={(getFieldState) =>
                             renderTextField(props.passwordSignal, () => getFieldState().hasError)
@@ -79,36 +79,34 @@ export const SignUpExample = (props: Props) => {
                     />
 
                     <FormField
-                        getDir={() => "row"}
-                        getHasError={() => !props.termsSignal[0]()}
-                        getMessage={() => (props.termsSignal[0]() ? "" : "Required.")}
+                        dir={"row"}
+                        hasError={() => !props.termsSignal[0]()}
+                        message={() => (props.termsSignal[0]() ? "" : "Required.")}
                         renderCaption={() => <PageFormFieldCaption>Accept the terms</PageFormFieldCaption>}
                         renderMessage={(getFieldState) => (
-                            <PageFormFieldMessage getState={getFieldState}>Required.</PageFormFieldMessage>
+                            <PageFormFieldMessage state={getFieldState}>Required.</PageFormFieldMessage>
                         )}
                         renderControl={(getFieldState) => (
                             <Checkbox
                                 checkedSignal={props.termsSignal}
-                                getHasError={() => getFieldState().hasError}
-                                renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+                                hasError={() => getFieldState().hasError}
+                                renderContent={(getFlags) => <PageCheckboxContent flags={getFlags} />}
                             />
                         )}
                     />
 
                     <PageFormButtons>
                         <Button
-                            getIsDisabled={() => !getState().isValid}
-                            getType={() => "submit"}
+                            isDisabled={() => !getState().isValid}
+                            type={"submit"}
                             renderContent={(getFlags) => (
-                                <PageButtonContent getFlags={getFlags}>Sign up</PageButtonContent>
+                                <PageButtonContent flags={getFlags}>Sign up</PageButtonContent>
                             )}
                         />
 
                         <Button
-                            getType={() => "reset"}
-                            renderContent={(getFlags) => (
-                                <PageButtonContent getFlags={getFlags}>Reset</PageButtonContent>
-                            )}
+                            type={"reset"}
+                            renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Reset</PageButtonContent>}
                         />
                     </PageFormButtons>
                 </PageFormStack>

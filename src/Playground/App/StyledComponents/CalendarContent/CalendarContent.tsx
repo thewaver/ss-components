@@ -1,24 +1,27 @@
 import type { ParentProps } from "solid-js";
 
+import { access } from "../../../../Lib/Utils/propUtils";
 import type { CalendarDayProps, CalendarTitleProps } from "./CalendarContent.types";
 
 import * as styles from "./CalendarContent.css";
 
-export const PageCalendarDay = (props: CalendarDayProps) => (
-    <div
-        class={styles.calendarDay}
-        classList={{
-            [styles.isSelected]: props.getFlags().isSelected,
-            [styles.isToday]: props.getFlags().isToday,
-            [styles.isOutsideMonth]: props.getFlags().isOutsideMonth,
-            [styles.isHovered]: props.getFlags().isHovered,
-            [styles.isDisabled]: props.getFlags().isDisabled,
-        }}
-        aria-hidden
-    >
-        {props.getFlags().day.day}
-    </div>
-);
+export const PageCalendarDay = (props: CalendarDayProps) => {
+    return (
+        <div
+            class={styles.calendarDay}
+            classList={{
+                [styles.isSelected]: access(props.flags).isSelected,
+                [styles.isToday]: access(props.flags).isToday,
+                [styles.isOutsideMonth]: access(props.flags).isOutsideMonth,
+                [styles.isHovered]: access(props.flags).isHovered,
+                [styles.isDisabled]: access(props.flags).isDisabled,
+            }}
+            aria-hidden
+        >
+            {access(props.flags).day.day}
+        </div>
+    );
+};
 
 export const PageCalendarWeekday = (props: ParentProps) => (
     <div class={styles.calendarWeekday} aria-hidden>
@@ -26,11 +29,13 @@ export const PageCalendarWeekday = (props: ParentProps) => (
     </div>
 );
 
-export const PageCalendarTitle = (props: ParentProps<CalendarTitleProps>) => (
-    <div class={styles.calendarTitle} classList={{ [styles.isHovered]: props.getFlags().isHovered }} aria-hidden>
-        {props.children}
-    </div>
-);
+export const PageCalendarTitle = (props: ParentProps<CalendarTitleProps>) => {
+    return (
+        <div class={styles.calendarTitle} classList={{ [styles.isHovered]: access(props.flags).isHovered }} aria-hidden>
+            {props.children}
+        </div>
+    );
+};
 
 export const PageCalendarHeader = (props: ParentProps) => <div class={styles.calendarHeader}>{props.children}</div>;
 

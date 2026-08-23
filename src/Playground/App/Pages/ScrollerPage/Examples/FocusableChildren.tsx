@@ -1,5 +1,6 @@
 import { Button } from "../../../../../Lib/Fundamentals/Button/Button";
 import { Scroller } from "../../../../../Lib/Fundamentals/Scroller/Scroller";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import { PageButtonContent } from "../../../StyledComponents/ButtonContent/ButtonContent";
 import { PageScrollerButton } from "../../../StyledComponents/ScrollerButton/ScrollerButton";
 import type { ScrollerExampleProps } from "../ScrollerPage.types";
@@ -11,18 +12,20 @@ const SCROLLER_GAP = 10;
 
 type Props = ScrollerExampleProps;
 
-export const FocusableChildrenExample = (props: Props) => (
-    <div class={styles.demo}>
-        <Scroller
-            getGap={() => SCROLLER_GAP}
-            getPadding={() => FOCUS_RING_WIDTH}
-            renderButton={(getStep, stepper) => <PageScrollerButton getStep={getStep} stepper={stepper} />}
-        >
-            {props.getLabels().map((label) => (
-                <Button
-                    renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>{label}</PageButtonContent>}
-                />
-            ))}
-        </Scroller>
-    </div>
-);
+export const FocusableChildrenExample = (props: Props) => {
+    return (
+        <div class={styles.demo}>
+            <Scroller
+                gap={() => SCROLLER_GAP}
+                padding={() => FOCUS_RING_WIDTH}
+                renderButton={(getStep, stepper) => <PageScrollerButton step={getStep} stepper={stepper} />}
+            >
+                {access(props.labels).map((label) => (
+                    <Button
+                        renderContent={(getFlags) => <PageButtonContent flags={getFlags}>{label}</PageButtonContent>}
+                    />
+                ))}
+            </Scroller>
+        </div>
+    );
+};

@@ -56,7 +56,7 @@ export const CheckboxPage = () => {
                     allSignal={allSignal}
                     firstChildSignal={firstChildSignal}
                     secondChildSignal={secondChildSignal}
-                    getIsMixed={getIsAllMixed}
+                    isMixed={getIsAllMixed}
                 />
             ),
             path: `${EXAMPLES_ROOT}/Mixed.tsx`,
@@ -92,5 +92,5 @@ export const CheckboxPage = () => {
         },
     ]);
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

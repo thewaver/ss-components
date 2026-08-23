@@ -1,5 +1,6 @@
 import type { ParentProps } from "solid-js";
 
+import { access } from "../../../../Lib/Utils/propUtils";
 import { usePropsPanelContext } from "../PropsPanel/PropsPanel.context";
 import type { PagePropProps } from "./Prop.types";
 
@@ -10,11 +11,13 @@ export const PageProp = (props: ParentProps<PagePropProps>) => {
 
     return (
         <div
-            class={styles.propsScopeVariants[propsPanelScope?.getScope?.() ?? "unknown"]}
+            class={
+                styles.propsScopeVariants[(propsPanelScope ? access(propsPanelScope.scope) : undefined) ?? "unknown"]
+            }
             data-prop
-            data-testid={props.getKey()}
+            data-testid={access(props.key)}
         >
-            <div class={styles.propLabel}>{props.getLabel()}</div>
+            <div class={styles.propLabel}>{access(props.label)}</div>
 
             {props.children}
         </div>

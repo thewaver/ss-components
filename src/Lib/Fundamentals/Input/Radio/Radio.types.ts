@@ -1,10 +1,9 @@
-import type { Accessor } from "solid-js";
-
+import type { MaybeAccessor } from "../../../Utils/typeUtils";
 import type { BinarySwitchProps } from "../BinarySwitch/BinarySwitch.types";
 
 export type RadioProps<T> = Omit<
     BinarySwitchProps,
-    "getType" | "getIsSwitch" | "getName" | "getIsChecked" | "getIsMixed" | "getIsTabbable" | "ref"
+    "type" | "isSwitch" | "name" | "isChecked" | "isMixed" | "isTabbable" | "ref"
 > & {
-    getValue: Accessor<T>;
+    value: MaybeAccessor<T>;
 };

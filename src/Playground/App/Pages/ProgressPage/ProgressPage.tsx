@@ -29,8 +29,8 @@ export const ProgressPage = () => {
 
     const getExamples = createMemo(() => {
         const commonProps: ProgressExampleProps = {
-            getUploadedBytes,
-            getUploadTotalBytes: () => UPLOAD_TOTAL_BYTES,
+            uploadedBytes: getUploadedBytes,
+            uploadTotalBytes: () => UPLOAD_TOTAL_BYTES,
         };
 
         return [
@@ -79,5 +79,5 @@ export const ProgressPage = () => {
         ];
     });
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

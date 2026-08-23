@@ -10,8 +10,8 @@ export const SuppressedExample = (props: Props) => (
     <Label>
         <Checkbox
             checkedSignal={props.checkedSignal}
-            getAriaLabel={() => "Announced as something else"}
-            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+            ariaLabel={"Announced as something else"}
+            renderContent={(getFlags) => <PageCheckboxContent flags={getFlags} />}
         />
 
         <PageLabelCaption>Subscribe to the newsletter</PageLabelCaption>

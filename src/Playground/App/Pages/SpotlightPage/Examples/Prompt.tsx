@@ -17,7 +17,7 @@ export const PromptExample = (props: Props) => {
         <div class={styles.root}>
             <Button
                 ref={setAnchorRef}
-                renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Buy the potato</PageButtonContent>}
+                renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Buy the potato</PageButtonContent>}
                 onClick={async () => {
                     if (!props.visibilitySignal[0]()) return;
 
@@ -27,15 +27,15 @@ export const PromptExample = (props: Props) => {
             />
 
             <Button
-                renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Insist</PageButtonContent>}
+                renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Insist</PageButtonContent>}
                 onClick={async () => {
                     props.visibilitySignal[1](true);
                 }}
             />
 
             <SpotlightPrompt
-                getElementRef={getAnchorRef}
-                getPadding={() => PADDING}
+                elementRef={getAnchorRef}
+                padding={() => PADDING}
                 visibilitySignal={props.visibilitySignal}
                 renderHighlight={renderHighlight}
                 renderOverlay={renderOverlay}

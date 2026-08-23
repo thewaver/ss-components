@@ -1,6 +1,7 @@
 import { createMemo } from "solid-js";
 import type { JSX } from "solid-js";
 
+import { access } from "../../Utils/propUtils";
 import type { RichTextNode, RichTextProps } from "./RichText.types";
 import { RichTextUtils } from "./RichText.utils";
 
@@ -47,10 +48,10 @@ const renderNodes = (
 export const RichText = (props: RichTextProps) => {
     const parsedTree = createMemo(() => {
         try {
-            return RichTextUtils.parseContent(props.getContent());
+            return RichTextUtils.parseContent(access(props.content));
         } catch (err) {
             console.error("RichText parse error:", err);
-            return [{ type: "text", content: props.getContent() }] as RichTextNode[];
+            return [{ type: "text", content: access(props.content) }] as RichTextNode[];
         }
     });
 
@@ -59,7 +60,7 @@ export const RichText = (props: RichTextProps) => {
             {renderNodes(
                 parsedTree(),
                 props.computeClassNames?.(DEFAULT_RICH_TEXT_CLASSES) ?? DEFAULT_RICH_TEXT_CLASSES,
-                props.getRemoveOtherTags?.(),
+                access(props.removeOtherTags),
             )}
         </>
     );

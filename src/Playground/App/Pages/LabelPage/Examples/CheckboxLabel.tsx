@@ -10,9 +10,9 @@ export const CheckboxLabelExample = (props: Props) => (
     <Label>
         <Checkbox
             checkedSignal={props.checkedSignal}
-            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+            renderContent={(getFlags) => <PageCheckboxContent flags={getFlags} />}
         />
 
-        <PageLabelCaption getId={() => "rememberCaption"}>Remember me</PageLabelCaption>
+        <PageLabelCaption id={"rememberCaption"}>Remember me</PageLabelCaption>
     </Label>
 );

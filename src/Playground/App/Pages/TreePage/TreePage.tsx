@@ -62,7 +62,7 @@ export const TreePage = () => {
                 <FilesExample
                     valueSignal={disabledSignal}
                     expandedSignal={disabledExpandedSignal}
-                    getNodes={() => FILES_WITH_DISABLED}
+                    nodes={() => FILES_WITH_DISABLED}
                 />
             ),
             path: `${EXAMPLES_ROOT}/Files.tsx`,
@@ -76,7 +76,7 @@ export const TreePage = () => {
                 <FilesExample
                     valueSignal={reachableSignal}
                     expandedSignal={reachableExpandedSignal}
-                    getNodes={() => FILES_WITH_REACHABLE}
+                    nodes={() => FILES_WITH_REACHABLE}
                 />
             ),
             path: `${EXAMPLES_ROOT}/Files.tsx`,
@@ -117,5 +117,5 @@ export const TreePage = () => {
         },
     ]);
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

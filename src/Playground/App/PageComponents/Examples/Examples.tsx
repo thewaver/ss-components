@@ -4,6 +4,7 @@ import { CSSUtils } from "@thewaver/ss-utils";
 
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Modal } from "../../../../Lib/Fundamentals/Modal/Modal";
+import { access } from "../../../../Lib/Utils/propUtils";
 import { PageModalOverlay } from "../../StyledComponents/ModalOverlay/ModalOverlay";
 import { PageModalPanel } from "../../StyledComponents/ModalPanel/ModalPanel";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
@@ -23,12 +24,12 @@ export const PageExamples = (props: ExamplesProps) => {
     const [, setIsModalOpen] = modalVisibility;
 
     const getWidestSpan = createMemo(() =>
-        props.getItems().reduce((widest, example) => Math.max(widest, example.span ?? SINGLE_SPAN), SINGLE_SPAN),
+        access(props.items).reduce((widest, example) => Math.max(widest, example.span ?? SINGLE_SPAN), SINGLE_SPAN),
     );
 
-    const getLayout = () => props.getLayout?.() ?? DEFAULT_LAYOUT;
+    const getLayout = () => access(props.layout) ?? DEFAULT_LAYOUT;
 
-    const getMinColumnWidth = () => props.getMinColumnWidth?.() ?? DEFAULT_MIN_COLUMN_WIDTH;
+    const getMinColumnWidth = () => access(props.minColumnWidth) ?? DEFAULT_MIN_COLUMN_WIDTH;
 
     const getColumns = () =>
         getLayout() === "grid"
@@ -38,7 +39,7 @@ export const PageExamples = (props: ExamplesProps) => {
     return (
         <>
             <div class={styles.examplesRootVariants[getLayout()]} style={{ "grid-template-columns": getColumns() }}>
-                <For each={props.getItems()}>
+                <For each={access(props.items)}>
                     {(example, getExampleIndex) => (
                         <div
                             class={styles.exampleContainer}
@@ -50,14 +51,14 @@ export const PageExamples = (props: ExamplesProps) => {
                                 {`${example.name}:`}
                                 {example.path && (
                                     <Button
-                                        getId={() => `${example.key}Source`}
-                                        getTooltipDefs={() => ({
-                                            getPlacement: () => ({ x: "center", y: "top-out" }),
-                                            getOffset: () => ({ x: 0, y: 5 }),
+                                        id={() => `${example.key}Source`}
+                                        tooltipDefs={() => ({
+                                            placement: () => ({ x: "center", y: "top-out" }),
+                                            offset: () => ({ x: 0, y: 5 }),
                                             renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
                                                 <PageTooltipContent
-                                                    getVisibilityTarget={getVisibilityTarget}
-                                                    getTransitionDurationMs={getTransitionDurationMs}
+                                                    visibilityTarget={getVisibilityTarget}
+                                                    transitionDurationMs={getTransitionDurationMs}
                                                 >
                                                     View source code
                                                 </PageTooltipContent>
@@ -87,24 +88,24 @@ export const PageExamples = (props: ExamplesProps) => {
             </div>
 
             <Modal
-                getMargins={() => CSSUtils.spreadMargin(40)}
+                margins={() => CSSUtils.spreadMargin(40)}
                 visibilitySignal={modalVisibility}
-                getAriaLabel={() => `${props.getItems()[getActiveIndex()].name} source code`}
+                ariaLabel={() => `${access(props.items)[getActiveIndex()].name} source code`}
                 renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
                     <PageModalOverlay
-                        getVisibilityTarget={getVisibilityTarget}
-                        getTransitionDurationMs={getTransitionDurationMs}
+                        visibilityTarget={getVisibilityTarget}
+                        transitionDurationMs={getTransitionDurationMs}
                     />
                 )}
                 renderContent={(getVisibilityTarget, getTransitionDurationMs) => (
                     <PageModalPanel
-                        getVisibilityTarget={getVisibilityTarget}
-                        getTransitionDurationMs={getTransitionDurationMs}
-                        getPadding={() => "0"}
+                        visibilityTarget={getVisibilityTarget}
+                        transitionDurationMs={getTransitionDurationMs}
+                        padding={"0"}
                     >
                         <PageSourceView
-                            getPath={() => props.getItems()[getActiveIndex()].path!}
-                            getSampleKeys={() => props.getItems()[getActiveIndex()].sampleKeys?.() ?? []}
+                            path={() => access(props.items)[getActiveIndex()].path!}
+                            sampleKeys={() => access(props.items)[getActiveIndex()].sampleKeys?.() ?? []}
                         />
                     </PageModalPanel>
                 )}

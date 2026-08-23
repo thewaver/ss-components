@@ -9,6 +9,7 @@ import { FocusUtils } from "../../Abstracts/Focus/Focus.utils";
 import type { InteractionSwipeAxis, InteractionSwipeDirection } from "../../Abstracts/Interaction/Interaction.types";
 import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
 import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
+import { access } from "../../Utils/propUtils";
 import type { ModalAlignment, ModalProps, ModalRole } from "./Modal.types";
 
 import * as styles from "./Modal.css";
@@ -33,10 +34,10 @@ export const Modal = (props: ModalProps) => {
     const [getContainerRef, setContainerRef] = createSignal<HTMLElement>();
 
     const getTransitionDurationMs = createMemo(
-        () => props.getTransitionDurationMs?.() ?? DEFAULT_MODAL_TRANSITION_DURATION_MS,
+        () => access(props.transitionDurationMs) ?? DEFAULT_MODAL_TRANSITION_DURATION_MS,
     );
 
-    const getAlignment = createMemo(() => props.getAlignment?.() ?? DEFAULT_MODAL_ALIGNMENT);
+    const getAlignment = createMemo(() => access(props.alignment) ?? DEFAULT_MODAL_ALIGNMENT);
 
     const getSwipeDirection = createMemo(() => MODAL_SWIPE_DIRECTIONS[getAlignment()]);
 
@@ -47,7 +48,7 @@ export const Modal = (props: ModalProps) => {
     });
 
     const getMargins = createMemo(() => {
-        return props.getMargins?.() ?? CSSUtils.spreadMargin(0);
+        return access(props.margins) ?? CSSUtils.spreadMargin(0);
     });
 
     const { getIsVisible, getTransitionTarget, getHasTransitionFinished } = ElementFader.createFader(
@@ -55,14 +56,14 @@ export const Modal = (props: ModalProps) => {
         { getTransitionDurationMs, onShow: props.onShow, onHide: props.onHide },
     );
 
-    FocusUtils.autoFocus(getContainerRef, getIsVisible, { getInitialRef: props.getInitialFocusRef });
+    FocusUtils.autoFocus(getContainerRef, getIsVisible, { getInitialRef: () => access(props.initialFocusRef) });
 
     const handleDismiss = () => {
         props.visibilitySignal[1](false);
     };
 
     const handleOverlayClick = () => {
-        if (props.getIsDismissableOnOverlayClick?.() === false) return;
+        if (access(props.isDismissableOnOverlayClick) === false) return;
 
         handleDismiss();
     };
@@ -71,7 +72,7 @@ export const Modal = (props: ModalProps) => {
 
     const { getIsSwiping } = InteractionUtils.trackSwipe(
         getContainerRef,
-        () => getSwipeDirection() === undefined || props.getIsDismissableOnOverlayClick?.() === false,
+        () => getSwipeDirection() === undefined || access(props.isDismissableOnOverlayClick) === false,
         {
             getAxis: getSwipeAxis,
             getCommitRatio: () => MODAL_SWIPE_COMMIT_RATIO,
@@ -152,11 +153,11 @@ export const Modal = (props: ModalProps) => {
                             "transition-property": "transform",
                             "transition-duration": `${getIsSwiping() ? 0 : getTransitionDurationMs()}ms`,
                         }}
-                        role={props.getRole?.() ?? DEFAULT_MODAL_ROLE}
+                        role={access(props.role) ?? DEFAULT_MODAL_ROLE}
                         aria-modal="true"
-                        aria-label={props.getAriaLabel?.()}
-                        aria-labelledby={props.getAriaLabelledBy?.()}
-                        aria-describedby={props.getAriaDescribedBy?.()}
+                        aria-label={access(props.ariaLabel)}
+                        aria-labelledby={access(props.ariaLabelledBy)}
+                        aria-describedby={access(props.ariaDescribedBy)}
                     >
                         {props.renderContent(getTransitionTarget, getTransitionDurationMs)}
                     </div>

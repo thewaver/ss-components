@@ -1,5 +1,6 @@
 import { Show, createMemo, createUniqueId, onCleanup } from "solid-js";
 
+import { access } from "../../../Utils/propUtils";
 import { useFormContext } from "../../Form/Form.context";
 import { FormFieldContextProvider } from "./FormField.context";
 import type { FormFieldProps, FormFieldState } from "./FormField.types";
@@ -13,9 +14,9 @@ export const FormField = (props: FormFieldProps) => {
     const messageId = createUniqueId();
     const formContext = useFormContext();
 
-    const getHasError = () => props.getHasError?.() ?? false;
+    const getHasError = () => access(props.hasError) ?? false;
 
-    const getHasMessage = () => (props.getMessage?.() ?? "").length > 0;
+    const getHasMessage = () => (access(props.message) ?? "").length > 0;
 
     const getState = createMemo((): FormFieldState => ({ hasError: getHasError(), hasMessage: getHasMessage() }));
 
@@ -31,8 +32,8 @@ export const FormField = (props: FormFieldProps) => {
         <div
             class={styles.formFieldRoot}
             style={{
-                "flex-direction": props.getDir?.() ?? DEFAULT_FORM_FIELD_DIR,
-                "gap": `${props.getGap?.() ?? DEFAULT_FORM_FIELD_GAP}px`,
+                "flex-direction": access(props.dir) ?? DEFAULT_FORM_FIELD_DIR,
+                "gap": `${access(props.gap) ?? DEFAULT_FORM_FIELD_GAP}px`,
             }}
         >
             {props.renderCaption?.(getState)}
@@ -43,7 +44,7 @@ export const FormField = (props: FormFieldProps) => {
 
             <Show when={getHasMessage()}>
                 <div id={messageId} role={getHasError() ? "alert" : undefined}>
-                    {props.renderMessage?.(getState) ?? props.getMessage?.()}
+                    {props.renderMessage?.(getState) ?? access(props.message)}
                 </div>
             </Show>
         </div>

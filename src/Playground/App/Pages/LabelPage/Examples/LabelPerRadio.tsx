@@ -17,13 +17,13 @@ const PLAN_OPTIONS: { value: PlanValue; label: string }[] = [
 type Props = LabelRadioExampleProps;
 
 export const LabelPerRadioExample = (props: Props) => (
-    <RadioGroup valueSignal={props.valueSignal} getAriaLabel={() => "Plan"} getGap={() => GAP}>
+    <RadioGroup valueSignal={props.valueSignal} ariaLabel={"Plan"} gap={() => GAP}>
         <For each={PLAN_OPTIONS}>
             {(option) => (
                 <Label>
                     <Radio
-                        getValue={() => option.value}
-                        renderContent={(getFlags) => <PageRadioContent getFlags={getFlags} />}
+                        value={() => option.value}
+                        renderContent={(getFlags) => <PageRadioContent flags={getFlags} />}
                     />
 
                     <PageLabelCaption>{option.label}</PageLabelCaption>

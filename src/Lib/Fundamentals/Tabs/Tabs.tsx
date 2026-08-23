@@ -3,6 +3,7 @@ import { Dynamic } from "solid-js/web";
 
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { NavigationUtils } from "../../Abstracts/Navigation/Navigation.utils";
+import { access } from "../../Utils/propUtils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import type { TabPanelProps, TabsDir, TabsItemProps, TabsProps } from "./Tabs.types";
 
@@ -12,14 +13,16 @@ const DEFAULT_TABS_TRANSITION_DURATION_MS = 200;
 const DEFAULT_TABS_GAP = 0;
 const DEFAULT_TABS_DIR: TabsDir = "row";
 
-export const TabPanel = (props: TabPanelProps) => (
-    <div id={props.getId()} role="tabpanel" aria-labelledby={props.getTabId()} tabindex={0}>
-        {props.children}
-    </div>
-);
+export const TabPanel = (props: TabPanelProps) => {
+    return (
+        <div id={access(props.id)} role="tabpanel" aria-labelledby={access(props.tabId)} tabindex={0}>
+            {props.children}
+        </div>
+    );
+};
 
 const TabsItem = <T,>(props: TabsItemProps<T>) => {
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
     const handleClick = (e: MouseEvent) => {
         if (getIsDisabled()) {
@@ -27,43 +30,43 @@ const TabsItem = <T,>(props: TabsItemProps<T>) => {
             return;
         }
 
-        props.onSelect(props.getTab().value);
+        props.onSelect(access(props.tab).value);
     };
 
     const commonProps: Omit<JSX.HTMLAttributes<HTMLElement>, "ref"> = {
         "class": styles.tabsItem,
         "role": "tab",
         get "id"() {
-            return props.getTab().id;
+            return access(props.tab).id;
         },
         get "aria-controls"() {
-            return props.getTab().panelId;
+            return access(props.tab).panelId;
         },
         get "aria-disabled"() {
             return getIsDisabled() || undefined;
         },
         get "aria-selected"() {
-            return props.getIsSelected();
+            return access(props.isSelected);
         },
     };
 
     return (
         <Show
-            when={props.getTab().href}
+            when={access(props.tab).href}
             fallback={
                 <button type="button" ref={(element) => props.ref?.(element)} {...commonProps} onClick={handleClick}>
-                    {props.renderContent(props.getFlags)}
+                    {props.renderContent(() => access(props.flags))}
                 </button>
             }
         >
             <Dynamic
                 component={props.linkComponent ?? "a"}
                 ref={(element: HTMLElement) => props.ref?.(element)}
-                href={props.getTab().href!}
+                href={access(props.tab).href!}
                 {...commonProps}
                 onClick={handleClick}
             >
-                {props.renderContent(props.getFlags)}
+                {props.renderContent(() => access(props.flags))}
             </Dynamic>
         </Show>
     );
@@ -78,12 +81,12 @@ export const Tabs = <T,>(props: TabsProps<T>) => {
     >();
 
     const getTransitionDurationMs = createMemo(
-        () => props.getTransitionDurationMs?.() ?? DEFAULT_TABS_TRANSITION_DURATION_MS,
+        () => access(props.transitionDurationMs) ?? DEFAULT_TABS_TRANSITION_DURATION_MS,
     );
 
-    const getDir = createMemo(() => props.getDir?.() ?? DEFAULT_TABS_DIR);
+    const getDir = createMemo(() => access(props.dir) ?? DEFAULT_TABS_DIR);
 
-    const getTabGap = createMemo(() => props.getTabGap?.() ?? DEFAULT_TABS_GAP);
+    const getTabGap = createMemo(() => access(props.tabGap) ?? DEFAULT_TABS_GAP);
 
     const setItemRef = (index: number, element: HTMLElement) => {
         setItemRefs((prev) => {
@@ -96,13 +99,13 @@ export const Tabs = <T,>(props: TabsProps<T>) => {
     };
 
     const getSelectedIndex = createMemo(() => {
-        const selectedValue = props.getSelectedValue();
+        const selectedValue = access(props.selectedValue);
 
-        return props.getTabs().findIndex((tab) => tab.value === selectedValue);
+        return access(props.tabs).findIndex((tab) => tab.value === selectedValue);
     });
 
     const getNavigableIndexes = createMemo(() =>
-        props.getTabs().reduce<number[]>((acc, tab, index) => {
+        access(props.tabs).reduce<number[]>((acc, tab, index) => {
             if (!tab.isDisabled) acc.push(index);
 
             return acc;
@@ -121,7 +124,7 @@ export const Tabs = <T,>(props: TabsProps<T>) => {
 
     const getRovingIndex = createMemo(() => {
         const navigable = getNavigableIndexes();
-        const tabs = props.getTabs();
+        const tabs = access(props.tabs);
         const focusedValue = getFocusedValue();
 
         const focusedIndex = navigable.find((index) => tabs[index].value === focusedValue);
@@ -136,7 +139,7 @@ export const Tabs = <T,>(props: TabsProps<T>) => {
     });
 
     createEffect(() => {
-        props.getSelectedValue();
+        access(props.selectedValue);
 
         setFocusedValue(() => undefined);
     });
@@ -183,7 +186,7 @@ export const Tabs = <T,>(props: TabsProps<T>) => {
         e.preventDefault();
 
         const next = navigable[position];
-        const nextValue = props.getTabs()[next].value;
+        const nextValue = access(props.tabs)[next].value;
 
         setFocusedValue(() => nextValue);
         getItemRefs()[next]?.focus();
@@ -195,7 +198,7 @@ export const Tabs = <T,>(props: TabsProps<T>) => {
             class={styles.tabsRoot}
             style={{ "flex-direction": getDir(), "gap": `${getTabGap()}px` }}
             role="tablist"
-            aria-label={props.getAriaLabel?.()}
+            aria-label={access(props.ariaLabel)}
             aria-orientation={getDir() === "column" ? "vertical" : undefined}
             onKeyDown={handleKeyDown}
         >
@@ -209,23 +212,23 @@ export const Tabs = <T,>(props: TabsProps<T>) => {
                 </div>
             )}
 
-            <Index each={props.getTabs()}>
+            <Index each={access(props.tabs)}>
                 {(getTab, index) => (
                     <InteractionWrapper
-                        getSizing={() => "fill"}
-                        getIsDisabled={() => getTab().isDisabled ?? false}
-                        getIsTabbable={() => index === getRovingIndex()}
+                        sizing={"fill"}
+                        isDisabled={() => getTab().isDisabled ?? false}
+                        isTabbable={() => index === getRovingIndex()}
                         ref={(element) => setItemRef(index, element)}
                         renderControl={(setElementRef, getFlags) => (
                             <TabsItem
                                 ref={setElementRef}
-                                getTab={getTab}
-                                getFlags={getFlags}
-                                getIsSelected={() => index === getSelectedIndex()}
+                                tab={getTab}
+                                flags={getFlags}
+                                isSelected={() => index === getSelectedIndex()}
                                 linkComponent={props.linkComponent}
                                 renderContent={(getItemFlags) => props.renderTab(getTab, getItemFlags)}
                                 onSelect={(value) => {
-                                    if (value === props.getSelectedValue()) return;
+                                    if (value === access(props.selectedValue)) return;
 
                                     props.onSelectionChange?.(value);
                                 }}

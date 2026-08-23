@@ -5,6 +5,7 @@ import { Anchor } from "../../Abstracts/Anchor/Anchor";
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { FocusUtils } from "../../Abstracts/Focus/Focus.utils";
 import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
+import { access } from "../../Utils/propUtils";
 import type { TooltipProps } from "./Tooltip.types";
 
 import * as styles from "./Tooltip.css";
@@ -27,11 +28,11 @@ export const Tooltip = (props: TooltipProps) => {
     const [getShouldShow, setShouldShow] = createSignal(false);
 
     const getTransitionDurationMs = createMemo(
-        () => props.getTransitionDurationMs?.() ?? DEFAULT_TOOLTIP_TRANSITION_DURATION_MS,
+        () => access(props.transitionDurationMs) ?? DEFAULT_TOOLTIP_TRANSITION_DURATION_MS,
     );
 
     const getFocusShowDelayMs = createMemo(
-        () => props.getFocusShowDelayMs?.() ?? DEFAULT_TOOLTIP_SHOW_ON_FOCUS_DELAY_MS,
+        () => access(props.focusShowDelayMs) ?? DEFAULT_TOOLTIP_SHOW_ON_FOCUS_DELAY_MS,
     );
 
     const { getIsVisible, getTransitionTarget } = ElementFader.createFader(getShouldShow, {
@@ -39,12 +40,13 @@ export const Tooltip = (props: TooltipProps) => {
     });
 
     const { getPlacement, getPosition, getZIndex, setContentRef } = Anchor.createPortalPosition(
-        props.getAnchorRef,
+        () => access(props.anchorRef),
         getIsVisible,
         {
-            getPlacement: props.getPlacement,
-            getOffset: props.getOffset,
-            getReservedScreenSize: props.getReservedScreenSize,
+            getPlacement: () => access(props.placement),
+            getOffset: props.offset === undefined ? undefined : () => access(props.offset)!,
+            getReservedScreenSize:
+                props.reservedScreenSize === undefined ? undefined : () => access(props.reservedScreenSize)!,
         },
     );
 
@@ -70,7 +72,7 @@ export const Tooltip = (props: TooltipProps) => {
     const handleFocus = () => {
         clearTimeout(focusTimeout);
 
-        const anchorRef = props.getAnchorRef();
+        const anchorRef = access(props.anchorRef);
 
         if (FocusUtils.getIsRestoringFocus()) return;
         if (anchorRef && !anchorRef.matches(":focus-visible")) return;
@@ -86,7 +88,7 @@ export const Tooltip = (props: TooltipProps) => {
     };
 
     createEffect(() => {
-        const anchorRef = props.getAnchorRef();
+        const anchorRef = access(props.anchorRef);
 
         onCleanup(() => {
             anchorRef?.removeEventListener("mouseenter", handleMouseEnter);
@@ -106,7 +108,7 @@ export const Tooltip = (props: TooltipProps) => {
     });
 
     createEffect(() => {
-        const anchorRef = props.getAnchorRef();
+        const anchorRef = access(props.anchorRef);
         const isVisible = getIsVisible();
 
         if (!anchorRef || !isVisible) return;

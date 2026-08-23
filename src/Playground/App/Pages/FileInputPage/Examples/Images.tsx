@@ -7,8 +7,8 @@ type Props = FileInputExampleProps;
 export const ImagesExample = (props: Props) => (
     <FileInput
         filesSignal={props.filesSignal}
-        getAccept={() => "image/*"}
-        getAriaLabel={() => "Avatar"}
-        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
+        accept={"image/*"}
+        ariaLabel={"Avatar"}
+        renderContent={(getFlags) => <PageFileInputContent flags={getFlags} />}
     />
 );

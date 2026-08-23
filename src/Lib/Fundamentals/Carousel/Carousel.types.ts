@@ -1,7 +1,7 @@
 import type { Accessor, JSX, Signal } from "solid-js";
 
 import type { InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 import type { InteractionControlProps } from "../InteractionWrapper/InteractionWrapper.types";
 
 export type CarouselStep = "previous" | "next";
@@ -55,7 +55,7 @@ export type CarouselProps<T> = AccessorProps<{
     computeStepLabel?: (step: CarouselStep) => string;
     computeRotationLabel?: (isPlaying: boolean) => string;
 }> & {
-    getSlides: Accessor<T[]>;
+    slides: MaybeAccessor<T[]>;
     indexSignal?: Signal<number>;
     playingSignal?: Signal<boolean>;
     renderSlide: (getSlide: Accessor<T>, getState: Accessor<CarouselSlideState>) => JSX.Element;

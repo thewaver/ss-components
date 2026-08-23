@@ -8,17 +8,17 @@ type Props = ToggleExampleProps;
 export const ReachableExample = (props: Props) => (
     <Toggle
         checkedSignal={props.checkedSignal}
-        getAriaLabel={() => "Disabled but reachable toggle"}
-        getIsDisabled={() => true}
-        getIsReachableWhenDisabled={() => true}
-        renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
-        getTooltipDefs={() => ({
-            getPlacement: () => ({ x: "center", y: "top-out" }),
-            getOffset: () => ({ x: 0, y: 5 }),
+        ariaLabel={"Disabled but reachable toggle"}
+        isDisabled={true}
+        isReachableWhenDisabled={true}
+        renderContent={(getFlags) => <PageToggleContent flags={getFlags} />}
+        tooltipDefs={() => ({
+            placement: () => ({ x: "center", y: "top-out" }),
+            offset: () => ({ x: 0, y: 5 }),
             renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
                 <PageTooltipContent
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
+                    visibilityTarget={getVisibilityTarget}
+                    transitionDurationMs={getTransitionDurationMs}
                 >
                     Focusable so this tooltip can be read, but clicking and pressing Space must leave it on.
                 </PageTooltipContent>

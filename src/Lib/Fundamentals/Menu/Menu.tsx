@@ -7,6 +7,7 @@ import { NavigationUtils } from "../../Abstracts/Navigation/Navigation.utils";
 import { SignalMirror } from "../../Abstracts/SignalMirror/SignalMirror";
 import { Typeahead } from "../../Abstracts/Typeahead/Typeahead";
 import { TypeaheadUtils } from "../../Abstracts/Typeahead/Typeahead.utils";
+import { access } from "../../Utils/propUtils";
 import { LabelUtils } from "../Input/Label/Label.utils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import { Popover } from "../Popover/Popover";
@@ -25,21 +26,23 @@ const SUBMENU_OPEN_KEY = "ArrowRight";
 const SUBMENU_CLOSE_KEY = "ArrowLeft";
 
 const MenuTrigger = (props: MenuTriggerProps) => {
-    const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
+    const getAriaLabel = LabelUtils.resolveAriaLabel(
+        props.ariaLabel === undefined ? undefined : () => access(props.ariaLabel)!,
+    );
 
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
     return (
         <button
-            id={props.getId?.()}
+            id={access(props.id)}
             ref={(element) => props.ref?.(element)}
             type="button"
             class={styles.menuTrigger}
             aria-haspopup="menu"
             aria-label={getAriaLabel()}
             aria-disabled={getIsDisabled() || undefined}
-            aria-expanded={props.getFlags().isOpen}
-            aria-controls={props.getFlags().isOpen ? props.getMenuId() : undefined}
+            aria-expanded={access(props.flags).isOpen}
+            aria-controls={access(props.flags).isOpen ? access(props.menuId) : undefined}
             onClick={() => {
                 if (getIsDisabled()) return;
 
@@ -47,7 +50,7 @@ const MenuTrigger = (props: MenuTriggerProps) => {
             }}
             onKeyDown={props.onKeyDown}
         >
-            {props.renderContent(props.getFlags)}
+            {props.renderContent(() => access(props.flags))}
         </button>
     );
 };
@@ -55,21 +58,21 @@ const MenuTrigger = (props: MenuTriggerProps) => {
 const MenuItemView = (props: MenuItemViewProps) => {
     const [getElementRef, setElementRef] = createSignal<HTMLElement>();
 
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
-    const getHasSubmenu = () => props.getFlags().hasSubmenu;
+    const getHasSubmenu = () => access(props.flags).hasSubmenu;
 
-    const getIsOpen = () => props.getFlags().isOpen;
+    const getIsOpen = () => access(props.flags).isOpen;
 
     createEffect(() => {
-        if (!props.getFlags().isHighlighted) return;
+        if (!access(props.flags).isHighlighted) return;
 
         getElementRef()?.scrollIntoView({ block: "nearest" });
     });
 
     return (
         <div
-            id={props.getId?.()}
+            id={access(props.id)}
             ref={(element) => {
                 setElementRef(element);
                 props.ref?.(element);
@@ -79,7 +82,7 @@ const MenuItemView = (props: MenuItemViewProps) => {
             aria-disabled={getIsDisabled() || undefined}
             aria-haspopup={getHasSubmenu() ? "menu" : undefined}
             aria-expanded={getHasSubmenu() ? getIsOpen() : undefined}
-            aria-controls={getIsOpen() ? props.getSubmenuId?.() : undefined}
+            aria-controls={getIsOpen() ? access(props.submenuId) : undefined}
             onClick={() => {
                 if (getIsDisabled()) return;
 
@@ -87,7 +90,7 @@ const MenuItemView = (props: MenuItemViewProps) => {
             }}
             onMouseEnter={() => props.onHover()}
         >
-            {props.renderContent(props.getFlags)}
+            {props.renderContent(() => access(props.flags))}
         </div>
     );
 };
@@ -99,7 +102,7 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
     const typeahead = Typeahead.createBuffer();
 
     const getNavigableIndexes = createMemo(() =>
-        props.getItems().reduce<number[]>((acc, item, index) => {
+        access(props.items).reduce<number[]>((acc, item, index) => {
             const isReachable = InteractionUtils.computeIsReachable(
                 item.isDisabled ?? false,
                 item.isReachableWhenDisabled ?? false,
@@ -114,14 +117,14 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
 
     const getHighlightedIndex = createMemo(() => {
         const navigable = getNavigableIndexes();
-        const items = props.getItems();
+        const items = access(props.items);
         const highlightedValue = getHighlightedValue();
 
         const highlightedIndex = navigable.find((index) => items[index].value === highlightedValue);
 
         if (highlightedIndex !== undefined) return highlightedIndex;
 
-        if (props.getInitialHighlightPosition?.() === "last") return navigable[navigable.length - 1];
+        if (access(props.initialHighlightPosition) === "last") return navigable[navigable.length - 1];
 
         return navigable[0];
     });
@@ -129,36 +132,36 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
     const getActiveItemId = createMemo(() => {
         const highlightedIndex = getHighlightedIndex();
 
-        if (!props.getIsOpen() || highlightedIndex === undefined) return;
+        if (!access(props.isOpen) || highlightedIndex === undefined) return;
 
-        return `${props.getId()}-item-${highlightedIndex}`;
+        return `${access(props.id)}-item-${highlightedIndex}`;
     });
 
-    const getItemId = (index: number) => `${props.getId()}-item-${index}`;
+    const getItemId = (index: number) => `${access(props.id)}-item-${index}`;
 
     const computeItemText = (index: number) =>
-        props.computeCustomText?.(props.getItems()[index]) ??
+        props.computeCustomText?.(access(props.items)[index]) ??
         TypeaheadUtils.getElementText(document.getElementById(getItemId(index)));
 
-    const getSubmenuId = (index: number) => `${props.getId()}-submenu-${index}`;
+    const getSubmenuId = (index: number) => `${access(props.id)}-submenu-${index}`;
 
-    const computeHasSubmenu = (index: number) => (props.getItems()[index].items?.length ?? 0) > 0;
+    const computeHasSubmenu = (index: number) => (access(props.items)[index].items?.length ?? 0) > 0;
 
     const highlightIndex = (index: number | undefined) => {
         if (index === undefined) return;
 
-        setHighlightedValue(() => props.getItems()[index].value);
+        setHighlightedValue(() => access(props.items)[index].value);
     };
 
     const openIndex = (index: number) => {
-        setHighlightedValue(() => props.getItems()[index].value);
-        setOpenValue(() => props.getItems()[index].value);
+        setHighlightedValue(() => access(props.items)[index].value);
+        setOpenValue(() => access(props.items)[index].value);
     };
 
     const hoverIndex = (index: number) => {
         if (!getNavigableIndexes().includes(index)) return;
 
-        const item = props.getItems()[index];
+        const item = access(props.items)[index];
 
         if (computeHasSubmenu(index) && !item.isDisabled) {
             openIndex(index);
@@ -177,20 +180,20 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
             return;
         }
 
-        props.onActivate(props.getItems()[index].value);
+        props.onActivate(access(props.items)[index].value);
     };
 
     createEffect(() => {
-        if (props.getIsOpen()) return;
+        if (access(props.isOpen)) return;
 
         setHighlightedValue(() => undefined);
         setOpenValue(() => undefined);
     });
 
     const handleKeyDown = (e: KeyboardEvent) => {
-        if (!(e.target instanceof HTMLElement) || e.target.id !== props.getId()) return;
+        if (!(e.target instanceof HTMLElement) || e.target.id !== access(props.id)) return;
 
-        const items = props.getItems();
+        const items = access(props.items);
         const navigable = getNavigableIndexes();
         const highlightedIndex = getHighlightedIndex();
 
@@ -235,7 +238,7 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
             return;
         }
 
-        if (e.key === SUBMENU_CLOSE_KEY && props.getIsSubmenu()) {
+        if (e.key === SUBMENU_CLOSE_KEY && access(props.isSubmenu)) {
             e.preventDefault();
             props.onClose();
 
@@ -254,7 +257,7 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
     };
 
     const renderItems = () => (
-        <Index each={props.getItems()}>
+        <Index each={access(props.items)}>
             {(getItem, index) => {
                 const [getItemRef, setItemRef] = createSignal<HTMLElement>();
 
@@ -262,12 +265,12 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
 
                 return (
                     <InteractionWrapper
-                        getSizing={() => "fill"}
-                        getIsDisabled={() => getItem().isDisabled ?? false}
-                        getIsReachableWhenDisabled={() => getItem().isReachableWhenDisabled ?? false}
-                        getIsTabbable={() => false}
-                        getTooltipDefs={() => getItem().tooltipDefs}
-                        getExtraFlags={() => ({
+                        sizing={"fill"}
+                        isDisabled={() => getItem().isDisabled ?? false}
+                        isReachableWhenDisabled={() => getItem().isReachableWhenDisabled ?? false}
+                        isTabbable={false}
+                        tooltipDefs={() => getItem().tooltipDefs}
+                        extraFlags={() => ({
                             isHighlighted: index === getHighlightedIndex(),
                             hasSubmenu: computeHasSubmenu(index),
                             isOpen: getIsSubmenuOpen(),
@@ -279,9 +282,9 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
                                         setElementRef(element);
                                         setItemRef(element);
                                     }}
-                                    getId={() => getItemId(index)}
-                                    getSubmenuId={() => getSubmenuId(index)}
-                                    getFlags={getFlags}
+                                    id={() => getItemId(index)}
+                                    submenuId={() => getSubmenuId(index)}
+                                    flags={getFlags}
                                     renderContent={(getItemFlags) => props.renderItem(getItem, getItemFlags)}
                                     onActivate={() => activateIndex(index)}
                                     onHover={() => hoverIndex(index)}
@@ -289,20 +292,20 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
 
                                 <Show when={computeHasSubmenu(index)}>
                                     <MenuLevel
-                                        getId={() => getSubmenuId(index)}
-                                        getLabelledBy={() => getItemId(index)}
-                                        getItems={() => getItem().items!}
-                                        getIsOpen={getIsSubmenuOpen}
-                                        getIsSubmenu={() => true}
-                                        getAnchorRef={getItemRef}
-                                        getTriggerRef={props.getTriggerRef}
-                                        getPlacement={props.getSubmenuPlacement}
-                                        getOffset={props.getSubmenuOffset}
-                                        getSubmenuPlacement={props.getSubmenuPlacement}
-                                        getSubmenuOffset={props.getSubmenuOffset}
-                                        getReservedScreenSize={props.getReservedScreenSize}
-                                        getTransitionDurationMs={props.getTransitionDurationMs}
-                                        getOpenerFlags={getFlags}
+                                        id={() => getSubmenuId(index)}
+                                        labelledBy={() => getItemId(index)}
+                                        items={() => getItem().items!}
+                                        isOpen={getIsSubmenuOpen}
+                                        isSubmenu={true}
+                                        anchorRef={getItemRef}
+                                        triggerRef={props.triggerRef}
+                                        placement={props.submenuPlacement}
+                                        offset={props.submenuOffset}
+                                        submenuPlacement={props.submenuPlacement}
+                                        submenuOffset={props.submenuOffset}
+                                        reservedScreenSize={props.reservedScreenSize}
+                                        transitionDurationMs={props.transitionDurationMs}
+                                        openerFlags={getFlags}
                                         computeCustomText={props.computeCustomText}
                                         renderItem={props.renderItem}
                                         renderPopup={props.renderPopup}
@@ -321,28 +324,24 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
 
     return (
         <Popover
-            getId={props.getId}
-            getRole={() => "menu"}
-            getAriaAttributes={() => ({
-                "aria-labelledby": props.getLabelledBy(),
+            id={props.id}
+            role={"menu"}
+            ariaAttributes={() => ({
+                "aria-labelledby": access(props.labelledBy),
                 "aria-activedescendant": getActiveItemId(),
             })}
-            getPlacement={props.getPlacement}
-            getOffset={props.getOffset}
-            getReservedScreenSize={props.getReservedScreenSize}
-            getTransitionDurationMs={props.getTransitionDurationMs}
-            getHasAutoFocus={() => true}
-            getIsOpen={props.getIsOpen}
-            getAnchorRef={props.getAnchorRef}
+            placement={props.placement}
+            offset={props.offset}
+            reservedScreenSize={props.reservedScreenSize}
+            transitionDurationMs={props.transitionDurationMs}
+            hasAutoFocus={true}
+            isOpen={props.isOpen}
+            anchorRef={props.anchorRef}
             onKeyDown={handleKeyDown}
             onDismiss={() => props.onClose()}
             renderContent={(getVisibilityTarget, getTransitionDurationMs, getPlacement) =>
-                props.renderPopup(
-                    renderItems,
-                    getVisibilityTarget,
-                    getTransitionDurationMs,
-                    getPlacement,
-                    props.getOpenerFlags,
+                props.renderPopup(renderItems, getVisibilityTarget, getTransitionDurationMs, getPlacement, () =>
+                    access(props.openerFlags),
                 )
             }
         />
@@ -357,9 +356,9 @@ export const Menu = <T,>(props: MenuProps<T>) => {
     const [getIsOpen, setIsOpen] = SignalMirror.createOptional(() => props.visibilitySignal, false);
     const [getInitialHighlightPosition, setInitialHighlightPosition] = createSignal<MenuHighlightPosition>("first");
 
-    const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
+    const getIsDisabled = createMemo(() => access(props.isDisabled) ?? false);
 
-    const getTriggerId = createMemo(() => props.getId?.() ?? fallbackTriggerId);
+    const getTriggerId = createMemo(() => access(props.id) ?? fallbackTriggerId);
 
     const open = (position: MenuHighlightPosition) => {
         if (getIsDisabled() || getIsOpen()) return;
@@ -396,7 +395,7 @@ export const Menu = <T,>(props: MenuProps<T>) => {
     return (
         <InteractionWrapper
             {...props}
-            getExtraFlags={() => ({ isOpen: getIsOpen() })}
+            extraFlags={() => ({ isOpen: getIsOpen() })}
             ref={(element) => {
                 setTriggerRef(element);
                 props.ref?.(element);
@@ -405,31 +404,31 @@ export const Menu = <T,>(props: MenuProps<T>) => {
                 <>
                     <MenuTrigger
                         ref={setElementRef}
-                        getId={getTriggerId}
-                        getAriaLabel={props.getAriaLabel}
-                        getMenuId={() => menuId}
-                        getFlags={getFlags}
+                        id={getTriggerId}
+                        ariaLabel={props.ariaLabel}
+                        menuId={() => menuId}
+                        flags={getFlags}
                         renderContent={props.renderContent}
                         onToggle={() => (getIsOpen() ? close() : open("first"))}
                         onKeyDown={handleTriggerKeyDown}
                     />
 
                     <MenuLevel
-                        getId={() => menuId}
-                        getLabelledBy={getTriggerId}
-                        getItems={props.getItems}
-                        getIsOpen={getIsOpen}
-                        getIsSubmenu={() => false}
-                        getInitialHighlightPosition={getInitialHighlightPosition}
-                        getAnchorRef={() => props.getAnchorRef?.() ?? getTriggerRef()}
-                        getTriggerRef={getTriggerRef}
-                        getPlacement={props.getPlacement}
-                        getOffset={props.getOffset}
-                        getSubmenuPlacement={() => props.getSubmenuPlacement?.() ?? DEFAULT_SUBMENU_PLACEMENT}
-                        getSubmenuOffset={props.getSubmenuOffset}
-                        getReservedScreenSize={props.getReservedScreenSize}
-                        getTransitionDurationMs={props.getTransitionDurationMs}
-                        getOpenerFlags={getFlags}
+                        id={() => menuId}
+                        labelledBy={getTriggerId}
+                        items={props.items}
+                        isOpen={getIsOpen}
+                        isSubmenu={false}
+                        initialHighlightPosition={getInitialHighlightPosition}
+                        anchorRef={() => access(props.anchorRef) ?? getTriggerRef()}
+                        triggerRef={getTriggerRef}
+                        placement={props.placement}
+                        offset={props.offset}
+                        submenuPlacement={() => access(props.submenuPlacement) ?? DEFAULT_SUBMENU_PLACEMENT}
+                        submenuOffset={props.submenuOffset}
+                        reservedScreenSize={props.reservedScreenSize}
+                        transitionDurationMs={props.transitionDurationMs}
+                        openerFlags={getFlags}
                         computeCustomText={props.computeCustomText}
                         renderItem={props.renderItem}
                         renderPopup={props.renderPopup}

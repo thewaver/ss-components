@@ -5,9 +5,9 @@ const OVERSHOOTING_VALUE = 5;
 
 export const OutOfRangeExample = () => (
     <Progress
-        getValue={() => OVERSHOOTING_VALUE}
-        getAriaLabel={() => "Clamped progress"}
-        getSizing={() => "fit-content"}
-        renderContent={(getState) => <PageProgressContent getState={getState} />}
+        value={() => OVERSHOOTING_VALUE}
+        ariaLabel={"Clamped progress"}
+        sizing={"fit-content"}
+        renderContent={(getState) => <PageProgressContent state={getState} />}
     />
 );

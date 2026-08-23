@@ -46,11 +46,7 @@ export const CalendarPage = () => {
             name: "Default",
             readout: () => `value: ${describe(defaultValue[0]())} — month: ${describe(defaultMonth[0]())}`,
             component: () => (
-                <DefaultExample
-                    valueSignal={defaultValue}
-                    monthSignal={defaultMonth}
-                    getWeekStartsOn={getWeekStartsOn}
-                />
+                <DefaultExample valueSignal={defaultValue} monthSignal={defaultMonth} weekStartsOn={getWeekStartsOn} />
             ),
             path: `${EXAMPLES_ROOT}/Default.tsx`,
         },
@@ -60,7 +56,7 @@ export const CalendarPage = () => {
             readout: () =>
                 `min ${describe(MIN_DATE)}, max ${describe(MAX_DATE)} — value: ${describe(rangedValue[0]())}`,
             component: () => (
-                <BoundedExample valueSignal={rangedValue} monthSignal={rangedMonth} getWeekStartsOn={getWeekStartsOn} />
+                <BoundedExample valueSignal={rangedValue} monthSignal={rangedMonth} weekStartsOn={getWeekStartsOn} />
             ),
             path: `${EXAMPLES_ROOT}/Bounded.tsx`,
         },
@@ -73,7 +69,7 @@ export const CalendarPage = () => {
                 <WeekdaysExample
                     valueSignal={weekdaysValue}
                     monthSignal={weekdaysMonth}
-                    getWeekStartsOn={getWeekStartsOn}
+                    weekStartsOn={getWeekStartsOn}
                 />
             ),
             path: `${EXAMPLES_ROOT}/Weekdays.tsx`,
@@ -82,29 +78,29 @@ export const CalendarPage = () => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "calendarId"} getLabel={() => "Calendar"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"calendarId"} label={"Calendar"}>
                     <PageSelectField
-                        getValue={getCalendarId}
-                        getValues={DateValueUtils.getCalendarIds}
-                        getWidth={() => CALENDAR_FIELD_WIDTH}
-                        getAriaLabel={() => "Calendar system"}
+                        value={getCalendarId}
+                        values={DateValueUtils.getCalendarIds}
+                        width={() => CALENDAR_FIELD_WIDTH}
+                        ariaLabel={"Calendar system"}
                         onChange={(id) => setCalendarId(() => id)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "weekStartsOn"} getLabel={() => "Week starts on"}>
+                <PageProp key={"weekStartsOn"} label={"Week starts on"}>
                     <PageSelectField
-                        getValue={getWeekStartsOn}
-                        getValues={() => [...WEEK_STARTS]}
-                        getAriaLabel={() => "Week starts on"}
+                        value={getWeekStartsOn}
+                        values={() => [...WEEK_STARTS]}
+                        ariaLabel={"Week starts on"}
                         computeLabel={(day) => WEEK_START_LABELS[day]}
                         onChange={(day) => setWeekStartsOn(() => day)}
                     />
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} />
+            <PageExamples items={getExamples} />
         </>
     );
 };

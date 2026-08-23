@@ -64,8 +64,8 @@ export const StepperPage = () => {
                 `current: ${getLinearCurrent()} — only the steps behind you can be pressed, unless free navigation is on`,
             component: () => (
                 <LinearExample
-                    getSteps={() => buildSteps(getLinearCurrent())}
-                    getCurrentValue={getLinearCurrent}
+                    steps={() => buildSteps(getLinearCurrent())}
+                    currentValue={getLinearCurrent}
                     computeStepAriaLabel={describe}
                     onCurrentChange={setLinearCurrent}
                 />
@@ -79,8 +79,8 @@ export const StepperPage = () => {
                 `current: ${getFailedCurrent()} — the failed step is reachable by keyboard so its tooltip can be read, and its name carries the state as words`,
             component: () => (
                 <FailedExample
-                    getSteps={() => buildSteps(getFailedCurrent(), { address: "failed", details: "skipped" })}
-                    getCurrentValue={getFailedCurrent}
+                    steps={() => buildSteps(getFailedCurrent(), { address: "failed", details: "skipped" })}
+                    currentValue={getFailedCurrent}
                     computeStepAriaLabel={describe}
                     onCurrentChange={setFailedCurrent}
                 />
@@ -93,8 +93,8 @@ export const StepperPage = () => {
             readout: () => `current: ${getStackedCurrent()} — the same steps down the page`,
             component: () => (
                 <StackedExample
-                    getSteps={() => buildSteps(getStackedCurrent())}
-                    getCurrentValue={getStackedCurrent}
+                    steps={() => buildSteps(getStackedCurrent())}
+                    currentValue={getStackedCurrent}
                     computeStepAriaLabel={describe}
                     onCurrentChange={setStackedCurrent}
                 />
@@ -107,8 +107,8 @@ export const StepperPage = () => {
             readout: () => "the connector slot is optional, so a bare strip renders nothing between the steps",
             component: () => (
                 <BareExample
-                    getSteps={() => buildSteps(getLinearCurrent())}
-                    getCurrentValue={getLinearCurrent}
+                    steps={() => buildSteps(getLinearCurrent())}
+                    currentValue={getLinearCurrent}
                     computeStepAriaLabel={describe}
                     onCurrentChange={setLinearCurrent}
                 />
@@ -119,18 +119,18 @@ export const StepperPage = () => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "isFreeNavigation"} getLabel={() => "Free navigation"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"isFreeNavigation"} label={"Free navigation"}>
                     <PageCheckField
-                        getValue={getIsFreeNavigation}
-                        getAriaLabel={() => "Free navigation"}
+                        value={getIsFreeNavigation}
+                        ariaLabel={"Free navigation"}
                         onChange={setIsFreeNavigation}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "currentStep"} getLabel={() => "Current step"}>
+                <PageProp key={"currentStep"} label={"Current step"}>
                     <Button
-                        renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Reset</PageButtonContent>}
+                        renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Reset</PageButtonContent>}
                         onClick={async () => {
                             reset();
                         }}
@@ -138,7 +138,7 @@ export const StepperPage = () => {
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} />
+            <PageExamples items={getExamples} />
         </>
     );
 };

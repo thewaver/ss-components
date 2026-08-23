@@ -6,6 +6,7 @@ import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import type { SVGDefs } from "../../Abstracts/SVG/Defs/SVGDefs.types";
 import { Shape } from "../../Exotics/Shape/Shape";
+import { access } from "../../Utils/propUtils";
 import type { SurfaceProps } from "./Surface.types";
 
 import * as styles from "./Surface.css";
@@ -16,7 +17,7 @@ const IS_COMPLEX_SVG_DEFS = (v: SVGDefs) => !!v.blend || !!v.clipPath || !!v.fil
 
 const SurfaceSVG = (props: ParentProps<SurfaceProps>) => {
     const getBorderWidths = createMemo(() => {
-        const namedWidths = props.getBorderWidths();
+        const namedWidths = access(props.borderWidths);
 
         return [
             namedWidths.borderTopWidth,
@@ -27,7 +28,7 @@ const SurfaceSVG = (props: ParentProps<SurfaceProps>) => {
     });
 
     const getJoinRadii = createMemo(() => {
-        const namedRadii = props.getBorderRadii();
+        const namedRadii = access(props.borderRadii);
 
         return [
             namedRadii.borderTopLeftRadius,
@@ -38,7 +39,7 @@ const SurfaceSVG = (props: ParentProps<SurfaceProps>) => {
     });
 
     const getLameExponents = createMemo(() => {
-        const namedShapes = props.getLameExponents?.();
+        const namedShapes = access(props.lameExponents);
 
         if (!namedShapes) return [ShapeConst.CORNER_SHAPE_LAME_EXPONENTS.round];
 
@@ -55,9 +56,9 @@ const SurfaceSVG = (props: ParentProps<SurfaceProps>) => {
             computePoints={(size) => ShapeConst.getDefaultShapePoints("square", size)}
             computeFillDefs={props.computeFillDefs}
             computeStrokeDefs={props.computeStrokeDefs}
-            getStrokeGeom={props.computeStrokeDefs ? () => [{ thicknesses: getBorderWidths() }] : undefined}
-            getJoinRadii={getJoinRadii}
-            getLameExponents={getLameExponents}
+            strokeGeom={props.computeStrokeDefs ? () => [{ thicknesses: getBorderWidths() }] : undefined}
+            joinRadii={getJoinRadii}
+            lameExponents={getLameExponents}
             renderChildren={(_, getClipPath) => (
                 <div style={{ "clip-path": `path("${getClipPath()}")` }}>{props.children}</div>
             )}
@@ -70,7 +71,7 @@ const SurfaceDiv = (props: ParentProps<SurfaceProps>) => {
     const getStrokeColorDef = createMemo(() => props.computeStrokeDefs?.(MOCK_GET_SIZE)?.find((v) => !!v.color));
 
     const getHasBorder = createMemo(
-        () => !!getStrokeColorDef() && Object.values(props.getBorderWidths()).some((v) => v > 0),
+        () => !!getStrokeColorDef() && Object.values(access(props.borderWidths)).some((v) => v > 0),
     );
 
     return (
@@ -82,7 +83,7 @@ const SurfaceDiv = (props: ParentProps<SurfaceProps>) => {
                     [styles.fillOpacityVar]: `${(getFillColorDef()?.opacity ?? 1) * 100}%`,
                 }),
                 ...Object.fromEntries(
-                    Object.entries(props.getBorderRadii()).map(([key, value]) => [
+                    Object.entries(access(props.borderRadii)).map(([key, value]) => [
                         StringUtils.camelToKebabCase(key),
                         `${value}px`,
                     ]),
@@ -99,7 +100,7 @@ const SurfaceDiv = (props: ParentProps<SurfaceProps>) => {
                             [styles.strokeOpacityVar]: `${(getStrokeColorDef()?.opacity ?? 1) * 100}%`,
                         }),
                         ...Object.fromEntries(
-                            Object.entries(props.getBorderWidths()).map(([key, value]) => [
+                            Object.entries(access(props.borderWidths)).map(([key, value]) => [
                                 StringUtils.camelToKebabCase(key),
                                 `${value}px`,
                             ]),
@@ -115,7 +116,7 @@ export const Surface = (props: SurfaceProps) => {
     const getIsComplex = () => {
         const fillDefs = props.computeFillDefs?.(MOCK_GET_SIZE);
         const strokeDefs = props.computeStrokeDefs?.(MOCK_GET_SIZE);
-        const lameExponents = props.getLameExponents?.();
+        const lameExponents = access(props.lameExponents);
 
         return (
             fillDefs?.some(IS_COMPLEX_SVG_DEFS) ||

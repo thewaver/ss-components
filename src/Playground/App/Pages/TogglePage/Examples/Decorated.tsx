@@ -11,14 +11,14 @@ type Props = ToggleExampleProps;
 export const DecoratedExample = (props: Props) => (
     <Toggle
         checkedSignal={props.checkedSignal}
-        getAriaLabel={() => "Decorated toggle"}
-        getIsPressed={props.checkedSignal[0]}
-        renderContent={(getFlags) => <PageToggleContent getFlags={getFlags} />}
+        ariaLabel={"Decorated toggle"}
+        isPressed={props.checkedSignal[0]}
+        renderContent={(getFlags) => <PageToggleContent flags={getFlags} />}
         renderDecoration={(getFlags) => (
             <Corners
-                getColor={() => (getFlags().isPressed ? "yellow" : "transparent")}
-                getCornerLength={() => CORNER_LENGTH}
-                getStrokeThickness={() => STROKE_THICKNESS}
+                color={() => (getFlags().isPressed ? "yellow" : "transparent")}
+                cornerLength={() => CORNER_LENGTH}
+                strokeThickness={() => STROKE_THICKNESS}
             />
         )}
     />

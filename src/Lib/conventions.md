@@ -263,11 +263,61 @@ considered from one never opened.
 
 ## API naming
 
-### `AccessorProps`
+### `AccessorProps` — props take a constant or an accessor, and carry no `get` prefix
+
+A prop declared `indent: number` is written by the caller as either `indent={12}` or `indent={getIndent}`, and is
+read inside the component as `access(props.indent)`. `AccessorProps<T>` maps each non-skipped key to
+`MaybeAccessor<V>`, which is `V | Accessor<V>`. Skipping is unchanged — functions, symbols and `Signal`s pass
+through untouched.
+
+**Why the prefix went.** The user's reason is go-to-definition: the old mapped type synthesised `getIndent` from
+`indent` through a key remapping, and no IDE can invert a template-literal key transform, so ctrl-clicking a
+prop name inside a component always landed nowhere. The type is now homomorphic and keeps the key, so the jump
+works. Their second argument: they write their own signals as `[getX, setX]`, but the docs write `[x, setX]`
+without marking that `x` is a getter, and the prop side reads the same way. The prefix therefore does not
+reappear inside the body either.
+
+**Where the prefix stays.** Controllers, context types, handles and render-callback parameters
+(`WheelController.getIndex`, `FormContextType.getIsValid`, `renderStep(getStep, getState)`) are hand-written
+declarations that ctrl-click already resolves, and the reason above does not reach them.
+
+**`access(props.x)` at the point of use, not a resolver at the component root.** The first build normalised the
+whole props object once, through a proxy, so the body could read `p.indent()`. That is gone. The proxy had to
+guess from each runtime value what the type already knew — and guessed wrong twice, once wrapping `undefined`
+into a truthy thunk (which silently disabled typing in every text field, because `if (opts.computeMaskedText)`
+became true and every keystroke took the masked path) and once wrapping a plain object prop declared beside the
+block. It also needed a hard-coded `children` exemption and could not see through a type parameter, so every
+generic component hand-wrote its accessor anyway. Reading at the use site confines the guess to where it is
+written. It is also faster, not slower: measured over five million reads of a signal-backed prop, the proxy ran
+at ~33M reads/s against ~67M for `access` — the trap and the `Reflect.get` indirection cost more than a
+`typeof` check. The contrary claim made when the proxy was chosen was never measured and was wrong.
+
+**A plain value can still be reactive, and this is the point the whole design turns on.** `<Cmp x={sig()} />`
+compiles to `{ get x() { return sig(); } }` — verified against `babel-preset-solid` — so reading `props.x`
+inside a tracking scope re-runs `sig()` and tracks it. A native element gets an effect instead of a getter,
+since it has no body to defer to. Two consequences. Reading a prop once at setup takes a snapshot, as anywhere
+in Solid. And a helper that resolves a prop to an accessor eagerly — `asAccessor(props.x)` — freezes that
+snapshot, which is why no such helper exists here.
+
+**Handing an accessor onward needs `() => access(props.x)`; reading does not.** Inside an effect, a memo or JSX
+the surrounding tracking scope is the deferral, so `access(props.x)` is enough. The arrow is only for the few
+sites that pass a function to something which calls it later — `SignalMirror.createValueMirror`,
+`TextSync.createValueSync`, `LabelUtils.resolveAriaLabel`. Where the target's parameter is itself optional, the
+handoff is gated on presence, `props.x === undefined ? undefined : () => access(props.x)!`, because the target
+distinguishes "no accessor" from "an accessor returning undefined".
+
+**Forwarding a prop to a child needs neither.** `min={props.min}` passes the `MaybeAccessor` straight through,
+because the child's own prop accepts both forms.
+
+### What the mapped type skips, and the two holes in it
+
+**These entries were written when `AccessorProps` produced `getX` names — every one still holds now that it
+produces the plain name, because the skip test is unchanged.** Read `getX` below as the prop's plain name and
+`Accessor<V>` as `MaybeAccessor<V>`; the shape of each hole is the same, only the spelling differs.
 
 Skips **only** functions and symbols. Everything else — arrays, `Set`, `Map`, `Date`, `Node` /
-`HTMLElement`, plain objects — is accessorized to `getX`. Refs are declared as
-`elementRef: HTMLElement | undefined` and become `getElementRef`.
+`HTMLElement`, plain objects — is accessorized. Refs are declared as
+`elementRef: HTMLElement | undefined`.
 
 **A generic prop cannot pass through it.** `AccessorProps<{ value: T }>` produces no `getValue`: the
 key filter depends on `IsSkippable<T>`, which cannot resolve while `T` is unbound, so the key is

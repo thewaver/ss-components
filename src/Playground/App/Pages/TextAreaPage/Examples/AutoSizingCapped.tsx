@@ -13,15 +13,15 @@ type Props = TextAreaExampleProps;
 export const AutoSizingCappedExample = (props: Props) => (
     <TextArea
         valueSignal={props.valueSignal}
-        getIsAutoSizing={() => true}
-        getMinRows={() => MIN_ROWS}
-        getMaxRows={() => MAX_ROWS}
-        getPadding={() => FIELD_PADDING}
-        getGap={() => FIELD_GAP}
-        getAriaLabel={() => "Description"}
+        isAutoSizing={true}
+        minRows={() => MIN_ROWS}
+        maxRows={() => MAX_ROWS}
+        padding={() => FIELD_PADDING}
+        gap={() => FIELD_GAP}
+        ariaLabel={"Description"}
         computeTextStyle={computePageTextFieldTextStyle}
         renderContent={(getFlags) => (
-            <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} getIsStretched={() => true} />
+            <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} isStretched={true} />
         )}
     />
 );

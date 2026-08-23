@@ -6,6 +6,7 @@ import { CSSUtils, StringUtils } from "@thewaver/ss-utils";
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
 import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
+import { access } from "../../Utils/propUtils";
 import type {
     Toast,
     ToastState,
@@ -29,16 +30,16 @@ const DEFAULT_TOASTS_GAP = 10;
 const TOASTS_Z_INDEX = 200;
 
 const ToastsItem = <T,>(props: ToastsItemProps<T>) => {
-    const { getTransitionTarget, getHasTransitionFinished } = ElementFader.createFader(() => !props.getIsExiting(), {
-        getTransitionDurationMs: props.getTransitionDurationMs,
+    const { getTransitionTarget, getHasTransitionFinished } = ElementFader.createFader(() => !access(props.isExiting), {
+        getTransitionDurationMs: () => access(props.transitionDurationMs),
     });
 
-    const getDurationMs = createMemo(() => props.getToast().durationMs);
+    const getDurationMs = createMemo(() => access(props.toast).durationMs);
 
     const getState = createMemo((): ToastState => ({
-        index: props.getIndex(),
-        count: props.getCount(),
-        isPaused: props.getIsPaused(),
+        index: access(props.index),
+        count: access(props.count),
+        isPaused: access(props.isPaused),
     }));
 
     let clockDurationMs: number | undefined;
@@ -54,7 +55,7 @@ const ToastsItem = <T,>(props: ToastsItemProps<T>) => {
             remainingMs = durationMs;
         }
 
-        if (props.getIsPaused()) return;
+        if (access(props.isPaused)) return;
 
         const startedAtMs = performance.now();
         const elapseTimeout = setTimeout(() => props.onElapse(), remainingMs);
@@ -67,14 +68,19 @@ const ToastsItem = <T,>(props: ToastsItemProps<T>) => {
     });
 
     createEffect(() => {
-        if (!props.getIsExiting() || !getHasTransitionFinished()) return;
+        if (!access(props.isExiting) || !getHasTransitionFinished()) return;
 
         props.onExitEnd();
     });
 
     return (
         <div class={styles.toastsItem}>
-            {props.renderToast(props.getToast, getTransitionTarget, props.getTransitionDurationMs, getState)}
+            {props.renderToast(
+                () => access(props.toast),
+                getTransitionTarget,
+                () => access(props.transitionDurationMs),
+                getState,
+            )}
         </div>
     );
 };
@@ -86,16 +92,16 @@ export const Toasts = <T,>(props: ToastsProps<T>) => {
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
 
     const getTransitionDurationMs = createMemo(
-        () => props.getTransitionDurationMs?.() ?? DEFAULT_TOASTS_TRANSITION_DURATION_MS,
+        () => access(props.transitionDurationMs) ?? DEFAULT_TOASTS_TRANSITION_DURATION_MS,
     );
 
-    const getAlignment = createMemo(() => props.getAlignment?.() ?? DEFAULT_TOASTS_ALIGNMENT);
+    const getAlignment = createMemo(() => access(props.alignment) ?? DEFAULT_TOASTS_ALIGNMENT);
 
-    const getDir = createMemo(() => props.getDir?.() ?? DEFAULT_TOASTS_DIR);
+    const getDir = createMemo(() => access(props.dir) ?? DEFAULT_TOASTS_DIR);
 
-    const getOverflow = createMemo(() => props.getOverflow?.() ?? DEFAULT_TOASTS_OVERFLOW);
+    const getOverflow = createMemo(() => access(props.overflow) ?? DEFAULT_TOASTS_OVERFLOW);
 
-    const getMargins = createMemo(() => props.getMargins?.() ?? CSSUtils.spreadMargin(0));
+    const getMargins = createMemo(() => access(props.margins) ?? CSSUtils.spreadMargin(0));
 
     const getStackAlignment = createMemo(() => ToastsUtils.computeStackAlignment(getAlignment(), getDir()));
 
@@ -103,7 +109,7 @@ export const Toasts = <T,>(props: ToastsProps<T>) => {
 
     const getAdmitted = createMemo(() => {
         const toasts = props.toastsSignal[0]();
-        const limit = props.getLimit?.();
+        const limit = access(props.limit);
 
         if (limit === undefined || toasts.length <= limit) return toasts;
 
@@ -136,7 +142,7 @@ export const Toasts = <T,>(props: ToastsProps<T>) => {
 
     createEffect(() => {
         const [getToasts, setToasts] = props.toastsSignal;
-        const limit = props.getLimit?.();
+        const limit = access(props.limit);
         const toasts = getToasts();
 
         if (limit === undefined || getOverflow() !== "dismiss-oldest" || toasts.length <= limit) return;
@@ -159,12 +165,12 @@ export const Toasts = <T,>(props: ToastsProps<T>) => {
                     "flex-direction": getDir(),
                     "justify-content": getStackAlignment().justifyContent,
                     "align-items": getStackAlignment().alignItems,
-                    "gap": `${props.getGap?.() ?? DEFAULT_TOASTS_GAP}px`,
+                    "gap": `${access(props.gap) ?? DEFAULT_TOASTS_GAP}px`,
                     "z-index": TOASTS_Z_INDEX,
                 }}
                 role="region"
-                aria-live={props.getAriaLive?.() ?? DEFAULT_TOASTS_ARIA_LIVE}
-                aria-label={props.getAriaLabel()}
+                aria-live={access(props.ariaLive) ?? DEFAULT_TOASTS_ARIA_LIVE}
+                aria-label={access(props.ariaLabel)}
             >
                 <For each={getEntryIds()}>
                     {(id, getIndex) => {
@@ -173,12 +179,12 @@ export const Toasts = <T,>(props: ToastsProps<T>) => {
 
                         return (
                             <ToastsItem
-                                getToast={getToast}
-                                getIndex={getIndex}
-                                getCount={() => getEntryIds().length}
-                                getIsExiting={() => findToast() === undefined}
-                                getIsPaused={getIsPaused}
-                                getTransitionDurationMs={getTransitionDurationMs}
+                                toast={getToast}
+                                index={getIndex}
+                                count={() => getEntryIds().length}
+                                isExiting={() => findToast() === undefined}
+                                isPaused={getIsPaused}
+                                transitionDurationMs={getTransitionDurationMs}
                                 renderToast={props.renderToast}
                                 onElapse={() => dismiss(id)}
                                 onExitEnd={() => handleExitEnd(id)}

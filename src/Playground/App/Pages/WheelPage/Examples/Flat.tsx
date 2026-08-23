@@ -3,6 +3,7 @@ import { createSignal } from "solid-js";
 import { FlatWheel } from "../../../../../Lib/Exotics/FlatWheel/FlatWheel";
 import type { WheelController } from "../../../../../Lib/Exotics/Wheel/Wheel.types";
 import { Button } from "../../../../../Lib/Fundamentals/Button/Button";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import {
     PageWheelCentre,
     PageWheelPip,
@@ -21,30 +22,32 @@ const pickPrizeIndex = (wedgeCount: number) =>
         setTimeout(() => resolve(Math.floor(Math.random() * wedgeCount)), PRIZE_FETCH_DELAY_MS);
     });
 
-export const FlatExample = ({ getWedges, ...otherProps }: Props) => {
+export const FlatExample = ({ wedges, ...otherProps }: Props) => {
+    const getWedges = () => access(wedges);
+
     const [getController, setController] = createSignal<WheelController>();
 
     return (
         <PageWheelStack>
             <FlatWheel
                 {...otherProps}
-                getWedges={getWedges}
-                getAriaLabel={() => "Prize wheel"}
+                wedges={getWedges}
+                ariaLabel={"Prize wheel"}
                 computeSpinTarget={() => pickPrizeIndex(getWedges().length)}
                 computeWedgeLabel={(index) => `${getWedges()[index]}, ${index + 1} of ${getWedges().length}`}
-                renderWedge={(getWedge, getState) => <PageWheelWedge getState={getState}>{getWedge()}</PageWheelWedge>}
+                renderWedge={(getWedge, getState) => <PageWheelWedge state={getState}>{getWedge()}</PageWheelWedge>}
                 onMount={setController}
             />
 
-            <PageWheelPip getSide={() => "top"} />
+            <PageWheelPip side={"top"} />
 
             <PageWheelCentre>
                 <Button
-                    getId={() => "flatSpin"}
-                    getAriaLabel={() => "Spin the wheel"}
-                    getIsDisabled={() => !getController()?.getIsSpinnable()}
+                    id={"flatSpin"}
+                    ariaLabel={"Spin the wheel"}
+                    isDisabled={() => !getController()?.getIsSpinnable()}
                     renderContent={(getFlags) => (
-                        <PageWheelSpin getFlags={getFlags} getPhase={() => getController()?.getPhase()} />
+                        <PageWheelSpin flags={getFlags} phase={() => getController()?.getPhase()} />
                     )}
                     onClick={() => getController()?.spin()}
                 />

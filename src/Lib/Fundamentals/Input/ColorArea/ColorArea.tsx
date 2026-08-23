@@ -3,6 +3,7 @@ import { For, createRenderEffect, createSignal } from "solid-js";
 import { Color, MathUtils } from "@thewaver/ss-utils";
 
 import { InteractionUtils } from "../../../Abstracts/Interaction/Interaction.utils";
+import { access } from "../../../Utils/propUtils";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { LabelUtils } from "../Label/Label.utils";
 import type { ColorAreaAxis, ColorAreaElementProps, ColorAreaFlags, ColorAreaProps } from "./ColorArea.types";
@@ -23,12 +24,14 @@ const PERCENT = 100;
 const getAxisRatio = (hsv: Color.HSVA, axis: ColorAreaAxis) => (axis === "saturation" ? hsv.s : hsv.v);
 
 const ColorAreaElement = (props: ColorAreaElementProps) => {
-    const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
+    const getAriaLabel = LabelUtils.resolveAriaLabel(
+        props.ariaLabel === undefined ? undefined : () => access(props.ariaLabel)!,
+    );
 
     const [getSurfaceRef, setSurfaceRef] = createSignal<HTMLElement>();
     const [getAxisRefs, setAxisRefs] = createSignal<Partial<Record<ColorAreaAxis, HTMLInputElement>>>({});
 
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
     const { getIsDragging } = InteractionUtils.trackDrag(getSurfaceRef, getIsDisabled, {
         onDrag: (ratio) => {
@@ -43,7 +46,7 @@ const ColorAreaElement = (props: ColorAreaElementProps) => {
     });
 
     const syncAxis = (element: HTMLInputElement, axis: ColorAreaAxis) => {
-        const value = `${getAxisRatio(props.getHsv(), axis)}`;
+        const value = `${getAxisRatio(access(props.hsv), axis)}`;
 
         if (element.value === value) return;
 
@@ -59,7 +62,7 @@ const ColorAreaElement = (props: ColorAreaElementProps) => {
     });
 
     InteractionUtils.wrapExtraControls(() => AXES.map((axis) => getAxisRefs()[axis]), getIsDisabled, {
-        getIsTabbable: props.getIsTabbable,
+        getIsTabbable: props.isTabbable === undefined ? undefined : () => access(props.isTabbable)!,
     });
 
     return (
@@ -68,12 +71,12 @@ const ColorAreaElement = (props: ColorAreaElementProps) => {
                 setSurfaceRef(element);
                 props.ref?.(element);
             }}
-            id={props.getId?.()}
+            id={access(props.id)}
             class={styles.colorAreaSurface}
             role="group"
             aria-label={getAriaLabel()}
             aria-disabled={getIsDisabled() || undefined}
-            aria-invalid={props.getFlags().hasError || undefined}
+            aria-invalid={access(props.flags).hasError || undefined}
             onMouseEnter={(e) => {
                 if (getIsDisabled()) return;
 
@@ -85,20 +88,20 @@ const ColorAreaElement = (props: ColorAreaElementProps) => {
                 void props.onMouseLeave?.(e);
             }}
         >
-            {props.renderContent(props.getFlags)}
+            {props.renderContent(() => access(props.flags))}
 
             <For each={AXES}>
                 {(axis) => (
                     <input
                         ref={(element) => setAxisRefs((prev) => ({ ...prev, [axis]: element }))}
                         type="range"
-                        name={props.getName?.() && `${props.getName()}-${axis}`}
+                        name={access(props.name) && `${access(props.name)}-${axis}`}
                         class={styles.colorAreaAxis}
                         min={RATIO_MIN}
                         max={RATIO_MAX}
-                        step={props.getStep()}
-                        aria-label={props.getAxisLabels()[axis]}
-                        aria-valuetext={`${Math.round(getAxisRatio(props.getHsv(), axis) * PERCENT)}%`}
+                        step={access(props.step)}
+                        aria-label={access(props.axisLabels)[axis]}
+                        aria-valuetext={`${Math.round(getAxisRatio(access(props.hsv), axis) * PERCENT)}%`}
                         aria-disabled={getIsDisabled() || undefined}
                         onInput={(e) => {
                             const element = e.currentTarget;
@@ -133,7 +136,7 @@ export const ColorArea = (props: ColorAreaProps) => {
     return (
         <InteractionWrapper
             {...props}
-            getExtraFlags={(): ColorAreaFlags => ({
+            extraFlags={(): ColorAreaFlags => ({
                 hsv: props.hsvSignal[0](),
                 isDragging: getIsDragging(),
                 focusedAxis: getFocusedAxis(),
@@ -141,14 +144,14 @@ export const ColorArea = (props: ColorAreaProps) => {
             renderControl={(setElementRef, getFlags) => (
                 <ColorAreaElement
                     ref={setElementRef}
-                    getId={props.getId}
-                    getName={props.getName}
-                    getAriaLabel={props.getAriaLabel}
-                    getAxisLabels={() => props.getAxisLabels?.() ?? DEFAULT_COLOR_AREA_AXIS_LABELS}
-                    getStep={() => props.getStep?.() ?? DEFAULT_COLOR_AREA_STEP}
-                    getFlags={getFlags}
-                    getHsv={() => props.hsvSignal[0]()}
-                    getIsTabbable={props.getIsTabbable}
+                    id={props.id}
+                    name={props.name}
+                    ariaLabel={props.ariaLabel}
+                    axisLabels={() => access(props.axisLabels) ?? DEFAULT_COLOR_AREA_AXIS_LABELS}
+                    step={() => access(props.step) ?? DEFAULT_COLOR_AREA_STEP}
+                    flags={getFlags}
+                    hsv={() => props.hsvSignal[0]()}
+                    isTabbable={props.isTabbable}
                     renderContent={props.renderContent}
                     setAxis={setAxis}
                     setFocusedAxis={setFocusedAxis}

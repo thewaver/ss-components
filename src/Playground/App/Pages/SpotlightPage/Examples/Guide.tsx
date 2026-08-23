@@ -2,6 +2,7 @@ import { For } from "solid-js";
 
 import { Button } from "../../../../../Lib/Fundamentals/Button/Button";
 import { SpotlightGuide } from "../../../../../Lib/Fundamentals/SpotlightGuide/SpotlightGuide";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import { PageButtonContent } from "../../../StyledComponents/ButtonContent/ButtonContent";
 import {
     PageSpotlightPopup,
@@ -18,7 +19,7 @@ type Props = SpotlightGuideExampleProps;
 export const GuideExample = (props: Props) => {
     const stepRefs: HTMLElement[] = [];
 
-    const getIsLastStep = () => props.getStep() >= TOUR_STEPS.length - 1;
+    const getIsLastStep = () => access(props.step) >= TOUR_STEPS.length - 1;
 
     return (
         <div class={styles.root}>
@@ -38,7 +39,7 @@ export const GuideExample = (props: Props) => {
             </div>
 
             <Button
-                renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Take the tour</PageButtonContent>}
+                renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Take the tour</PageButtonContent>}
                 onClick={async () => {
                     props.onStart();
                     props.visibilitySignal[1](true);
@@ -46,37 +47,37 @@ export const GuideExample = (props: Props) => {
             />
 
             <SpotlightGuide
-                getElementRef={() => stepRefs[props.getStep()]}
-                getPadding={() => PADDING}
-                getAriaLabel={() => "Product tour"}
+                elementRef={() => stepRefs[access(props.step)]}
+                padding={() => PADDING}
+                ariaLabel={"Product tour"}
                 visibilitySignal={props.visibilitySignal}
                 renderHighlight={renderHighlight}
                 renderOverlay={renderOverlay}
                 renderPopup={(getVisibilityTarget, getTransitionDurationMs) => (
                     <PageSpotlightPopup
-                        getVisibilityTarget={getVisibilityTarget}
-                        getTransitionDurationMs={getTransitionDurationMs}
-                        getTitle={() => TOUR_STEPS[props.getStep()].title}
+                        visibilityTarget={getVisibilityTarget}
+                        transitionDurationMs={getTransitionDurationMs}
+                        title={() => TOUR_STEPS[access(props.step)].title}
                     >
-                        <PageSpotlightPopupText>{TOUR_STEPS[props.getStep()].text}</PageSpotlightPopupText>
+                        <PageSpotlightPopupText>{TOUR_STEPS[access(props.step)].text}</PageSpotlightPopupText>
 
                         <PageSpotlightPopupActions>
                             <Button
                                 renderContent={(getFlags) => (
-                                    <PageButtonContent getFlags={getFlags}>Skip all</PageButtonContent>
+                                    <PageButtonContent flags={getFlags}>Skip all</PageButtonContent>
                                 )}
                                 onClick={async () => props.onEnd("skipped")}
                             />
 
                             <Button
                                 renderContent={(getFlags) => (
-                                    <PageButtonContent getFlags={getFlags}>
+                                    <PageButtonContent flags={getFlags}>
                                         {getIsLastStep() ? "Done" : "Next"}
                                     </PageButtonContent>
                                 )}
                                 onClick={async () => {
                                     if (!getIsLastStep()) {
-                                        props.onStepChange(props.getStep() + 1);
+                                        props.onStepChange(access(props.step) + 1);
 
                                         return;
                                     }

@@ -9,7 +9,7 @@ export type ScanlineAnimationEvaluationDefs = CellAnimationEvaluationDefs;
 
 export type ScanlineAnimationEvaluationResult = CellAnimationEvaluationResult;
 
-export type ScanlineAnimationProps = Omit<CellAnimationProps, "getCellCount" | "computeCellAnimation"> &
+export type ScanlineAnimationProps = Omit<CellAnimationProps, "cellCount" | "computeCellAnimation"> &
     AccessorProps<{
         lineCount: number;
         computeScanlineAnimation: (

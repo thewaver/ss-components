@@ -2,6 +2,7 @@ import { Show, createEffect, createMemo, createSignal, createUniqueId, on, onCle
 
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { ElementObserver } from "../../Abstracts/ElementObserver/ElementObserver";
+import { access } from "../../Utils/propUtils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import type { PreviewFlags, PreviewProps, PreviewSizing, PreviewTriggerProps } from "./Preview.types";
 
@@ -11,16 +12,16 @@ const DEFAULT_PREVIEW_TRANSITION_DURATION_MS = 200;
 const DEFAULT_PREVIEW_SIZING: PreviewSizing = "fill";
 
 const PreviewTrigger = (props: PreviewTriggerProps) => {
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
     return (
         <button
-            id={props.getId?.()}
+            id={access(props.id)}
             ref={(element) => props.ref?.(element)}
             type="button"
             class={styles.previewTrigger}
-            aria-expanded={props.getIsExpanded()}
-            aria-controls={props.getContentId()}
+            aria-expanded={access(props.isExpanded)}
+            aria-controls={access(props.contentId)}
             aria-disabled={getIsDisabled() || undefined}
             onClick={() => {
                 if (getIsDisabled()) return;
@@ -28,7 +29,7 @@ const PreviewTrigger = (props: PreviewTriggerProps) => {
                 props.onToggle();
             }}
         >
-            {props.renderTrigger(props.getFlags)}
+            {props.renderTrigger(() => access(props.flags))}
         </button>
     );
 };
@@ -44,16 +45,16 @@ export const Preview = (props: PreviewProps) => {
     const getIsExpanded = () => props.expandedSignal[0]();
 
     const getTransitionDurationMs = createMemo(
-        () => props.getTransitionDurationMs?.() ?? DEFAULT_PREVIEW_TRANSITION_DURATION_MS,
+        () => access(props.transitionDurationMs) ?? DEFAULT_PREVIEW_TRANSITION_DURATION_MS,
     );
 
-    const getSizing = createMemo(() => props.getSizing?.() ?? DEFAULT_PREVIEW_SIZING);
+    const getSizing = createMemo(() => access(props.sizing) ?? DEFAULT_PREVIEW_SIZING);
 
     const getContentHeight = ElementObserver.createBorderBoxHeightObserver(getContentRef);
 
     const getHasMeasured = createMemo(() => getContentHeight() > 0);
 
-    const getIsOverflowing = createMemo(() => getHasMeasured() && getContentHeight() > props.getCollapsedHeight());
+    const getIsOverflowing = createMemo(() => getHasMeasured() && getContentHeight() > access(props.collapsedHeight));
 
     const { getTransitionTarget, getHasTransitionFinished } = ElementFader.createFader(getIsExpanded, {
         getTransitionDurationMs,
@@ -69,7 +70,7 @@ export const Preview = (props: PreviewProps) => {
         const root = getRootRef();
         const trigger = getTriggerRef();
 
-        if (props.getIsScrolledIntoViewOnCollapse?.() !== true || !root || !trigger) return;
+        if (access(props.isScrolledIntoViewOnCollapse) !== true || !root || !trigger) return;
 
         const scrollIntoView = () => {
             root.scrollIntoView({ block: "nearest" });
@@ -86,9 +87,9 @@ export const Preview = (props: PreviewProps) => {
     });
 
     const getHeight = createMemo(() => {
-        if (!getHasMeasured()) return props.getCollapsedHeight();
+        if (!getHasMeasured()) return access(props.collapsedHeight);
 
-        return getTransitionTarget() === 1 || !getIsOverflowing() ? getContentHeight() : props.getCollapsedHeight();
+        return getTransitionTarget() === 1 || !getIsOverflowing() ? getContentHeight() : access(props.collapsedHeight);
     });
 
     const getOverlayTarget = createMemo((): 0 | 1 => (getTransitionTarget() === 1 ? 0 : 1));
@@ -116,8 +117,8 @@ export const Preview = (props: PreviewProps) => {
             <Show when={getIsOverflowing()}>
                 <InteractionWrapper
                     {...props}
-                    getSizing={() => "fit-content"}
-                    getExtraFlags={(): PreviewFlags => ({ isExpanded: getIsExpanded() })}
+                    sizing={"fit-content"}
+                    extraFlags={(): PreviewFlags => ({ isExpanded: getIsExpanded() })}
                     renderControl={(setElementRef, getFlags) => (
                         <PreviewTrigger
                             ref={(element) => {
@@ -125,10 +126,10 @@ export const Preview = (props: PreviewProps) => {
                                 setTriggerRef(element);
                                 props.ref?.(element);
                             }}
-                            getId={props.getId}
-                            getContentId={() => contentId}
-                            getFlags={getFlags}
-                            getIsExpanded={getIsExpanded}
+                            id={props.id}
+                            contentId={() => contentId}
+                            flags={getFlags}
+                            isExpanded={getIsExpanded}
                             renderTrigger={props.renderTrigger}
                             onToggle={() => props.expandedSignal[1]((prev) => !prev)}
                         />

@@ -2,6 +2,7 @@ import { createEffect, createMemo, createSignal, createUniqueId, onCleanup } fro
 
 import { ElementFader } from "../../../Abstracts/ElementFader/ElementFader";
 import { NavigationUtils } from "../../../Abstracts/Navigation/Navigation.utils";
+import { access } from "../../../Utils/propUtils";
 import { RadioGroupContextProvider } from "./RadioGroup.context";
 import type { RadioGroupContextType, RadioGroupEntry } from "./RadioGroup.context.types";
 import type { RadioGroupDir, RadioGroupProps } from "./RadioGroup.types";
@@ -21,10 +22,10 @@ export const RadioGroup = <T,>(props: RadioGroupProps<T>) => {
         { [k in "top" | "left" | "width" | "height"]: string } | undefined
     >();
 
-    const getDir = createMemo(() => props.getDir?.() ?? DEFAULT_RADIO_GROUP_DIR);
+    const getDir = createMemo(() => access(props.dir) ?? DEFAULT_RADIO_GROUP_DIR);
 
     const getTransitionDurationMs = createMemo(
-        () => props.getTransitionDurationMs?.() ?? DEFAULT_RADIO_GROUP_TRANSITION_DURATION_MS,
+        () => access(props.transitionDurationMs) ?? DEFAULT_RADIO_GROUP_TRANSITION_DURATION_MS,
     );
 
     const getOrderedEntries = createMemo(() =>
@@ -91,7 +92,7 @@ export const RadioGroup = <T,>(props: RadioGroupProps<T>) => {
     });
 
     const context: RadioGroupContextType = {
-        getName: () => props.getName?.() ?? fallbackName,
+        getName: () => access(props.name) ?? fallbackName,
         getValue: () => props.valueSignal[0](),
         setValue: (value) => props.valueSignal[1](() => value as T),
         computeIsTabbable: (value) => getRovingEntry()?.getValue() === value,
@@ -135,11 +136,11 @@ export const RadioGroup = <T,>(props: RadioGroupProps<T>) => {
             class={styles.radioGroupRoot}
             style={{
                 "flex-direction": getDir(),
-                "gap": `${props.getGap?.() ?? DEFAULT_RADIO_GROUP_GAP}px`,
+                "gap": `${access(props.gap) ?? DEFAULT_RADIO_GROUP_GAP}px`,
             }}
             role="radiogroup"
-            aria-label={props.getAriaLabel?.()}
-            aria-invalid={props.getHasError?.() || undefined}
+            aria-label={access(props.ariaLabel)}
+            aria-invalid={access(props.hasError) || undefined}
             onKeyDown={handleKeyDown}
         >
             {props.renderFloater && floaterFader.getIsVisible() && getFloaterBounds() && (

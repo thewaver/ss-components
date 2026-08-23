@@ -1,16 +1,21 @@
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
+import { access } from "../../../../Lib/Utils/propUtils";
 import type { ScrollerButtonProps } from "./ScrollerButton.types";
 
 import * as styles from "./ScrollerButton.css";
 
 export const PageScrollerButton = (props: ScrollerButtonProps) => {
-    const getIsPrevious = () => props.getStep() === "previous";
+    const getIsPrevious = () => access(props.step) === "previous";
 
     return (
         <Button
-            getIsDisabled={() => (getIsPrevious() ? props.stepper.getIsAtStart() : props.stepper.getIsAtEnd())}
-            getAriaLabel={() => (getIsPrevious() ? "Scroll back" : "Scroll forward")}
-            onClick={() => (getIsPrevious() ? props.stepper.stepToPrevious() : props.stepper.stepToNext())}
+            isDisabled={() =>
+                getIsPrevious() ? access(props.stepper).getIsAtStart() : access(props.stepper).getIsAtEnd()
+            }
+            ariaLabel={() => (getIsPrevious() ? "Scroll back" : "Scroll forward")}
+            onClick={() =>
+                getIsPrevious() ? access(props.stepper).stepToPrevious() : access(props.stepper).stepToNext()
+            }
             renderContent={(getFlags) => (
                 <div
                     class={styles.scrollerButton}

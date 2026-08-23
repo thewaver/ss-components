@@ -34,11 +34,11 @@ export const PaginatorPage = () => {
     const [getCustomLinkPage, setCustomLinkPage] = createSignal(STARTING_PAGE);
 
     const getExamples = createMemo(() => {
-        const commonProps: Omit<PaginatorExampleProps, "getPage" | "onPageChange"> = {
-            getPageCount,
-            getSiblingCount,
-            getBoundaryCount,
-            getIsDisabled,
+        const commonProps: Omit<PaginatorExampleProps, "page" | "onPageChange"> = {
+            pageCount: getPageCount,
+            siblingCount: getSiblingCount,
+            boundaryCount: getBoundaryCount,
+            isDisabled: getIsDisabled,
         };
 
         return [
@@ -47,7 +47,7 @@ export const PaginatorPage = () => {
                 name: "Previous and next",
                 readout: () =>
                     `page ${getStepPage()} of ${getPageCount()} — the gaps name the pages they stand for, and a gap standing for one page is spelled as that page instead`,
-                component: () => <StepsExample {...commonProps} getPage={getStepPage} onPageChange={setStepPage} />,
+                component: () => <StepsExample {...commonProps} page={getStepPage} onPageChange={setStepPage} />,
                 path: `${EXAMPLES_ROOT}/Steps.tsx`,
             },
             {
@@ -55,7 +55,7 @@ export const PaginatorPage = () => {
                 name: "Jumps to either end",
                 readout: () =>
                     `page ${getEndPage()} of ${getPageCount()} — first and previous go quiet together on page one, and next and last on the final page`,
-                component: () => <EndsExample {...commonProps} getPage={getEndPage} onPageChange={setEndPage} />,
+                component: () => <EndsExample {...commonProps} page={getEndPage} onPageChange={setEndPage} />,
                 path: `${EXAMPLES_ROOT}/Ends.tsx`,
             },
             {
@@ -63,7 +63,7 @@ export const PaginatorPage = () => {
                 name: "Pages that are links",
                 readout: () =>
                     `page ${getLinkPage()} of ${getPageCount()} — the consumer knows the address shape, so it computes the href from the page the library worked out`,
-                component: () => <LinksExample {...commonProps} getPage={getLinkPage} onPageChange={setLinkPage} />,
+                component: () => <LinksExample {...commonProps} page={getLinkPage} onPageChange={setLinkPage} />,
                 path: `${EXAMPLES_ROOT}/Links.tsx`,
             },
             {
@@ -72,11 +72,7 @@ export const PaginatorPage = () => {
                 readout: () =>
                     `page ${getCustomLinkPage()} of ${getPageCount()} — the same links rendered by a consumer's own link component`,
                 component: () => (
-                    <LinkComponentExample
-                        {...commonProps}
-                        getPage={getCustomLinkPage}
-                        onPageChange={setCustomLinkPage}
-                    />
+                    <LinkComponentExample {...commonProps} page={getCustomLinkPage} onPageChange={setCustomLinkPage} />
                 ),
                 path: `${EXAMPLES_ROOT}/LinkComponent.tsx`,
             },
@@ -85,49 +81,49 @@ export const PaginatorPage = () => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "pageCount"} getLabel={() => "Page count"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"pageCount"} label={"Page count"}>
                     <PageNumberField
-                        getValue={getPageCount}
-                        getMin={() => MIN_PAGE_COUNT}
-                        getMax={() => MAX_PAGE_COUNT}
-                        getStep={() => COUNT_STEP}
-                        getWidth={() => COUNT_FIELD_WIDTH}
-                        getAriaLabel={() => "Page count"}
+                        value={getPageCount}
+                        min={() => MIN_PAGE_COUNT}
+                        max={() => MAX_PAGE_COUNT}
+                        step={() => COUNT_STEP}
+                        width={() => COUNT_FIELD_WIDTH}
+                        ariaLabel={"Page count"}
                         onInput={setPageCount}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "siblingCount"} getLabel={() => "Sibling count"}>
+                <PageProp key={"siblingCount"} label={"Sibling count"}>
                     <PageNumberField
-                        getValue={getSiblingCount}
-                        getMin={() => MIN_COUNT}
-                        getMax={() => MAX_COUNT}
-                        getStep={() => COUNT_STEP}
-                        getWidth={() => COUNT_FIELD_WIDTH}
-                        getAriaLabel={() => "Sibling count"}
+                        value={getSiblingCount}
+                        min={() => MIN_COUNT}
+                        max={() => MAX_COUNT}
+                        step={() => COUNT_STEP}
+                        width={() => COUNT_FIELD_WIDTH}
+                        ariaLabel={"Sibling count"}
                         onInput={setSiblingCount}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "boundaryCount"} getLabel={() => "Boundary count"}>
+                <PageProp key={"boundaryCount"} label={"Boundary count"}>
                     <PageNumberField
-                        getValue={getBoundaryCount}
-                        getMin={() => MIN_COUNT}
-                        getMax={() => MAX_COUNT}
-                        getStep={() => COUNT_STEP}
-                        getWidth={() => COUNT_FIELD_WIDTH}
-                        getAriaLabel={() => "Boundary count"}
+                        value={getBoundaryCount}
+                        min={() => MIN_COUNT}
+                        max={() => MAX_COUNT}
+                        step={() => COUNT_STEP}
+                        width={() => COUNT_FIELD_WIDTH}
+                        ariaLabel={"Boundary count"}
                         onInput={setBoundaryCount}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "isDisabled"} getLabel={() => "Disabled"}>
-                    <PageCheckField getValue={getIsDisabled} getAriaLabel={() => "Disabled"} onChange={setIsDisabled} />
+                <PageProp key={"isDisabled"} label={"Disabled"}>
+                    <PageCheckField value={getIsDisabled} ariaLabel={"Disabled"} onChange={setIsDisabled} />
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} />
+            <PageExamples items={getExamples} />
         </>
     );
 };

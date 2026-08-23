@@ -7,8 +7,8 @@ type Props = CheckboxExampleProps;
 export const DisabledExample = (props: Props) => (
     <Checkbox
         checkedSignal={props.checkedSignal}
-        getAriaLabel={() => "Disabled checkbox"}
-        getIsDisabled={() => true}
-        renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+        ariaLabel={"Disabled checkbox"}
+        isDisabled={true}
+        renderContent={(getFlags) => <PageCheckboxContent flags={getFlags} />}
     />
 );

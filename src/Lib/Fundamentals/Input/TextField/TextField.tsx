@@ -6,6 +6,7 @@ import { CSSUtils, MathUtils, StringUtils } from "@thewaver/ss-utils";
 
 import type { TextSyncElement } from "../../../Abstracts/TextSync/TextSync";
 import { TextSync } from "../../../Abstracts/TextSync/TextSync";
+import { access } from "../../../Utils/propUtils";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { FormFieldUtils } from "../FormField/FormField.utils";
 import { LabelUtils } from "../Label/Label.utils";
@@ -119,38 +120,40 @@ const createAutoHeight = (
 };
 
 const TextFieldElement = (props: TextFieldElementProps) => {
-    const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
+    const getAriaLabel = LabelUtils.resolveAriaLabel(
+        props.ariaLabel === undefined ? undefined : () => access(props.ariaLabel)!,
+    );
     const getAriaDescribedBy = FormFieldUtils.resolveAriaDescribedBy();
 
     const [getElementRef, setElementRef] = createSignal<TextSyncElement>();
 
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
-    const getIsReadOnly = () => props.getFlags().isReadOnly;
+    const getIsReadOnly = () => access(props.flags).isReadOnly;
 
-    const getIsTextArea = () => props.getElement() === "textarea";
+    const getIsTextArea = () => access(props.element) === "textarea";
 
-    const getIsAutoSizing = () => getIsTextArea() && (props.getIsAutoSizing?.() ?? false);
+    const getIsAutoSizing = () => getIsTextArea() && (access(props.isAutoSizing) ?? false);
 
-    const getType = () => (getIsTextArea() ? undefined : (props.getType?.() ?? DEFAULT_TEXT_FIELD_TYPE));
+    const getType = () => (getIsTextArea() ? undefined : (access(props.type) ?? DEFAULT_TEXT_FIELD_TYPE));
 
-    const getIsSpinButton = () => props.getIsSpinButton?.() ?? false;
+    const getIsSpinButton = () => access(props.isSpinButton) ?? false;
 
     const getValueNow = () => {
-        const parsed = Number(props.getValue());
+        const parsed = Number(access(props.value));
 
-        return props.getValue() !== "" && Number.isFinite(parsed) ? parsed : undefined;
+        return access(props.value) !== "" && Number.isFinite(parsed) ? parsed : undefined;
     };
 
     const getOverflowY = () => {
         if (!getIsTextArea()) return undefined;
 
-        return getIsAutoSizing() && props.getMaxRows?.() === undefined ? "hidden" : "auto";
+        return getIsAutoSizing() && access(props.maxRows) === undefined ? "hidden" : "auto";
     };
 
     const { handleInput, handleCompositionStart, handleCompositionEnd } = TextSync.createValueSync(
         getElementRef,
-        props.getValue,
+        () => access(props.value),
         {
             onInput: (value) => {
                 void props.onInput?.(value);
@@ -161,46 +164,46 @@ const TextFieldElement = (props: TextFieldElementProps) => {
 
     return (
         <>
-            {props.renderContent(props.getFlags)}
+            {props.renderContent(() => access(props.flags))}
 
             {props.renderPlaceholder && (
-                <div class={styles.textFieldPlaceholder} style={props.getTextInset()}>
-                    {props.renderPlaceholder(props.getFlags, props.getPlaceholderHint?.())}
+                <div class={styles.textFieldPlaceholder} style={access(props.textInset)}>
+                    {props.renderPlaceholder(() => access(props.flags), access(props.placeholderHint))}
                 </div>
             )}
 
             <Dynamic
-                component={props.getElement()}
-                id={props.getId?.()}
+                component={access(props.element)}
+                id={access(props.id)}
                 ref={(element: TextSyncElement) => {
                     setElementRef(element);
                     props.ref?.(element);
                 }}
                 type={getType()}
                 rows={getIsAutoSizing() ? 1 : undefined}
-                name={props.getName?.()}
+                name={access(props.name)}
                 class={styles.textFieldElement}
                 classList={{ [styles.textFieldTextArea]: getIsTextArea() }}
                 style={{
-                    ...props.getTextInset(),
-                    ...props.computeTextStyle?.(props.getFlags),
+                    ...access(props.textInset),
+                    ...props.computeTextStyle?.(() => access(props.flags)),
                     "overflow-y": getOverflowY(),
                 }}
-                autocomplete={props.getAutoComplete?.()}
-                inputMode={props.getInputMode?.()}
-                min={getType() === "number" ? props.getMin?.() : undefined}
-                max={getType() === "number" ? props.getMax?.() : undefined}
-                step={getType() === "number" ? props.getStep?.() : undefined}
+                autocomplete={access(props.autoComplete)}
+                inputMode={access(props.inputMode)}
+                min={getType() === "number" ? access(props.min) : undefined}
+                max={getType() === "number" ? access(props.max) : undefined}
+                step={getType() === "number" ? access(props.step) : undefined}
                 readOnly={getIsDisabled() || getIsReadOnly()}
                 role={getIsSpinButton() ? "spinbutton" : undefined}
                 aria-label={getAriaLabel()}
                 aria-describedby={getAriaDescribedBy()}
                 aria-valuenow={getIsSpinButton() ? getValueNow() : undefined}
-                aria-valuemin={getIsSpinButton() ? props.getMin?.() : undefined}
-                aria-valuemax={getIsSpinButton() ? props.getMax?.() : undefined}
+                aria-valuemin={getIsSpinButton() ? access(props.min) : undefined}
+                aria-valuemax={getIsSpinButton() ? access(props.max) : undefined}
                 aria-disabled={getIsDisabled() || undefined}
                 aria-readonly={getIsReadOnly() || undefined}
-                aria-invalid={props.getFlags().hasError || undefined}
+                aria-invalid={access(props.flags).hasError || undefined}
                 onInput={(e: InputEvent & { currentTarget: TextSyncElement }) => handleInput(e.currentTarget)}
                 onCompositionStart={handleCompositionStart}
                 onCompositionEnd={(e: CompositionEvent & { currentTarget: TextSyncElement }) =>
@@ -232,9 +235,9 @@ const TextFieldElement = (props: TextFieldElementProps) => {
                 <div
                     ref={props.setLeadingRef}
                     class={styles.textFieldAdornment}
-                    style={{ left: `${props.getSpreadPadding().paddingLeft}px` }}
+                    style={{ left: `${access(props.spreadPadding).paddingLeft}px` }}
                 >
-                    {props.renderLeading(props.getFlags)}
+                    {props.renderLeading(() => access(props.flags))}
                 </div>
             )}
 
@@ -242,9 +245,9 @@ const TextFieldElement = (props: TextFieldElementProps) => {
                 <div
                     ref={props.setTrailingRef}
                     class={styles.textFieldAdornment}
-                    style={{ right: `${props.getSpreadPadding().paddingRight}px` }}
+                    style={{ right: `${access(props.spreadPadding).paddingRight}px` }}
                 >
-                    {props.renderTrailing(props.getFlags)}
+                    {props.renderTrailing(() => access(props.flags))}
                 </div>
             )}
         </>
@@ -259,23 +262,25 @@ export const TextField = (props: TextFieldProps) => {
     const getLeadingWidth = createAdornmentWidth(getLeadingRef);
     const getTrailingWidth = createAdornmentWidth(getTrailingRef);
 
-    const getIsAutoSizing = createMemo(() => props.getElement() === "textarea" && (props.getIsAutoSizing?.() ?? false));
+    const getIsAutoSizing = createMemo(
+        () => access(props.element) === "textarea" && (access(props.isAutoSizing) ?? false),
+    );
 
-    const getMinRows = () => props.getMinRows?.() ?? DEFAULT_TEXT_FIELD_MIN_ROWS;
+    const getMinRows = () => access(props.minRows) ?? DEFAULT_TEXT_FIELD_MIN_ROWS;
 
-    const getMaxRows = () => props.getMaxRows?.();
+    const getMaxRows = () => access(props.maxRows);
 
     const getMinHeight = createAutoHeight(getControlRef, getIsAutoSizing, getMinRows, getMaxRows, () =>
         props.valueSignal[0](),
     );
 
     const getSpreadPadding = createMemo(() => {
-        const padding = props.getPadding?.() ?? DEFAULT_TEXT_FIELD_PADDING;
+        const padding = access(props.padding) ?? DEFAULT_TEXT_FIELD_PADDING;
 
         return typeof padding === "number" ? CSSUtils.spreadPadding(padding) : padding;
     });
 
-    const getGap = () => props.getGap?.() ?? DEFAULT_TEXT_FIELD_GAP;
+    const getGap = () => access(props.gap) ?? DEFAULT_TEXT_FIELD_GAP;
 
     const computeInset = (edge: number, adornmentWidth: number) =>
         edge + (adornmentWidth ? adornmentWidth + getGap() : 0);
@@ -294,38 +299,38 @@ export const TextField = (props: TextFieldProps) => {
     return (
         <InteractionWrapper
             {...props}
-            getExtraFlags={() => ({
+            extraFlags={() => ({
                 isEmpty: props.valueSignal[0]() === "",
-                isReadOnly: props.getIsReadOnly?.() ?? false,
+                isReadOnly: access(props.isReadOnly) ?? false,
             })}
-            getMinWidth={() => getLeadingInset() + getTrailingInset()}
-            getMinHeight={getMinHeight}
+            minWidth={() => getLeadingInset() + getTrailingInset()}
+            minHeight={getMinHeight}
             renderControl={(setElementRef, getFlags) => (
                 <TextFieldElement
                     ref={(element) => {
                         setElementRef(element);
                         setControlRef(element);
                     }}
-                    getId={props.getId}
-                    getElement={props.getElement}
-                    getType={props.getType}
-                    getName={props.getName}
-                    getAriaLabel={props.getAriaLabel}
-                    getIsSpinButton={props.getIsSpinButton}
-                    getAutoComplete={props.getAutoComplete}
-                    getInputMode={props.getInputMode}
+                    id={props.id}
+                    element={props.element}
+                    type={props.type}
+                    name={props.name}
+                    ariaLabel={props.ariaLabel}
+                    isSpinButton={props.isSpinButton}
+                    autoComplete={props.autoComplete}
+                    inputMode={props.inputMode}
                     computeMaskedText={props.computeMaskedText}
-                    getPlaceholderHint={props.getPlaceholderHint}
-                    getMin={props.getMin}
-                    getMax={props.getMax}
-                    getStep={props.getStep}
-                    getIsAutoSizing={getIsAutoSizing}
-                    getMinRows={getMinRows}
-                    getMaxRows={props.getMaxRows}
-                    getFlags={getFlags}
-                    getValue={() => props.valueSignal[0]()}
-                    getTextInset={getTextInset}
-                    getSpreadPadding={getSpreadPadding}
+                    placeholderHint={props.placeholderHint}
+                    min={props.min}
+                    max={props.max}
+                    step={props.step}
+                    isAutoSizing={getIsAutoSizing}
+                    minRows={getMinRows}
+                    maxRows={props.maxRows}
+                    flags={getFlags}
+                    value={() => props.valueSignal[0]()}
+                    textInset={getTextInset}
+                    spreadPadding={getSpreadPadding}
                     setLeadingRef={setLeadingRef}
                     setTrailingRef={setTrailingRef}
                     computeTextStyle={props.computeTextStyle}

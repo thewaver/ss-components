@@ -6,6 +6,7 @@ import type { DateValue } from "../../../../Lib/Abstracts/DateValue/DateValue.ty
 import { DateValueUtils } from "../../../../Lib/Abstracts/DateValue/DateValue.utils";
 import { FocusUtils } from "../../../../Lib/Abstracts/Focus/Focus.utils";
 import { Button } from "../../../../Lib/Fundamentals/Button/Button";
+import { access } from "../../../../Lib/Utils/propUtils";
 import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import { PageCalendarHeader, PageCalendarTitle } from "../../StyledComponents/CalendarContent/CalendarContent";
 import { PageNumberField, PageSelectField } from "../Field/Field";
@@ -31,7 +32,7 @@ export const PageCalendarCaption = (props: PageCalendarCaptionProps) => {
 
     const getMonth = () => props.monthSignal[0]();
 
-    const getMonthNames = createMemo(() => DateValueUtils.getMonthNames(getMonth(), props.getLocale?.()));
+    const getMonthNames = createMemo(() => DateValueUtils.getMonthNames(getMonth(), access(props.locale)));
 
     const getMonthValues = createMemo(() =>
         Array.from({ length: DateValueUtils.getMonthsInYear(getMonth()) }, (_, index) => index + 1),
@@ -39,10 +40,10 @@ export const PageCalendarCaption = (props: PageCalendarCaptionProps) => {
 
     const getTitle = () => {
         const month = getMonth();
-        const eras = DateValueUtils.getEras(month, props.getLocale?.());
+        const eras = DateValueUtils.getEras(month, access(props.locale));
         const isPastEra = month.era !== eras[eras.length - 1].id;
 
-        return DateValueUtils.format(month, isPastEra ? PAST_ERA_TITLE_OPTIONS : TITLE_OPTIONS, props.getLocale?.());
+        return DateValueUtils.format(month, isPastEra ? PAST_ERA_TITLE_OPTIONS : TITLE_OPTIONS, access(props.locale));
     };
 
     const jumpTo = (value: { year?: number; month?: number }) => {
@@ -115,9 +116,9 @@ export const PageCalendarCaption = (props: PageCalendarCaptionProps) => {
     return (
         <PageCalendarHeader>
             <Button
-                getId={() => `${props.getKey()}PreviousMonth`}
-                getAriaLabel={() => "Previous month"}
-                renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>◀</PageButtonContent>}
+                id={() => `${access(props.key)}PreviousMonth`}
+                ariaLabel={"Previous month"}
+                renderContent={(getFlags) => <PageButtonContent flags={getFlags}>◀</PageButtonContent>}
                 onClick={() => page(-1)}
             />
 
@@ -126,10 +127,10 @@ export const PageCalendarCaption = (props: PageCalendarCaptionProps) => {
                 fallback={
                     <Button
                         ref={setTitleRef}
-                        getId={() => `${props.getKey()}MonthTitle`}
-                        getAriaLabel={() => `${getTitle()}, pick a month and year`}
+                        id={() => `${access(props.key)}MonthTitle`}
+                        ariaLabel={() => `${getTitle()}, pick a month and year`}
                         renderContent={(getFlags) => (
-                            <PageCalendarTitle getFlags={getFlags}>{getTitle()}</PageCalendarTitle>
+                            <PageCalendarTitle flags={getFlags}>{getTitle()}</PageCalendarTitle>
                         )}
                         onClick={startEditing}
                     />
@@ -157,27 +158,27 @@ export const PageCalendarCaption = (props: PageCalendarCaptionProps) => {
                     }}
                 >
                     <PageSelectField
-                        getValue={() => getMonth().month}
-                        getValues={getMonthValues}
-                        getWidth={() => MONTH_FIELD_WIDTH}
-                        getAriaLabel={() => "Month"}
+                        value={() => getMonth().month}
+                        values={getMonthValues}
+                        width={() => MONTH_FIELD_WIDTH}
+                        ariaLabel={"Month"}
                         computeLabel={(month) => getMonthNames()[month - 1]}
                         onChange={(month) => jumpTo({ month })}
                     />
 
                     <PageNumberField
-                        getValue={() => getMonth().year}
-                        getWidth={() => YEAR_FIELD_WIDTH}
-                        getAriaLabel={() => "Year"}
+                        value={() => getMonth().year}
+                        width={() => YEAR_FIELD_WIDTH}
+                        ariaLabel={"Year"}
                         onInput={queueYear}
                     />
                 </div>
             </Show>
 
             <Button
-                getId={() => `${props.getKey()}NextMonth`}
-                getAriaLabel={() => "Next month"}
-                renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>▶</PageButtonContent>}
+                id={() => `${access(props.key)}NextMonth`}
+                ariaLabel={"Next month"}
+                renderContent={(getFlags) => <PageButtonContent flags={getFlags}>▶</PageButtonContent>}
                 onClick={() => page(1)}
             />
         </PageCalendarHeader>

@@ -6,8 +6,8 @@ type Props = ButtonExampleProps;
 
 export const DisabledExample = (props: Props) => (
     <Button
-        getIsDisabled={() => true}
-        renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Click Me</PageButtonContent>}
+        isDisabled={true}
+        renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Click Me</PageButtonContent>}
         onClick={props.onClick}
     />
 );

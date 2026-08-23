@@ -17,8 +17,8 @@ export const ScreenWiperPage = () => {
     return (
         <div class={styles.root}>
             <ScreenWiper
-                getInitialWipeDirection={() => INITIAL_WIPE_DIRECTION}
-                getWipeDirection={getWipeDirection}
+                initialWipeDirection={() => INITIAL_WIPE_DIRECTION}
+                wipeDirection={getWipeDirection}
                 onTransitionEnd={() => {
                     if (getWipeDirection() === "in") {
                         setWipeDirection("out");
@@ -29,13 +29,13 @@ export const ScreenWiperPage = () => {
             />
 
             <Button
-                getTooltipDefs={() => ({
-                    getPlacement: () => ({ x: "center", y: "top-out" }),
-                    getOffset: () => ({ x: 0, y: 5 }),
+                tooltipDefs={() => ({
+                    placement: () => ({ x: "center", y: "top-out" }),
+                    offset: () => ({ x: 0, y: 5 }),
                     renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
                         <PageTooltipContent
-                            getVisibilityTarget={getVisibilityTarget}
-                            getTransitionDurationMs={getTransitionDurationMs}
+                            visibilityTarget={getVisibilityTarget}
+                            transitionDurationMs={getTransitionDurationMs}
                         >
                             Click me to wipe the screen. You should see a back and forth animation.
                         </PageTooltipContent>
@@ -47,7 +47,7 @@ export const ScreenWiperPage = () => {
                         setIsWiping(true);
                     }
                 }}
-                renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Click to Wipe</PageButtonContent>}
+                renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Click to Wipe</PageButtonContent>}
             />
         </div>
     );

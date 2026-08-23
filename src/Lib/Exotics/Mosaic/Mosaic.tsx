@@ -3,6 +3,7 @@ import { For, createMemo, createSignal } from "solid-js";
 import type { Rect } from "@thewaver/ss-utils";
 
 import { ElementObserver } from "../../Abstracts/ElementObserver/ElementObserver";
+import { access } from "../../Utils/propUtils";
 import type { MosaicPlacement, MosaicProps, MosaicSizeAnchor } from "./Mosaic.types";
 import { MosaicUtils } from "./Mosaic.utils";
 
@@ -18,9 +19,9 @@ const isSameOrder = (prev: number[], next: number[]) =>
     prev.length === next.length && prev.every((index, at) => index === next[at]);
 
 export const Mosaic = (props: MosaicProps) => {
-    const getSizeAnchor = createMemo(() => props.getSizeAnchor?.() ?? DEFAULT_MOSAIC_SIZE_ANCHOR);
+    const getSizeAnchor = createMemo(() => access(props.sizeAnchor) ?? DEFAULT_MOSAIC_SIZE_ANCHOR);
 
-    const getGap = createMemo(() => props.getGap?.() ?? DEFAULT_MOSAIC_GAP);
+    const getGap = createMemo(() => access(props.gap) ?? DEFAULT_MOSAIC_GAP);
 
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
 
@@ -31,7 +32,7 @@ export const Mosaic = (props: MosaicProps) => {
     );
 
     const getLayout = createMemo(() => {
-        const sizes = props.getSizes();
+        const sizes = access(props.sizes);
         const anchoredExtent = getAnchoredExtent();
 
         if (anchoredExtent <= 0 || !sizes.length) return EMPTY_LAYOUT;
@@ -61,7 +62,7 @@ export const Mosaic = (props: MosaicProps) => {
             const placed = getLayout().placements.map((placement) => placement.index);
             const isPlaced = new Set(placed);
 
-            return [...placed, ...props.getSizes().flatMap((_, index) => (isPlaced.has(index) ? [] : [index]))];
+            return [...placed, ...access(props.sizes).flatMap((_, index) => (isPlaced.has(index) ? [] : [index]))];
         },
         undefined,
         { equals: isSameOrder },
@@ -84,19 +85,19 @@ export const Mosaic = (props: MosaicProps) => {
                     return (
                         <div
                             class={styles.mosaicItem}
-                            classList={{ [styles.mosaicSizedItem]: props.getIsItemSized() }}
+                            classList={{ [styles.mosaicSizedItem]: access(props.isItemSized) }}
                             style={{
                                 left: `${getRect().x}px`,
                                 top: `${getRect().y}px`,
-                                width: props.getIsItemSized() ? `${getRect().width}px` : undefined,
-                                height: props.getIsItemSized() ? `${getRect().height}px` : undefined,
+                                width: access(props.isItemSized) ? `${getRect().width}px` : undefined,
+                                height: access(props.isItemSized) ? `${getRect().height}px` : undefined,
                                 visibility: getIsPlaced() ? undefined : "hidden",
                             }}
                         >
                             {props.renderItem(index, () => ({
                                 index,
                                 readingIndex: getReadingIndex(),
-                                itemCount: props.getSizes().length,
+                                itemCount: access(props.sizes).length,
                                 rect: getRect(),
                             }))}
                         </div>

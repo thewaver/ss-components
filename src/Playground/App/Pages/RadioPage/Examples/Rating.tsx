@@ -10,12 +10,12 @@ const RATING_OPTIONS = [1, 2, 3, 4, 5];
 type Props = RadioRatingExampleProps;
 
 export const RatingExample = (props: Props) => (
-    <RadioGroup valueSignal={props.valueSignal} getAriaLabel={() => "Rating"} getDir={() => "row"} getGap={() => 0}>
+    <RadioGroup valueSignal={props.valueSignal} ariaLabel={"Rating"} dir={"row"} gap={0}>
         <For each={RATING_OPTIONS}>
             {(rating) => (
                 <Radio
-                    getValue={() => rating}
-                    getAriaLabel={() => (rating === 1 ? "1 star" : `${rating} stars`)}
+                    value={() => rating}
+                    ariaLabel={() => (rating === 1 ? "1 star" : `${rating} stars`)}
                     onMouseEnter={() => {
                         props.hoveredSignal[1](rating);
                     }}
@@ -24,8 +24,8 @@ export const RatingExample = (props: Props) => (
                     }}
                     renderContent={(getFlags) => (
                         <PageRadioStarContent
-                            getFlags={getFlags}
-                            getIsFilled={() => rating <= (props.hoveredSignal[0]() ?? props.valueSignal[0]())}
+                            flags={getFlags}
+                            isFilled={() => rating <= (props.hoveredSignal[0]() ?? props.valueSignal[0]())}
                         />
                     )}
                 />

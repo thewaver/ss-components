@@ -13,20 +13,20 @@ type Props = TextInputExampleProps;
 export const ReachableExample = (props: Props) => (
     <TextInput
         valueSignal={props.valueSignal}
-        getPadding={() => FIELD_PADDING}
-        getGap={() => FIELD_GAP}
-        getIsDisabled={() => true}
-        getIsReachableWhenDisabled={() => true}
-        getAriaLabel={() => "Disabled but reachable field"}
+        padding={() => FIELD_PADDING}
+        gap={() => FIELD_GAP}
+        isDisabled={true}
+        isReachableWhenDisabled={true}
+        ariaLabel={"Disabled but reachable field"}
         computeTextStyle={computePageTextFieldTextStyle}
-        renderContent={(getFlags) => <PageTextFieldContent getFlags={getFlags} />}
-        getTooltipDefs={() => ({
-            getPlacement: () => ({ x: "center", y: "top-out" }),
-            getOffset: () => ({ x: 0, y: 5 }),
+        renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} />}
+        tooltipDefs={() => ({
+            placement: () => ({ x: "center", y: "top-out" }),
+            offset: () => ({ x: 0, y: 5 }),
             renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
                 <PageTooltipContent
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
+                    visibilityTarget={getVisibilityTarget}
+                    transitionDurationMs={getTransitionDurationMs}
                 >
                     Focusable so this tooltip can be read, but typing must leave the value alone.
                 </PageTooltipContent>

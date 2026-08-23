@@ -9,9 +9,9 @@ export const RefusedWriteExample = (props: Props) => (
     <PageControlRow>
         <Checkbox
             checkedSignal={props.emailSignal}
-            getId={() => "email"}
-            getAriaLabel={() => "Email"}
-            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+            id={"email"}
+            ariaLabel={"Email"}
+            renderContent={(getFlags) => <PageCheckboxContent flags={getFlags} />}
             onChange={(isChecked) => {
                 if (isChecked || props.smsSignal[0]()) return;
 
@@ -23,8 +23,8 @@ export const RefusedWriteExample = (props: Props) => (
 
         <Checkbox
             checkedSignal={props.smsSignal}
-            getAriaLabel={() => "SMS"}
-            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+            ariaLabel={"SMS"}
+            renderContent={(getFlags) => <PageCheckboxContent flags={getFlags} />}
             onChange={(isChecked) => {
                 if (isChecked || props.emailSignal[0]()) return;
 

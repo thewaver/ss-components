@@ -9,12 +9,12 @@ const GAP = 5;
 type Props = LabelExampleProps;
 
 export const ColumnExample = (props: Props) => (
-    <Label getDir={() => "column"} getGap={() => GAP}>
+    <Label dir={"column"} gap={() => GAP}>
         <PageLabelCaption>Stacked</PageLabelCaption>
 
         <Checkbox
             checkedSignal={props.checkedSignal}
-            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+            renderContent={(getFlags) => <PageCheckboxContent flags={getFlags} />}
         />
     </Label>
 );

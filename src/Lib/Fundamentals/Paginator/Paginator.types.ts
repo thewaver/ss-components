@@ -1,7 +1,7 @@
 import type { Accessor, Component, JSX } from "solid-js";
 
 import type { InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 import type { InteractionControlProps } from "../InteractionWrapper/InteractionWrapper.types";
 
 export type PaginatorStep = "first" | "previous" | "next" | "last";
@@ -60,7 +60,7 @@ export type PaginatorProps = AccessorProps<{
     computePageLabel?: (page: number, pageCount: number) => string;
     computeStepLabel?: (step: PaginatorStep, targetPage: number) => string;
 }> & {
-    getPage: Accessor<number>;
+    page: MaybeAccessor<number>;
     renderPage: (
         getEntry: Accessor<PaginatorPageEntry>,
         getFlags: () => InteractionFlags<PaginatorPageFlags>,

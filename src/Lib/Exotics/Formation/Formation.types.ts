@@ -1,6 +1,6 @@
 import type { Accessor, JSX } from "solid-js";
 
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 
 export type FormationInset = {
     top: number;
@@ -23,7 +23,7 @@ export type FormationItemState = {
 export type FormationProps<T> = AccessorProps<{
     isStackedInReverse?: boolean;
 }> & {
-    getItems: Accessor<T[]>;
+    items: MaybeAccessor<T[]>;
     computeLayout: (itemCount: number) => FormationLayout;
     renderItem: (getItem: Accessor<T>, getState: Accessor<FormationItemState>) => JSX.Element;
 };

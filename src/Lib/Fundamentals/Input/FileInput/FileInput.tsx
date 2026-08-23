@@ -1,5 +1,6 @@
 import { createRenderEffect, createSignal } from "solid-js";
 
+import { access } from "../../../Utils/propUtils";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { FormFieldUtils } from "../FormField/FormField.utils";
 import { LabelUtils } from "../Label/Label.utils";
@@ -10,15 +11,17 @@ import * as styles from "./FileInput.css";
 const EMPTY_FILE_INPUT_VALUE = "";
 
 const FileInputElement = (props: FileInputElementProps) => {
-    const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
+    const getAriaLabel = LabelUtils.resolveAriaLabel(
+        props.ariaLabel === undefined ? undefined : () => access(props.ariaLabel)!,
+    );
     const getAriaDescribedBy = FormFieldUtils.resolveAriaDescribedBy();
 
     const [getElementRef, setElementRef] = createSignal<HTMLInputElement>();
 
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
     const syncElement = (element: HTMLInputElement) => {
-        if (props.getFiles().length) return;
+        if (access(props.files).length) return;
 
         element.value = EMPTY_FILE_INPUT_VALUE;
     };
@@ -33,23 +36,23 @@ const FileInputElement = (props: FileInputElementProps) => {
 
     return (
         <>
-            {props.renderContent(props.getFlags)}
+            {props.renderContent(() => access(props.flags))}
 
             <input
-                id={props.getId?.()}
+                id={access(props.id)}
                 ref={(element) => {
                     setElementRef(element);
                     props.ref?.(element);
                 }}
                 type="file"
-                name={props.getName?.()}
+                name={access(props.name)}
                 class={styles.fileInputElement}
-                accept={props.getAccept?.()}
-                multiple={props.getIsMultiple?.()}
+                accept={access(props.accept)}
+                multiple={access(props.isMultiple)}
                 aria-label={getAriaLabel()}
                 aria-describedby={getAriaDescribedBy()}
                 aria-disabled={getIsDisabled() || undefined}
-                aria-invalid={props.getFlags().hasError || undefined}
+                aria-invalid={access(props.flags).hasError || undefined}
                 onClick={(e) => {
                     if (getIsDisabled()) e.preventDefault();
                 }}
@@ -77,29 +80,31 @@ const FileInputElement = (props: FileInputElementProps) => {
     );
 };
 
-export const FileInput = (props: FileInputProps) => (
-    <InteractionWrapper
-        {...props}
-        getExtraFlags={(): FileInputFlags => ({ files: props.filesSignal[0]() })}
-        renderControl={(setElementRef, getFlags) => (
-            <FileInputElement
-                ref={setElementRef}
-                getId={props.getId}
-                getName={props.getName}
-                getAriaLabel={props.getAriaLabel}
-                getAccept={props.getAccept}
-                getIsMultiple={props.getIsMultiple}
-                getFlags={getFlags}
-                getFiles={() => props.filesSignal[0]()}
-                renderContent={props.renderContent}
-                onChange={(files) => {
-                    props.filesSignal[1](files);
+export const FileInput = (props: FileInputProps) => {
+    return (
+        <InteractionWrapper
+            {...props}
+            extraFlags={(): FileInputFlags => ({ files: props.filesSignal[0]() })}
+            renderControl={(setElementRef, getFlags) => (
+                <FileInputElement
+                    ref={setElementRef}
+                    id={props.id}
+                    name={props.name}
+                    ariaLabel={props.ariaLabel}
+                    accept={props.accept}
+                    isMultiple={props.isMultiple}
+                    flags={getFlags}
+                    files={() => props.filesSignal[0]()}
+                    renderContent={props.renderContent}
+                    onChange={(files) => {
+                        props.filesSignal[1](files);
 
-                    void props.onChange?.(files);
-                }}
-                onMouseEnter={props.onMouseEnter}
-                onMouseLeave={props.onMouseLeave}
-            />
-        )}
-    />
-);
+                        void props.onChange?.(files);
+                    }}
+                    onMouseEnter={props.onMouseEnter}
+                    onMouseLeave={props.onMouseLeave}
+                />
+            )}
+        />
+    );
+};

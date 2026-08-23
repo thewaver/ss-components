@@ -5,6 +5,7 @@ import { TimeUtils } from "@thewaver/ss-utils";
 import type { TimeValue } from "@thewaver/ss-utils";
 
 import { NavigationUtils } from "../../../Abstracts/Navigation/Navigation.utils";
+import { access } from "../../../Utils/propUtils";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import type { ClockFlags, ClockOption, ClockOptionProps, ClockProps, ClockSteps, ClockUnit } from "./Clock.types";
 import { ClockUtils } from "./Clock.utils";
@@ -30,17 +31,17 @@ const fromDate = (date: Date): TimeValue => ({
 });
 
 const ClockOptionControl = (props: ClockOptionProps) => {
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
     return (
         <div
-            id={props.getId?.()}
+            id={access(props.id)}
             ref={(element) => props.ref?.(element)}
             class={styles.clockOption}
             role="option"
-            aria-label={props.getAriaLabel()}
-            aria-selected={props.getFlags().isSelected}
-            aria-current={props.getFlags().isNow ? "time" : undefined}
+            aria-label={access(props.ariaLabel)}
+            aria-selected={access(props.flags).isSelected}
+            aria-current={access(props.flags).isNow ? "time" : undefined}
             aria-disabled={getIsDisabled() || undefined}
             onClick={() => {
                 if (getIsDisabled()) return;
@@ -48,7 +49,7 @@ const ClockOptionControl = (props: ClockOptionProps) => {
                 props.onSelect();
             }}
         >
-            {props.renderContent(props.getFlags)}
+            {props.renderContent(() => access(props.flags))}
         </div>
     );
 };
@@ -61,18 +62,18 @@ export const Clock = (props: ClockProps) => {
     const [getHighlighted, setHighlighted] = createSignal<TimeValue | undefined>();
     const [getHighlightedUnit, setHighlightedUnit] = createSignal<ClockUnit | undefined>();
 
-    const getIsTwelveHour = createMemo(() => props.getIsTwelveHour?.() ?? false);
+    const getIsTwelveHour = createMemo(() => access(props.isTwelveHour) ?? false);
 
-    const getHasSeconds = createMemo(() => props.getHasSeconds?.() ?? false);
+    const getHasSeconds = createMemo(() => access(props.hasSeconds) ?? false);
 
-    const getGap = () => `${props.getGap?.() ?? DEFAULT_CLOCK_GAP}px`;
+    const getGap = () => `${access(props.gap) ?? DEFAULT_CLOCK_GAP}px`;
 
-    const getNow = createMemo(() => props.getNow?.() ?? fromDate(new Date()));
+    const getNow = createMemo(() => access(props.now) ?? fromDate(new Date()));
 
     const withShape = (time: TimeValue) => (getHasSeconds() ? { ...time, second: time.second ?? 0 } : time);
 
     const getBase = createMemo(() =>
-        withShape(props.valueSignal[0]() ?? TimeUtils.clamp(getNow(), props.getMin?.(), props.getMax?.())),
+        withShape(props.valueSignal[0]() ?? TimeUtils.clamp(getNow(), access(props.min), access(props.max))),
     );
 
     const getUnits = createMemo<ClockUnit[]>(() => {
@@ -84,12 +85,12 @@ export const Clock = (props: ClockProps) => {
         return units;
     });
 
-    const getMeridiemNames = createMemo(() => ClockUtils.getMeridiemNames(props.getLocale?.()));
+    const getMeridiemNames = createMemo(() => ClockUtils.getMeridiemNames(access(props.locale)));
 
     const getColumns = createMemo<ClockColumn[]>(() => {
         const isTwelveHour = getIsTwelveHour();
         const base = getBase();
-        const steps = props.getSteps?.() ?? NO_CLOCK_STEPS;
+        const steps = access(props.steps) ?? NO_CLOCK_STEPS;
         const meridiemNames = getMeridiemNames();
 
         return getUnits().map((unit) => {
@@ -127,8 +128,8 @@ export const Clock = (props: ClockProps) => {
         );
 
     const getIsTimeDisabled = (time: TimeValue) =>
-        (props.getIsDisabled?.() ?? false) ||
-        !TimeUtils.getIsInRange(time, props.getMin?.(), props.getMax?.()) ||
+        (access(props.isDisabled) ?? false) ||
+        !TimeUtils.getIsInRange(time, access(props.min), access(props.max)) ||
         (props.computeIsTimeDisabled?.(time) ?? false);
 
     const setOptionRef = (unit: ClockUnit, index: number, element: HTMLElement) => {
@@ -222,10 +223,10 @@ export const Clock = (props: ClockProps) => {
 
                 return (
                     <InteractionWrapper
-                        getSizing={() => "fill"}
-                        getIsDisabled={() => getIsTimeDisabled(getOption().time)}
-                        getIsTabbable={getIsHighlighted}
-                        getExtraFlags={(): ClockFlags => ({
+                        sizing={"fill"}
+                        isDisabled={() => getIsTimeDisabled(getOption().time)}
+                        isTabbable={getIsHighlighted}
+                        extraFlags={(): ClockFlags => ({
                             option: getOption(),
                             isSelected: getIsAt(props.valueSignal[0]()),
                             isNow: getIsAt(getNow()),
@@ -235,9 +236,9 @@ export const Clock = (props: ClockProps) => {
                         renderControl={(setElementRef, getFlags) => (
                             <ClockOptionControl
                                 ref={setElementRef}
-                                getId={() => `${groupId}-${getColumn().unit}-${optionIndex}`}
-                                getFlags={getFlags}
-                                getAriaLabel={() => getOption().label}
+                                id={() => `${groupId}-${getColumn().unit}-${optionIndex}`}
+                                flags={getFlags}
+                                ariaLabel={() => getOption().label}
                                 renderContent={(getOptionFlags) => props.renderOption(getOption, getOptionFlags)}
                                 onSelect={() => pick(getOption())}
                             />
@@ -255,14 +256,14 @@ export const Clock = (props: ClockProps) => {
             class={styles.clockRoot}
             style={{ gap: getGap() }}
             role="group"
-            aria-label={props.getAriaLabel?.()}
-            aria-disabled={props.getIsDisabled?.() || undefined}
+            aria-label={access(props.ariaLabel)}
+            aria-disabled={access(props.isDisabled) || undefined}
             onKeyDown={handleKeyDown}
         >
             <Index each={getColumns()}>
                 {(getColumn) => {
                     const getUnit = createMemo(() => getColumn().unit);
-                    const getName = createMemo(() => ClockUtils.getUnitName(getUnit(), props.getLocale?.()));
+                    const getName = createMemo(() => ClockUtils.getUnitName(getUnit(), access(props.locale)));
 
                     return (
                         <div class={styles.clockColumn}>
@@ -275,7 +276,7 @@ export const Clock = (props: ClockProps) => {
                                 style={{ gap: getGap() }}
                                 role="listbox"
                                 aria-label={getName()}
-                                aria-disabled={props.getIsDisabled?.() || undefined}
+                                aria-disabled={access(props.isDisabled) || undefined}
                             >
                                 {props.renderColumn?.(() => renderOptions(getColumn), getUnit()) ??
                                     renderOptions(getColumn)}

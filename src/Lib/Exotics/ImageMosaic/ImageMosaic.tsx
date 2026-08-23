@@ -2,6 +2,7 @@ import { createEffect, createMemo, createSignal, untrack } from "solid-js";
 
 import type { Size2d } from "@thewaver/ss-utils";
 
+import { access } from "../../Utils/propUtils";
 import { Mosaic } from "../Mosaic/Mosaic";
 import type { ImageMosaicProps } from "../Mosaic/Mosaic.types";
 import { MosaicUtils } from "../Mosaic/Mosaic.utils";
@@ -18,7 +19,7 @@ export const ImageMosaic = (props: ImageMosaicProps) => {
     const setSizeOf = (src: string, size: Size2d) => setSizeBySrc((sizes) => ({ ...sizes, [src]: size }));
 
     createEffect(() => {
-        const sources = props.getSources();
+        const sources = access(props.sources);
         const known = untrack(getSizeBySrc);
 
         setSizeBySrc(
@@ -41,27 +42,27 @@ export const ImageMosaic = (props: ImageMosaicProps) => {
         }
     });
 
-    const getSizes = createMemo(() => props.getSources().map((source) => getSizeBySrc()[source.src] ?? EMPTY_SIZE));
+    const getSizes = createMemo(() => access(props.sources).map((source) => getSizeBySrc()[source.src] ?? EMPTY_SIZE));
 
     const getTargetAspectRatio = createMemo(() => {
-        const targetAspectRatio = props.getTargetAspectRatio?.() ?? DEFAULT_TARGET_ASPECT_RATIO;
+        const targetAspectRatio = access(props.targetAspectRatio) ?? DEFAULT_TARGET_ASPECT_RATIO;
 
-        return props.getSizeAnchor?.() === "height" ? MosaicUtils.transposeSize(targetAspectRatio) : targetAspectRatio;
+        return access(props.sizeAnchor) === "height" ? MosaicUtils.transposeSize(targetAspectRatio) : targetAspectRatio;
     });
 
     return (
         <Mosaic
-            getSizeAnchor={props.getSizeAnchor}
-            getGap={props.getGap}
-            getSizes={getSizes}
-            getIsItemSized={() => true}
+            sizeAnchor={props.sizeAnchor}
+            gap={props.gap}
+            sizes={getSizes}
+            isItemSized={true}
             computePlacements={(defs) => MosaicUtils.packScaled(defs, getTargetAspectRatio())}
             renderItem={(index, getState) => {
                 const renderImage = () => (
                     <img
                         class={styles.imageMosaicImage}
-                        src={props.getSources()[index]?.src}
-                        alt={props.getSources()[index]?.alt}
+                        src={access(props.sources)[index]?.src}
+                        alt={access(props.sources)[index]?.alt}
                         decoding="async"
                     />
                 );

@@ -26,13 +26,13 @@ export const ColorAreaPage = () => {
     const getExamples = createMemo(() => {
         const bareProps: ColorAreaExampleProps = { hsvSignal: bareSignal };
 
-        const disabledProps: ColorAreaExampleProps = { hsvSignal: disabledSignal, getIsDisabled: () => true };
+        const disabledProps: ColorAreaExampleProps = { hsvSignal: disabledSignal, isDisabled: () => true };
 
         const dropdownProps: ColorAreaDropdownExampleProps = {
             hsvSignal: pickerSignal,
             isOpenSignal,
             hueSignal,
-            getPopupId: () => popupId,
+            popupId: () => popupId,
         };
 
         return [
@@ -61,5 +61,5 @@ export const ColorAreaPage = () => {
         ];
     });
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

@@ -22,8 +22,8 @@ const computeDefs = (getSize: () => Size2d, id: string) =>
     });
 
 const getConfig = (id: string): SurfaceProps => ({
-    getBorderRadii: () => CSSUtils.spreadRadius(styles.borderRadius),
-    getBorderWidths: () => CSSUtils.spreadWidth(4),
+    borderRadii: () => CSSUtils.spreadRadius(styles.borderRadius),
+    borderWidths: () => CSSUtils.spreadWidth(4),
     computeStrokeDefs: (getSize) => computeDefs(getSize, id),
     computeFillDefs: (getSize) => [
         ...computeDefs(getSize, id),

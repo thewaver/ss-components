@@ -27,7 +27,7 @@ export type PreviewTriggerProps = AccessorProps<
 
 export type PreviewProps = Omit<
     InteractionWrapperProps<PreviewFlags>,
-    "renderControl" | "getExtraFlags" | "getSizing" | "getMinWidth" | "getMinHeight"
+    "renderControl" | "extraFlags" | "sizing" | "minWidth" | "minHeight"
 > &
     AccessorProps<{
         id?: string;

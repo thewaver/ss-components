@@ -1,7 +1,7 @@
 import type { Accessor, JSX } from "solid-js";
 
 import type { InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 import type { InteractionControlProps, InteractionTooltipDefs } from "../InteractionWrapper/InteractionWrapper.types";
 
 export type StepperDir = "row" | "column";
@@ -18,7 +18,7 @@ export type Step<TValue, TState> = {
 };
 
 export type StepperItemProps<TValue, TState> = AccessorProps<Omit<InteractionControlProps<StepperFlags>, "id">> & {
-    getStep: Accessor<Step<TValue, TState>>;
+    step: MaybeAccessor<Step<TValue, TState>>;
     onSelect: (value: TValue) => void;
 };
 
@@ -27,8 +27,8 @@ export type StepperProps<TValue, TState> = AccessorProps<{
     gap?: number;
     ariaLabel?: string;
 }> & {
-    getSteps: Accessor<Step<TValue, TState>[]>;
-    getCurrentValue: Accessor<TValue | undefined>;
+    steps: MaybeAccessor<Step<TValue, TState>[]>;
+    currentValue: MaybeAccessor<TValue | undefined>;
     computeStepAriaLabel: (step: Step<TValue, TState>, index: number) => string;
     computeTooltipDefs?: (
         step: Step<TValue, TState>,

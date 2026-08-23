@@ -1,3 +1,4 @@
+import { access } from "../../../../Lib/Utils/propUtils";
 import type { CheckboxContentProps } from "./CheckboxContent.types";
 
 import * as styles from "./CheckboxContent.css";
@@ -5,19 +6,21 @@ import * as styles from "./CheckboxContent.css";
 const CHECKED_MARK = "✓";
 const MIXED_MARK = "–";
 
-export const PageCheckboxContent = (props: CheckboxContentProps) => (
-    <div
-        class={styles.checkboxContent}
-        classList={{
-            [styles.isChecked]: props.getFlags().checkedState === true,
-            [styles.isMixed]: props.getFlags().checkedState === "mixed",
-            [styles.isHovered]: props.getFlags().isHovered,
-            [styles.isDisabled]: props.getFlags().isDisabled,
-            [styles.hasError]: props.getFlags().hasError,
-        }}
-    >
-        <div class={styles.checkboxMark} aria-hidden>
-            {props.getFlags().checkedState === "mixed" ? MIXED_MARK : CHECKED_MARK}
+export const PageCheckboxContent = (props: CheckboxContentProps) => {
+    return (
+        <div
+            class={styles.checkboxContent}
+            classList={{
+                [styles.isChecked]: access(props.flags).checkedState === true,
+                [styles.isMixed]: access(props.flags).checkedState === "mixed",
+                [styles.isHovered]: access(props.flags).isHovered,
+                [styles.isDisabled]: access(props.flags).isDisabled,
+                [styles.hasError]: access(props.flags).hasError,
+            }}
+        >
+            <div class={styles.checkboxMark} aria-hidden>
+                {access(props.flags).checkedState === "mixed" ? MIXED_MARK : CHECKED_MARK}
+            </div>
         </div>
-    </div>
-);
+    );
+};

@@ -8,17 +8,17 @@ type Props = FileInputExampleProps;
 export const ReachableExample = (props: Props) => (
     <FileInput
         filesSignal={props.filesSignal}
-        getIsDisabled={() => true}
-        getIsReachableWhenDisabled={() => true}
-        getAriaLabel={() => "Disabled but reachable attachment"}
-        renderContent={(getFlags) => <PageFileInputContent getFlags={getFlags} />}
-        getTooltipDefs={() => ({
-            getPlacement: () => ({ x: "center", y: "top-out" }),
-            getOffset: () => ({ x: 0, y: 5 }),
+        isDisabled={true}
+        isReachableWhenDisabled={true}
+        ariaLabel={"Disabled but reachable attachment"}
+        renderContent={(getFlags) => <PageFileInputContent flags={getFlags} />}
+        tooltipDefs={() => ({
+            placement: () => ({ x: "center", y: "top-out" }),
+            offset: () => ({ x: 0, y: 5 }),
             renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
                 <PageTooltipContent
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
+                    visibilityTarget={getVisibilityTarget}
+                    transitionDurationMs={getTransitionDurationMs}
                 >
                     Focusable so this tooltip can be read, but the file dialog must not open.
                 </PageTooltipContent>

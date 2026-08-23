@@ -55,7 +55,7 @@ export type RangeElementProps = AccessorProps<
         }
 >;
 
-export type RangeProps = Omit<InteractionWrapperProps<RangeFlags>, "renderControl" | "getExtraFlags"> &
+export type RangeProps = Omit<InteractionWrapperProps<RangeFlags>, "renderControl" | "extraFlags"> &
     AccessorProps<
         RangeCbs &
             Pick<InteractionControlProps<RangeFlags>, "id" | "renderContent"> &

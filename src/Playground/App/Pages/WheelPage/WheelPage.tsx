@@ -70,7 +70,7 @@ const STARTING_SPIN_STYLE_KEY: SpinStyleKey = "bouncy";
 
 const FlatExampleWrapper = (props: WheelExampleProps) => {
     return (
-        <PageMeasureBox getWidth={() => FLAT_WHEEL_SIZE}>
+        <PageMeasureBox width={() => FLAT_WHEEL_SIZE}>
             <FlatExample {...props} />
         </PageMeasureBox>
     );
@@ -123,12 +123,12 @@ export const WheelPage = () => {
 
     const getExamples = createMemo(() => {
         const commonProps = {
-            getWedges,
-            getIsDisabled,
-            getSpinDurationMs,
-            getSettleDurationMs,
-            getRestDurationMs: getRestDuration,
-            getIdleDelayMs: getIdleDelay,
+            wedges: getWedges,
+            isDisabled: getIsDisabled,
+            spinDurationMs: getSpinDurationMs,
+            settleDurationMs: getSettleDurationMs,
+            restDurationMs: getRestDuration,
+            idleDelayMs: getIdleDelay,
             computeSpinDefs: (index: number, wedgeCount: number) =>
                 SPIN_STYLES[getSpinStyleKey()](index, wedgeCount, getTurns()),
         };
@@ -178,113 +178,113 @@ export const WheelPage = () => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "wedgeCount"} getLabel={() => "Wedges"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"wedgeCount"} label={"Wedges"}>
                     <PageNumberField
-                        getValue={getWedgeCount}
-                        getMin={() => MIN_WEDGE_COUNT}
-                        getMax={() => MAX_WEDGE_COUNT}
-                        getStep={() => WEDGE_COUNT_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Wedges"}
+                        value={getWedgeCount}
+                        min={() => MIN_WEDGE_COUNT}
+                        max={() => MAX_WEDGE_COUNT}
+                        step={() => WEDGE_COUNT_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Wedges"}
                         onInput={setWedgeCount}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "spinDurationMs"} getLabel={() => "Spin duration (ms)"}>
+                <PageProp key={"spinDurationMs"} label={"Spin duration (ms)"}>
                     <PageNumberField
-                        getValue={getSpinDurationMs}
-                        getMin={() => MIN_DURATION_MS}
-                        getMax={() => MAX_DURATION_MS}
-                        getStep={() => DURATION_STEP_MS}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Spin duration"}
+                        value={getSpinDurationMs}
+                        min={() => MIN_DURATION_MS}
+                        max={() => MAX_DURATION_MS}
+                        step={() => DURATION_STEP_MS}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Spin duration"}
                         onInput={setSpinDurationMs}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "turns"} getLabel={() => "Turns per spin"}>
+                <PageProp key={"turns"} label={"Turns per spin"}>
                     <PageNumberField
-                        getValue={getTurns}
-                        getMin={() => MIN_TURNS}
-                        getMax={() => MAX_TURNS}
-                        getStep={() => TURNS_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Turns per spin"}
+                        value={getTurns}
+                        min={() => MIN_TURNS}
+                        max={() => MAX_TURNS}
+                        step={() => TURNS_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Turns per spin"}
                         onInput={setTurns}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "settleDurationMs"} getLabel={() => "Settle duration (ms)"}>
+                <PageProp key={"settleDurationMs"} label={"Settle duration (ms)"}>
                     <PageNumberField
-                        getValue={getSettleDurationMs}
-                        getMin={() => MIN_DURATION_MS}
-                        getMax={() => MAX_DURATION_MS}
-                        getStep={() => DURATION_STEP_MS}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Settle duration"}
+                        value={getSettleDurationMs}
+                        min={() => MIN_DURATION_MS}
+                        max={() => MAX_DURATION_MS}
+                        step={() => DURATION_STEP_MS}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Settle duration"}
                         onInput={setSettleDurationMs}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "doesResume"} getLabel={() => "Turns again after a spin"}>
+                <PageProp key={"doesResume"} label={"Turns again after a spin"}>
                     <PageCheckField
-                        getValue={getDoesResume}
-                        getAriaLabel={() => "Turns again after a spin"}
+                        value={getDoesResume}
+                        ariaLabel={"Turns again after a spin"}
                         onChange={setDoesResume}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "restDurationMs"} getLabel={() => "Rest after a spin (ms)"}>
+                <PageProp key={"restDurationMs"} label={"Rest after a spin (ms)"}>
                     <PageNumberField
-                        getValue={getRestDurationMs}
-                        getMin={() => MIN_DURATION_MS}
-                        getMax={() => MAX_DURATION_MS}
-                        getStep={() => DURATION_STEP_MS}
-                        getWidth={() => FIELD_WIDTH}
-                        getIsDisabled={() => !getDoesResume()}
-                        getAriaLabel={() => "Rest after a spin"}
+                        value={getRestDurationMs}
+                        min={() => MIN_DURATION_MS}
+                        max={() => MAX_DURATION_MS}
+                        step={() => DURATION_STEP_MS}
+                        width={() => FIELD_WIDTH}
+                        isDisabled={() => !getDoesResume()}
+                        ariaLabel={"Rest after a spin"}
                         onInput={setRestDurationMs}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "isIdlingAllowed"} getLabel={() => "Turns by itself"}>
+                <PageProp key={"isIdlingAllowed"} label={"Turns by itself"}>
                     <PageCheckField
-                        getValue={getIsIdlingAllowed}
-                        getAriaLabel={() => "Turns by itself"}
+                        value={getIsIdlingAllowed}
+                        ariaLabel={"Turns by itself"}
                         onChange={setIsIdlingAllowed}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "idleDelayMs"} getLabel={() => "Idle step delay (ms)"}>
+                <PageProp key={"idleDelayMs"} label={"Idle step delay (ms)"}>
                     <PageNumberField
-                        getValue={getIdleDelayMs}
-                        getMin={() => MIN_IDLE_DELAY_MS}
-                        getMax={() => MAX_IDLE_DELAY_MS}
-                        getStep={() => IDLE_DELAY_STEP_MS}
-                        getWidth={() => FIELD_WIDTH}
-                        getIsDisabled={() => !getIsIdlingAllowed()}
-                        getAriaLabel={() => "Idle step delay"}
+                        value={getIdleDelayMs}
+                        min={() => MIN_IDLE_DELAY_MS}
+                        max={() => MAX_IDLE_DELAY_MS}
+                        step={() => IDLE_DELAY_STEP_MS}
+                        width={() => FIELD_WIDTH}
+                        isDisabled={() => !getIsIdlingAllowed()}
+                        ariaLabel={"Idle step delay"}
                         onInput={setIdleDelayMs}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "spinStyleKey"} getLabel={() => "Spin style"}>
+                <PageProp key={"spinStyleKey"} label={"Spin style"}>
                     <PageSelectField
-                        getValue={getSpinStyleKey}
-                        getValues={() => SPIN_STYLE_KEYS}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Spin style"}
+                        value={getSpinStyleKey}
+                        values={() => SPIN_STYLE_KEYS}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Spin style"}
                         onChange={(key) => setSpinStyleKey(() => key)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "isDisabled"} getLabel={() => "Disabled"}>
-                    <PageCheckField getValue={getIsDisabled} getAriaLabel={() => "Disabled"} onChange={setIsDisabled} />
+                <PageProp key={"isDisabled"} label={"Disabled"}>
+                    <PageCheckField value={getIsDisabled} ariaLabel={"Disabled"} onChange={setIsDisabled} />
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} getLayout={() => "flow"} />
+            <PageExamples items={getExamples} layout={"flow"} />
         </>
     );
 };

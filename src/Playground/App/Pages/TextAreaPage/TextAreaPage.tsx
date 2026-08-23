@@ -84,5 +84,5 @@ export const TextAreaPage = () => {
         },
     ]);
 
-    return <PageExamples getItems={getExamples} getMinColumnWidth={() => MIN_COLUMN_WIDTH} />;
+    return <PageExamples items={getExamples} minColumnWidth={() => MIN_COLUMN_WIDTH} />;
 };

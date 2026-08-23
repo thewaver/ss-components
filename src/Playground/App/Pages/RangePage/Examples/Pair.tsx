@@ -9,9 +9,9 @@ type Props = RangePairExampleProps;
 export const PairExample = (props: Props) => (
     <Range
         rangeSignal={props.rangeSignal}
-        getAriaLabel={() => "Price range"}
-        getThumbLabels={() => ["Lowest price", "Highest price"]}
-        getThumbSize={() => RANGE_THUMB_SIZE}
-        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
+        ariaLabel={"Price range"}
+        thumbLabels={() => ["Lowest price", "Highest price"]}
+        thumbSize={() => RANGE_THUMB_SIZE}
+        renderContent={(getFlags) => <PageRangeContent flags={getFlags} />}
     />
 );

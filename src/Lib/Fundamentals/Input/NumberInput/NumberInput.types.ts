@@ -1,6 +1,7 @@
 import type { JSX, Signal } from "solid-js";
 
 import type { InteractionFlags } from "../../../Abstracts/Interaction/Interaction.types";
+import type { MaybeAccessor } from "../../../Utils/typeUtils";
 import type { TextFieldFlags, TextFieldPresetProps } from "../TextField/TextField.types";
 
 export type NumberInputRangeDefs = {
@@ -24,10 +25,10 @@ export type NumberInputStepper = {
 
 export type NumberInputProps = Omit<
     TextFieldPresetProps,
-    "getType" | "getAutoComplete" | "valueSignal" | "renderTrailing" | "onInput"
+    "type" | "autoComplete" | "valueSignal" | "renderTrailing" | "onInput"
 > & {
-    getRepeatDelayMs?: () => number;
-    getRepeatIntervalMs?: () => number;
+    repeatDelayMs?: MaybeAccessor<number>;
+    repeatIntervalMs?: MaybeAccessor<number>;
     valueSignal: Signal<number | undefined>;
     renderTrailing?: (getFlags: () => InteractionFlags<TextFieldFlags>, stepper: NumberInputStepper) => JSX.Element;
     onInput?: (value: number | undefined) => void | Promise<void>;

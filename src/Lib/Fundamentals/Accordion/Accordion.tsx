@@ -2,6 +2,7 @@ import { Index, createMemo, createSignal, createUniqueId } from "solid-js";
 
 import { NavigationUtils } from "../../Abstracts/Navigation/Navigation.utils";
 import { SignalMirror } from "../../Abstracts/SignalMirror/SignalMirror";
+import { access } from "../../Utils/propUtils";
 import { Collapsible } from "../Collapsible/Collapsible";
 import type { AccordionProps, AccordionSectionProps, AccordionSizing } from "./Accordion.types";
 
@@ -14,22 +15,25 @@ const DEFAULT_ACCORDION_SIZING: AccordionSizing = "fill";
 const AccordionSection = <T,>(props: AccordionSectionProps<T>) => {
     const headerId = createUniqueId();
 
-    const expandedSignal = SignalMirror.createValueMirror(props.getIsExpanded, () => props.onToggle());
+    const expandedSignal = SignalMirror.createValueMirror(
+        () => access(props.isExpanded),
+        () => props.onToggle(),
+    );
 
     return (
         <Collapsible
             ref={props.ref}
-            getId={() => headerId}
-            getIsDisabled={() => props.getItem().isDisabled ?? false}
-            getHeadingLevel={props.getHeadingLevel}
-            getIsScrolledIntoViewOnExpand={props.getIsScrolledIntoViewOnExpand}
-            getTransitionDurationMs={props.getTransitionDurationMs}
-            getPanelRole={() => "region"}
-            getPanelAriaAttributes={() => ({ "aria-labelledby": headerId })}
+            id={() => headerId}
+            isDisabled={() => access(props.item).isDisabled ?? false}
+            headingLevel={props.headingLevel}
+            isScrolledIntoViewOnExpand={props.isScrolledIntoViewOnExpand}
+            transitionDurationMs={props.transitionDurationMs}
+            panelRole={"region"}
+            panelAriaAttributes={() => ({ "aria-labelledby": headerId })}
             expandedSignal={expandedSignal}
-            renderTrigger={(getFlags) => props.renderHeader(props.getItem, getFlags)}
+            renderTrigger={(getFlags) => props.renderHeader(() => access(props.item), getFlags)}
             renderPanel={(getVisibilityTarget, getTransitionDurationMs) =>
-                props.renderPanel(props.getItem, getVisibilityTarget, getTransitionDurationMs)
+                props.renderPanel(() => access(props.item), getVisibilityTarget, getTransitionDurationMs)
             }
         />
     );
@@ -38,9 +42,9 @@ const AccordionSection = <T,>(props: AccordionSectionProps<T>) => {
 export const Accordion = <T,>(props: AccordionProps<T>) => {
     const [getHeaderRefs, setHeaderRefs] = createSignal<(HTMLElement | undefined)[]>([]);
 
-    const getHeadingLevel = createMemo(() => props.getHeadingLevel?.() ?? DEFAULT_ACCORDION_HEADING_LEVEL);
+    const getHeadingLevel = createMemo(() => access(props.headingLevel) ?? DEFAULT_ACCORDION_HEADING_LEVEL);
 
-    const getSizing = createMemo(() => props.getSizing?.() ?? DEFAULT_ACCORDION_SIZING);
+    const getSizing = createMemo(() => access(props.sizing) ?? DEFAULT_ACCORDION_SIZING);
 
     const setHeaderRef = (index: number, element: HTMLElement) => {
         setHeaderRefs((prev) => {
@@ -53,7 +57,7 @@ export const Accordion = <T,>(props: AccordionProps<T>) => {
     };
 
     const getNavigableIndexes = createMemo(() =>
-        props.getItems().reduce<number[]>((acc, item, index) => {
+        access(props.items).reduce<number[]>((acc, item, index) => {
             if (!item.isDisabled) acc.push(index);
 
             return acc;
@@ -64,7 +68,7 @@ export const Accordion = <T,>(props: AccordionProps<T>) => {
         props.expandedSignal[1]((prev) => {
             const isExpanded = prev.includes(value);
 
-            if (props.getIsSingleExpand?.()) return isExpanded ? [] : [value];
+            if (access(props.isSingleExpand)) return isExpanded ? [] : [value];
 
             return isExpanded ? prev.filter((expanded) => expanded !== value) : [...prev, value];
         });
@@ -88,18 +92,18 @@ export const Accordion = <T,>(props: AccordionProps<T>) => {
     return (
         <div
             class={[styles.accordionRoot, styles.accordionSizingVariants[getSizing()]].join(" ")}
-            style={{ gap: `${props.getGap?.() ?? DEFAULT_ACCORDION_GAP}px` }}
+            style={{ gap: `${access(props.gap) ?? DEFAULT_ACCORDION_GAP}px` }}
             onKeyDown={handleKeyDown}
         >
-            <Index each={props.getItems()}>
+            <Index each={access(props.items)}>
                 {(getItem, index) => (
                     <AccordionSection
                         ref={(element) => setHeaderRef(index, element)}
-                        getItem={getItem}
-                        getHeadingLevel={getHeadingLevel}
-                        getIsExpanded={() => props.expandedSignal[0]().includes(getItem().value)}
-                        getIsScrolledIntoViewOnExpand={props.getIsScrolledIntoViewOnExpand}
-                        getTransitionDurationMs={props.getTransitionDurationMs}
+                        item={getItem}
+                        headingLevel={getHeadingLevel}
+                        isExpanded={() => props.expandedSignal[0]().includes(getItem().value)}
+                        isScrolledIntoViewOnExpand={props.isScrolledIntoViewOnExpand}
+                        transitionDurationMs={props.transitionDurationMs}
                         renderHeader={props.renderHeader}
                         renderPanel={props.renderPanel}
                         onToggle={() => handleToggle(getItem().value)}

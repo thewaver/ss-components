@@ -5,6 +5,7 @@ import type { AnchorPlacement } from "../../../Abstracts/Anchor/Anchor.types";
 import type { DateValue } from "../../../Abstracts/DateValue/DateValue.types";
 import { DateValueUtils } from "../../../Abstracts/DateValue/DateValue.utils";
 import { SignalMirror } from "../../../Abstracts/SignalMirror/SignalMirror";
+import { access } from "../../../Utils/propUtils";
 import { Popover } from "../../Popover/Popover";
 import { Calendar } from "../Calendar/Calendar";
 import { DateInput } from "../DateInput/DateInput";
@@ -48,12 +49,12 @@ export const DatePicker = (props: DatePickerProps) => {
         <Calendar
             valueSignal={props.valueSignal}
             monthSignal={monthSignal}
-            getMin={props.getMinDate}
-            getMax={props.getMaxDate}
-            getIsDisabled={props.getIsDisabled}
-            getLocale={props.getLocale}
-            getWeekStartsOn={props.getWeekStartsOn}
-            getAriaLabel={() => props.getCalendarLabel?.() ?? DEFAULT_DATE_PICKER_CALENDAR_LABEL}
+            min={props.minDate}
+            max={props.maxDate}
+            isDisabled={props.isDisabled}
+            locale={props.locale}
+            weekStartsOn={props.weekStartsOn}
+            ariaLabel={() => access(props.calendarLabel) ?? DEFAULT_DATE_PICKER_CALENDAR_LABEL}
             computeIsDayDisabled={props.computeIsDayDisabled}
             renderDay={props.renderDay}
             renderWeekday={props.renderWeekday}
@@ -68,17 +69,17 @@ export const DatePicker = (props: DatePickerProps) => {
             />
 
             <Popover
-                getId={() => popupId}
-                getRole={() => "dialog"}
-                getAriaAttributes={() => ({
-                    "aria-label": props.getCalendarLabel?.() ?? DEFAULT_DATE_PICKER_CALENDAR_LABEL,
+                id={() => popupId}
+                role={"dialog"}
+                ariaAttributes={() => ({
+                    "aria-label": access(props.calendarLabel) ?? DEFAULT_DATE_PICKER_CALENDAR_LABEL,
                 })}
-                getIsOpen={getIsOpen}
-                getAnchorRef={getRootRef}
-                getPlacement={() => props.getPlacement?.() ?? DEFAULT_DATE_PICKER_PLACEMENT}
-                getOffset={props.getOffset}
-                getTransitionDurationMs={props.getPopupTransitionDurationMs}
-                getHasAutoFocus={() => true}
+                isOpen={getIsOpen}
+                anchorRef={getRootRef}
+                placement={() => access(props.placement) ?? DEFAULT_DATE_PICKER_PLACEMENT}
+                offset={props.offset}
+                transitionDurationMs={props.popupTransitionDurationMs}
+                hasAutoFocus={true}
                 onDismiss={(reason) => (reason === "escape" ? dismiss() : setIsOpen(false))}
                 renderContent={(getVisibilityTarget, getTransitionDurationMs) =>
                     props.renderPopup(renderCalendar, monthSignal, getVisibilityTarget, getTransitionDurationMs)

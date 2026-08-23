@@ -36,8 +36,8 @@ export const CarouselPage = () => {
 
     const getExamples = createMemo(() => {
         const commonProps: CarouselExampleProps = {
-            getSlides,
-            getIsDisabled,
+            slides: getSlides,
+            isDisabled: getIsDisabled,
             indexSignal: manualIndexSignal,
         };
 
@@ -60,7 +60,7 @@ export const CarouselPage = () => {
                         {...commonProps}
                         indexSignal={rotatingIndexSignal}
                         playingSignal={rotatingPlayingSignal}
-                        getAutoplayDelayMs={getDelayMs}
+                        autoplayDelayMs={getDelayMs}
                     />
                 ),
                 path: `${EXAMPLES_ROOT}/Rotating.tsx`,
@@ -78,37 +78,37 @@ export const CarouselPage = () => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "slideCount"} getLabel={() => "Slide count"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"slideCount"} label={"Slide count"}>
                     <PageNumberField
-                        getValue={getSlideCount}
-                        getMin={() => MIN_SLIDE_COUNT}
-                        getMax={() => MAX_SLIDE_COUNT}
-                        getStep={() => SLIDE_COUNT_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Slide count"}
+                        value={getSlideCount}
+                        min={() => MIN_SLIDE_COUNT}
+                        max={() => MAX_SLIDE_COUNT}
+                        step={() => SLIDE_COUNT_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Slide count"}
                         onInput={setSlideCount}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "delayMs"} getLabel={() => "Rotation delay"}>
+                <PageProp key={"delayMs"} label={"Rotation delay"}>
                     <PageNumberField
-                        getValue={getDelayMs}
-                        getMin={() => MIN_DELAY_MS}
-                        getMax={() => MAX_DELAY_MS}
-                        getStep={() => DELAY_STEP_MS}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Rotation delay in milliseconds"}
+                        value={getDelayMs}
+                        min={() => MIN_DELAY_MS}
+                        max={() => MAX_DELAY_MS}
+                        step={() => DELAY_STEP_MS}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Rotation delay in milliseconds"}
                         onInput={setDelayMs}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "isDisabled"} getLabel={() => "Disabled"}>
-                    <PageCheckField getValue={getIsDisabled} getAriaLabel={() => "Disabled"} onChange={setIsDisabled} />
+                <PageProp key={"isDisabled"} label={"Disabled"}>
+                    <PageCheckField value={getIsDisabled} ariaLabel={"Disabled"} onChange={setIsDisabled} />
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} />
+            <PageExamples items={getExamples} />
         </>
     );
 };

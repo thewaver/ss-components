@@ -1,23 +1,31 @@
 import type { ParentProps } from "solid-js";
 
+import { access } from "../../../../Lib/Utils/propUtils";
 import type { PageMosaicLinkProps, PageMosaicTileProps } from "./MosaicContent.types";
 
 import * as styles from "./MosaicContent.css";
 
-export const PageMosaicTile = (props: ParentProps<PageMosaicTileProps>) => (
-    <div class={styles.mosaicTile} style={{ width: `${props.getWidth()}px`, height: `${props.getHeight()}px` }}>
-        <div class={styles.mosaicTileName}>{props.children}</div>
+export const PageMosaicTile = (props: ParentProps<PageMosaicTileProps>) => {
+    return (
+        <div
+            class={styles.mosaicTile}
+            style={{ width: `${access(props.width)}px`, height: `${access(props.height)}px` }}
+        >
+            <div class={styles.mosaicTileName}>{props.children}</div>
 
-        <div class={styles.mosaicTileReading}>
-            {`reads ${props.getState().readingIndex + 1} of ${props.getState().itemCount}`}
+            <div class={styles.mosaicTileReading}>
+                {`reads ${access(props.state).readingIndex + 1} of ${access(props.state).itemCount}`}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
-export const PageMosaicLink = (props: ParentProps<PageMosaicLinkProps>) => (
-    <a class={styles.mosaicLink} href={props.getHref()}>
-        {props.children}
+export const PageMosaicLink = (props: ParentProps<PageMosaicLinkProps>) => {
+    return (
+        <a class={styles.mosaicLink} href={access(props.href)}>
+            {props.children}
 
-        <span class={styles.mosaicCaption}>{props.getCaption()}</span>
-    </a>
-);
+            <span class={styles.mosaicCaption}>{access(props.caption)}</span>
+        </a>
+    );
+};

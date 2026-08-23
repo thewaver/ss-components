@@ -16,20 +16,20 @@ type Props = ModalExampleProps;
 export const DefaultExample = (props: Props) => (
     <>
         <Button
-            getTooltipDefs={() => ({
-                getPlacement: () => ({ x: "center", y: "top-out" }),
-                getOffset: () => ({ x: 0, y: 5 }),
+            tooltipDefs={() => ({
+                placement: () => ({ x: "center", y: "top-out" }),
+                offset: () => ({ x: 0, y: 5 }),
                 renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
                     <PageTooltipContent
-                        getVisibilityTarget={getVisibilityTarget}
-                        getTransitionDurationMs={getTransitionDurationMs}
+                        visibilityTarget={getVisibilityTarget}
+                        transitionDurationMs={getTransitionDurationMs}
                     >
                         Click me to open a Modal.
                     </PageTooltipContent>
                 ),
             })}
-            getId={() => "openModal"}
-            renderContent={(getFlags) => <PageButtonContent getFlags={getFlags}>Open Modal</PageButtonContent>}
+            id={"openModal"}
+            renderContent={(getFlags) => <PageButtonContent flags={getFlags}>Open Modal</PageButtonContent>}
             onClick={() => {
                 props.visibilitySignal[1](true);
             }}
@@ -37,18 +37,12 @@ export const DefaultExample = (props: Props) => (
 
         <Modal
             visibilitySignal={props.visibilitySignal}
-            getAriaLabelledBy={() => MODAL_TITLE_ID}
+            ariaLabelledBy={() => MODAL_TITLE_ID}
             renderOverlay={(getVisibilityTarget, getTransitionDurationMs) => (
-                <PageModalScrim
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
-                />
+                <PageModalScrim visibilityTarget={getVisibilityTarget} transitionDurationMs={getTransitionDurationMs} />
             )}
             renderContent={(getVisibilityTarget, getTransitionDurationMs) => (
-                <PageModalPanel
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
-                >
+                <PageModalPanel visibilityTarget={getVisibilityTarget} transitionDurationMs={getTransitionDurationMs}>
                     <div id={MODAL_TITLE_ID}>I am a Modal.</div>
                     <div>And I focus trap!</div>
 
@@ -56,7 +50,7 @@ export const DefaultExample = (props: Props) => (
                         {FOCUS_CAPTIONS.map((caption) => (
                             <Button
                                 renderContent={(getFlags) => (
-                                    <PageButtonContent getFlags={getFlags}>{caption}</PageButtonContent>
+                                    <PageButtonContent flags={getFlags}>{caption}</PageButtonContent>
                                 )}
                             />
                         ))}

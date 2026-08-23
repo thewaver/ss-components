@@ -13,22 +13,22 @@ export const VerticalExample = (props: Props) => (
     <PageControlRow>
         <Range
             valueSignal={props.valueSignal}
-            getId={() => "verticalVolume"}
-            getAriaLabel={() => "Vertical volume"}
-            getOrientation={() => "vertical"}
-            getThumbSize={() => RANGE_THUMB_SIZE}
-            renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} getLength={() => VERTICAL_LENGTH} />}
+            id={"verticalVolume"}
+            ariaLabel={"Vertical volume"}
+            orientation={"vertical"}
+            thumbSize={() => RANGE_THUMB_SIZE}
+            renderContent={(getFlags) => <PageRangeContent flags={getFlags} length={() => VERTICAL_LENGTH} />}
         />
 
         <PageControlRowLabel>and a pair</PageControlRowLabel>
 
         <Range
             rangeSignal={props.rangeSignal}
-            getAriaLabel={() => "Vertical band"}
-            getThumbLabels={() => ["Band floor", "Band ceiling"]}
-            getOrientation={() => "vertical"}
-            getThumbSize={() => RANGE_THUMB_SIZE}
-            renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} getLength={() => VERTICAL_LENGTH} />}
+            ariaLabel={"Vertical band"}
+            thumbLabels={() => ["Band floor", "Band ceiling"]}
+            orientation={"vertical"}
+            thumbSize={() => RANGE_THUMB_SIZE}
+            renderContent={(getFlags) => <PageRangeContent flags={getFlags} length={() => VERTICAL_LENGTH} />}
         />
     </PageControlRow>
 );

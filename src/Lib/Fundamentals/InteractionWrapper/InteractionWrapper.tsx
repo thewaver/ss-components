@@ -2,6 +2,7 @@ import { Show, createMemo, createSignal } from "solid-js";
 
 import type { InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
 import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
+import { access } from "../../Utils/propUtils";
 import { Tooltip } from "../Tooltip/Tooltip";
 import type { InteractionSizing, InteractionWrapperProps } from "./InteractionWrapper.types";
 
@@ -13,34 +14,34 @@ const DEFAULT_INTERACTION_ROLE = "presentation";
 export const InteractionWrapper = <TExtra extends object = {}>(props: InteractionWrapperProps<TExtra>) => {
     const [getElementRef, setElementRef] = createSignal<HTMLElement>();
 
-    const getSizing = createMemo(() => props.getSizing?.() ?? DEFAULT_INTERACTION_SIZING);
+    const getSizing = createMemo(() => access(props.sizing) ?? DEFAULT_INTERACTION_SIZING);
 
-    const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
+    const getIsDisabled = createMemo(() => access(props.isDisabled) ?? false);
 
-    const getTooltipDefs = createMemo(() => props.getTooltipDefs?.());
+    const getTooltipDefs = createMemo(() => access(props.tooltipDefs));
 
     const getIsReachable = createMemo(() =>
         InteractionUtils.computeIsReachable(
             getIsDisabled(),
-            props.getIsReachableWhenDisabled?.() ?? false,
+            access(props.isReachableWhenDisabled) ?? false,
             getTooltipDefs() !== undefined,
         ),
     );
 
     const { getFlags: getInternalFlags } = InteractionUtils.wrapElement(getElementRef, getIsDisabled, {
         getIsReachable,
-        getIsTabbable: props.getIsTabbable,
+        getIsTabbable: props.isTabbable === undefined ? undefined : () => access(props.isTabbable)!,
     });
 
     const getFlags = createMemo((): InteractionFlags<TExtra> => ({
         ...getInternalFlags(),
         isDisabled: getIsDisabled(),
-        isPressed: props.getIsPressed?.(),
-        hasError: props.getHasError?.(),
-        ...(props.getExtraFlags?.() ?? ({} as TExtra)),
+        isPressed: access(props.isPressed),
+        hasError: access(props.hasError),
+        ...(access(props.extraFlags) ?? ({} as TExtra)),
     }));
 
-    if (props.getIsReachableWhenDisabled && !props.getTooltipDefs) {
+    if (props.isReachableWhenDisabled && !props.tooltipDefs) {
         console.warn(
             "InteractionWrapper: getIsReachableWhenDisabled has no effect without getTooltipDefs — a focusable disabled control with nothing to reveal is worse than one skipped by the tab order.",
         );
@@ -49,15 +50,15 @@ export const InteractionWrapper = <TExtra extends object = {}>(props: Interactio
     return (
         <div
             class={[styles.interactionRoot, styles.interactionSizingVariants[getSizing()]].join(" ")}
-            role={props.getRole?.() ?? DEFAULT_INTERACTION_ROLE}
+            role={access(props.role) ?? DEFAULT_INTERACTION_ROLE}
             style={{
-                "min-width": props.getMinWidth ? `${props.getMinWidth()}px` : undefined,
-                "min-height": props.getMinHeight?.() ? `${props.getMinHeight()}px` : undefined,
+                "min-width": props.minWidth ? `${access(props.minWidth)}px` : undefined,
+                "min-height": access(props.minHeight) ? `${access(props.minHeight)}px` : undefined,
             }}
             classList={{
                 [styles.interactionDisabled]: getIsDisabled(),
-                [styles.interactionError]: props.getHasError?.(),
-                [styles.interactionPressed]: props.getIsPressed?.(),
+                [styles.interactionError]: access(props.hasError),
+                [styles.interactionPressed]: access(props.isPressed),
             }}
         >
             {props.renderControl((element) => {
@@ -81,7 +82,7 @@ export const InteractionWrapper = <TExtra extends object = {}>(props: Interactio
                                 getFlags,
                             )
                         }
-                        getAnchorRef={getElementRef}
+                        anchorRef={getElementRef}
                     />
                 )}
             </Show>

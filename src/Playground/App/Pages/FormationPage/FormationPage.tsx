@@ -39,7 +39,7 @@ const NAMES = [
 
 const DefaultExampleWrapper = (props: FormationExampleProps) => {
     return (
-        <PageMeasureBox getWidth={() => FORMATION_WIDTH}>
+        <PageMeasureBox width={() => FORMATION_WIDTH}>
             <DefaultExample {...props} />
         </PageMeasureBox>
     );
@@ -55,10 +55,10 @@ export const FormationPage = () => {
 
     const getExamples = createMemo(() => {
         const commonProps: FormationExampleProps = {
-            getItems,
-            getIsStackedInReverse,
-            getLayoutKey,
-            getShapeKind,
+            items: getItems,
+            isStackedInReverse: getIsStackedInReverse,
+            layoutKey: getLayoutKey,
+            shapeKind: getShapeKind,
         };
 
         return [
@@ -73,49 +73,49 @@ export const FormationPage = () => {
 
     return (
         <>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "itemCount"} getLabel={() => "Items"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"itemCount"} label={"Items"}>
                     <PageNumberField
-                        getValue={getItemCount}
-                        getMin={() => MIN_ITEM_COUNT}
-                        getMax={() => MAX_ITEM_COUNT}
-                        getStep={() => ITEM_COUNT_STEP}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Items"}
+                        value={getItemCount}
+                        min={() => MIN_ITEM_COUNT}
+                        max={() => MAX_ITEM_COUNT}
+                        step={() => ITEM_COUNT_STEP}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Items"}
                         onInput={setItemCount}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "layoutKey"} getLabel={() => "Arrangement"}>
+                <PageProp key={"layoutKey"} label={"Arrangement"}>
                     <PageSelectField
-                        getValue={getLayoutKey}
-                        getValues={() => FormationLayouts.SAMPLE_KEYS}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Arrangement"}
+                        value={getLayoutKey}
+                        values={() => FormationLayouts.SAMPLE_KEYS}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Arrangement"}
                         onChange={(key) => setLayoutKey(() => key)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "isStackedInReverse"} getLabel={() => "Earlier items in front"}>
+                <PageProp key={"isStackedInReverse"} label={"Earlier items in front"}>
                     <PageCheckField
-                        getValue={getIsStackedInReverse}
-                        getAriaLabel={() => "Earlier items in front"}
+                        value={getIsStackedInReverse}
+                        ariaLabel={"Earlier items in front"}
                         onChange={setIsStackedInReverse}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "shapeKind"} getLabel={() => "Item shape"}>
+                <PageProp key={"shapeKind"} label={"Item shape"}>
                     <PageSelectField
-                        getValue={getShapeKind}
-                        getValues={() => ShapeConst.DEFAULT_SHAPES}
-                        getWidth={() => FIELD_WIDTH}
-                        getAriaLabel={() => "Item shape"}
+                        value={getShapeKind}
+                        values={() => ShapeConst.DEFAULT_SHAPES}
+                        width={() => FIELD_WIDTH}
+                        ariaLabel={"Item shape"}
                         onChange={(shape) => setShapeKind(() => shape)}
                     />
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} getLayout={() => "flow"} />
+            <PageExamples items={getExamples} layout={"flow"} />
         </>
     );
 };

@@ -1,7 +1,7 @@
 import type { Accessor, Component, JSX, Signal } from "solid-js";
 
 import type { InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 import type { InteractionControlProps, InteractionTooltipDefs } from "../InteractionWrapper/InteractionWrapper.types";
 
 export type TreeNodeFlags = {
@@ -48,7 +48,7 @@ export type TreeProps<T> = AccessorProps<{
     ariaLabel?: string;
     linkComponent?: Component<TreeLinkProps>;
 }> & {
-    getNodes: Accessor<TreeNode<T>[]>;
+    nodes: MaybeAccessor<TreeNode<T>[]>;
     valueSignal: Signal<T | undefined>;
     expandedSignal: Signal<T[]>;
     computeCustomText?: (node: TreeNode<T>) => string;

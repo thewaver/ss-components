@@ -39,10 +39,10 @@ const PERCENT = 100;
 const SCROLL_SIZE = { width: styles.HOST_SIZE, height: styles.HOST_SIZE };
 
 const renderTooltip = (text: string) => ({
-    getPlacement: () => ({ x: "center", y: "top-out" }) as const,
-    getOffset: () => ({ x: 0, y: 5 }),
+    placement: () => ({ x: "center", y: "top-out" }) as const,
+    offset: () => ({ x: 0, y: 5 }),
     renderContent: (getVisibilityTarget: () => 0 | 1, getTransitionDurationMs: () => number) => (
-        <PageTooltipContent getVisibilityTarget={getVisibilityTarget} getTransitionDurationMs={getTransitionDurationMs}>
+        <PageTooltipContent visibilityTarget={getVisibilityTarget} transitionDurationMs={getTransitionDurationMs}>
             {text}
         </PageTooltipContent>
     ),
@@ -55,9 +55,9 @@ const renderCountryPopup = (
     getPlacement: () => AnchorPlacement,
 ) => (
     <PagePopoverSurface
-        getVisibilityTarget={getVisibilityTarget}
-        getTransitionDurationMs={getTransitionDurationMs}
-        getPlacement={getPlacement}
+        visibilityTarget={getVisibilityTarget}
+        transitionDurationMs={getTransitionDurationMs}
+        placement={getPlacement}
     >
         {renderOptions()}
     </PagePopoverSurface>
@@ -103,31 +103,31 @@ export const ViewportPage = () => {
                     <div>Across</div>
                     <Range
                         valueSignal={[getRoamerX, setRoamerX]}
-                        getId={() => "roamerX"}
-                        getAriaLabel={() => "Horizontal position"}
-                        getThumbSize={() => RANGE_THUMB_SIZE}
-                        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
+                        id={"roamerX"}
+                        ariaLabel={"Horizontal position"}
+                        thumbSize={() => RANGE_THUMB_SIZE}
+                        renderContent={(getFlags) => <PageRangeContent flags={getFlags} />}
                     />
 
                     <div>Down</div>
                     <Range
                         valueSignal={[getRoamerY, setRoamerY]}
-                        getId={() => "roamerY"}
-                        getAriaLabel={() => "Vertical position"}
-                        getThumbSize={() => RANGE_THUMB_SIZE}
-                        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
+                        id={"roamerY"}
+                        ariaLabel={"Vertical position"}
+                        thumbSize={() => RANGE_THUMB_SIZE}
+                        renderContent={(getFlags) => <PageRangeContent flags={getFlags} />}
                     />
 
                     <div>Scale</div>
                     <Range
                         valueSignal={[getScalePercent, setScalePercent]}
-                        getId={() => "viewportScale"}
-                        getAriaLabel={() => "Viewport scale"}
-                        getMin={() => SCALE_MIN}
-                        getMax={() => SCALE_MAX}
-                        getStep={() => SCALE_STEP}
-                        getThumbSize={() => RANGE_THUMB_SIZE}
-                        renderContent={(getFlags) => <PageRangeContent getFlags={getFlags} />}
+                        id={"viewportScale"}
+                        ariaLabel={"Viewport scale"}
+                        min={() => SCALE_MIN}
+                        max={() => SCALE_MAX}
+                        step={() => SCALE_STEP}
+                        thumbSize={() => RANGE_THUMB_SIZE}
+                        renderContent={(getFlags) => <PageRangeContent flags={getFlags} />}
                     />
                 </div>
 
@@ -136,7 +136,7 @@ export const ViewportPage = () => {
                 </div>
 
                 <div class={styles.host} data-stage>
-                    <Viewport getSize={getStageSize}>
+                    <Viewport size={getStageSize}>
                         <div
                             class={styles.roamer}
                             style={{
@@ -147,17 +147,17 @@ export const ViewportPage = () => {
                         >
                             <Select
                                 valueSignal={[getRoamingValue, setRoamingValue]}
-                                getOptions={() => COUNTRIES}
-                                getId={() => "roamingCountry"}
-                                getAriaLabel={() => "Roaming country"}
-                                getTooltipDefs={() => renderTooltip("My tooltip has the same boundary I do.")}
+                                options={() => COUNTRIES}
+                                id={"roamingCountry"}
+                                ariaLabel={"Roaming country"}
+                                tooltipDefs={() => renderTooltip("My tooltip has the same boundary I do.")}
                                 renderContent={(getSelectedOption, getFlags) => (
-                                    <PageSelectContent getFlags={getFlags}>
+                                    <PageSelectContent flags={getFlags}>
                                         {getSelectedOption()?.value ?? "Pick one"}
                                     </PageSelectContent>
                                 )}
                                 renderOption={(getOption, getFlags) => (
-                                    <PageSelectOptionContent getFlags={getFlags}>
+                                    <PageSelectOptionContent flags={getFlags}>
                                         {getOption().value}
                                     </PageSelectOptionContent>
                                 )}
@@ -179,22 +179,22 @@ export const ViewportPage = () => {
                 </div>
 
                 <div class={styles.host}>
-                    <Viewport getSize={() => SCROLL_SIZE}>
+                    <Viewport size={() => SCROLL_SIZE}>
                         <div class={styles.scrollBox} data-scroll-box>
                             <div class={styles.scrollFiller} />
 
                             <Select
                                 valueSignal={[getScrolledValue, setScrolledValue]}
-                                getOptions={() => COUNTRIES}
-                                getId={() => "scrolledCountry"}
-                                getAriaLabel={() => "Scrolled country"}
+                                options={() => COUNTRIES}
+                                id={"scrolledCountry"}
+                                ariaLabel={"Scrolled country"}
                                 renderContent={(getSelectedOption, getFlags) => (
-                                    <PageSelectContent getFlags={getFlags}>
+                                    <PageSelectContent flags={getFlags}>
                                         {getSelectedOption()?.value ?? "Pick one"}
                                     </PageSelectContent>
                                 )}
                                 renderOption={(getOption, getFlags) => (
-                                    <PageSelectOptionContent getFlags={getFlags}>
+                                    <PageSelectOptionContent flags={getFlags}>
                                         {getOption().value}
                                     </PageSelectOptionContent>
                                 )}

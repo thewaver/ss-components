@@ -4,6 +4,7 @@ import type { DateValue, DateValueCalendarId } from "../../../Abstracts/DateValu
 import { DateValueUtils } from "../../../Abstracts/DateValue/DateValue.utils";
 import { MaskedField } from "../../../Abstracts/MaskedField/MaskedField";
 import { TextSyncUtils } from "../../../Abstracts/TextSync/TextSync.utils";
+import { access } from "../../../Utils/propUtils";
 import { TextField } from "../TextField/TextField";
 import type { DateInputEra, DateInputFormat, DateInputProps } from "./DateInput.types";
 
@@ -87,9 +88,9 @@ const toDigits = (value: DateValue, format: DateInputFormat) =>
     FORMATS[format].parts.map((part) => `${value[part]}`.padStart(PART_LENGTHS[part], "0")).join("");
 
 export const DateInput = (props: DateInputProps) => {
-    const getFormat = createMemo(() => props.getFormat?.() ?? DEFAULT_DATE_INPUT_FORMAT);
+    const getFormat = createMemo(() => access(props.format) ?? DEFAULT_DATE_INPUT_FORMAT);
 
-    const getCalendar = createMemo(() => props.getCalendar?.() ?? DEFAULT_DATE_INPUT_CALENDAR);
+    const getCalendar = createMemo(() => access(props.calendar) ?? DEFAULT_DATE_INPUT_CALENDAR);
 
     const getMask = createMemo(() => computeMask(getFormat()));
 
@@ -105,7 +106,7 @@ export const DateInput = (props: DateInputProps) => {
         { equals: (a, b) => a.era === b.era && a.year === b.year && a.calendar.identifier === b.calendar.identifier },
     );
 
-    const getEraOptions = createMemo(() => DateValueUtils.getEras(getAnchor(), props.getLocale?.()));
+    const getEraOptions = createMemo(() => DateValueUtils.getEras(getAnchor(), access(props.locale)));
 
     const [getEra, setEra] = createSignal<string>(
         untrack(() => {
@@ -128,7 +129,7 @@ export const DateInput = (props: DateInputProps) => {
             day: parts.day!,
         });
 
-        return parsed && DateValueUtils.getIsInRange(parsed, props.getMinDate?.(), props.getMaxDate?.())
+        return parsed && DateValueUtils.getIsInRange(parsed, access(props.minDate), access(props.maxDate))
             ? parsed
             : undefined;
     };
@@ -161,7 +162,7 @@ export const DateInput = (props: DateInputProps) => {
             if (!value) return;
 
             field.commit(
-                DateValueUtils.clamp(DateValueUtils.withEra(value, next), props.getMinDate?.(), props.getMaxDate?.()),
+                DateValueUtils.clamp(DateValueUtils.withEra(value, next), access(props.minDate), access(props.maxDate)),
             );
         },
     };
@@ -170,11 +171,11 @@ export const DateInput = (props: DateInputProps) => {
         <TextField
             {...props}
             valueSignal={field.textSignal}
-            getElement={() => "input"}
-            getInputMode={() => "numeric"}
+            element={"input"}
+            inputMode={"numeric"}
             computeMaskedText={(previous, next, caret) => TextSyncUtils.applyMask(getMask(), previous, next, caret)}
-            getPlaceholderHint={() => computeHint(getFormat())}
-            getHasError={() => (props.getHasError?.() ?? false) || field.getHasIssue()}
+            placeholderHint={() => computeHint(getFormat())}
+            hasError={() => (access(props.hasError) ?? false) || field.getHasIssue()}
             renderLeading={props.renderLeading && ((getFlags) => props.renderLeading!(getFlags, era))}
             onInput={field.onInput}
             onBlur={field.onBlur}

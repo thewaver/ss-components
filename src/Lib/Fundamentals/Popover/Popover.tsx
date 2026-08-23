@@ -7,6 +7,7 @@ import { DismissStack } from "../../Abstracts/Dismiss/DismissStack";
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { FocusUtils } from "../../Abstracts/Focus/Focus.utils";
 import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
+import { access } from "../../Utils/propUtils";
 import type { PopoverProps } from "./Popover.types";
 
 import * as styles from "./Popover.css";
@@ -20,41 +21,45 @@ export const Popover = (props: PopoverProps) => {
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
 
     const getTransitionDurationMs = createMemo(
-        () => props.getTransitionDurationMs?.() ?? DEFAULT_POPOVER_TRANSITION_DURATION_MS,
+        () => access(props.transitionDurationMs) ?? DEFAULT_POPOVER_TRANSITION_DURATION_MS,
     );
 
-    const { getIsVisible, getTransitionTarget, getHasTransitionFinished } = ElementFader.createFader(props.getIsOpen, {
-        getTransitionDurationMs,
-    });
+    const { getIsVisible, getTransitionTarget, getHasTransitionFinished } = ElementFader.createFader(
+        () => access(props.isOpen),
+        {
+            getTransitionDurationMs,
+        },
+    );
 
     const { getAnchorRect, getPlacement, getPosition, getZIndex, setContentRef } = Anchor.createPortalPosition(
-        props.getAnchorRef,
+        () => access(props.anchorRef),
         getIsVisible,
         {
-            getPlacement: () => props.getPlacement?.() ?? DEFAULT_POPOVER_PLACEMENT,
-            getOffset: props.getOffset,
-            getReservedScreenSize: props.getReservedScreenSize,
+            getPlacement: () => access(props.placement) ?? DEFAULT_POPOVER_PLACEMENT,
+            getOffset: props.offset === undefined ? undefined : () => access(props.offset)!,
+            getReservedScreenSize:
+                props.reservedScreenSize === undefined ? undefined : () => access(props.reservedScreenSize)!,
         },
     );
 
     const getMinWidth = createMemo(() =>
-        props.getHasAnchorMinWidth?.() ? `${getAnchorRect()?.width ?? 0}px` : undefined,
+        access(props.hasAnchorMinWidth) ? `${getAnchorRect()?.width ?? 0}px` : undefined,
     );
 
     const getAnchorColor = createMemo(() => {
-        const anchor = props.getAnchorRef();
+        const anchor = access(props.anchorRef);
 
         return anchor && getIsVisible() ? getComputedStyle(anchor).color : undefined;
     });
 
     const getHasFocus = createMemo(
-        () => (props.getHasAutoFocus?.() ?? false) && props.getIsOpen() && getPosition() !== undefined,
+        () => (access(props.hasAutoFocus) ?? false) && access(props.isOpen) && getPosition() !== undefined,
     );
 
     FocusUtils.autoFocus(getRootRef, getHasFocus, { getInitialRef: getRootRef });
 
-    DismissStack.createLayer(props.getIsOpen, {
-        getRoots: () => [getRootRef(), props.getAnchorRef()],
+    DismissStack.createLayer(() => access(props.isOpen), {
+        getRoots: () => [getRootRef(), access(props.anchorRef)],
         onDismiss: (reason) => props.onDismiss?.(reason),
     });
 
@@ -70,7 +75,7 @@ export const Popover = (props: PopoverProps) => {
                         setContentRef(element);
                         setRootRef(element);
                     }}
-                    id={props.getId()}
+                    id={access(props.id)}
                     class={styles.popoverRoot}
                     style={{
                         "visibility": getPosition() ? "visible" : "hidden",
@@ -80,13 +85,13 @@ export const Popover = (props: PopoverProps) => {
                         "z-index": getZIndex(),
                     }}
                     tabIndex={-1}
-                    inert={!props.getIsOpen()}
-                    role={props.getRole()}
-                    {...props.getAriaAttributes?.()}
+                    inert={!access(props.isOpen)}
+                    role={access(props.role)}
+                    {...access(props.ariaAttributes)}
                     onKeyDown={(e) => props.onKeyDown?.(e)}
                     onBlur={(e) => props.onBlur?.(e)}
                     onMouseDown={(e) => {
-                        if (props.getRole() === "dialog") return;
+                        if (access(props.role) === "dialog") return;
 
                         e.preventDefault();
                     }}

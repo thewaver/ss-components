@@ -10,10 +10,10 @@ export const DisabledExample = (props: Props) => (
     <Label>
         <Checkbox
             checkedSignal={props.checkedSignal}
-            getIsDisabled={() => true}
-            renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
+            isDisabled={true}
+            renderContent={(getFlags) => <PageCheckboxContent flags={getFlags} />}
         />
 
-        <PageLabelCaption getId={() => "disabledCaption"}>Caption clicks must do nothing</PageLabelCaption>
+        <PageLabelCaption id={"disabledCaption"}>Caption clicks must do nothing</PageLabelCaption>
     </Label>
 );

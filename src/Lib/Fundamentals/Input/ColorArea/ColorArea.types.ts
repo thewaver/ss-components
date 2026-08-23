@@ -42,7 +42,7 @@ export type ColorAreaElementProps = AccessorProps<
         }
 >;
 
-export type ColorAreaProps = Omit<InteractionWrapperProps<ColorAreaFlags>, "renderControl" | "getExtraFlags"> &
+export type ColorAreaProps = Omit<InteractionWrapperProps<ColorAreaFlags>, "renderControl" | "extraFlags"> &
     AccessorProps<
         ColorAreaCbs &
             Pick<InteractionControlProps<ColorAreaFlags>, "id" | "renderContent"> &

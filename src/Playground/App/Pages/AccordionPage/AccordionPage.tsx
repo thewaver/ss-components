@@ -30,7 +30,7 @@ export const AccordionPage = () => {
             key: "single",
             name: "One at a time",
             readout: () => `expanded: ${JSON.stringify(singleSignal[0]())} — the component keeps at most one`,
-            component: () => <SectionsExample expandedSignal={singleSignal} getIsSingleExpand={() => true} />,
+            component: () => <SectionsExample expandedSignal={singleSignal} isSingleExpand={true} />,
             path: `${EXAMPLES_ROOT}/Sections.tsx`,
         },
         {
@@ -40,7 +40,7 @@ export const AccordionPage = () => {
             component: () => (
                 <GrowingExample
                     expandedSignal={growingSignal}
-                    getExtraLines={getExtraLines}
+                    extraLines={getExtraLines}
                     onAddLine={() => {
                         setExtraLines((prev) => prev + 1);
                     }}
@@ -66,5 +66,5 @@ export const AccordionPage = () => {
         },
     ]);
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

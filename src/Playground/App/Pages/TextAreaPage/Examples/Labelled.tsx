@@ -15,19 +15,19 @@ const LABEL_GAP = 5;
 type Props = TextAreaExampleProps;
 
 export const LabelledExample = (props: Props) => (
-    <Label getDir={() => "column"} getGap={() => LABEL_GAP}>
+    <Label dir={"column"} gap={() => LABEL_GAP}>
         <PageLabelCaption>Bio</PageLabelCaption>
 
         <TextArea
             valueSignal={props.valueSignal}
-            getIsAutoSizing={() => true}
-            getMinRows={() => MIN_ROWS}
-            getMaxRows={() => MAX_ROWS}
-            getPadding={() => FIELD_PADDING}
-            getGap={() => FIELD_GAP}
+            isAutoSizing={true}
+            minRows={() => MIN_ROWS}
+            maxRows={() => MAX_ROWS}
+            padding={() => FIELD_PADDING}
+            gap={() => FIELD_GAP}
             computeTextStyle={computePageTextFieldTextStyle}
             renderContent={(getFlags) => (
-                <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} getIsStretched={() => true} />
+                <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} isStretched={true} />
             )}
         />
     </Label>

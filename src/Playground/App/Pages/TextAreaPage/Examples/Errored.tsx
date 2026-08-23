@@ -13,16 +13,16 @@ type Props = TextAreaExampleProps;
 export const ErroredExample = (props: Props) => (
     <TextArea
         valueSignal={props.valueSignal}
-        getIsAutoSizing={() => true}
-        getMinRows={() => MIN_ROWS}
-        getMaxRows={() => MAX_ROWS}
-        getHasError={() => props.valueSignal[0]().length < REVIEW_LIMIT}
-        getPadding={() => FIELD_PADDING}
-        getGap={() => FIELD_GAP}
-        getAriaLabel={() => "Review"}
+        isAutoSizing={true}
+        minRows={() => MIN_ROWS}
+        maxRows={() => MAX_ROWS}
+        hasError={() => props.valueSignal[0]().length < REVIEW_LIMIT}
+        padding={() => FIELD_PADDING}
+        gap={() => FIELD_GAP}
+        ariaLabel={"Review"}
         computeTextStyle={computePageTextFieldTextStyle}
         renderContent={(getFlags) => (
-            <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} getIsStretched={() => true} />
+            <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} isStretched={true} />
         )}
     />
 );

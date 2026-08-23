@@ -8,17 +8,17 @@ type Props = CheckboxExampleProps;
 export const ReachableExample = (props: Props) => (
     <Checkbox
         checkedSignal={props.checkedSignal}
-        getAriaLabel={() => "Disabled but reachable checkbox"}
-        getIsDisabled={() => true}
-        getIsReachableWhenDisabled={() => true}
-        renderContent={(getFlags) => <PageCheckboxContent getFlags={getFlags} />}
-        getTooltipDefs={() => ({
-            getPlacement: () => ({ x: "center", y: "top-out" }),
-            getOffset: () => ({ x: 0, y: 5 }),
+        ariaLabel={"Disabled but reachable checkbox"}
+        isDisabled={true}
+        isReachableWhenDisabled={true}
+        renderContent={(getFlags) => <PageCheckboxContent flags={getFlags} />}
+        tooltipDefs={() => ({
+            placement: () => ({ x: "center", y: "top-out" }),
+            offset: () => ({ x: 0, y: 5 }),
             renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
                 <PageTooltipContent
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
+                    visibilityTarget={getVisibilityTarget}
+                    transitionDurationMs={getTransitionDurationMs}
                 >
                     Focusable so this tooltip can be read, but clicking and pressing Space must leave it checked.
                 </PageTooltipContent>

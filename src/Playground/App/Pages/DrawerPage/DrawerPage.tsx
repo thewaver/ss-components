@@ -21,8 +21,8 @@ export const DrawerPage = () => {
     const getExamples = createMemo(() =>
         EDGES.map((edge) => {
             const commonProps: DrawerExampleProps = {
-                getEdge: () => edge,
-                getFillers: () => FILLERS,
+                edge: () => edge,
+                fillers: () => FILLERS,
                 visibilitySignal: visibilityByEdge.get(edge)!,
             };
 
@@ -36,5 +36,5 @@ export const DrawerPage = () => {
         }),
     );
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

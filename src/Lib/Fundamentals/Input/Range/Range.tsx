@@ -4,6 +4,7 @@ import { MathUtils } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { InteractionUtils } from "../../../Abstracts/Interaction/Interaction.utils";
+import { access } from "../../../Utils/propUtils";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { FormFieldUtils } from "../FormField/FormField.utils";
 import { LabelUtils } from "../Label/Label.utils";
@@ -19,36 +20,38 @@ const DEFAULT_RANGE_THUMB_SIZE = 16;
 const MIN_TRACK_TRAVEL_PX = 1;
 
 const RangeElement = (props: RangeElementProps) => {
-    const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
+    const getAriaLabel = LabelUtils.resolveAriaLabel(
+        props.ariaLabel === undefined ? undefined : () => access(props.ariaLabel)!,
+    );
     const getAriaDescribedBy = FormFieldUtils.resolveAriaDescribedBy();
 
     const [getActiveThumb, setActiveThumb] = createSignal(0);
     const [getElementRefs, setElementRefs] = createSignal<HTMLInputElement[]>([]);
 
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
-    const getThumbMin = (index: number) => (index === 0 ? props.getMin() : props.getValues()[index - 1]);
+    const getThumbMin = (index: number) => (index === 0 ? access(props.min) : access(props.values)[index - 1]);
 
     const getThumbMax = (index: number) =>
-        index === props.getValues().length - 1 ? props.getMax() : props.getValues()[index + 1];
+        index === access(props.values).length - 1 ? access(props.max) : access(props.values)[index + 1];
 
     const syncElement = (element: HTMLInputElement, index: number) => {
-        element.value = `${props.getValues()[index]}`;
+        element.value = `${access(props.values)[index]}`;
     };
 
     const readPointerValue = (e: PointerEvent, element: HTMLInputElement) => {
-        const isVertical = props.getOrientation() === "vertical";
+        const isVertical = access(props.orientation) === "vertical";
         const rect = element.getBoundingClientRect();
         const span = isVertical ? rect.height : rect.width;
         const offset = isVertical ? rect.bottom - e.clientY : e.clientX - rect.left;
-        const travel = Math.max(span - props.getThumbSize(), MIN_TRACK_TRAVEL_PX);
-        const ratio = MathUtils.clamp01((offset - props.getThumbSize() * 0.5) / travel);
+        const travel = Math.max(span - access(props.thumbSize), MIN_TRACK_TRAVEL_PX);
+        const ratio = MathUtils.clamp01((offset - access(props.thumbSize) * 0.5) / travel);
 
-        return props.getMin() + ratio * (props.getMax() - props.getMin());
+        return access(props.min) + ratio * (access(props.max) - access(props.min));
     };
 
     const raiseNearestThumb = (e: PointerEvent, element: HTMLInputElement) => {
-        const values = props.getValues();
+        const values = access(props.values);
 
         if (values.length < 2) return;
 
@@ -69,17 +72,17 @@ const RangeElement = (props: RangeElementProps) => {
     });
 
     InteractionUtils.wrapExtraControls(() => getElementRefs().slice(1), getIsDisabled, {
-        getIsTabbable: props.getIsTabbable,
+        getIsTabbable: props.isTabbable === undefined ? undefined : () => access(props.isTabbable)!,
     });
 
     return (
         <>
-            {props.renderContent(props.getFlags)}
+            {props.renderContent(() => access(props.flags))}
 
-            <Index each={props.getValues()}>
+            <Index each={access(props.values)}>
                 {(_getValue, index) => (
                     <input
-                        id={index === 0 ? props.getId?.() : undefined}
+                        id={index === 0 ? access(props.id) : undefined}
                         ref={(element) => {
                             setElementRefs((refs) => {
                                 const next = [...refs];
@@ -92,19 +95,21 @@ const RangeElement = (props: RangeElementProps) => {
                             if (index === 0) props.ref?.(element);
                         }}
                         type="range"
-                        name={props.getName?.()}
-                        class={[styles.rangeElement, styles.rangeOrientationVariants[props.getOrientation()]].join(" ")}
+                        name={access(props.name)}
+                        class={[styles.rangeElement, styles.rangeOrientationVariants[access(props.orientation)]].join(
+                            " ",
+                        )}
                         style={{
-                            ...assignInlineVars({ [styles.thumbSizeVar]: `${props.getThumbSize()}px` }),
+                            ...assignInlineVars({ [styles.thumbSizeVar]: `${access(props.thumbSize)}px` }),
                             "z-index": index === getActiveThumb() ? 1 : undefined,
                         }}
                         min={getThumbMin(index)}
                         max={getThumbMax(index)}
-                        step={props.getStep()}
-                        aria-label={props.getThumbLabels?.()?.[index] ?? getAriaLabel()}
+                        step={access(props.step)}
+                        aria-label={access(props.thumbLabels)?.[index] ?? getAriaLabel()}
                         aria-describedby={getAriaDescribedBy()}
                         aria-disabled={getIsDisabled() || undefined}
-                        aria-invalid={props.getFlags().hasError || undefined}
+                        aria-invalid={access(props.flags).hasError || undefined}
                         onPointerDown={(e) => raiseNearestThumb(e, e.currentTarget)}
                         onPointerMove={(e) => {
                             if (e.buttons === 0) raiseNearestThumb(e, e.currentTarget);
@@ -147,15 +152,15 @@ export const Range = (props: RangeProps) => {
 
     const [getFocusedThumb, setFocusedThumb] = createSignal<number>();
 
-    const getOrientation = createMemo(() => props.getOrientation?.() ?? DEFAULT_RANGE_ORIENTATION);
+    const getOrientation = createMemo(() => access(props.orientation) ?? DEFAULT_RANGE_ORIENTATION);
 
-    const getMin = createMemo(() => props.getMin?.() ?? DEFAULT_RANGE_MIN);
+    const getMin = createMemo(() => access(props.min) ?? DEFAULT_RANGE_MIN);
 
-    const getMax = createMemo(() => props.getMax?.() ?? DEFAULT_RANGE_MAX);
+    const getMax = createMemo(() => access(props.max) ?? DEFAULT_RANGE_MAX);
 
-    const getStep = createMemo(() => props.getStep?.() ?? DEFAULT_RANGE_STEP);
+    const getStep = createMemo(() => access(props.step) ?? DEFAULT_RANGE_STEP);
 
-    const getThumbSize = createMemo(() => props.getThumbSize?.() ?? DEFAULT_RANGE_THUMB_SIZE);
+    const getThumbSize = createMemo(() => access(props.thumbSize) ?? DEFAULT_RANGE_THUMB_SIZE);
 
     const getValues = createMemo(() => {
         const range = props.rangeSignal?.[0]();
@@ -188,7 +193,7 @@ export const Range = (props: RangeProps) => {
     return (
         <InteractionWrapper
             {...props}
-            getExtraFlags={(): RangeFlags => ({
+            extraFlags={(): RangeFlags => ({
                 orientation: getOrientation(),
                 values: getValues(),
                 ratios: getRatios(),
@@ -198,18 +203,18 @@ export const Range = (props: RangeProps) => {
             renderControl={(setElementRef, getFlags) => (
                 <RangeElement
                     ref={setElementRef}
-                    getId={props.getId}
-                    getName={props.getName}
-                    getAriaLabel={props.getAriaLabel}
-                    getThumbLabels={props.getThumbLabels}
-                    getOrientation={getOrientation}
-                    getMin={getMin}
-                    getMax={getMax}
-                    getStep={getStep}
-                    getThumbSize={getThumbSize}
-                    getFlags={getFlags}
-                    getValues={getValues}
-                    getIsTabbable={props.getIsTabbable}
+                    id={props.id}
+                    name={props.name}
+                    ariaLabel={props.ariaLabel}
+                    thumbLabels={props.thumbLabels}
+                    orientation={getOrientation}
+                    min={getMin}
+                    max={getMax}
+                    step={getStep}
+                    thumbSize={getThumbSize}
+                    flags={getFlags}
+                    values={getValues}
+                    isTabbable={props.isTabbable}
                     setValue={setValue}
                     setFocusedThumb={setFocusedThumb}
                     renderContent={props.renderContent}

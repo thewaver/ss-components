@@ -6,6 +6,7 @@ import type { AccordionItem } from "../../../../Lib/Fundamentals/Accordion/Accor
 import { Scroller } from "../../../../Lib/Fundamentals/Scroller/Scroller";
 import { Tabs } from "../../../../Lib/Fundamentals/Tabs/Tabs";
 import type { Tab } from "../../../../Lib/Fundamentals/Tabs/Tabs.types";
+import { access } from "../../../../Lib/Utils/propUtils";
 import { PageAccordionHeader, PageAccordionPanel } from "../../StyledComponents/AccordionContent/AccordionContent";
 import { PageScrollerButton } from "../../StyledComponents/ScrollerButton/ScrollerButton";
 import {
@@ -60,8 +61,8 @@ export const PageSourceView = (props: SourceViewProps) => {
     const getSource = (name: string) => getSelectedGroup()?.files.find((file) => file.name === name)?.source ?? "";
 
     createEffect(() => {
-        const path = props.getPath();
-        const sampleKeys = props.getSampleKeys?.() ?? [];
+        const path = access(props.path);
+        const sampleKeys = access(props.sampleKeys) ?? [];
         const token = ++loadToken;
 
         void SourceViewUtils.loadGroups(path, sampleKeys).then((groups) => {
@@ -80,30 +81,30 @@ export const PageSourceView = (props: SourceViewProps) => {
             >
                 <div class={styles.sourceViewTabs}>
                     <Scroller
-                        getGap={() => TAB_GAP}
-                        getPadding={() => FOCUS_RING_WIDTH}
-                        renderButton={(getStep, stepper) => <PageScrollerButton getStep={getStep} stepper={stepper} />}
+                        gap={() => TAB_GAP}
+                        padding={() => FOCUS_RING_WIDTH}
+                        renderButton={(getStep, stepper) => <PageScrollerButton step={getStep} stepper={stepper} />}
                     >
                         <Tabs
-                            getDir={() => "row"}
-                            getTabGap={() => TAB_GAP}
-                            getAriaLabel={() => "Source files"}
-                            getTabs={getTabs}
-                            getSelectedValue={getSelectedGroup}
+                            dir={"row"}
+                            tabGap={() => TAB_GAP}
+                            ariaLabel={"Source files"}
+                            tabs={getTabs}
+                            selectedValue={getSelectedGroup}
                             onSelectionChange={selectGroup}
-                            renderGutter={() => <PageTabGutter getDir={() => "row"} />}
+                            renderGutter={() => <PageTabGutter dir={"row"} />}
                             renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
                                 <PageTabFloater
-                                    getDir={() => "row"}
-                                    getVisibilityTarget={getVisibilityTarget}
-                                    getTransitionDurationMs={getTransitionDurationMs}
+                                    dir={"row"}
+                                    visibilityTarget={getVisibilityTarget}
+                                    transitionDurationMs={getTransitionDurationMs}
                                 />
                             )}
                             renderTab={(getTab, getFlags) => (
                                 <PageTabContent
-                                    getFlags={getFlags}
-                                    getDir={() => "row"}
-                                    getIsSelected={() => getTab().value === getSelectedGroup()}
+                                    flags={getFlags}
+                                    dir={"row"}
+                                    isSelected={() => getTab().value === getSelectedGroup()}
                                 >
                                     {getTab().value.name}
                                 </PageTabContent>
@@ -114,22 +115,22 @@ export const PageSourceView = (props: SourceViewProps) => {
 
                 <div class={styles.sourceViewPanel}>
                     <PageTabPanel
-                        getId={() => getPanelId(getSelectedGroup()!.name)}
-                        getTabId={() => getTabId(getSelectedGroup()!.name)}
+                        id={() => getPanelId(getSelectedGroup()!.name)}
+                        tabId={() => getTabId(getSelectedGroup()!.name)}
                     >
                         <Accordion
-                            getItems={getItems}
+                            items={getItems}
                             expandedSignal={expandedSignal}
-                            getGap={() => SECTION_GAP}
+                            gap={() => SECTION_GAP}
                             renderHeader={(getItem, getFlags) => (
-                                <PageAccordionHeader getFlags={getFlags}>{getItem().value}</PageAccordionHeader>
+                                <PageAccordionHeader flags={getFlags}>{getItem().value}</PageAccordionHeader>
                             )}
                             renderPanel={(getItem, getVisibilityTarget, getTransitionDurationMs) => (
                                 <PageAccordionPanel
-                                    getVisibilityTarget={getVisibilityTarget}
-                                    getTransitionDurationMs={getTransitionDurationMs}
+                                    visibilityTarget={getVisibilityTarget}
+                                    transitionDurationMs={getTransitionDurationMs}
                                 >
-                                    <PageCodeBox getSource={() => getSource(getItem().value)} />
+                                    <PageCodeBox source={() => getSource(getItem().value)} />
                                 </PageAccordionPanel>
                             )}
                         />

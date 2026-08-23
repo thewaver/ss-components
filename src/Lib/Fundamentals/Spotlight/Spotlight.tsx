@@ -9,6 +9,7 @@ import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { ElementObserver } from "../../Abstracts/ElementObserver/ElementObserver";
 import { FocusUtils } from "../../Abstracts/Focus/Focus.utils";
 import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
+import { access } from "../../Utils/propUtils";
 import type { SpotlightProps } from "./Spotlight.types";
 import { SpotlightUtils } from "./Spotlight.utils";
 
@@ -31,10 +32,10 @@ export const Spotlight = (props: SpotlightProps) => {
     const [getPopupRef, setPopupRef] = createSignal<HTMLElement>();
 
     const getTransitionDurationMs = createMemo(
-        () => props.getTransitionDurationMs?.() ?? DEFAULT_SPOTLIGHT_TRANSITION_DURATION_MS,
+        () => access(props.transitionDurationMs) ?? DEFAULT_SPOTLIGHT_TRANSITION_DURATION_MS,
     );
 
-    const getPadding = createMemo(() => props.getPadding?.() ?? DEFAULT_SPOTLIGHT_PADDING);
+    const getPadding = createMemo(() => access(props.padding) ?? DEFAULT_SPOTLIGHT_PADDING);
 
     const { getIsVisible, getTransitionTarget } = ElementFader.createFader(() => props.visibilitySignal[0](), {
         getTransitionDurationMs,
@@ -42,12 +43,15 @@ export const Spotlight = (props: SpotlightProps) => {
         onHide: props.onHide,
     });
 
-    const getHasPopup = createMemo(() => props.getMode() === "guide" && props.renderPopup !== undefined);
+    const getHasPopup = createMemo(() => access(props.mode) === "guide" && props.renderPopup !== undefined);
 
-    ElementObserver.createViewportRectObserver(props.getElementRef, getIsVisible, { setElementRect, getPadding });
+    ElementObserver.createViewportRectObserver(() => access(props.elementRef), getIsVisible, {
+        setElementRect,
+        getPadding,
+    });
 
     createEffect(() => {
-        const element = props.getElementRef();
+        const element = access(props.elementRef);
 
         if (!getIsVisible() || !element) return;
 
@@ -55,11 +59,11 @@ export const Spotlight = (props: SpotlightProps) => {
     });
 
     const { getPlacement, getPosition, setContentRef } = Anchor.createPortalPosition(
-        props.getElementRef,
+        () => access(props.elementRef),
         () => getIsVisible() && getHasPopup(),
         {
-            getPlacement: () => props.getPopupPlacement?.() ?? DEFAULT_SPOTLIGHT_POPUP_PLACEMENT,
-            getOffset: () => props.getPopupOffset?.() ?? DEFAULT_SPOTLIGHT_POPUP_OFFSET,
+            getPlacement: () => access(props.popupPlacement) ?? DEFAULT_SPOTLIGHT_POPUP_PLACEMENT,
+            getOffset: () => access(props.popupOffset) ?? DEFAULT_SPOTLIGHT_POPUP_OFFSET,
             getAnchorRect: getElementRect,
         },
     );
@@ -85,7 +89,7 @@ export const Spotlight = (props: SpotlightProps) => {
             return;
         }
 
-        if (props.getMode() !== "hint") return;
+        if (access(props.mode) !== "hint") return;
         if (MODIFIER_KEYS.has(e.key)) return;
 
         dismiss();
@@ -102,9 +106,9 @@ export const Spotlight = (props: SpotlightProps) => {
     });
 
     createEffect(() => {
-        const element = props.getElementRef();
+        const element = access(props.elementRef);
 
-        if (!getIsVisible() || props.getMode() !== "prompt" || !element) return;
+        if (!getIsVisible() || access(props.mode) !== "prompt" || !element) return;
 
         const onFocusIn = (e: FocusEvent) => {
             const target = e.target as Node | null;
@@ -125,7 +129,7 @@ export const Spotlight = (props: SpotlightProps) => {
     createEffect(() => {
         const portal = getPortalRef();
 
-        if (!getIsVisible() || props.getMode() !== "guide" || !portal) return;
+        if (!getIsVisible() || access(props.mode) !== "guide" || !portal) return;
 
         const sealed: HTMLElement[] = [];
 
@@ -174,7 +178,7 @@ export const Spotlight = (props: SpotlightProps) => {
                             <div
                                 class={styles.spotlightOverlaySegment}
                                 style={getRect()}
-                                onClick={() => props.getMode() === "hint" && dismiss()}
+                                onClick={() => access(props.mode) === "hint" && dismiss()}
                             >
                                 {props.renderOverlay(getTransitionTarget, getTransitionDurationMs)}
                             </div>
@@ -212,7 +216,7 @@ export const Spotlight = (props: SpotlightProps) => {
                         tabIndex={-1}
                         role="dialog"
                         aria-modal="true"
-                        aria-label={props.getAriaLabel?.()}
+                        aria-label={access(props.ariaLabel)}
                         onKeyDown={(e) => FocusUtils.focusTrapKeyDown(e, getPopupRef())}
                     >
                         {props.renderPopup?.(getTransitionTarget, getTransitionDurationMs, getPlacement)}

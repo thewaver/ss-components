@@ -9,15 +9,15 @@ type Props = SelectAirportExampleProps;
 export const AirportsExample = (props: Props) => (
     <Select
         valueSignal={props.valueSignal}
-        getOptions={() => AIRPORTS}
-        getAriaLabel={() => "Airport"}
+        options={() => AIRPORTS}
+        ariaLabel={"Airport"}
         renderContent={(getSelectedOption, getFlags) => (
-            <PageSelectContent getFlags={getFlags}>
+            <PageSelectContent flags={getFlags}>
                 {getSelectedOption() ? getSelectedOption()!.value.city : PLACEHOLDER}
             </PageSelectContent>
         )}
         renderOption={(getOption, getFlags) => (
-            <PageSelectOptionContent getFlags={getFlags}>
+            <PageSelectOptionContent flags={getFlags}>
                 {getOption().value.city} ({getOption().value.code})
             </PageSelectOptionContent>
         )}

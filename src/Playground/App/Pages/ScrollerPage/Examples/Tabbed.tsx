@@ -1,5 +1,6 @@
 import { Scroller } from "../../../../../Lib/Fundamentals/Scroller/Scroller";
 import { Tabs } from "../../../../../Lib/Fundamentals/Tabs/Tabs";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import { PageScrollerButton } from "../../../StyledComponents/ScrollerButton/ScrollerButton";
 import { PageTabContent, PageTabFloater, PageTabGutter } from "../../../StyledComponents/TabContent/TabContent";
 import type { ScrollerTabbedExampleProps } from "../ScrollerPage.types";
@@ -12,38 +13,40 @@ const TAB_GAP = 10;
 
 type Props = ScrollerTabbedExampleProps;
 
-export const TabbedExample = (props: Props) => (
-    <div class={styles.demo}>
-        <Scroller
-            getGap={() => SCROLLER_GAP}
-            getPadding={() => FOCUS_RING_WIDTH}
-            renderButton={(getStep, stepper) => <PageScrollerButton getStep={getStep} stepper={stepper} />}
-        >
-            <Tabs
-                getDir={() => "row"}
-                getTabGap={() => TAB_GAP}
-                getAriaLabel={() => "Months"}
-                getTabs={props.getTabs}
-                getSelectedValue={props.getSelectedValue}
-                onSelectionChange={props.onSelectionChange}
-                renderGutter={() => <PageTabGutter getDir={() => "row"} />}
-                renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
-                    <PageTabFloater
-                        getDir={() => "row"}
-                        getVisibilityTarget={getVisibilityTarget}
-                        getTransitionDurationMs={getTransitionDurationMs}
-                    />
-                )}
-                renderTab={(getTab, getFlags) => (
-                    <PageTabContent
-                        getFlags={getFlags}
-                        getDir={() => "row"}
-                        getIsSelected={() => getTab().value === props.getSelectedValue()}
-                    >
-                        {getTab().value}
-                    </PageTabContent>
-                )}
-            />
-        </Scroller>
-    </div>
-);
+export const TabbedExample = (props: Props) => {
+    return (
+        <div class={styles.demo}>
+            <Scroller
+                gap={() => SCROLLER_GAP}
+                padding={() => FOCUS_RING_WIDTH}
+                renderButton={(getStep, stepper) => <PageScrollerButton step={getStep} stepper={stepper} />}
+            >
+                <Tabs
+                    dir={"row"}
+                    tabGap={() => TAB_GAP}
+                    ariaLabel={"Months"}
+                    tabs={props.tabs}
+                    selectedValue={props.selectedValue}
+                    onSelectionChange={props.onSelectionChange}
+                    renderGutter={() => <PageTabGutter dir={"row"} />}
+                    renderFloater={(getVisibilityTarget, getTransitionDurationMs) => (
+                        <PageTabFloater
+                            dir={"row"}
+                            visibilityTarget={getVisibilityTarget}
+                            transitionDurationMs={getTransitionDurationMs}
+                        />
+                    )}
+                    renderTab={(getTab, getFlags) => (
+                        <PageTabContent
+                            flags={getFlags}
+                            dir={"row"}
+                            isSelected={() => getTab().value === access(props.selectedValue)}
+                        >
+                            {getTab().value}
+                        </PageTabContent>
+                    )}
+                />
+            </Scroller>
+        </div>
+    );
+};

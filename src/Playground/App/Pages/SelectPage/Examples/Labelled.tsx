@@ -10,20 +10,22 @@ const LABEL_GAP = 5;
 
 type Props = SelectExampleProps;
 
-export const LabelledExample = (props: Props) => (
-    <Label getDir={() => "column"} getGap={() => LABEL_GAP}>
-        <PageLabelCaption>Country</PageLabelCaption>
+export const LabelledExample = (props: Props) => {
+    return (
+        <Label dir={"column"} gap={() => LABEL_GAP}>
+            <PageLabelCaption>Country</PageLabelCaption>
 
-        <Select
-            valueSignal={props.valueSignal}
-            getOptions={() => COUNTRIES}
-            renderContent={(getSelectedOption, getFlags) => (
-                <PageSelectContent getFlags={getFlags}>{getSelectedOption()?.value ?? PLACEHOLDER}</PageSelectContent>
-            )}
-            renderOption={(getOption, getFlags) => (
-                <PageSelectOptionContent getFlags={getFlags}>{getOption().value}</PageSelectOptionContent>
-            )}
-            renderPopup={renderSelectPopup}
-        />
-    </Label>
-);
+            <Select
+                valueSignal={props.valueSignal}
+                options={() => COUNTRIES}
+                renderContent={(getSelectedOption, getFlags) => (
+                    <PageSelectContent flags={getFlags}>{getSelectedOption()?.value ?? PLACEHOLDER}</PageSelectContent>
+                )}
+                renderOption={(getOption, getFlags) => (
+                    <PageSelectOptionContent flags={getFlags}>{getOption().value}</PageSelectOptionContent>
+                )}
+                renderPopup={renderSelectPopup}
+            />
+        </Label>
+    );
+};

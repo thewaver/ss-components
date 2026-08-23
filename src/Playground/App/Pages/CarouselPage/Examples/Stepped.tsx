@@ -20,16 +20,18 @@ const renderBar = (controls: CarouselControls) => (
     </PageCarouselBar>
 );
 
-export const SteppedExample = (props: Props) => (
-    <Carousel
-        getSlides={props.getSlides}
-        indexSignal={props.indexSignal}
-        getIsDisabled={props.getIsDisabled}
-        getGap={() => CAROUSEL_GAP}
-        getAriaLabel={() => "Sampler"}
-        renderSlide={(getSlide, getState) => <PageCarouselSlide getState={getState}>{getSlide()}</PageCarouselSlide>}
-        renderStep={(_getStep, getFlags) => <PageCarouselStep getFlags={getFlags} />}
-        renderPick={(_getIndex, getFlags) => <PageCarouselPick getFlags={getFlags} />}
-        renderControls={renderBar}
-    />
-);
+export const SteppedExample = (props: Props) => {
+    return (
+        <Carousel
+            slides={props.slides}
+            indexSignal={props.indexSignal}
+            isDisabled={props.isDisabled}
+            gap={() => CAROUSEL_GAP}
+            ariaLabel={"Sampler"}
+            renderSlide={(getSlide, getState) => <PageCarouselSlide state={getState}>{getSlide()}</PageCarouselSlide>}
+            renderStep={(_getStep, getFlags) => <PageCarouselStep flags={getFlags} />}
+            renderPick={(_getIndex, getFlags) => <PageCarouselPick flags={getFlags} />}
+            renderControls={renderBar}
+        />
+    );
+};

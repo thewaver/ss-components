@@ -4,6 +4,7 @@ import { Index, Show, createMemo, onMount } from "solid-js";
 import type { Size2d } from "@thewaver/ss-utils";
 
 import { Rotation } from "../../Abstracts/Rotation/Rotation";
+import { access } from "../../Utils/propUtils";
 import type { WheelAxis, WheelController, WheelFace, WheelProps, WheelWedgeState } from "./Wheel.types";
 import { DRUM_PERSPECTIVE_PX, WheelUtils } from "./Wheel.utils";
 
@@ -16,20 +17,20 @@ const WHEEL_ROLE_DESCRIPTION = "wheel";
 const WEDGE_ROLE_DESCRIPTION = "wedge";
 
 export const Wheel = <T,>(props: WheelProps<T>) => {
-    const getWedgeCount = createMemo(() => props.getWedges().length);
+    const getWedgeCount = createMemo(() => access(props.wedges).length);
 
-    const getIsDisabled = createMemo(() => props.getIsDisabled?.() ?? false);
+    const getIsDisabled = createMemo(() => access(props.isDisabled) ?? false);
 
-    const getAxis = createMemo(() => props.getAxis?.() ?? DEFAULT_WHEEL_AXIS);
+    const getAxis = createMemo(() => access(props.axis) ?? DEFAULT_WHEEL_AXIS);
 
-    const getWedgeSize = createMemo(() => props.getWedgeSize?.() ?? DEFAULT_WHEEL_WEDGE_SIZE);
+    const getWedgeSize = createMemo(() => access(props.wedgeSize) ?? DEFAULT_WHEEL_WEDGE_SIZE);
 
     const rotation = Rotation.createRotation(getIsDisabled, {
-        getStepCount: getWedgeCount,
-        getSpinDurationMs: props.getSpinDurationMs,
-        getSettleDurationMs: props.getSettleDurationMs,
-        getRestDurationMs: props.getRestDurationMs,
-        getIdleDelayMs: props.getIdleDelayMs,
+        stepCount: getWedgeCount,
+        spinDurationMs: props.spinDurationMs,
+        settleDurationMs: props.settleDurationMs,
+        restDurationMs: props.restDurationMs,
+        idleDelayMs: props.idleDelayMs,
         computeSpinTarget: props.computeSpinTarget,
         computeSpinDefs: props.computeSpinDefs,
         computeStepLabel: props.computeWedgeLabel,
@@ -73,14 +74,14 @@ export const Wheel = <T,>(props: WheelProps<T>) => {
 
     const renderWedgeFace = (getWedge: Accessor<T>, index: number, face: WheelFace) => {
         const getState = () => getWedgeState(index, face);
-        const isHidden = face === "back" || (props.getVariant() === "drum" && index !== rotation.getIndex());
+        const isHidden = face === "back" || (access(props.variant) === "drum" && index !== rotation.getIndex());
 
         return (
             <div
-                class={props.getVariant() === "flat" ? styles.flatWheelWedge : styles.drumWheelWedge}
+                class={access(props.variant) === "flat" ? styles.flatWheelWedge : styles.drumWheelWedge}
                 style={{
                     transform:
-                        props.getVariant() === "flat"
+                        access(props.variant) === "flat"
                             ? `rotate(${index * rotation.getStepAngle() + rotation.getAngle()}deg)`
                             : `${getAxis() === "row" ? "rotateY" : "rotateX"}(${-rotation.getAngle() - rotation.getStepAngle() * index}deg) translateZ(${getApothem()}px)${face === "back" ? (getAxis() === "row" ? " rotateY(180deg)" : " rotateX(180deg)") : ""}`,
                 }}
@@ -101,13 +102,13 @@ export const Wheel = <T,>(props: WheelProps<T>) => {
 
     return (
         <Show
-            when={props.getVariant() === "flat"}
+            when={access(props.variant) === "flat"}
             fallback={
                 <div
                     class={styles.drumWheelRoot}
                     role="group"
                     aria-roledescription={WHEEL_ROLE_DESCRIPTION}
-                    aria-label={props.getAriaLabel()}
+                    aria-label={access(props.ariaLabel)}
                 >
                     <div
                         class={styles.drumWheelGirth}
@@ -125,7 +126,7 @@ export const Wheel = <T,>(props: WheelProps<T>) => {
                             }}
                         >
                             <div class={styles.drumWheelBarrel} style={{ transform: `translateZ(${-getApothem()}px)` }}>
-                                <Index each={props.getWedges()}>
+                                <Index each={access(props.wedges)}>
                                     {(getWedge, index) => (
                                         <>
                                             {renderWedgeFace(getWedge, index, "front")}
@@ -146,9 +147,11 @@ export const Wheel = <T,>(props: WheelProps<T>) => {
                 class={styles.flatWheelRoot}
                 role="group"
                 aria-roledescription={WHEEL_ROLE_DESCRIPTION}
-                aria-label={props.getAriaLabel()}
+                aria-label={access(props.ariaLabel)}
             >
-                <Index each={props.getWedges()}>{(getWedge, index) => renderWedgeFace(getWedge, index, "front")}</Index>
+                <Index each={access(props.wedges)}>
+                    {(getWedge, index) => renderWedgeFace(getWedge, index, "front")}
+                </Index>
             </div>
         </Show>
     );

@@ -2,6 +2,7 @@ import { createSignal, createUniqueId } from "solid-js";
 
 import type { AnchorPlacement } from "../../../Abstracts/Anchor/Anchor.types";
 import { SignalMirror } from "../../../Abstracts/SignalMirror/SignalMirror";
+import { access } from "../../../Utils/propUtils";
 import { Popover } from "../../Popover/Popover";
 import { Clock } from "../Clock/Clock";
 import { TimeInput } from "../TimeInput/TimeInput";
@@ -16,7 +17,7 @@ export const TimePicker = (props: TimePickerProps) => {
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
     const [getIsOpen, setIsOpen] = SignalMirror.createOptional(() => props.visibilitySignal, false);
 
-    const getClockLabel = () => props.getClockLabel?.() ?? DEFAULT_TIME_PICKER_CLOCK_LABEL;
+    const getClockLabel = () => access(props.clockLabel) ?? DEFAULT_TIME_PICKER_CLOCK_LABEL;
 
     const dismiss = () => {
         if (!getIsOpen()) return;
@@ -37,15 +38,15 @@ export const TimePicker = (props: TimePickerProps) => {
     const renderClock = () => (
         <Clock
             valueSignal={props.valueSignal}
-            getMin={props.getMinTime}
-            getMax={props.getMaxTime}
-            getSteps={props.getClockSteps}
-            getGap={props.getClockGap}
-            getHasSeconds={props.getHasSeconds}
-            getIsTwelveHour={props.getIsTwelveHour}
-            getIsDisabled={props.getIsDisabled}
-            getLocale={props.getLocale}
-            getAriaLabel={getClockLabel}
+            min={props.minTime}
+            max={props.maxTime}
+            steps={props.clockSteps}
+            gap={props.clockGap}
+            hasSeconds={props.hasSeconds}
+            isTwelveHour={props.isTwelveHour}
+            isDisabled={props.isDisabled}
+            locale={props.locale}
+            ariaLabel={getClockLabel}
             computeIsTimeDisabled={props.computeIsTimeDisabled}
             renderOption={props.renderOption}
             renderUnit={props.renderUnit}
@@ -61,15 +62,15 @@ export const TimePicker = (props: TimePickerProps) => {
             />
 
             <Popover
-                getId={() => popupId}
-                getRole={() => "dialog"}
-                getAriaAttributes={() => ({ "aria-label": getClockLabel() })}
-                getIsOpen={getIsOpen}
-                getAnchorRef={getRootRef}
-                getPlacement={() => props.getPlacement?.() ?? DEFAULT_TIME_PICKER_PLACEMENT}
-                getOffset={props.getOffset}
-                getTransitionDurationMs={props.getPopupTransitionDurationMs}
-                getHasAutoFocus={() => true}
+                id={() => popupId}
+                role={"dialog"}
+                ariaAttributes={() => ({ "aria-label": getClockLabel() })}
+                isOpen={getIsOpen}
+                anchorRef={getRootRef}
+                placement={() => access(props.placement) ?? DEFAULT_TIME_PICKER_PLACEMENT}
+                offset={props.offset}
+                transitionDurationMs={props.popupTransitionDurationMs}
+                hasAutoFocus={true}
                 onDismiss={(reason) => (reason === "escape" ? dismiss() : setIsOpen(false))}
                 renderContent={(getVisibilityTarget, getTransitionDurationMs) =>
                     props.renderPopup(renderClock, getVisibilityTarget, getTransitionDurationMs)

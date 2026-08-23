@@ -34,7 +34,7 @@ export type SlideButtonElementProps = AccessorProps<
         }
 >;
 
-export type SlideButtonProps = Omit<InteractionWrapperProps<SlideButtonFlags>, "renderControl" | "getExtraFlags"> &
+export type SlideButtonProps = Omit<InteractionWrapperProps<SlideButtonFlags>, "renderControl" | "extraFlags"> &
     AccessorProps<
         SlideButtonCbs &
             Pick<InteractionControlProps<SlideButtonFlags>, "id" | "ariaLabel" | "renderContent"> &

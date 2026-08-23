@@ -13,15 +13,15 @@ type Props = TextAreaExampleProps;
 export const ReadOnlyExample = (props: Props) => (
     <TextArea
         valueSignal={props.valueSignal}
-        getIsReadOnly={() => true}
-        getIsAutoSizing={() => true}
-        getMinRows={() => MIN_ROWS}
-        getPadding={() => FIELD_PADDING}
-        getGap={() => FIELD_GAP}
-        getAriaLabel={() => "Read-only notes"}
+        isReadOnly={true}
+        isAutoSizing={true}
+        minRows={() => MIN_ROWS}
+        padding={() => FIELD_PADDING}
+        gap={() => FIELD_GAP}
+        ariaLabel={"Read-only notes"}
         computeTextStyle={computePageTextFieldTextStyle}
         renderContent={(getFlags) => (
-            <PageTextFieldContent getFlags={getFlags} getWidth={() => FIELD_WIDTH} getIsStretched={() => true} />
+            <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} isStretched={true} />
         )}
     />
 );

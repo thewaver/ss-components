@@ -10,17 +10,17 @@ export const ReachableExample = (props: Props) => (
     <ColorInput
         {...pageColorPickerSlots}
         valueSignal={props.valueSignal}
-        getIsDisabled={() => true}
-        getIsReachableWhenDisabled={() => true}
-        getAriaLabel={() => "Disabled but reachable colour"}
-        renderContent={(getFlags) => <PageColorInputContent getFlags={getFlags} />}
-        getTooltipDefs={() => ({
-            getPlacement: () => ({ x: "center", y: "top-out" }),
-            getOffset: () => ({ x: 0, y: 5 }),
+        isDisabled={true}
+        isReachableWhenDisabled={true}
+        ariaLabel={"Disabled but reachable colour"}
+        renderContent={(getFlags) => <PageColorInputContent flags={getFlags} />}
+        tooltipDefs={() => ({
+            placement: () => ({ x: "center", y: "top-out" }),
+            offset: () => ({ x: 0, y: 5 }),
             renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
                 <PageTooltipContent
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
+                    visibilityTarget={getVisibilityTarget}
+                    transitionDurationMs={getTransitionDurationMs}
                 >
                     Focusable so this tooltip can be read, but the OS picker must not open.
                 </PageTooltipContent>

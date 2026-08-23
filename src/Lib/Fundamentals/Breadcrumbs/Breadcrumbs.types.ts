@@ -1,7 +1,7 @@
 import type { Accessor, Component, JSX } from "solid-js";
 
 import type { InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 import type { InteractionControlProps } from "../InteractionWrapper/InteractionWrapper.types";
 import type { TabLinkProps } from "../Tabs/Tabs.types";
 
@@ -21,7 +21,7 @@ export type BreadcrumbsItemProps<T> = AccessorProps<
         linkComponent?: Component<TabLinkProps>;
     }
 > & {
-    getCrumb: Accessor<Breadcrumb<T>>;
+    crumb: MaybeAccessor<Breadcrumb<T>>;
     onSelect: (value: T) => void;
 };
 
@@ -30,7 +30,7 @@ export type BreadcrumbsProps<T> = AccessorProps<{
     ariaLabel?: string;
     linkComponent?: Component<TabLinkProps>;
 }> & {
-    getCrumbs: Accessor<Breadcrumb<T>[]>;
+    crumbs: MaybeAccessor<Breadcrumb<T>[]>;
     renderCrumb: (getCrumb: Accessor<Breadcrumb<T>>, getFlags: () => InteractionFlags<BreadcrumbsFlags>) => JSX.Element;
     renderSeparator?: () => JSX.Element;
     onSelect?: (value: T) => void;

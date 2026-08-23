@@ -11,18 +11,18 @@ type Props = TreeExampleProps;
 export const OutsideExample = (props: Props) => (
     <PageControlColumn>
         <Tree
-            getNodes={() => FILES}
+            nodes={() => FILES}
             valueSignal={props.valueSignal}
             expandedSignal={props.expandedSignal}
-            getAriaLabel={() => "Repository, collapsed from outside"}
+            ariaLabel={"Repository, collapsed from outside"}
             renderNode={(getNode, getFlags) => (
-                <PageTreeNodeContent getFlags={getFlags}>{getNode().value}</PageTreeNodeContent>
+                <PageTreeNodeContent flags={getFlags}>{getNode().value}</PageTreeNodeContent>
             )}
         />
 
         <Button
             renderContent={(getFlags) => (
-                <PageButtonContent getFlags={getFlags}>
+                <PageButtonContent flags={getFlags}>
                     {`Collapse Lib in ${OUTSIDE_COLLAPSE_DELAY_MS}ms`}
                 </PageButtonContent>
             )}

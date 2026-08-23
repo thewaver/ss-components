@@ -5,6 +5,7 @@ import { ShapeConst } from "@thewaver/ss-utils";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 
 import { Shape } from "../../../../Lib/Exotics/Shape/Shape";
+import { access } from "../../../../Lib/Utils/propUtils";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
@@ -108,50 +109,50 @@ const STARTING_COLORS: SVGDefsColors = {
 const DEFAULT_EXAMPLE_PATH = "/src/Playground/App/Pages/ShapePage/Examples/Default.tsx";
 
 const StressTestWrapper = ({
-    getShouldClipChildren,
-    getShouldPadChildren,
-    getShapeKind,
-    getStrokeConfigKey,
-    getFillConfigKey,
-    getIterationConfigKey,
-    getCellSize,
-    getAnimationDurationMs,
-    getColors,
-    getBlurWidth,
-    getEdgeThicknesses,
+    shouldClipChildren,
+    shouldPadChildren,
+    shapeKind,
+    strokeConfigKey,
+    fillConfigKey,
+    iterationConfigKey,
+    cellSize,
+    animationDurationMs,
+    colors,
+    blurWidth,
+    edgeThicknesses,
     ...otherProps
 }: ShapeExampleProps) => {
     const id = createUniqueId();
 
-    const getStrokeConfig = () => SVGDefsSamples.Gradient.SAMPLE_CONFIGS[getStrokeConfigKey()];
-    const getFillConfig = () => SVGDefsSamples.Pattern.SAMPLE_CONFIGS[getFillConfigKey()];
-    const getIterationConfig = () => SVGDefsSamples.Iteration.SAMPLE_CONFIGS[getIterationConfigKey()];
+    const getStrokeConfig = () => SVGDefsSamples.Gradient.SAMPLE_CONFIGS[access(strokeConfigKey)];
+    const getFillConfig = () => SVGDefsSamples.Pattern.SAMPLE_CONFIGS[access(fillConfigKey)];
+    const getIterationConfig = () => SVGDefsSamples.Iteration.SAMPLE_CONFIGS[access(iterationConfigKey)];
 
     return (
         <StressTest
-            getConfigs={() => STRESS_ITEMS}
+            configs={() => STRESS_ITEMS}
             renderLabel={(getConfigIndex) => `Render ${STRESS_ITEMS[getConfigIndex()].count} items`}
             renderItem={(getConfigIndex, getItemIndex) => (
                 <Shape
                     {...otherProps}
-                    getJoinRadii={() =>
-                        otherProps.getJoinRadii!().map(
+                    joinRadii={() =>
+                        access(otherProps.joinRadii)!.map(
                             (n) => (n * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
                         )
                     }
-                    computePoints={(size) => ShapeConst.getDefaultShapePoints(getShapeKind(), size)}
+                    computePoints={(size) => ShapeConst.getDefaultShapePoints(access(shapeKind), size)}
                     computeStrokeDefs={(getSize) =>
                         getStrokeConfig().computeSVGDefs(`stroke-${id}`, undefined, {
                             getSize,
-                            animationDurationMs: getAnimationDurationMs(),
-                            colors: getColors(),
-                            blurWidth: getBlurWidth?.(),
-                            ...getIterationConfig().computeDefs(getAnimationDurationMs()),
+                            animationDurationMs: access(animationDurationMs),
+                            colors: access(colors),
+                            blurWidth: access(blurWidth),
+                            ...getIterationConfig().computeDefs(access(animationDurationMs)),
                         })
                     }
-                    getStrokeGeom={() => [
+                    strokeGeom={() => [
                         {
-                            thicknesses: getEdgeThicknesses().map(
+                            thicknesses: access(edgeThicknesses).map(
                                 (t) => (t * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
                             ),
                         },
@@ -160,14 +161,16 @@ const StressTestWrapper = ({
                         getFillConfig().computeSVGDefs(`fill-${id}`, undefined, {
                             getSize,
                             cellSize: {
-                                width: (getCellSize().width * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
+                                width:
+                                    (access(cellSize).width * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
                                 height:
-                                    (getCellSize().height * STRESS_ITEMS[getConfigIndex()].size) / styles.exampleSize,
+                                    (access(cellSize).height * STRESS_ITEMS[getConfigIndex()].size) /
+                                    styles.exampleSize,
                             },
-                            animationDurationMs: getAnimationDurationMs(),
-                            colors: getColors(),
-                            blurWidth: getBlurWidth?.(),
-                            ...getIterationConfig().computeDefs(getAnimationDurationMs()),
+                            animationDurationMs: access(animationDurationMs),
+                            colors: access(colors),
+                            blurWidth: access(blurWidth),
+                            ...getIterationConfig().computeDefs(access(animationDurationMs)),
                         })
                     }
                     renderChildren={(_, getClipPath) => {
@@ -228,19 +231,19 @@ export const ShapePage = () => {
 
     const getExamples = createMemo(() => {
         const commonProps: ShapeExampleProps = {
-            getShouldClipChildren,
-            getShouldPadChildren,
-            getBlurWidth,
-            getAnimationDurationMs,
-            getColors: () => colors,
-            getShapeKind,
-            getStrokeConfigKey,
-            getFillConfigKey,
-            getIterationConfigKey,
-            getCellSize: () => ({ width: getCellSize(), height: getCellSize() }),
-            getEdgeThicknesses: () => getEdgeThicknesses().slice(0, getShapePointCount()),
-            getJoinRadii: () => getJoinRadii().slice(0, getShapePointCount()),
-            getLameExponents: () => getLameExponents().slice(0, getShapePointCount()),
+            shouldClipChildren: getShouldClipChildren,
+            shouldPadChildren: getShouldPadChildren,
+            blurWidth: getBlurWidth,
+            animationDurationMs: getAnimationDurationMs,
+            colors: () => colors,
+            shapeKind: getShapeKind,
+            strokeConfigKey: getStrokeConfigKey,
+            fillConfigKey: getFillConfigKey,
+            iterationConfigKey: getIterationConfigKey,
+            cellSize: () => ({ width: getCellSize(), height: getCellSize() }),
+            edgeThicknesses: () => getEdgeThicknesses().slice(0, getShapePointCount()),
+            joinRadii: () => getJoinRadii().slice(0, getShapePointCount()),
+            lameExponents: () => getLameExponents().slice(0, getShapePointCount()),
         };
 
         return [
@@ -265,42 +268,42 @@ export const ShapePage = () => {
 
     return (
         <div class={styles.root} style={assignInlineVars({ [styles.backgroundColor]: colors.background })}>
-            <PagePropsPanel getScope={() => "global"}>
-                <PageProp getKey={() => "hasIndividualCorners"} getLabel={() => "Individual corner settings"}>
+            <PagePropsPanel scope={"global"}>
+                <PageProp key={"hasIndividualCorners"} label={"Individual corner settings"}>
                     <PageCheckField
-                        getValue={getHasIndividualCorners}
-                        getAriaLabel={() => "Individual corner settings"}
+                        value={getHasIndividualCorners}
+                        ariaLabel={"Individual corner settings"}
                         onChange={setHasIndividualCorners}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "shouldClipChildren"} getLabel={() => "Clip children"}>
+                <PageProp key={"shouldClipChildren"} label={"Clip children"}>
                     <PageCheckField
-                        getValue={getShouldClipChildren}
-                        getAriaLabel={() => "Clip children"}
+                        value={getShouldClipChildren}
+                        ariaLabel={"Clip children"}
                         onChange={setShouldClipChildren}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "shouldPadChildren"} getLabel={() => "Pad children"}>
+                <PageProp key={"shouldPadChildren"} label={"Pad children"}>
                     <PageCheckField
-                        getValue={getShouldPadChildren}
-                        getAriaLabel={() => "Pad children"}
+                        value={getShouldPadChildren}
+                        ariaLabel={"Pad children"}
                         onChange={setShouldPadChildren}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "edgeThicknessPx"} getLabel={() => "Edge Thickness (px)"}>
+                <PageProp key={"edgeThicknessPx"} label={"Edge Thickness (px)"}>
                     <div class={styles.valueList} style={{ "grid-template-columns": getTemplateColumns() }}>
                         <For each={getPointIterator()}>
                             {(_, getIndex) => (
                                 <PageNumberField
-                                    getValue={() => getEdgeThicknesses()[getIndex()]}
-                                    getMin={() => MIN_EDGE_THICKNESS}
-                                    getMax={() => MAX_EDGE_THICKNESS}
-                                    getStep={() => EDGE_THICKNESS_STEP}
-                                    getWidth={() => CORNER_FIELD_WIDTH}
-                                    getAriaLabel={() => `Edge thickness ${getIndex() + 1}`}
+                                    value={() => getEdgeThicknesses()[getIndex()]}
+                                    min={() => MIN_EDGE_THICKNESS}
+                                    max={() => MAX_EDGE_THICKNESS}
+                                    step={() => EDGE_THICKNESS_STEP}
+                                    width={() => CORNER_FIELD_WIDTH}
+                                    ariaLabel={() => `Edge thickness ${getIndex() + 1}`}
                                     onInput={(value) =>
                                         setEdgeThicknesses((prev) =>
                                             spreadCornerValue(prev, getIndex(), value, getHasIndividualCorners()),
@@ -312,18 +315,18 @@ export const ShapePage = () => {
                     </div>
                 </PageProp>
 
-                <PageProp getKey={() => "jointRadiiPx"} getLabel={() => "Joint Radii (px)"}>
+                <PageProp key={"jointRadiiPx"} label={"Joint Radii (px)"}>
                     <div class={styles.valueList} style={{ "grid-template-columns": getTemplateColumns() }}>
                         <For each={getPointIterator()}>
                             {(_, getIndex) => (
                                 <PageNumberField
-                                    getValue={() => getJoinRadii()[getIndex()]}
-                                    getMin={() => MIN_JOIN_RADIUS}
-                                    getMax={() => MAX_JOIN_RADIUS}
-                                    getStep={() => JOIN_RADIUS_STEP}
-                                    getWidth={() => CORNER_FIELD_WIDTH}
-                                    getId={() => `jointRadius${getIndex() + 1}`}
-                                    getAriaLabel={() => `Joint radius ${getIndex() + 1}`}
+                                    value={() => getJoinRadii()[getIndex()]}
+                                    min={() => MIN_JOIN_RADIUS}
+                                    max={() => MAX_JOIN_RADIUS}
+                                    step={() => JOIN_RADIUS_STEP}
+                                    width={() => CORNER_FIELD_WIDTH}
+                                    id={() => `jointRadius${getIndex() + 1}`}
+                                    ariaLabel={() => `Joint radius ${getIndex() + 1}`}
                                     onInput={(value) =>
                                         setJoinRadii((prev) =>
                                             spreadCornerValue(prev, getIndex(), value, getHasIndividualCorners()),
@@ -335,17 +338,17 @@ export const ShapePage = () => {
                     </div>
                 </PageProp>
 
-                <PageProp getKey={() => "lameExponent"} getLabel={() => "Lamé Exponent"}>
+                <PageProp key={"lameExponent"} label={"Lamé Exponent"}>
                     <div class={styles.valueList} style={{ "grid-template-columns": getTemplateColumns() }}>
                         <For each={getPointIterator()}>
                             {(_, getIndex) => (
                                 <PageNumberField
-                                    getValue={() => getLameExponents()[getIndex()]}
-                                    getMin={() => MIN_LAME_EXPONENT}
-                                    getMax={() => MAX_LAME_EXPONENT}
-                                    getStep={() => LAME_EXPONENT_STEP}
-                                    getWidth={() => CORNER_FIELD_WIDTH}
-                                    getAriaLabel={() => `Lamé exponent ${getIndex() + 1}`}
+                                    value={() => getLameExponents()[getIndex()]}
+                                    min={() => MIN_LAME_EXPONENT}
+                                    max={() => MAX_LAME_EXPONENT}
+                                    step={() => LAME_EXPONENT_STEP}
+                                    width={() => CORNER_FIELD_WIDTH}
+                                    ariaLabel={() => `Lamé exponent ${getIndex() + 1}`}
                                     onInput={(value) =>
                                         setLameExponents((prev) =>
                                             spreadCornerValue(prev, getIndex(), value, getHasIndividualCorners()),
@@ -357,19 +360,19 @@ export const ShapePage = () => {
                     </div>
                 </PageProp>
 
-                <PageProp getKey={() => "shapeKind"} getLabel={() => "Shape"}>
+                <PageProp key={"shapeKind"} label={"Shape"}>
                     <PageSelectField
-                        getValue={getShapeKind}
-                        getValues={() => ShapeConst.DEFAULT_SHAPES}
-                        getAriaLabel={() => "Shape"}
+                        value={getShapeKind}
+                        values={() => ShapeConst.DEFAULT_SHAPES}
+                        ariaLabel={"Shape"}
                         onChange={(shape) => setShapeKind(() => shape)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "strokeConfigKey"} getLabel={() => "Stroke Pattern"}>
+                <PageProp key={"strokeConfigKey"} label={"Stroke Pattern"}>
                     <PageGroupedSelectField
-                        getValue={getStrokeConfigKey}
-                        getGroups={() =>
+                        value={getStrokeConfigKey}
+                        groups={() =>
                             Object.entries(GROUPPED_GRADIENTS).map(
                                 ([groupKey, groupValue]) =>
                                     [groupKey, Object.keys(groupValue)] as [
@@ -378,15 +381,15 @@ export const ShapePage = () => {
                                     ],
                             )
                         }
-                        getAriaLabel={() => "Stroke pattern"}
+                        ariaLabel={"Stroke pattern"}
                         onChange={(config) => setStrokeConfigKey(() => config)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "fillConfigKey"} getLabel={() => "Fill Pattern"}>
+                <PageProp key={"fillConfigKey"} label={"Fill Pattern"}>
                     <PageGroupedSelectField
-                        getValue={getFillConfigKey}
-                        getGroups={() =>
+                        value={getFillConfigKey}
+                        groups={() =>
                             Object.entries(GROUPPED_PATTERNS).map(
                                 ([groupKey, groupValue]) =>
                                     [groupKey, Object.keys(groupValue)] as [
@@ -395,29 +398,29 @@ export const ShapePage = () => {
                                     ],
                             )
                         }
-                        getAriaLabel={() => "Fill pattern"}
+                        ariaLabel={"Fill pattern"}
                         onChange={(config) => setFillConfigKey(() => config)}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "cellSize"} getLabel={() => "Fill Cell Size (px)"}>
+                <PageProp key={"cellSize"} label={"Fill Cell Size (px)"}>
                     <PageNumberField
-                        getValue={getCellSize}
-                        getMin={() => MIN_CELL_SIZE}
-                        getMax={() => MAX_CELL_SIZE}
-                        getStep={() => CELL_SIZE_STEP}
-                        getAriaLabel={() => "Fill cell size"}
+                        value={getCellSize}
+                        min={() => MIN_CELL_SIZE}
+                        max={() => MAX_CELL_SIZE}
+                        step={() => CELL_SIZE_STEP}
+                        ariaLabel={"Fill cell size"}
                         onInput={setCellSize}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "colors"} getLabel={() => "Colors"}>
+                <PageProp key={"colors"} label={"Colors"}>
                     <div class={styles.colorList}>
                         <For each={Object.keys(colors)}>
                             {(key) => (
                                 <PageColorField
-                                    getValue={() => colors[key as keyof typeof colors]}
-                                    getAriaLabel={() => key}
+                                    value={() => colors[key as keyof typeof colors]}
+                                    ariaLabel={() => key}
                                     onInput={(value) => setColors(key as keyof typeof colors, value)}
                                 />
                             )}
@@ -425,43 +428,43 @@ export const ShapePage = () => {
                     </div>
                 </PageProp>
 
-                <PageProp getKey={() => "blurWidth"} getLabel={() => "Blur (px)"}>
+                <PageProp key={"blurWidth"} label={"Blur (px)"}>
                     <PageNumberField
-                        getValue={getBlurWidth}
-                        getMin={() => MIN_BLUR_WIDTH}
-                        getMax={() => MAX_BLUR_WIDTH}
-                        getStep={() => BLUR_WIDTH_STEP}
-                        getAriaLabel={() => "Blur width"}
+                        value={getBlurWidth}
+                        min={() => MIN_BLUR_WIDTH}
+                        max={() => MAX_BLUR_WIDTH}
+                        step={() => BLUR_WIDTH_STEP}
+                        ariaLabel={"Blur width"}
                         onInput={setBlurWidth}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "animationDurationMs"} getLabel={() => "Animation duration (ms)"}>
+                <PageProp key={"animationDurationMs"} label={"Animation duration (ms)"}>
                     <PageNumberField
-                        getValue={getAnimationDurationMs}
-                        getMin={() => MIN_DURATION_MS}
-                        getMax={() => MAX_DURATION_MS}
-                        getStep={() => DURATION_STEP_MS}
-                        getAriaLabel={() => "Animation duration"}
+                        value={getAnimationDurationMs}
+                        min={() => MIN_DURATION_MS}
+                        max={() => MAX_DURATION_MS}
+                        step={() => DURATION_STEP_MS}
+                        ariaLabel={"Animation duration"}
                         onInput={setAnimationDurationMs}
                     />
                 </PageProp>
 
-                <PageProp getKey={() => "iterationConfigKey"} getLabel={() => "Iteration Pattern"}>
+                <PageProp key={"iterationConfigKey"} label={"Iteration Pattern"}>
                     <PageSelectField
-                        getValue={getIterationConfigKey}
-                        getValues={() =>
+                        value={getIterationConfigKey}
+                        values={() =>
                             Object.keys(
                                 SVGDefsSamples.Iteration.SAMPLE_CONFIGS,
                             ) as (keyof typeof SVGDefsSamples.Iteration.SAMPLE_CONFIGS)[]
                         }
-                        getAriaLabel={() => "Iteration pattern"}
+                        ariaLabel={"Iteration pattern"}
                         onChange={(config) => setIterationConfigKey(() => config)}
                     />
                 </PageProp>
             </PagePropsPanel>
 
-            <PageExamples getItems={getExamples} getLayout={() => "flow"} />
+            <PageExamples items={getExamples} layout={"flow"} />
         </div>
     );
 };

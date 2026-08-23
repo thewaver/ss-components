@@ -9,13 +9,13 @@ type Props = SelectDeliveryExampleProps;
 export const DeliveriesExample = (props: Props) => (
     <Select
         valueSignal={props.valueSignal}
-        getOptions={() => DELIVERIES}
-        getAriaLabel={() => "Delivery"}
+        options={() => DELIVERIES}
+        ariaLabel={"Delivery"}
         renderContent={(getSelectedOption, getFlags) => (
-            <PageSelectContent getFlags={getFlags}>{getSelectedOption()?.value.name ?? PLACEHOLDER}</PageSelectContent>
+            <PageSelectContent flags={getFlags}>{getSelectedOption()?.value.name ?? PLACEHOLDER}</PageSelectContent>
         )}
         renderOption={(getOption, getFlags) => (
-            <PageSelectOptionContent getFlags={getFlags} getDescription={() => getOption().value.description}>
+            <PageSelectOptionContent flags={getFlags} description={() => getOption().value.description}>
                 {getOption().value.name}
             </PageSelectOptionContent>
         )}

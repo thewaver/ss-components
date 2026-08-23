@@ -50,12 +50,12 @@ export const FILES_WITH_REACHABLE: TreeNode<string>[] = [
                 isDisabled: true,
                 isReachableWhenDisabled: true,
                 tooltipDefs: {
-                    getPlacement: () => ({ x: "right-out", y: "center" }),
-                    getOffset: () => ({ x: 10, y: 0 }),
+                    placement: () => ({ x: "right-out", y: "center" }),
+                    offset: () => ({ x: 10, y: 0 }),
                     renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
                         <PageTooltipContent
-                            getVisibilityTarget={getVisibilityTarget}
-                            getTransitionDurationMs={getTransitionDurationMs}
+                            visibilityTarget={getVisibilityTarget}
+                            transitionDurationMs={getTransitionDurationMs}
                         >
                             Not indexed, so this one cannot be opened.
                         </PageTooltipContent>

@@ -10,8 +10,8 @@ export const SnappingExample = (props: Props) => (
     <ColorInput
         {...pageColorPickerSlots}
         valueSignal={props.valueSignal}
-        getAriaLabel={() => "Palette colour"}
-        renderContent={(getFlags) => <PageColorInputContent getFlags={getFlags} />}
+        ariaLabel={"Palette colour"}
+        renderContent={(getFlags) => <PageColorInputContent flags={getFlags} />}
         onInput={(value) => {
             props.valueSignal[1](toNearestPaletteColor(value));
         }}

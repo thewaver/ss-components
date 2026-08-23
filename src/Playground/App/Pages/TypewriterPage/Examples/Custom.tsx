@@ -4,6 +4,7 @@ import { FunctionUtils } from "@thewaver/ss-utils";
 
 import { Typewriter } from "../../../../../Lib/Exotics/Typewriter/Typewriter";
 import type { TypewriterController } from "../../../../../Lib/Exotics/Typewriter/Typewriter.types";
+import { access } from "../../../../../Lib/Utils/propUtils";
 import type { AccessorProps } from "../../../../../Lib/Utils/typeUtils";
 import type { TypewriterExampleProps } from "../TypewriterPage.types";
 
@@ -21,16 +22,16 @@ export const CustomExample = (props: Props) => {
     const updateContent = () => {
         hasMounted = true;
 
-        setText(props.getText());
+        setText(access(props.text));
         getController()?.update("content");
     };
 
     const updateContentDebounced = FunctionUtils.debounce(updateContent, 500);
 
-    createEffect(on(props.getText, hasMounted ? updateContentDebounced : updateContent));
+    createEffect(on(() => access(props.text), hasMounted ? updateContentDebounced : updateContent));
 
     return (
-        <Typewriter getAnimationName={props.getAnimationName} onMount={setController}>
+        <Typewriter animationName={props.animationName} onMount={setController}>
             {getText()}
         </Typewriter>
     );

@@ -28,10 +28,7 @@ export type TagInputState = {
     gap?: number;
 };
 
-export type TagInputProps = Omit<
-    InteractionWrapperProps<TagInputFlags>,
-    "renderControl" | "getExtraFlags" | "getRole"
-> &
+export type TagInputProps = Omit<InteractionWrapperProps<TagInputFlags>, "renderControl" | "extraFlags" | "role"> &
     AccessorProps<
         TagInputCbs &
             Pick<InteractionControlProps<TagInputFlags>, "id" | "renderContent"> &

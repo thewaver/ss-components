@@ -210,11 +210,7 @@ export const SelectPage = () => {
             readout: () =>
                 `value: ${groupedSignal[0]() ?? "undefined"} — arrows cross group boundaries and skip Finland`,
             component: () => (
-                <CountriesExample
-                    valueSignal={groupedSignal}
-                    getOptions={() => GROUPED_COUNTRIES}
-                    getHasGroups={() => true}
-                />
+                <CountriesExample valueSignal={groupedSignal} options={() => GROUPED_COUNTRIES} hasGroups={true} />
             ),
             path: `${EXAMPLES_ROOT}/Countries.tsx`,
         },
@@ -223,7 +219,7 @@ export const SelectPage = () => {
             name: "Disabled options",
             readout: () => `value: ${disabledOptionSignal[0]() ?? "undefined"} — arrows skip Denmark and Finland`,
             component: () => (
-                <CountriesExample valueSignal={disabledOptionSignal} getOptions={() => COUNTRIES_WITH_DISABLED} />
+                <CountriesExample valueSignal={disabledOptionSignal} options={() => COUNTRIES_WITH_DISABLED} />
             ),
             path: `${EXAMPLES_ROOT}/Countries.tsx`,
         },
@@ -233,7 +229,7 @@ export const SelectPage = () => {
             readout: () =>
                 `value: ${reachableOptionSignal[0]() ?? "undefined"} — arrows stop on them, hover explains why`,
             component: () => (
-                <CountriesExample valueSignal={reachableOptionSignal} getOptions={() => COUNTRIES_WITH_REACHABLE} />
+                <CountriesExample valueSignal={reachableOptionSignal} options={() => COUNTRIES_WITH_REACHABLE} />
             ),
             path: `${EXAMPLES_ROOT}/Countries.tsx`,
         },
@@ -258,8 +254,8 @@ export const SelectPage = () => {
                 <VirtualizedExample
                     valueSignal={stressSignal}
                     visibilitySignal={stressVisibility}
-                    getOptions={getStressDeliveries}
-                    getCount={getStressCount}
+                    options={getStressDeliveries}
+                    count={getStressCount}
                     measureOpen={measureOpen}
                     onCountChange={(count) => {
                         setStressCount(count);
@@ -279,9 +275,9 @@ export const SelectPage = () => {
             component: () => (
                 <OnDemandExample
                     valueSignal={pagedSignal}
-                    getOptions={getPagedRoutes}
-                    getHasMore={getHasMoreRoutes}
-                    getIsFetching={getIsFetching}
+                    options={getPagedRoutes}
+                    hasMore={getHasMoreRoutes}
+                    isFetching={getIsFetching}
                     onReachEnd={() => void fetchNextRoutes()}
                 />
             ),
@@ -296,7 +292,7 @@ export const SelectPage = () => {
                 <AutocompleteExample
                     valueSignal={filterSignal}
                     querySignal={filterQuerySignal}
-                    getOptions={getFilteredAirports}
+                    options={getFilteredAirports}
                 />
             ),
             path: `${EXAMPLES_ROOT}/Autocomplete.tsx`,
@@ -312,10 +308,10 @@ export const SelectPage = () => {
                 <AutocompleteOnDemandExample
                     valueSignal={searchSignal}
                     querySignal={searchQuerySignal}
-                    getOptions={getSearchResults}
-                    getHasMore={getHasMoreResults}
-                    getIsSearching={getIsSearching}
-                    getTotal={getSearchTotal}
+                    options={getSearchResults}
+                    hasMore={getHasMoreResults}
+                    isSearching={getIsSearching}
+                    total={getSearchTotal}
                     onReachEnd={() => {
                         if (getIsSearching()) return;
 
@@ -341,7 +337,7 @@ export const SelectPage = () => {
                 <MultiSelectGroupedExample
                     valuesSignal={everythingSignal}
                     querySignal={everythingQuerySignal}
-                    getOptions={getFilteredGroups}
+                    options={getFilteredGroups}
                 />
             ),
             path: `${EXAMPLES_ROOT}/MultiSelectGrouped.tsx`,
@@ -351,7 +347,7 @@ export const SelectPage = () => {
             name: "Error",
             readout: () => `value: ${erroredSignal[0]() ?? "undefined"} — required, nothing picked yet`,
             component: () => (
-                <CountriesExample valueSignal={erroredSignal} getHasError={() => erroredSignal[0]() === undefined} />
+                <CountriesExample valueSignal={erroredSignal} hasError={() => erroredSignal[0]() === undefined} />
             ),
             path: `${EXAMPLES_ROOT}/Countries.tsx`,
         },
@@ -359,7 +355,7 @@ export const SelectPage = () => {
             key: "disabled",
             name: "Disabled",
             readout: () => `value: ${disabledSignal[0]() ?? "undefined"}`,
-            component: () => <CountriesExample valueSignal={disabledSignal} getIsDisabled={() => true} />,
+            component: () => <CountriesExample valueSignal={disabledSignal} isDisabled={true} />,
             path: `${EXAMPLES_ROOT}/Countries.tsx`,
         },
         {
@@ -378,5 +374,5 @@ export const SelectPage = () => {
         },
     ]);
 
-    return <PageExamples getItems={getExamples} />;
+    return <PageExamples items={getExamples} />;
 };

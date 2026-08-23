@@ -1,6 +1,7 @@
 import { createMemo, createRenderEffect, createSignal, onCleanup } from "solid-js";
 
 import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
+import { access } from "../../Utils/propUtils";
 import { LabelUtils } from "../Input/Label/Label.utils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import type {
@@ -20,7 +21,9 @@ const RATIO_MIN = 0;
 const RATIO_MAX = 1;
 
 const SlideButtonElement = (props: SlideButtonElementProps) => {
-    const getAriaLabel = LabelUtils.resolveAriaLabel(props.getAriaLabel);
+    const getAriaLabel = LabelUtils.resolveAriaLabel(
+        props.ariaLabel === undefined ? undefined : () => access(props.ariaLabel)!,
+    );
 
     const [getTrackRef, setTrackRef] = createSignal<HTMLElement>();
     const [getPress, setPress] = createSignal<SlideButtonPress>();
@@ -29,11 +32,11 @@ const SlideButtonElement = (props: SlideButtonElementProps) => {
 
     let holdFrame: number | undefined;
 
-    const getIsDisabled = createMemo(() => props.getFlags().isDisabled ?? false);
+    const getIsDisabled = createMemo(() => access(props.flags).isDisabled ?? false);
 
     const getTrackWidth = () => getTrackRef()?.clientWidth ?? 0;
 
-    const getThumbRatio = () => SlideButtonUtils.computeWidthRatio(getTrackWidth(), props.getThumbSize());
+    const getThumbRatio = () => SlideButtonUtils.computeWidthRatio(getTrackWidth(), access(props.thumbSize));
 
     const stopHold = () => {
         if (holdFrame !== undefined) cancelAnimationFrame(holdFrame);
@@ -52,7 +55,10 @@ const SlideButtonElement = (props: SlideButtonElementProps) => {
         const startedAtMs = performance.now();
 
         const step = () => {
-            const ratio = SlideButtonUtils.computeHoldRatio(performance.now() - startedAtMs, props.getHoldDurationMs());
+            const ratio = SlideButtonUtils.computeHoldRatio(
+                performance.now() - startedAtMs,
+                access(props.holdDurationMs),
+            );
 
             props.setProgressRatio(ratio);
 
@@ -79,7 +85,7 @@ const SlideButtonElement = (props: SlideButtonElementProps) => {
             if (!press) {
                 setPress({
                     ratio: ratio.x,
-                    isOnThumb: SlideButtonUtils.computeIsOnThumb(ratio.x, props.getProgressRatio(), thumbRatio),
+                    isOnThumb: SlideButtonUtils.computeIsOnThumb(ratio.x, access(props.progressRatio), thumbRatio),
                 });
                 startHold();
 
@@ -115,7 +121,7 @@ const SlideButtonElement = (props: SlideButtonElementProps) => {
 
             if (grabRatio === undefined) return;
 
-            if (reason === "release" && props.getProgressRatio() >= RATIO_MAX) void props.onActivate?.();
+            if (reason === "release" && access(props.progressRatio) >= RATIO_MAX) void props.onActivate?.();
 
             setGrabRatio(undefined);
             props.setProgressRatio(RATIO_MIN);
@@ -143,7 +149,7 @@ const SlideButtonElement = (props: SlideButtonElementProps) => {
 
     return (
         <button
-            id={props.getId?.()}
+            id={access(props.id)}
             ref={(element) => {
                 setTrackRef(element);
                 props.ref?.(element);
@@ -176,7 +182,7 @@ const SlideButtonElement = (props: SlideButtonElementProps) => {
                 void props.onMouseLeave?.(e);
             }}
         >
-            {props.renderContent(props.getFlags)}
+            {props.renderContent(() => access(props.flags))}
         </button>
     );
 };
@@ -186,14 +192,14 @@ export const SlideButton = (props: SlideButtonProps) => {
     const [getIsDragging, setIsDragging] = createSignal(false);
     const [getIsHolding, setIsHolding] = createSignal(false);
 
-    const getThumbSize = createMemo(() => props.getThumbSize?.() ?? DEFAULT_SLIDE_BUTTON_THUMB_SIZE);
+    const getThumbSize = createMemo(() => access(props.thumbSize) ?? DEFAULT_SLIDE_BUTTON_THUMB_SIZE);
 
-    const getHoldDurationMs = createMemo(() => props.getHoldDurationMs?.() ?? DEFAULT_SLIDE_BUTTON_HOLD_DURATION_MS);
+    const getHoldDurationMs = createMemo(() => access(props.holdDurationMs) ?? DEFAULT_SLIDE_BUTTON_HOLD_DURATION_MS);
 
     return (
         <InteractionWrapper
             {...props}
-            getExtraFlags={(): SlideButtonFlags => ({
+            extraFlags={(): SlideButtonFlags => ({
                 progressRatio: getProgressRatio(),
                 isDragging: getIsDragging(),
                 isHolding: getIsHolding(),
@@ -201,12 +207,12 @@ export const SlideButton = (props: SlideButtonProps) => {
             renderControl={(setElementRef, getFlags) => (
                 <SlideButtonElement
                     ref={setElementRef}
-                    getId={props.getId}
-                    getAriaLabel={props.getAriaLabel}
-                    getThumbSize={getThumbSize}
-                    getHoldDurationMs={getHoldDurationMs}
-                    getFlags={getFlags}
-                    getProgressRatio={getProgressRatio}
+                    id={props.id}
+                    ariaLabel={props.ariaLabel}
+                    thumbSize={getThumbSize}
+                    holdDurationMs={getHoldDurationMs}
+                    flags={getFlags}
+                    progressRatio={getProgressRatio}
                     renderContent={props.renderContent}
                     setProgressRatio={setProgressRatio}
                     setIsDragging={setIsDragging}

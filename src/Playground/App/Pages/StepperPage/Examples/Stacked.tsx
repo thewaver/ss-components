@@ -5,25 +5,27 @@ import type { StepperExampleProps } from "../StepperPage.types";
 
 type Props = StepperExampleProps;
 
-export const StackedExample = (props: Props) => (
-    <Stepper
-        getSteps={props.getSteps}
-        getCurrentValue={props.getCurrentValue}
-        getDir={() => "column"}
-        getGap={() => STEPPER_GAP}
-        getAriaLabel={() => "Stacked checkout"}
-        computeStepAriaLabel={props.computeStepAriaLabel}
-        onCurrentChange={props.onCurrentChange}
-        renderStep={(getStep, getFlags) => (
-            <PageStepContent
-                getFlags={getFlags}
-                getState={() => getStep().state}
-                getOrdinal={() => ORDER.indexOf(getStep().value) + 1}
-                getDir={() => "column"}
-            >
-                {LABELS[getStep().value]}
-            </PageStepContent>
-        )}
-        renderConnector={() => <PageStepConnector getDir={() => "column"} />}
-    />
-);
+export const StackedExample = (props: Props) => {
+    return (
+        <Stepper
+            steps={props.steps}
+            currentValue={props.currentValue}
+            dir={"column"}
+            gap={() => STEPPER_GAP}
+            ariaLabel={"Stacked checkout"}
+            computeStepAriaLabel={props.computeStepAriaLabel}
+            onCurrentChange={props.onCurrentChange}
+            renderStep={(getStep, getFlags) => (
+                <PageStepContent
+                    flags={getFlags}
+                    state={() => getStep().state}
+                    ordinal={() => ORDER.indexOf(getStep().value) + 1}
+                    dir={"column"}
+                >
+                    {LABELS[getStep().value]}
+                </PageStepContent>
+            )}
+            renderConnector={() => <PageStepConnector dir={"column"} />}
+        />
+    );
+};

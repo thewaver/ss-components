@@ -4,6 +4,7 @@ import { Portal } from "solid-js/web";
 import { MathUtils } from "@thewaver/ss-utils";
 
 import type { AnimDirection } from "../../Abstracts/Anim/Anim.types";
+import { access } from "../../Utils/propUtils";
 import { useViewportContext } from "../Viewport/Viewport.context";
 import type { ScreenWiperProps, ScreenWiperShape } from "./ScreenWiper.types";
 
@@ -19,13 +20,13 @@ const getTargetFromDirection = (direction: AnimDirection) => (direction === "in"
 export const ScreenWiper = (props: ScreenWiperProps) => {
     const viewportContext = useViewportContext();
 
-    const [getTarget, setTarget] = createSignal(getTargetFromDirection(props.getInitialWipeDirection()));
+    const [getTarget, setTarget] = createSignal(getTargetFromDirection(access(props.initialWipeDirection)));
     const [getHasFinished, setHasFinished] = createSignal(true);
 
-    const getCellSize = createMemo(() => props.getCellSize?.() ?? DEFAULT_SCREENWIPER_CELL_SIZE);
+    const getCellSize = createMemo(() => access(props.cellSize) ?? DEFAULT_SCREENWIPER_CELL_SIZE);
 
     const getTransitionDurationMs = createMemo(
-        () => props.getTransitionDurationMs?.() ?? DEFAULT_SCREENWIPER_TRANSITION_DURATION_MS,
+        () => access(props.transitionDurationMs) ?? DEFAULT_SCREENWIPER_TRANSITION_DURATION_MS,
     );
 
     const getCols = createMemo(() => {
@@ -43,10 +44,10 @@ export const ScreenWiper = (props: ScreenWiperProps) => {
 
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
 
-    const getShape = createMemo(() => props.getShape?.() ?? DEFAULT_SCREENWIPER_SHAPE);
+    const getShape = createMemo(() => access(props.shape) ?? DEFAULT_SCREENWIPER_SHAPE);
 
     createEffect(() => {
-        const direction = props.getWipeDirection();
+        const direction = access(props.wipeDirection);
 
         untrack(() => {
             const newTarget = getTargetFromDirection(direction);
@@ -68,7 +69,7 @@ export const ScreenWiper = (props: ScreenWiperProps) => {
 
                 if (!rootRef) return;
 
-                const direction = props.getWipeDirection();
+                const direction = access(props.wipeDirection);
 
                 void rootRef.offsetHeight;
 

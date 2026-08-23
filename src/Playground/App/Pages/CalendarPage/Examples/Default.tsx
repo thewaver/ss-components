@@ -10,19 +10,21 @@ import type { CalendarExampleProps } from "../CalendarPage.types";
 
 type Props = CalendarExampleProps;
 
-export const DefaultExample = (props: Props) => (
-    <PageCalendarFrame>
-        <PageCalendarCaption monthSignal={props.monthSignal} getKey={() => "default"} getLocale={() => LOCALE} />
+export const DefaultExample = (props: Props) => {
+    return (
+        <PageCalendarFrame>
+            <PageCalendarCaption monthSignal={props.monthSignal} key={"default"} locale={() => LOCALE} />
 
-        <Calendar
-            valueSignal={props.valueSignal}
-            monthSignal={props.monthSignal}
-            getToday={() => TODAY}
-            getLocale={() => LOCALE}
-            getWeekStartsOn={props.getWeekStartsOn}
-            getAriaLabel={() => "Choose a date"}
-            renderDay={(_unused, getFlags) => <PageCalendarDay getFlags={getFlags} />}
-            renderWeekday={(name) => <PageCalendarWeekday>{name}</PageCalendarWeekday>}
-        />
-    </PageCalendarFrame>
-);
+            <Calendar
+                valueSignal={props.valueSignal}
+                monthSignal={props.monthSignal}
+                today={() => TODAY}
+                locale={() => LOCALE}
+                weekStartsOn={props.weekStartsOn}
+                ariaLabel={"Choose a date"}
+                renderDay={(_unused, getFlags) => <PageCalendarDay flags={getFlags} />}
+                renderWeekday={(name) => <PageCalendarWeekday>{name}</PageCalendarWeekday>}
+            />
+        </PageCalendarFrame>
+    );
+};

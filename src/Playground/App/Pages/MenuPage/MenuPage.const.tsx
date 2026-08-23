@@ -36,12 +36,12 @@ export const ACTIONS_WITH_REACHABLE: MenuItem<Action>[] = [
         isDisabled: true,
         isReachableWhenDisabled: true,
         tooltipDefs: {
-            getPlacement: () => ({ x: "right-out", y: "center" }),
-            getOffset: () => ({ x: 10, y: 0 }),
+            placement: () => ({ x: "right-out", y: "center" }),
+            offset: () => ({ x: 10, y: 0 }),
             renderContent: (getVisibilityTarget, getTransitionDurationMs) => (
                 <PageTooltipContent
-                    getVisibilityTarget={getVisibilityTarget}
-                    getTransitionDurationMs={getTransitionDurationMs}
+                    visibilityTarget={getVisibilityTarget}
+                    transitionDurationMs={getTransitionDurationMs}
                 >
                     The clipboard is empty.
                 </PageTooltipContent>
@@ -90,9 +90,9 @@ export const renderMenuPopup = (
     getPlacement: () => AnchorPlacement,
 ) => (
     <PagePopoverSurface
-        getVisibilityTarget={getVisibilityTarget}
-        getTransitionDurationMs={getTransitionDurationMs}
-        getPlacement={getPlacement}
+        visibilityTarget={getVisibilityTarget}
+        transitionDurationMs={getTransitionDurationMs}
+        placement={getPlacement}
     >
         {renderItems()}
     </PagePopoverSurface>
@@ -102,7 +102,7 @@ export const renderMenuItem = (
     getItem: Accessor<MenuItem<Action>>,
     getFlags: () => InteractionFlags<MenuItemFlags>,
 ) => (
-    <PageMenuItemContent getFlags={getFlags} getShortcut={() => getItem().value.shortcut ?? ""}>
+    <PageMenuItemContent flags={getFlags} shortcut={() => getItem().value.shortcut ?? ""}>
         {getItem().value.name}
     </PageMenuItemContent>
 );

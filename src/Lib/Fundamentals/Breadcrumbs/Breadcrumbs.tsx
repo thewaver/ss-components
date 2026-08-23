@@ -1,6 +1,7 @@
 import { Index, type JSX, Show, createMemo } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
+import { access } from "../../Utils/propUtils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import type { BreadcrumbsItemProps, BreadcrumbsProps } from "./Breadcrumbs.types";
 
@@ -9,7 +10,7 @@ import * as styles from "./Breadcrumbs.css";
 const DEFAULT_BREADCRUMBS_GAP = 0;
 
 const BreadcrumbsItem = <T,>(props: BreadcrumbsItemProps<T>) => {
-    const getIsDisabled = () => props.getFlags().isDisabled ?? false;
+    const getIsDisabled = () => access(props.flags).isDisabled ?? false;
 
     const handleClick = (e: MouseEvent) => {
         if (getIsDisabled()) {
@@ -17,13 +18,13 @@ const BreadcrumbsItem = <T,>(props: BreadcrumbsItemProps<T>) => {
             return;
         }
 
-        props.onSelect(props.getCrumb().value);
+        props.onSelect(access(props.crumb).value);
     };
 
     const commonProps: Omit<JSX.HTMLAttributes<HTMLElement>, "ref"> = {
         "class": styles.breadcrumbsItem,
         get "id"() {
-            return props.getCrumb().id;
+            return access(props.crumb).id;
         },
         get "aria-disabled"() {
             return getIsDisabled() || undefined;
@@ -32,20 +33,20 @@ const BreadcrumbsItem = <T,>(props: BreadcrumbsItemProps<T>) => {
 
     return (
         <Show
-            when={!props.getFlags().isCurrent}
+            when={!access(props.flags).isCurrent}
             fallback={
                 <span
                     ref={(element) => props.ref?.(element)}
                     class={styles.breadcrumbsItem}
-                    id={props.getCrumb().id}
+                    id={access(props.crumb).id}
                     aria-current="page"
                 >
-                    {props.renderContent(props.getFlags)}
+                    {props.renderContent(() => access(props.flags))}
                 </span>
             }
         >
             <Show
-                when={props.getCrumb().href}
+                when={access(props.crumb).href}
                 fallback={
                     <button
                         type="button"
@@ -53,18 +54,18 @@ const BreadcrumbsItem = <T,>(props: BreadcrumbsItemProps<T>) => {
                         {...commonProps}
                         onClick={handleClick}
                     >
-                        {props.renderContent(props.getFlags)}
+                        {props.renderContent(() => access(props.flags))}
                     </button>
                 }
             >
                 <Dynamic
                     component={props.linkComponent ?? "a"}
                     ref={(element: HTMLElement) => props.ref?.(element)}
-                    href={props.getCrumb().href!}
+                    href={access(props.crumb).href!}
                     {...commonProps}
                     onClick={handleClick}
                 >
-                    {props.renderContent(props.getFlags)}
+                    {props.renderContent(() => access(props.flags))}
                 </Dynamic>
             </Show>
         </Show>
@@ -72,22 +73,22 @@ const BreadcrumbsItem = <T,>(props: BreadcrumbsItemProps<T>) => {
 };
 
 export const Breadcrumbs = <T,>(props: BreadcrumbsProps<T>) => {
-    const getLastIndex = createMemo(() => props.getCrumbs().length - 1);
+    const getLastIndex = createMemo(() => access(props.crumbs).length - 1);
 
     return (
-        <nav class={styles.breadcrumbsRoot} aria-label={props.getAriaLabel?.()}>
-            <ol class={styles.breadcrumbsList} style={{ gap: `${props.getGap?.() ?? DEFAULT_BREADCRUMBS_GAP}px` }}>
-                <Index each={props.getCrumbs()}>
+        <nav class={styles.breadcrumbsRoot} aria-label={access(props.ariaLabel)}>
+            <ol class={styles.breadcrumbsList} style={{ gap: `${access(props.gap) ?? DEFAULT_BREADCRUMBS_GAP}px` }}>
+                <Index each={access(props.crumbs)}>
                     {(getCrumb, index) => (
                         <li class={styles.breadcrumbsEntry}>
                             <InteractionWrapper
-                                getIsDisabled={() => getCrumb().isDisabled ?? false}
-                                getExtraFlags={() => ({ isCurrent: index === getLastIndex() })}
+                                isDisabled={() => getCrumb().isDisabled ?? false}
+                                extraFlags={() => ({ isCurrent: index === getLastIndex() })}
                                 renderControl={(setElementRef, getFlags) => (
                                     <BreadcrumbsItem
                                         ref={setElementRef}
-                                        getCrumb={getCrumb}
-                                        getFlags={getFlags}
+                                        crumb={getCrumb}
+                                        flags={getFlags}
                                         linkComponent={props.linkComponent}
                                         renderContent={(getItemFlags) => props.renderCrumb(getCrumb, getItemFlags)}
                                         onSelect={(value) => props.onSelect?.(value)}
