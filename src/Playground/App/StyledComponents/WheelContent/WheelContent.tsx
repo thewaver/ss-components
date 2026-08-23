@@ -14,7 +14,7 @@ const WEDGE_RADIUS = 50;
 const WEDGE_CENTRE = 50;
 const LABEL_RADIUS = 44;
 const LABEL_TYPE_RATIO = 0.14;
-const PIP_PATH = "M 2 3 H 18 L 10 17 Z";
+const PIP_PATH = "M 2 2 H 18 L 10 18 Z";
 
 const PIP_SIDE_STYLES: Record<PageWheelPipSide, string> = {
     top: styles.wheelPipTop,
@@ -52,7 +52,7 @@ export const PageWheelWedge = (props: PageWheelWedgeProps) => {
         <div class={styles.wheelWedge} classList={{ [styles.isSelected]: props.getState().isSelected }}>
             <svg class={styles.wheelWedgeSVG} width="100%" height="100%" viewBox="0 0 100 100">
                 <defs>
-                    <linearGradient id={gradientId} x1="0" y1="1" x2="1" y2="0">
+                    <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
                         <stop class={styles.wheelWedgeGradientFrom} offset="0%" />
                         <stop class={styles.wheelWedgeGradientTo} offset="100%" />
                     </linearGradient>

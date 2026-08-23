@@ -8,15 +8,15 @@ const DEFAULT_THEME_VALUES = {
     scheme: "dark",
     color: {
         primary: {
-            dark: "hsl(165, 50%, 50%)",
-            main: "hsl(165, 75%, 50%)",
-            light: "hsl(165, 50%, 60%)",
+            dark: "hsl(195, 75%, 50%)",
+            main: "hsl(165, 100%, 50%)",
+            light: "hsl(165, 75%, 60%)",
             contrast: "rgb(0, 0, 0)",
         },
         secondary: {
-            dark: "hsl(30, 25%, 50%)",
-            main: "hsl(30, 50%, 50%)",
-            light: "hsl(30, 25%, 60%)",
+            dark: "hsl(30, 75%, 50%)",
+            main: "hsl(30, 100%, 50%)",
+            light: "hsl(45, 75%, 60%)",
             contrast: "rgb(0, 0, 0)",
         },
         info: {
@@ -44,14 +44,14 @@ const DEFAULT_THEME_VALUES = {
             contrast: "rgb(255, 255, 255)",
         },
         background: {
-            dark: "hsl(30, 10%, 10%)",
+            dark: "hsl(0, 10%, 10%)",
             light: "hsl(30, 10%, 20%)",
             contrast: "hsl(30, 25%, 90%)",
         },
         surface: {
-            dark: "hsl(165, 10%, 10%)",
-            light: "hsl(165, 10%, 20%)",
-            contrast: "hsl(165, 25%, 90%)",
+            dark: "hsl(215, 10%, 10%)",
+            light: "hsl(195, 10%, 20%)",
+            contrast: "hsl(195, 25%, 90%)",
         },
         tooltip: {
             dark: "rgba(16, 16, 16, 0.75)",

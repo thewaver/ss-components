@@ -18,7 +18,8 @@ export const sourceViewTabs = style({
     top: 0,
     zIndex: 2,
     flexShrink: 0,
-    padding: themeVars.spacing.double,
+    paddingBlock: themeVars.spacing.double,
+    marginInline: themeVars.spacing.double,
     backgroundColor: `rgba(from ${themeVars.color.surface.light} r g b / 25%)`,
     backdropFilter: "blur(10px)",
 });

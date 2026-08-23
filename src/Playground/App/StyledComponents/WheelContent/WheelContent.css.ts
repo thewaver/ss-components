@@ -99,8 +99,8 @@ export const wheelPipShape = style({
     display: "block",
     width: "100%",
     height: "100%",
-    fill: themeVars.color.secondary.dark,
-    stroke: themeVars.color.secondary.light,
+    fill: themeVars.color.control.background.main,
+    stroke: themeVars.color.secondary.main,
     strokeWidth: 2,
     strokeLinejoin: "round",
 });
@@ -191,4 +191,10 @@ export const wheelCardBack = style({
 export const wheelCardRank = style({
     fontSize: themeVars.fontSize.large,
     color: themeVars.color.primary.main,
+
+    selectors: {
+        [`${isSelected} &`]: {
+            color: themeVars.color.secondary.contrast,
+        },
+    },
 });
