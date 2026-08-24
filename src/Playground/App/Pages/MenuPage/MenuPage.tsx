@@ -1,6 +1,7 @@
 import { createMemo, createSignal } from "solid-js";
 
 import { PageExamples } from "../../PageComponents/Examples/Examples";
+import { ContextAreaExample } from "./Examples/ContextArea";
 import { DefaultExample } from "./Examples/Default";
 import { DisabledExample } from "./Examples/Disabled";
 import { DrivenExample } from "./Examples/Driven";
@@ -19,6 +20,7 @@ export const MenuPage = () => {
     const [getLastFlippedAction, setLastFlippedAction] = createSignal(NOTHING_RUN);
     const [getLastLayerAction, setLastLayerAction] = createSignal(NOTHING_RUN);
     const [getLastDrivenAction, setLastDrivenAction] = createSignal(NOTHING_RUN);
+    const [getLastContextAction, setLastContextAction] = createSignal(NOTHING_RUN);
 
     const drivenVisibility = createSignal(false);
 
@@ -35,6 +37,14 @@ export const MenuPage = () => {
                 />
             ),
             path: `${EXAMPLES_ROOT}/Driven.tsx`,
+        },
+        {
+            key: "context",
+            name: "Opened by a right-click",
+            readout: () =>
+                `${getLastContextAction()} — the menu opens where the pointer was, and there is no trigger button anywhere`,
+            component: () => <ContextAreaExample onActivate={(action) => setLastContextAction(action.name)} />,
+            path: `${EXAMPLES_ROOT}/ContextArea.tsx`,
         },
         {
             key: "default",

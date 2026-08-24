@@ -1,3 +1,5 @@
+import type { Signal } from "solid-js";
+
 import { Scroller } from "../../../../../Lib/Fundamentals/Scroller/Scroller";
 import type { ScrollerButtonPlacement } from "../../../../../Lib/Fundamentals/Scroller/Scroller.types";
 import { access } from "../../../../../Lib/Utils/propUtils";
@@ -10,7 +12,10 @@ import * as styles from "../ScrollerPage.css";
 
 const SCROLLER_GAP = 10;
 
-type Props = ScrollerExampleProps & { buttonPlacement?: MaybeAccessor<ScrollerButtonPlacement> };
+type Props = ScrollerExampleProps & {
+    buttonPlacement?: MaybeAccessor<ScrollerButtonPlacement>;
+    progressSignal?: Signal<number>;
+};
 
 export const ChipsExample = (props: Props) => {
     return (
@@ -19,6 +24,7 @@ export const ChipsExample = (props: Props) => {
                 gap={() => SCROLLER_GAP}
                 padding={() => FOCUS_RING_WIDTH}
                 buttonPlacement={props.buttonPlacement}
+                progressSignal={props.progressSignal}
                 renderButton={(getStep, stepper) => <PageScrollerButton step={getStep} stepper={stepper} />}
             >
                 {access(props.labels).map((label) => (

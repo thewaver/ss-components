@@ -6,7 +6,14 @@ import { LinkComponentExample } from "./Examples/LinkComponent";
 import { LinksExample } from "./Examples/Links";
 import { OutsideExample } from "./Examples/Outside";
 import { RecordValuesExample } from "./Examples/RecordValues";
-import { FILES_WITH_DISABLED, FILES_WITH_REACHABLE } from "./TreePage.const";
+import { VirtualizedExample } from "./Examples/Virtualized";
+import {
+    FILES_WITH_DISABLED,
+    FILES_WITH_REACHABLE,
+    STRESS_BRANCH_COUNT,
+    STRESS_LEAF_COUNT,
+    createStressFiles,
+} from "./TreePage.const";
 import type { Asset } from "./TreePage.types";
 
 const EXAMPLES_ROOT = "/src/Playground/App/Pages/TreePage/Examples";
@@ -32,6 +39,10 @@ export const TreePage = () => {
 
     const customLinkSignal = createSignal<string | undefined>();
     const customLinkExpandedSignal = createSignal<string[]>(["Guides"]);
+
+    const stressSignal = createSignal<string | undefined>();
+    const stressExpandedSignal = createSignal<string[]>(["package-1", "package-2", "package-3"]);
+    const stressFiles = createStressFiles();
 
     const recordSignal = createSignal<Asset | undefined>();
     const recordExpandedSignal = createSignal<Asset[]>([]);
@@ -106,6 +117,21 @@ export const TreePage = () => {
                 <LinkComponentExample valueSignal={customLinkSignal} expandedSignal={customLinkExpandedSignal} />
             ),
             path: `${EXAMPLES_ROOT}/LinkComponent.tsx`,
+        },
+        {
+            key: "virtualized",
+            span: 2,
+            name: "Virtualized",
+            readout: () =>
+                `${(STRESS_BRANCH_COUNT * (STRESS_LEAF_COUNT + 1)).toLocaleString("en-GB")} rows when everything is open — expanded: ${stressExpandedSignal[0]().length} branches, value: ${stressSignal[0]() ?? "undefined"}`,
+            component: () => (
+                <VirtualizedExample
+                    nodes={() => stressFiles}
+                    valueSignal={stressSignal}
+                    expandedSignal={stressExpandedSignal}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Virtualized.tsx`,
         },
         {
             key: "recordValues",

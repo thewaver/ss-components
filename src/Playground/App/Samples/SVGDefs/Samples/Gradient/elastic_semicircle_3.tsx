@@ -1,7 +1,7 @@
 import { MathUtils, ObjectUtils } from "@thewaver/ss-utils";
 
-import { SVGAnimationUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Animation/SVGAnimationDefs.utils";
 import { SVGGradientDefsUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
+import { SVGAnimations } from "../../SVGAnimations.const";
 import type { GradientConfig } from "../../SVGDefs.types";
 import { SVGDefsUtils } from "../../SVGDefs.utils";
 
@@ -28,7 +28,7 @@ export const elastic_semicircle_3: GradientConfig = {
                 id: `clip1-${id}`,
                 renderDefsElement: () => (
                     <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                        {SVGAnimationUtils.Path.rotatingArc(
+                        {SVGAnimations.Path.rotatingArc(
                             ObjectUtils.zipArray(
                                 "stretch",
                                 [
@@ -42,7 +42,7 @@ export const elastic_semicircle_3: GradientConfig = {
                             ),
                             defs,
                         )}
-                        {SVGAnimationUtils.Path.rotatingArc(
+                        {SVGAnimations.Path.rotatingArc(
                             ObjectUtils.zipArray(
                                 "stretch",
                                 [

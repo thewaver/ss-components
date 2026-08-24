@@ -1,5 +1,5 @@
-import { SVGAnimationUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Animation/SVGAnimationDefs.utils";
 import { SVGGradientDefsUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
+import { SVGAnimations } from "../../SVGAnimations.const";
 import type { GradientConfig } from "../../SVGDefs.types";
 import { SVGDefsUtils } from "../../SVGDefs.utils";
 
@@ -24,7 +24,7 @@ export const sweep_diag_async_4: GradientConfig = {
                             offset: SVGDefsUtils.offsetDiagonally(-1.25, 45),
                         },
                         (x1, y1, x2, y2) =>
-                            SVGAnimationUtils.Linear.sweepDiagonal(
+                            SVGAnimations.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -53,7 +53,7 @@ export const sweep_diag_async_4: GradientConfig = {
                             offset: SVGDefsUtils.offsetDiagonally(-1.25, 225),
                         },
                         (x1, y1, x2, y2) =>
-                            SVGAnimationUtils.Linear.sweepDiagonal(
+                            SVGAnimations.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -82,7 +82,7 @@ export const sweep_diag_async_4: GradientConfig = {
                             offset: SVGDefsUtils.offsetDiagonally(-1.25, 135),
                         },
                         (x1, y1, x2, y2) =>
-                            SVGAnimationUtils.Linear.sweepDiagonal(
+                            SVGAnimations.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,
@@ -111,7 +111,7 @@ export const sweep_diag_async_4: GradientConfig = {
                             offset: SVGDefsUtils.offsetDiagonally(-1.25, 315),
                         },
                         (x1, y1, x2, y2) =>
-                            SVGAnimationUtils.Linear.sweepDiagonal(
+                            SVGAnimations.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,

@@ -2,6 +2,17 @@ import { MathUtils, type Point2d, Point2dUtils } from "@thewaver/ss-utils";
 
 import type { WeightFn, WeightOpts } from "./CellAnimationWeights.types";
 import { CellAnimationWeightUtils } from "./CellAnimationWeights.utils";
+import { _clusterNoise } from "./Samples/_clusterNoise";
+import { _frameConvergent } from "./Samples/_frameConvergent";
+import { _frameDefault } from "./Samples/_frameDefault";
+import { _noiseDefault } from "./Samples/_noiseDefault";
+import { _radialAlternate } from "./Samples/_radialAlternate";
+import { _radialDefault } from "./Samples/_radialDefault";
+import { _rippleDefault } from "./Samples/_rippleDefault";
+import { _sequenceMorton } from "./Samples/_sequenceMorton";
+import { _sequenceStride } from "./Samples/_sequenceStride";
+import { _sweepCcw } from "./Samples/_sweepCcw";
+import { _sweepCw } from "./Samples/_sweepCw";
 import { checkeredConvergent } from "./Samples/checkeredConvergent";
 import { checkeredDefault } from "./Samples/checkeredDefault";
 import { circularAlternate } from "./Samples/circularAlternate";
@@ -79,6 +90,17 @@ export namespace CellAnimationWeights {
         "spiralSingle",
         "zigzagColumn",
         "zigzagRow",
+        "_radialDefault",
+        "_radialAlternate",
+        "_sweepCw",
+        "_sweepCcw",
+        "_frameDefault",
+        "_frameConvergent",
+        "_rippleDefault",
+        "_noiseDefault",
+        "_clusterNoise",
+        "_sequenceMorton",
+        "_sequenceStride",
     ] as const;
     export type WeightType = (typeof WEIGHT_TYPES)[number];
 
@@ -89,6 +111,12 @@ export namespace CellAnimationWeights {
         "sequenceLinear",
         "sequenceReverseBinary",
         "randomDefault",
+        "_frameDefault",
+        "_frameConvergent",
+        "_noiseDefault",
+        "_clusterNoise",
+        "_sequenceMorton",
+        "_sequenceStride",
     ] as const satisfies readonly WeightType[];
     export type OriginFreeWeightType = (typeof ORIGIN_FREE_WEIGHT_TYPES)[number];
 
@@ -133,6 +161,17 @@ export namespace CellAnimationWeights {
         sequenceInterleaved,
         sequenceReverseBinary,
         randomDefault,
+        _radialDefault,
+        _radialAlternate,
+        _sweepCw,
+        _sweepCcw,
+        _frameDefault,
+        _frameConvergent,
+        _rippleDefault,
+        _noiseDefault,
+        _clusterNoise,
+        _sequenceMorton,
+        _sequenceStride,
     };
 
     const getIndexedWeights = (weights: number[][]) => {

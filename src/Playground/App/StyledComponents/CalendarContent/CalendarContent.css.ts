@@ -10,6 +10,9 @@ export const isToday = style({});
 export const isOutsideMonth = style({});
 export const isHovered = style({});
 export const isDisabled = style({});
+export const isInRange = style({});
+export const isRangeStart = style({});
+export const isRangeEnd = style({});
 
 export const calendarDay = style({
     display: "flex",
@@ -32,6 +35,18 @@ export const calendarDay = style({
         },
         [`&.${isToday}`]: {
             boxShadow: `inset 0 0 0 1px ${themeVars.color.primary.main}`,
+        },
+        [`&.${isInRange}`]: {
+            borderRadius: 0,
+            backgroundColor: `rgb(from ${themeVars.color.primary.main} r g b / 18%)`,
+        },
+        [`&.${isRangeStart}`]: {
+            borderStartStartRadius: themeVars.borderRadius.half,
+            borderEndStartRadius: themeVars.borderRadius.half,
+        },
+        [`&.${isRangeEnd}`]: {
+            borderStartEndRadius: themeVars.borderRadius.half,
+            borderEndEndRadius: themeVars.borderRadius.half,
         },
         [`&.${isSelected}`]: {
             backgroundImage: `linear-gradient(215deg, ${themeVars.color.primary.light}, ${themeVars.color.primary.dark})`,

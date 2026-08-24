@@ -1,4 +1,4 @@
-import type { GradientConfig, IterationConfig, PatternConfig } from "./SVGDefs.types";
+import type { GradientConfig, IterationConfig, PatternConfig, SVGDefsColors } from "./SVGDefs.types";
 import { elastic_circle_3 } from "./Samples/Gradient/elastic_circle_3";
 import { elastic_drip_3 } from "./Samples/Gradient/elastic_drip_3";
 import { elastic_inter_semicircle_3 } from "./Samples/Gradient/elastic_inter_semicircle_3";
@@ -52,6 +52,13 @@ import { whirlCurved_2 } from "./Samples/Pattern/whirlCurved_2";
 import { whirl_2 } from "./Samples/Pattern/whirl_2";
 
 export namespace SVGDefsSamples {
+    export const SAMPLE_COLORS: SVGDefsColors = {
+        background: "#282420",
+        primary: "#FFFF00",
+        secondary: "#00FFFF",
+        tertiary: "#FF00FF",
+    };
+
     export namespace Iteration {
         export const SAMPLE_CONFIGS = {
             constant,

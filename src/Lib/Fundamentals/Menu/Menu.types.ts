@@ -1,6 +1,6 @@
 import type { Accessor, JSX, Signal } from "solid-js";
 
-import { Point2d, Size2d } from "@thewaver/ss-utils";
+import { Point2d, Rect, Size2d } from "@thewaver/ss-utils";
 
 import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
 import type { InteractionFlags } from "../../Abstracts/Interaction/Interaction.types";
@@ -65,7 +65,8 @@ export type MenuRenderPopup = (
 
 export type MenuLevelProps<T> = AccessorProps<{
     id: string;
-    labelledBy: string;
+    labelledBy?: string;
+    ariaLabel?: string;
     isOpen: boolean;
     isSubmenu: boolean;
     initialHighlightPosition?: MenuHighlightPosition;
@@ -79,6 +80,7 @@ export type MenuLevelProps<T> = AccessorProps<{
     transitionDurationMs?: number;
     openerFlags: InteractionFlags<MenuFlags>;
 }> & {
+    anchorRect?: MaybeAccessor<Rect | undefined>;
     items: MaybeAccessor<MenuItem<T>[]>;
     computeCustomText?: (item: MenuItem<T>) => string;
     renderItem: MenuRenderItem<T>;
@@ -108,3 +110,22 @@ export type MenuProps<T> = Omit<InteractionWrapperProps<MenuFlags>, "renderContr
         renderPopup: MenuRenderPopup;
         onActivate: (value: T) => void;
     };
+
+export type ContextMenuProps<T> = AccessorProps<{
+    ariaLabel: string;
+    isDisabled?: boolean;
+    placement?: AnchorPlacement;
+    offset?: Point2d;
+    submenuPlacement?: AnchorPlacement;
+    submenuOffset?: Point2d;
+    reservedScreenSize?: Size2d;
+    transitionDurationMs?: number;
+}> & {
+    visibilitySignal?: Signal<boolean>;
+    regionRef: MaybeAccessor<HTMLElement | undefined>;
+    items: MaybeAccessor<MenuItem<T>[]>;
+    computeCustomText?: (item: MenuItem<T>) => string;
+    renderItem: MenuRenderItem<T>;
+    renderPopup: MenuRenderPopup;
+    onActivate: (value: T) => void;
+};

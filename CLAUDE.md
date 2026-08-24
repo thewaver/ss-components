@@ -77,8 +77,10 @@ one line each, then the question. No paragraphs around it, no preamble, no recom
 narrative — the trade-offs stand side by side so they can be compared by eye. If an option is a non-starter
 it still gets listed with the reason as its con, rather than argued away in a sentence above the list.
 
-**Every option carries an ID in its heading** — `1`, `2`, `3` or `A`, `B`, `C`. Asked for by the user.
-It gives them a one-character answer, which is what makes the list usable when they are replying by voice.
+**Every option carries a letter in its heading** — `A`, `B`, `C`, never `1`, `2`, `3`. Asked for by the user.
+A one-character answer is what makes the list usable when they are replying by voice, and letters keep it
+unambiguous: `backlog.md` items are numbered, so a numbered option means a bare "5" could be either the fifth
+option or item 4. This applies to any list they might answer by its labels, not only to a pros-and-cons list.
 
 The reasoning that would have gone into those paragraphs goes into `backlog.md` or `conventions.md`, which is
 where length is wanted.
@@ -88,6 +90,14 @@ question does. They often work by voice and read in short bursts, so a bundled r
 item competes with three others and none land. When several decisions genuinely exist, say there are N
 pending and present only the first. This governs the reply, not the work — still do the whole task, and
 still write the full reasoning into `conventions.md` and `backlog.md`, where length is wanted.
+
+**When asked what work is outstanding, answer in their recorded order, not by size.** `backlog.md` carries the
+ordering already: item 8 says in its own text not to list it, and item 5's **_Bottom of the list_** section
+holds `Table` / data grid and the command palette, placed last by the user after each was argued. Both were
+put at the top of a "biggest remaining work" list anyway, on the grounds that the question was about extent —
+that is the mistake. A question about what is left is a question about what to do next, so anything they have
+deprioritised is either left out or named as deprioritised, never ranked above live work. Size is a property
+worth mentioning inside their ordering, not a licence to reorder it.
 
 ## Arguing a position
 
@@ -204,11 +214,19 @@ audience"_ above for what that changes.
   record of arguments already had, so they are not re-litigated. Before making an architectural call,
   check whether it is already there; after making a new one, add it.
 - **`backlog.md`** — outstanding work: bugs, smells, missing implementation, pending decisions. Numbered
-  and contiguous from 1. Its last section, **_Accepted limits_**, is the exception: faults consciously left
-  alone, unnumbered and outside the index. **They are not "what's left".** Do not raise one in a report on the
-  state of the project, do not re-argue the trade, and do not weigh one against real work — say something only
-  if a change has made the recorded reasoning wrong. Moving an item into that section is the user's decision to
-  take, never a way to retire an item that has gone quiet.
+  and contiguous from 1. **Two sections at the end are the exception**, both unnumbered and outside the index:
+  **_Accepted limits_**, faults consciously left alone, and **_Open discussion_**, ideas nobody has committed to
+  building. **Neither is "what's left".** Do not raise either in a report on the state of the project, do not
+  re-argue a settled trade, and do not weigh one against real work — say something only if a change has made
+  the recorded reasoning wrong. Moving an item into or out of either section is the user's decision to take,
+  never a way to retire an item that has gone quiet.
+
+    **An idea, a sketch or a suggestion goes in _Open discussion_, never in `conventions.md`.** Stated by the
+    user after a graded list of sample-collection ideas was written into `conventions.md`: that file is for
+    decisions already taken, so an idea sitting in it reads as settled when nobody has committed to it. What does
+    belong in `conventions.md` is the part that got built and the reasoning that fixed its shape. An entry carrying
+    the user's verdict is still recorded here rather than there, so the same sketch is not put to them twice.
+
 - **`brief.md`** — the same outstanding work as `backlog.md`, one line per fault, grouped by kind
   rather than by component: missing components, pending abstractions, blockers and known issues,
   accessibility gaps, planned projects. Asked for by the user so that the state of the

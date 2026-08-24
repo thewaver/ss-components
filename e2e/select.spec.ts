@@ -260,6 +260,31 @@ test("the end marker sits inside the last option rather than past it", async ({ 
  * a row there is nothing to scroll — `End` walking to the last of ten thousand and landing where it can be
  * seen is the proof that the move was taken over rather than lost.
  */
+/**
+ * A windowed row is placed at an offset the library computed from every row's measured height, so a height
+ * rounded to a whole pixel puts every row after it half a pixel out — and the slot ends up taller than the
+ * row inside it, leaving a hairline the moment a consumer gives their options a background. The measurement
+ * comes from a `ResizeObserver`, which reports fractions; only the rounding was ours to drop.
+ */
+test("a windowed row's slot is exactly the height of the row inside it", async ({ page }) => {
+    await page.locator(field("virtualized")).click();
+    await expect(page.locator(OPTION).first()).toBeVisible();
+
+    const measured = await page.evaluate(() => {
+        const rows = [...document.querySelectorAll('[role="listbox"] [role="option"]')].map((option) =>
+            option.getBoundingClientRect(),
+        );
+
+        return {
+            fractional: rows.some((row) => Math.abs(row.height - Math.round(row.height)) > 0.01),
+            widest: Math.max(...rows.slice(1).map((row, index) => row.top - rows[index].bottom)),
+        };
+    });
+
+    expect(measured.fractional, "the options are not whole pixels tall, which is what makes this reachable").toBe(true);
+    expect(measured.widest, "and consecutive rows meet rather than leaving a hairline").toBeLessThan(0.05);
+});
+
 test("a list given an estimated height mounts a window rather than every option", async ({ page }) => {
     const stress = "virtualized";
 
@@ -456,5 +481,69 @@ test.describe("typeahead", () => {
             await activeDescendantText(page, field("virtualized")),
             "a route far below the window is reachable by name",
         ).toContain("Route 12");
+    });
+});
+
+/**
+ * Grouping and windowing used to be mutually exclusive: a list with groups mounted every option, because the
+ * `role="group"` box has to wrap the options it owns and a window cannot nest inside one it only partly holds.
+ * The way out is that the box carries no paint here — the library owns it and the consumer fills only the
+ * header — so a box holding just the visible slice of a group is correct rather than a compromise.
+ */
+test.describe("a grouped list that is also windowed", () => {
+    const GROUPED = demo("virtualizedGroups");
+
+    const labels = (page: import("@playwright/test").Page) =>
+        page
+            .locator('[role="listbox"] [role="group"]')
+            .evaluateAll((groups) => groups.map((group) => group.getAttribute("aria-label")));
+
+    test.beforeEach(async ({ page }) => {
+        await page.locator(`${GROUPED} [role="combobox"]`).click();
+        await expect(page.locator('[role="listbox"]')).toBeVisible();
+    });
+
+    test("mounts a handful of options out of ten thousand, and still boxes them by group", async ({ page }) => {
+        const options = page.locator('[role="listbox"] [role="option"]');
+
+        expect(await options.count(), "only the window is mounted").toBeLessThan(20);
+
+        await expect(page.locator('[role="listbox"] [role="group"]').first()).toHaveAttribute("aria-label", "Depot 1");
+    });
+
+    test("a window sitting inside a group still names it, with the header row nowhere in the window", async ({
+        page,
+    }) => {
+        const list = page.locator('[role="listbox"]');
+
+        await list.hover();
+
+        for (let step = 0; step < 12; step += 1) await page.mouse.wheel(0, 1200);
+
+        await expect
+            .poll(async () => (await labels(page)).includes("Depot 3"), {
+                message: "the group the window landed in is named on the box",
+            })
+            .toBe(true);
+
+        const held = await list
+            .locator('[role="group"]')
+            .evaluateAll((groups) =>
+                groups
+                    .filter((group) => group.getAttribute("aria-label") !== "Depot 1")
+                    .map((group) => group.querySelectorAll('[role="option"]').length),
+            );
+
+        expect(held.length, "a box exists for a group the window only partly holds").toBeGreaterThan(0);
+        expect(
+            held.every((count) => count > 0),
+            "and it holds the options that are on screen",
+        ).toBe(true);
+    });
+
+    test("picking from a windowed group reports the option, not the group", async ({ page }) => {
+        await page.locator('[role="listbox"] [role="option"]').first().click();
+
+        await expect.poll(() => readout(page, "virtualizedGroups")).toContain("closed");
     });
 });

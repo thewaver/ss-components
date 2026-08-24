@@ -1,7 +1,7 @@
 import type { Accessor } from "solid-js";
 import { createEffect, createMemo, createSignal, onMount } from "solid-js";
 
-import { createVirtualizer, defaultRangeExtractor } from "@tanstack/solid-virtual";
+import { createVirtualizer, defaultRangeExtractor, measureElement } from "@tanstack/solid-virtual";
 
 import type { VirtualizerRowWindow, VirtualizerRowWindowOpts } from "./Virtualizer.types";
 
@@ -80,6 +80,13 @@ export namespace Virtualizer {
                     [...new Set([...pinned, ...defaultRangeExtractor(range)])].sort((a, b) => a - b);
             },
             getScrollElement: () => getScrollParent() ?? null,
+            measureElement: (element, entry, instance) => {
+                const box = entry?.borderBoxSize?.[0];
+
+                if (!box) return measureElement(element, entry, instance);
+
+                return instance.options.horizontal ? box.inlineSize : box.blockSize;
+            },
             overscan: opts.getOverscan?.(),
         });
 

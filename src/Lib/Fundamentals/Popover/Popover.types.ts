@@ -1,10 +1,10 @@
 import type { JSX } from "solid-js";
 
-import { Point2d, Size2d } from "@thewaver/ss-utils";
+import { Point2d, Rect, Size2d } from "@thewaver/ss-utils";
 
 import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
 import type { DismissReason } from "../../Abstracts/Dismiss/DismissStack.types";
-import type { AccessorProps } from "../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../Utils/typeUtils";
 
 export type PopoverRole = "listbox" | "menu" | "dialog";
 
@@ -29,4 +29,6 @@ export type PopoverProps = AccessorProps<{
         getTransitionDurationMs: () => number,
         getPlacement: () => AnchorPlacement,
     ) => JSX.Element;
-}>;
+}> & {
+    anchorRect?: MaybeAccessor<Rect | undefined>;
+};

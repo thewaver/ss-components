@@ -4,18 +4,53 @@ export type TextSyncMaskResult = {
 };
 
 export type TextSyncGroupDefs = {
-    groupSize: number;
+    groupSizes: number[];
     groupSeparator: string;
     decimalSeparator: string;
     decimals: number;
+    hasSign?: boolean;
 };
 
 const DIGIT_FIRST = "0";
 const DIGIT_LAST = "9";
 
+const MINUS_SIGN = "-";
+
+const GROUP_SAMPLE_VALUE = 1234567890;
+
+const FALLBACK_GROUP_SIZE = 3;
+
 const getIsDigit = (char: string) => char >= DIGIT_FIRST && char <= DIGIT_LAST;
 
 const getDigits = (text: string) => [...text].filter(getIsDigit).join("");
+
+const getGroups = (whole: string, sizes: number[]) => {
+    const groups: string[] = [];
+
+    let end = whole.length;
+    let index = 0;
+
+    while (end > 0) {
+        const size = sizes[Math.min(index, sizes.length - 1)];
+
+        if (size === undefined || size < 1) {
+            groups.unshift(whole.slice(0, end));
+            break;
+        }
+
+        groups.unshift(whole.slice(Math.max(0, end - size), end));
+
+        end -= size;
+        index += 1;
+    }
+
+    return groups;
+};
+
+const splitSign = (text: string, hasSign: boolean | undefined) =>
+    hasSign && text.includes(MINUS_SIGN)
+        ? { sign: MINUS_SIGN, rest: text.split(MINUS_SIGN).join("") }
+        : { sign: "", rest: text };
 
 export namespace TextSyncUtils {
     export const MASK_DIGIT = "#";
@@ -78,12 +113,30 @@ export namespace TextSyncUtils {
     export const formatWithMask = (pattern: string, digits: string) =>
         applyMask(pattern, "", getDigits(digits), digits.length).text;
 
+    export const MASK_MINUS = MINUS_SIGN;
+
+    export const getGroupSizes = (locale?: string) => {
+        const lengths = new Intl.NumberFormat(locale)
+            .formatToParts(GROUP_SAMPLE_VALUE)
+            .filter((part) => part.type === "integer")
+            .map((part) => part.value.length);
+
+        const sizes = lengths.slice(1).reverse();
+
+        if (sizes.length === 0) return [FALLBACK_GROUP_SIZE];
+
+        while (sizes.length > 1 && sizes[sizes.length - 1] === sizes[sizes.length - 2]) sizes.pop();
+
+        return sizes;
+    };
+
     export const applyGroupedMask = (
         defs: TextSyncGroupDefs,
         previous: string,
         next: string,
         caret: number,
     ): TextSyncMaskResult => {
+        const { sign } = splitSign(next, defs.hasSign);
         const previousDigits = getDigits(previous);
         const isDeletion = next.length < previous.length;
 
@@ -98,19 +151,16 @@ export namespace TextSyncUtils {
 
         digits = digits.replace(/^0+(?=\d)/, "");
 
-        if (digits.length === 0) return { text: "", caret: 0 };
+        if (digits.length === 0) return { text: sign, caret: sign.length };
 
         const padded = digits.padStart(defs.decimals + 1, "0");
         const whole = padded.slice(0, padded.length - defs.decimals);
         const fraction = padded.slice(padded.length - defs.decimals);
 
-        const groups: string[] = [];
+        const groups = getGroups(whole, defs.groupSizes);
 
-        for (let end = whole.length; end > 0; end -= defs.groupSize) {
-            groups.unshift(whole.slice(Math.max(0, end - defs.groupSize), end));
-        }
-
-        const text = groups.join(defs.groupSeparator) + (defs.decimals > 0 ? defs.decimalSeparator + fraction : "");
+        const text =
+            sign + groups.join(defs.groupSeparator) + (defs.decimals > 0 ? defs.decimalSeparator + fraction : "");
 
         digitsAfter = Math.min(digitsAfter, padded.length);
 
@@ -126,6 +176,15 @@ export namespace TextSyncUtils {
         return { text, caret: offset };
     };
 
-    export const formatWithGroups = (defs: TextSyncGroupDefs, digits: string) =>
-        applyGroupedMask(defs, "", getDigits(digits), 0).text;
+    export const formatWithGroups = (defs: TextSyncGroupDefs, digits: string) => {
+        const { sign, rest } = splitSign(digits, defs.hasSign);
+
+        return applyGroupedMask(defs, "", sign + getDigits(rest), 0).text;
+    };
+
+    export const readSignedDigits = (text: string) => {
+        const { sign, rest } = splitSign(text, true);
+
+        return sign + getDigits(rest);
+    };
 }

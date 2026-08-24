@@ -47,6 +47,17 @@ export namespace SignalMirror {
         return [() => pick()[0](), (...args: unknown[]) => (pick()[1] as (...a: unknown[]) => T)(...args)] as Signal<T>;
     };
 
+    export const createPassThrough = <T>(getValue: () => T, setValue: (value: T) => void): Signal<T> => [
+        getValue,
+        ((value: unknown) => {
+            const next = typeof value === "function" ? (value as (prev: T) => T)(untrack(getValue)) : (value as T);
+
+            if (!Object.is(next, untrack(getValue))) setValue(next);
+
+            return untrack(getValue);
+        }) as Signal<T>[1],
+    ];
+
     export const createValueMirror = <T>(
         getOuter: () => T,
         setOuter: (value: T) => void,

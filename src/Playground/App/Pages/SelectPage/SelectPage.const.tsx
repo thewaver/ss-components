@@ -141,6 +141,18 @@ export const createStressDeliveries = (count: number, offset = 0): SelectOption<
         },
     }));
 
+export const STRESS_GROUP_SIZE = 50;
+
+export const createStressDeliveryGroups = (count: number): SelectItem<Delivery>[] =>
+    Array.from({ length: Math.ceil(count / STRESS_GROUP_SIZE) }, (_unused, groupIndex) => {
+        const offset = groupIndex * STRESS_GROUP_SIZE;
+
+        return {
+            label: `Depot ${groupIndex + 1}`,
+            options: createStressDeliveries(Math.min(STRESS_GROUP_SIZE, count - offset), offset),
+        };
+    });
+
 export const renderSelectPopup = (
     renderOptions: () => JSX.Element,
     getVisibilityTarget: () => 0 | 1,

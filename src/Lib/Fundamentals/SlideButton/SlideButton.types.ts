@@ -1,3 +1,5 @@
+import type { Signal } from "solid-js";
+
 import type { AccessorProps } from "../../Utils/typeUtils";
 import type { InteractionControlProps, InteractionWrapperProps } from "../InteractionWrapper/InteractionWrapper.types";
 
@@ -39,4 +41,6 @@ export type SlideButtonProps = Omit<InteractionWrapperProps<SlideButtonFlags>, "
         SlideButtonCbs &
             Pick<InteractionControlProps<SlideButtonFlags>, "id" | "ariaLabel" | "renderContent"> &
             SlideButtonState
-    >;
+    > & {
+        progressSignal?: Signal<number>;
+    };

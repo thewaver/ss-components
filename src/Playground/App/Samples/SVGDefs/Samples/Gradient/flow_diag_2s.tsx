@@ -1,7 +1,7 @@
 import { MathUtils } from "@thewaver/ss-utils";
 
-import { SVGAnimationUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Animation/SVGAnimationDefs.utils";
 import { SVGGradientDefsUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
+import { SVGAnimations } from "../../SVGAnimations.const";
 import type { GradientConfig } from "../../SVGDefs.types";
 import { SVGDefsUtils } from "../../SVGDefs.utils";
 
@@ -39,7 +39,7 @@ export const flow_diag_2s: GradientConfig = {
                             offset: SVGDefsUtils.offsetDiagonally(0.25, MathUtils.unwarpAngle(45, defs.getSize())),
                         },
                         (x1, y1, x2, y2) =>
-                            SVGAnimationUtils.Linear.sweepDiagonal(
+                            SVGAnimations.Linear.sweepDiagonal(
                                 x1,
                                 y1,
                                 x2,

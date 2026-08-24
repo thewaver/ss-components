@@ -1,5 +1,5 @@
-import { SVGAnimationUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Animation/SVGAnimationDefs.utils";
 import { SVGGradientDefsUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
+import { SVGAnimations } from "../../SVGAnimations.const";
 import type { GradientConfig } from "../../SVGDefs.types";
 import { SVGDefsUtils } from "../../SVGDefs.utils";
 
@@ -22,7 +22,7 @@ export const scan_1v1: GradientConfig = {
                             ],
                             offset: { x: -1, y: 0 },
                         },
-                        (x1, y1, x2, y2) => SVGAnimationUtils.Linear.sweepOrthogonal("x", x1, x2, [0, 2, 0], defs),
+                        (x1, y1, x2, y2) => SVGAnimations.Linear.sweepOrthogonal("x", x1, x2, [0, 2, 0], defs),
                     ),
             },
             filter: SVGDefsUtils.getBaseBlur(id, defs),
@@ -42,7 +42,7 @@ export const scan_1v1: GradientConfig = {
                             angle: 90,
                             offset: { x: 0, y: -1 },
                         },
-                        (x1, y1, x2, y2) => SVGAnimationUtils.Linear.sweepOrthogonal("y", y1, y2, [0, 2, 0], defs),
+                        (x1, y1, x2, y2) => SVGAnimations.Linear.sweepOrthogonal("y", y1, y2, [0, 2, 0], defs),
                     ),
             },
             filter: SVGDefsUtils.getBaseBlur(id, defs),

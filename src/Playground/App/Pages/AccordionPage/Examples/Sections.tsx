@@ -20,7 +20,10 @@ const ITEMS: AccordionItem<string>[] = [
     { value: "Unavailable", isDisabled: true },
 ];
 
-type Props = AccordionExampleProps & { isSingleExpand?: MaybeAccessor<boolean> };
+type Props = AccordionExampleProps & {
+    isSingleExpand?: MaybeAccessor<boolean>;
+    isExpandRequired?: MaybeAccessor<boolean>;
+};
 
 export const SectionsExample = (props: Props) => {
     return (
@@ -28,6 +31,7 @@ export const SectionsExample = (props: Props) => {
             items={() => ITEMS}
             expandedSignal={props.expandedSignal}
             isSingleExpand={props.isSingleExpand}
+            isExpandRequired={props.isExpandRequired}
             gap={() => GAP}
             renderHeader={(getItem, getFlags) => (
                 <PageAccordionHeader flags={getFlags}>{getItem().value}</PageAccordionHeader>

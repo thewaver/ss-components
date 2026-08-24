@@ -1,6 +1,6 @@
 import { type Page, expect, test } from "@playwright/test";
 
-import { demo, prop } from "./helpers";
+import { demo, prop, readout } from "./helpers";
 
 const SPLIT = demo("split");
 const TABBED = demo("tabbed");
@@ -100,6 +100,48 @@ test("stepping to the far end kills the forward button and not the other one", a
 
     await expect(buttons.last(), "there is nothing further to reach").toHaveAttribute("aria-disabled", "true");
     await expect(buttons.first(), "and everything is behind us").not.toHaveAttribute("aria-disabled", "true");
+});
+
+/**
+ * The position goes both ways, which is the whole of the `*Signal` bargain: the strip reports where it is,
+ * and a number written from outside moves it. The page's own field is the second half — a page dots row or a
+ * "3 of 12" readout is the consumer this exists for, and neither can be painted from inside the track.
+ */
+test.describe("the position is the owner's as well as the track's", () => {
+    test("reports how far along the strip is as it moves", async ({ page }) => {
+        const buttons = page.locator(`${SPLIT} button`);
+
+        expect(await readout(page, "split"), "nothing is scrolled off yet").toContain("0% along");
+
+        await buttons.last().click();
+        await waitForRest(page, SPLIT);
+
+        const reported = Number(/(\d+)% along/.exec(await readout(page, "split"))?.[1]);
+
+        expect(reported, `a page forward is some way along, and the readout said ${reported}%`).toBeGreaterThan(0);
+    });
+
+    test("a position written from outside scrolls the strip to it", async ({ page }) => {
+        const position = page.locator(`${prop("position")} input`);
+
+        await position.fill("100");
+        await position.press("Enter");
+        await waitForRest(page, SPLIT);
+
+        const { left, visible, total } = await scrollOf(page, SPLIT);
+
+        expect(left, "the whole way along is the end of the track").toBeGreaterThan(total - visible - 2);
+        await expect(
+            page.locator(`${SPLIT} button`).last(),
+            "so the forward button has nothing left to reach",
+        ).toHaveAttribute("aria-disabled", "true");
+
+        await position.fill("0");
+        await position.press("Enter");
+        await waitForRest(page, SPLIT);
+
+        expect((await scrollOf(page, SPLIT)).left, "and zero is back at the start").toBeLessThan(2);
+    });
 });
 
 test("the arrow keys still belong to whatever is inside, and focus drags the track along", async ({ page }) => {

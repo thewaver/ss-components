@@ -6,6 +6,7 @@ const DEFAULT = demo("default");
 const EMPTY = demo("empty");
 const BOUNDED = demo("bounded");
 const BIG = demo("big");
+const NEGATIVE = demo("negative");
 
 const field = (scope: string) => `${scope} input`;
 const option = '[role="listbox"] [role="option"]';
@@ -133,9 +134,88 @@ test.describe("the locale owns the separators", () => {
     });
 
     test("a different group size regroups without touching the value", async ({ page }) => {
-        await chooseProp(page, "groupSize", "4");
+        await chooseProp(page, "grouping", "4");
 
         expect(await inputValue(page.locator(field(BIG)))).toBe("98,7654,3210.12");
         expect(await readout(page, "big")).toContain("value: 9876543210.12");
     });
+
+    /**
+     * The grouping is part of what a locale says, not a separate taste: `en-IN` writes the comma every two
+     * digits above the first three, so a field that took its comma and grouped in threes anyway would be
+     * spelling that locale wrong. The knob starts on the locale's own answer, which is what this drives.
+     */
+    test("takes the grouping from the locale as well as the separators", async ({ page }) => {
+        await chooseProp(page, "locale", "en-IN");
+
+        expect(await inputValue(page.locator(field(BIG))), "three digits nearest the point, then twos").toBe(
+            "9,87,65,43,210.12",
+        );
+        expect(await readout(page, "big"), "and the value is untouched by the regrouping").toContain(
+            "value: 9876543210.12",
+        );
+    });
+
+    test("an explicit grouping overrides the locale's own", async ({ page }) => {
+        await chooseProp(page, "locale", "en-IN");
+        await chooseProp(page, "grouping", "3 then 2");
+
+        expect(await inputValue(page.locator(field(BIG)))).toBe("9,87,65,43,210.12");
+
+        await chooseProp(page, "grouping", "3");
+
+        expect(await inputValue(page.locator(field(BIG))), "the locale keeps its comma and loses its grouping").toBe(
+            "9,876,543,210.12",
+        );
+    });
+});
+
+/**
+ * The sign is the one thing no mask here could express until now, and it is opt-in rather than automatic: a
+ * date's ISO spelling uses the hyphen as a separator, so a field that read one as a sign would misread every
+ * date. These check the seam in both directions — that a signed field takes it, and that an unsigned one does
+ * not quietly acquire it.
+ */
+test("a signed field takes a minus and reports a negative amount", async ({ page }) => {
+    await typeInto(page, field(NEGATIVE), "-12345");
+
+    await expect(page.locator(field(NEGATIVE)), "the sign sits in front of the grouped amount").toHaveValue("-123.45");
+
+    await expect.poll(() => readout(page, "negative")).toContain("value: -123.45");
+});
+
+test("the sign can be typed before the digits, so a lone minus is held rather than dropped", async ({ page }) => {
+    await typeInto(page, field(NEGATIVE), "-");
+
+    await expect(page.locator(field(NEGATIVE)), "the field keeps the sign while it waits for digits").toHaveValue("-");
+
+    await expect
+        .poll(() => readout(page, "negative"), { message: "and a sign alone is not an amount" })
+        .toContain("value: none");
+});
+
+test("an unsigned field ignores a minus rather than refusing the keystroke", async ({ page }) => {
+    await typeInto(page, field(DEFAULT), "-12345");
+
+    await expect(page.locator(field(DEFAULT)), "the digits land and the sign does not").toHaveValue("123.45");
+
+    await expect.poll(() => readout(page, "default")).toContain("value: 123.45");
+});
+
+/**
+ * A negative amount has to survive the round trip through the value, not just look right while being typed —
+ * the field is rebuilt from the number whenever the value changes, and that path drops the sign unless
+ * `toDigits` carries it.
+ */
+test("a negative value seeded from outside shows its sign", async ({ page }) => {
+    await expect(page.locator(field(NEGATIVE))).toHaveValue("-250.50");
+});
+
+test("clearing the sign turns the amount back to positive", async ({ page }) => {
+    await typeInto(page, field(NEGATIVE), "-12345");
+    await typeInto(page, field(NEGATIVE), "12345");
+
+    await expect(page.locator(field(NEGATIVE))).toHaveValue("123.45");
+
+    await expect.poll(() => readout(page, "negative")).toContain("value: 123.45");
 });

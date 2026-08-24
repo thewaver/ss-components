@@ -117,6 +117,73 @@ test("the scale slider resizes the content without moving the boundary", async (
     ).toHaveText(/0\.50×/);
 });
 
+/**
+ * The two scales multiply, and until now nothing proved it: the outer viewport is drawn at `1` whenever the
+ * window's height matches the size the Playground anchors to, which is every machine it has run on. Shrinking
+ * the window is what forces the outer factor off `1` — the fit works out to the window's height over that
+ * anchor, whichever way the aspect ratio goes — and the inner square keeps its own factor throughout, so what
+ * is left to check is the product.
+ */
+test("a nested viewport's scale is the product of both, not either one", async ({ page }) => {
+    const measure = async () => {
+        const box = (await page.locator("#roamingCountry").boundingBox())!;
+        const layoutHeight = await page
+            .locator("#roamingCountry")
+            .evaluate((element) => (element as HTMLElement).offsetHeight);
+
+        return box.height / layoutHeight;
+    };
+
+    await page.locator("#viewportScale").fill("50");
+    await page.waitForTimeout(SETTLE_MS);
+
+    await expect(page.locator("[data-inner-readout]"), "the inner square is drawing at half").toHaveText(/0\.50×/);
+    expect(await measure(), "and a control two levels in is painted at half its layout size").toBeCloseTo(0.5, 1);
+
+    const window = page.viewportSize()!;
+
+    await page.setViewportSize({ width: window.width, height: Math.round(window.height / 2) });
+    await page.waitForTimeout(SETTLE_MS);
+
+    await expect(
+        page.locator("[data-inner-readout]"),
+        "halving the window halves the outer factor, and the inner one is unchanged, so the product quarters",
+    ).toHaveText(/0\.25×/);
+    expect(await measure(), "which is what the control two levels in is actually drawn at").toBeCloseTo(0.25, 1);
+});
+
+/**
+ * A toast portals like everything else, so a stack raised inside a nested viewport should land in that
+ * viewport's own portal and be clipped by it — rather than escaping to the window, which is what a
+ * `position: fixed` region would do. The fixed `z-index` it carries is chosen against `Modal`'s and never
+ * went through the anchor-relative rule the popups use, so what it paints over is checked here too.
+ */
+test("a toast raised inside a nested viewport stays inside it", async ({ page }) => {
+    await page.locator("#raiseInnerToast").click();
+
+    const toast = page.locator('[aria-label="Viewport notifications"] > *').first();
+
+    await expect(toast).toBeVisible();
+
+    const stage = (await page.locator("[data-stage]").boundingBox())!;
+    const box = (await toast.boundingBox())!;
+
+    expect(box.y, "the toast is inside the square rather than at the foot of the window").toBeGreaterThanOrEqual(
+        stage.y - DRIFT_TOLERANCE,
+    );
+    expect(box.y + box.height).toBeLessThanOrEqual(stage.y + stage.height + DRIFT_TOLERANCE);
+    expect(box.x).toBeGreaterThanOrEqual(stage.x - DRIFT_TOLERANCE);
+    expect(box.x + box.width).toBeLessThanOrEqual(stage.x + stage.width + DRIFT_TOLERANCE);
+
+    expect(
+        await page.evaluate(
+            (at) => document.elementFromPoint(at.x, at.y)?.closest('[aria-label="Viewport notifications"]') !== null,
+            { x: box.x + box.width / 2, y: box.y + box.height / 2 },
+        ),
+        "and it is the thing painted there, above the viewport's own content",
+    ).toBe(true);
+});
+
 test("a list at either end of a scrolled box stays clear of its anchor", async ({ page }) => {
     for (const to of ["top", "bottom"]) {
         await page.locator(`${SCROLLED} [data-scroll-box]`).evaluate((element, edge) => {

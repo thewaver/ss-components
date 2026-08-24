@@ -3,6 +3,7 @@ import { createStore } from "solid-js/store";
 
 import type { Point2d } from "@thewaver/ss-utils";
 
+import { access } from "../../../../Lib/Utils/propUtils";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageMeasureBox } from "../../PageComponents/MeasureBox/MeasureBox";
 import { PageProp } from "../../PageComponents/Prop/Prop";
@@ -14,6 +15,8 @@ import { CellAnimationKeyframes } from "../../Samples/CellAnimationKeyframes/Cel
 import { CellAnimationOrigins } from "../../Samples/CellAnimationOrigins/CellAnimationOrigins.const";
 import { CellAnimationWeights } from "../../Samples/CellAnimationWeights/CellAnimationWeights.const";
 import type { WeightOpts } from "../../Samples/CellAnimationWeights/CellAnimationWeights.types";
+import { SVGDefsSamples } from "../../Samples/SVGDefs/SVGDefs.const";
+import { SVGDefsSources } from "../../Samples/SVGDefs/SVGDefsSources.const";
 import {
     PageCheckField,
     PageFileField,
@@ -22,7 +25,7 @@ import {
     PageSelectField,
 } from "../../StyledComponents/Field/Field";
 import knight_profile from "../../knight_profile.webp";
-import type { CellAnimationExampleProps } from "./CellAnimationPage.types";
+import type { CellAnimationExampleProps, CellAnimationSourcedExampleProps } from "./CellAnimationPage.types";
 import { DefaultExample } from "./Examples/Default";
 
 import * as styles from "./CellAnimationPage.css";
@@ -58,6 +61,7 @@ const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
 ];
 
 const DEFAULT_EXAMPLE_PATH = "/src/Playground/App/Pages/CellAnimationPage/Examples/Default.tsx";
+const DRAWN_SOURCE_PATH = "/src/Playground/App/Samples/SVGDefs/SVGDefsSources.const.ts";
 
 const MIN_CELL_COUNT = 1;
 const MAX_CELL_COUNT = 40;
@@ -71,7 +75,7 @@ const DURATION_STEP_MS = 100;
 const MIN_ITERATION_DELAY_MS = 0;
 const MAX_ITERATION_DELAY_MS = 5000;
 
-const extractOptionGroupWord = (key: string) => key.match(/^[a-z]+/)?.[0] ?? key;
+const extractOptionGroupWord = (key: string) => key.replace(/^_/, "").match(/^[a-z]+/)?.[0] ?? key;
 
 const groupOptions = <T extends string>(keys: readonly T[]) => {
     const result: Record<string, T[]> = {};
@@ -89,17 +93,93 @@ const groupOptions = <T extends string>(keys: readonly T[]) => {
 const GROUPPED_WEIGHTS = groupOptions(CellAnimationWeights.WEIGHT_TYPES);
 const GROUPPED_ANIMATIONS = groupOptions(CellAnimationKeyframes.ANIMATION_TYPES);
 
-const DefaultExampleWrapper = (props: CellAnimationExampleProps) => {
+const ImageExampleWrapper = (props: CellAnimationExampleProps) => {
+    const [getSrc, setSrc] = createSignal(knight_profile);
+
     return (
-        <div class={styles.exampleRoot}>
-            <PageMeasureBox width={() => IMAGE_CONTAINER_SIZE}>
-                <DefaultExample {...props} />
-            </PageMeasureBox>
-        </div>
+        <>
+            <div class={styles.exampleRoot}>
+                <PageMeasureBox width={() => IMAGE_CONTAINER_SIZE}>
+                    <DefaultExample {...props} src={getSrc} />
+                </PageMeasureBox>
+            </div>
+
+            <PagePropsPanel scope={"local"}>
+                <PageProp key={"image"} label={"Image"}>
+                    <PageFileField
+                        accept={"image/*"}
+                        ariaLabel={"Image"}
+                        onPick={(file) => setSrc(URL.createObjectURL(file))}
+                    />
+                </PageProp>
+            </PagePropsPanel>
+        </>
     );
 };
 
-const StressTestWrapper = (props: CellAnimationExampleProps) => {
+const GradientExampleWrapper = (props: CellAnimationExampleProps) => {
+    const [getKey, setKey] = createSignal<SVGDefsSamples.Gradient.SampleKey>("orbit_1");
+
+    return (
+        <>
+            <div class={styles.exampleRoot}>
+                <PageMeasureBox width={() => IMAGE_CONTAINER_SIZE}>
+                    <DefaultExample
+                        {...props}
+                        src={() =>
+                            SVGDefsSources.computeGradientSource(
+                                getKey(),
+                                access(props.animationDurationMs),
+                                access(props.animationIterationDelayMs),
+                            )
+                        }
+                    />
+                </PageMeasureBox>
+            </div>
+
+            <PagePropsPanel scope={"local"}>
+                <PageProp key={"gradient"} label={"Gradient"}>
+                    <PageSelectField
+                        value={getKey}
+                        values={() => SVGDefsSources.GRADIENT_KEYS}
+                        ariaLabel={"Gradient"}
+                        onChange={(key) => setKey(() => key)}
+                    />
+                </PageProp>
+            </PagePropsPanel>
+        </>
+    );
+};
+
+const PatternExampleWrapper = (props: CellAnimationExampleProps) => {
+    const [getKey, setKey] = createSignal<SVGDefsSamples.Pattern.SampleKey>("hexagon_pt_2");
+
+    return (
+        <>
+            <div class={styles.exampleRoot}>
+                <PageMeasureBox width={() => IMAGE_CONTAINER_SIZE}>
+                    <DefaultExample
+                        {...props}
+                        src={() => SVGDefsSources.computePatternSource(getKey(), access(props.animationDurationMs))}
+                    />
+                </PageMeasureBox>
+            </div>
+
+            <PagePropsPanel scope={"local"}>
+                <PageProp key={"pattern"} label={"Pattern"}>
+                    <PageSelectField
+                        value={getKey}
+                        values={() => SVGDefsSources.PATTERN_KEYS}
+                        ariaLabel={"Pattern"}
+                        onChange={(key) => setKey(() => key)}
+                    />
+                </PageProp>
+            </PagePropsPanel>
+        </>
+    );
+};
+
+const StressTestWrapper = (props: CellAnimationSourcedExampleProps) => {
     const modalPlayback = createSignal(true);
 
     return (
@@ -131,7 +211,6 @@ const StressTestWrapper = (props: CellAnimationExampleProps) => {
 export const CellAnimationPage = () => {
     const playback = createSignal(true);
 
-    const [getSrc, setSrc] = createSignal(knight_profile);
     const [getOriginType, setOriginType] = createSignal<CellAnimationOrigins.OriginType>("center");
     const [getWeightType, setWeightType] = createSignal<CellAnimationWeights.WeightType>("circularDefault");
     const [getAnimationType, setAnimationType] = createSignal<CellAnimationKeyframes.AnimationType>("zoomIn");
@@ -145,16 +224,12 @@ export const CellAnimationPage = () => {
     const [breakpointOpts, setBreakpointOpts] = createStore<CellAnimationBreakpoints.BreakpointOpts>({
         dir: "asc",
         smoothness: 0.25,
+        easing: "linear",
     });
-
-    const handleFile = (file: File) => {
-        setSrc(URL.createObjectURL(file));
-    };
 
     const getExamples = createMemo(() => {
         const commonProps: CellAnimationExampleProps = {
             playbackSignal: playback,
-            src: getSrc,
             cellCount: () => cellCount,
             originType: getOriginType,
             weightType: getWeightType,
@@ -167,16 +242,34 @@ export const CellAnimationPage = () => {
 
         return [
             {
-                key: "default",
-                name: "Default",
-                component: () => <DefaultExampleWrapper {...commonProps} />,
+                key: "image",
+                name: "A photograph, sliced",
+                component: () => <ImageExampleWrapper {...commonProps} />,
                 path: DEFAULT_EXAMPLE_PATH,
+                sampleKeys: () => [getAnimationType(), getWeightType()],
+            },
+            {
+                key: "gradient",
+                name: "A gradient, drawn in place",
+                readout: () =>
+                    "the Shape page's own gradients, serialised into a source — the start and the pause a script would have timed are written into the markup instead, so they run at the same length and rhythm as the cells",
+                component: () => <GradientExampleWrapper {...commonProps} />,
+                path: DRAWN_SOURCE_PATH,
+                sampleKeys: () => [getAnimationType(), getWeightType()],
+            },
+            {
+                key: "pattern",
+                name: "A pattern, drawn in place",
+                readout: () =>
+                    "the same for the patterns, which flow on without a pause — a repeating fill has no beat to be out of step with",
+                component: () => <PatternExampleWrapper {...commonProps} />,
+                path: DRAWN_SOURCE_PATH,
                 sampleKeys: () => [getAnimationType(), getWeightType()],
             },
             {
                 key: "stressTest",
                 name: "Stress Test",
-                component: () => <StressTestWrapper {...commonProps} />,
+                component: () => <StressTestWrapper {...commonProps} src={() => knight_profile} />,
             },
         ];
     });
@@ -184,10 +277,6 @@ export const CellAnimationPage = () => {
     return (
         <div class={styles.root}>
             <PagePropsPanel scope={"global"}>
-                <PageProp key={"image"} label={"Image"}>
-                    <PageFileField accept={"image/*"} ariaLabel={"Image"} onPick={handleFile} />
-                </PageProp>
-
                 <PageProp key={"cellCountCols"} label={"Cell count (cols x rows)"}>
                     <div class={styles.valueList}>
                         <PageNumberField
@@ -259,6 +348,15 @@ export const CellAnimationPage = () => {
                         values={() => CellAnimationBreakpoints.DIRECTIONS}
                         ariaLabel={"Direction"}
                         onChange={(dir) => setBreakpointOpts("dir", dir)}
+                    />
+                </PageProp>
+
+                <PageProp key={"easing"} label={"Easing"}>
+                    <PageSelectField
+                        value={() => breakpointOpts.easing!}
+                        values={() => CellAnimationBreakpoints.EASINGS}
+                        ariaLabel={"Easing"}
+                        onChange={(easing) => setBreakpointOpts("easing", easing)}
                     />
                 </PageProp>
 

@@ -1,17 +1,20 @@
 import type { Accessor, JSX } from "solid-js";
-import { Index, Show, createEffect, createMemo, createSignal, createUniqueId } from "solid-js";
+import { For, Index, Show, createEffect, createMemo, createSignal, createUniqueId } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
 import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
 import { NavigationUtils } from "../../Abstracts/Navigation/Navigation.utils";
 import { Typeahead } from "../../Abstracts/Typeahead/Typeahead";
 import { TypeaheadUtils } from "../../Abstracts/Typeahead/Typeahead.utils";
+import { Virtualizer } from "../../Abstracts/Virtualizer/Virtualizer";
 import { access } from "../../Utils/propUtils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import type { TreeNodeItemProps, TreeProps, TreeRow } from "./Tree.types";
 import { TreeUtils } from "./Tree.utils";
 
 import * as styles from "./Tree.css";
+
+const EMPTY_PINNED_ROWS: number[] = [];
 
 const EXPAND_SIBLINGS_KEY = "*";
 
@@ -100,6 +103,8 @@ export const Tree = <T,>(props: TreeProps<T>) => {
 
     const getNavigableRows = createMemo(() => getFlatRows().filter(computeIsNavigable));
 
+    const getIsVirtualized = createMemo(() => props.computeEstimatedNodeHeight !== undefined);
+
     const getRovingRow = createMemo(() => {
         const navigable = getNavigableRows();
         const focusedValue = getFocusedValue();
@@ -111,6 +116,18 @@ export const Tree = <T,>(props: TreeProps<T>) => {
         const selectedValue = props.valueSignal[0]();
 
         return navigable.find((row) => row.node.value === selectedValue) ?? navigable[0];
+    });
+
+    const [getSizerRef, setSizerRef] = createSignal<HTMLElement>();
+
+    const rowWindow = Virtualizer.createRowWindow(getSizerRef, () => getFlatRows().length, {
+        getIsEnabled: getIsVirtualized,
+        computeEstimatedSize: (index) => props.computeEstimatedNodeHeight?.(index) ?? 0,
+        getPinnedRows: () => {
+            const roving = getRovingRow();
+
+            return roving === undefined ? EMPTY_PINNED_ROWS : [roving.index];
+        },
     });
 
     createEffect(() => {
@@ -148,6 +165,8 @@ export const Tree = <T,>(props: TreeProps<T>) => {
 
     const focusRow = (row: TreeRow<T>) => {
         setFocusedValue(() => row.node.value);
+
+        if (rowWindow.getIsLive()) rowWindow.scrollToRow(row.index);
 
         document.getElementById(getRowId(row))?.focus();
     };
@@ -314,37 +333,41 @@ export const Tree = <T,>(props: TreeProps<T>) => {
         focusRow(navigable[position]);
     };
 
+    const renderRow = (getRow: Accessor<TreeRow<T>>): JSX.Element => (
+        <InteractionWrapper
+            sizing={"fill"}
+            isDisabled={() => getRow().node.isDisabled ?? false}
+            isReachableWhenDisabled={() => getRow().node.isReachableWhenDisabled ?? false}
+            isTabbable={() => getRow().node.value === getRovingRow()?.node.value}
+            tooltipDefs={() => getRow().node.tooltipDefs}
+            extraFlags={() => ({
+                isBranch: TreeUtils.getIsBranch(getRow().node),
+                isExpanded: getRow().isExpanded,
+                isSelected: getRow().node.value === props.valueSignal[0](),
+                depth: getRow().depth,
+            })}
+            renderControl={(setElementRef, getFlags) => (
+                <TreeNodeItem
+                    ref={setElementRef}
+                    id={() => getRowId(getRow())}
+                    href={() => getRow().node.href}
+                    level={() => getRow().depth + 1}
+                    position={() => getRow().position + 1}
+                    setSize={() => getRow().setSize}
+                    flags={getFlags}
+                    linkComponent={props.linkComponent}
+                    renderContent={(getNodeFlags) => props.renderNode(() => getRow().node, getNodeFlags)}
+                    onActivate={() => activate(getRow())}
+                />
+            )}
+        />
+    );
+
     const renderRows = (getLevelRows: Accessor<TreeRow<T>[]>): JSX.Element => (
         <Index each={getLevelRows()}>
             {(getRow) => (
                 <>
-                    <InteractionWrapper
-                        sizing={"fill"}
-                        isDisabled={() => getRow().node.isDisabled ?? false}
-                        isReachableWhenDisabled={() => getRow().node.isReachableWhenDisabled ?? false}
-                        isTabbable={() => getRow().node.value === getRovingRow()?.node.value}
-                        tooltipDefs={() => getRow().node.tooltipDefs}
-                        extraFlags={() => ({
-                            isBranch: TreeUtils.getIsBranch(getRow().node),
-                            isExpanded: getRow().isExpanded,
-                            isSelected: getRow().node.value === props.valueSignal[0](),
-                            depth: getRow().depth,
-                        })}
-                        renderControl={(setElementRef, getFlags) => (
-                            <TreeNodeItem
-                                ref={setElementRef}
-                                id={() => getRowId(getRow())}
-                                href={() => getRow().node.href}
-                                level={() => getRow().depth + 1}
-                                position={() => getRow().position + 1}
-                                setSize={() => getRow().setSize}
-                                flags={getFlags}
-                                linkComponent={props.linkComponent}
-                                renderContent={(getNodeFlags) => props.renderNode(() => getRow().node, getNodeFlags)}
-                                onActivate={() => activate(getRow())}
-                            />
-                        )}
-                    />
+                    {renderRow(getRow)}
 
                     <Show when={getRow().rows.length > 0}>
                         <div role="group">{renderRows(() => getRow().rows)}</div>
@@ -352,6 +375,22 @@ export const Tree = <T,>(props: TreeProps<T>) => {
                 </>
             )}
         </Index>
+    );
+
+    const renderWindowedRows = () => (
+        <div ref={setSizerRef} class={styles.treeSizer} style={{ height: `${rowWindow.getTotalSize()}px` }}>
+            <For each={rowWindow.getRows()}>
+                {(row) => (
+                    <div
+                        class={styles.treeSizerRow}
+                        style={{ transform: `translateY(${rowWindow.getRowStart(row)}px)` }}
+                        ref={(element) => rowWindow.measureRow(element, row.index)}
+                    >
+                        {renderRow(() => getFlatRows()[row.index])}
+                    </div>
+                )}
+            </For>
+        </div>
     );
 
     return (
@@ -363,7 +402,9 @@ export const Tree = <T,>(props: TreeProps<T>) => {
                 lastFocusedValue = findRowById((e.target as HTMLElement).id)?.node.value;
             }}
         >
-            {renderRows(getRows)}
+            <Show when={getIsVirtualized()} fallback={renderRows(getRows)}>
+                {renderWindowedRows()}
+            </Show>
         </div>
     );
 };

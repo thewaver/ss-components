@@ -146,6 +146,30 @@ test("a guide steps between elements and reports how it ended", async ({ page })
 });
 
 /**
+ * A step change replaces the popup's content while focus deliberately stays put, so a screen reader is told
+ * nothing at all — the one case where holding focus still costs something. The words are the consumer's, as
+ * they are for a toast: the library owns neither the step count nor the title. Announced only on a change,
+ * because the popup takes focus when the tour opens and the first step is read there already.
+ */
+test("a step change is announced, and opening the tour is not announced twice", async ({ page }) => {
+    const announcer = '[role="log"][aria-live="polite"]';
+
+    await page.locator(button(GUIDE, "Take the tour")).click();
+    await expect(page.locator(POPUP)).toBeVisible();
+
+    await expect(
+        page.locator(announcer),
+        "the popup took focus, so the reader is already on the first step",
+    ).not.toContainText("Step 1 of 2");
+
+    await page.locator(popupButton("Next")).click();
+
+    await expect(page.locator(announcer), "and the step that replaces it under held focus is spoken").toContainText(
+        "Step 2 of 2",
+    );
+});
+
+/**
  * Every mode scrolls to what it highlights, because none of them chooses what is on screen when it opens —
  * the element is wherever the page put it. A tour is where that bites first and where it is easiest to
  * drive: the guide example holds its steps in a strip only one step tall, so the second one is out of sight

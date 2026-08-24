@@ -5,14 +5,16 @@ number after each line is its item in `backlog.md`, which holds the reasoning; t
 are edited together, and where they disagree this one is what gets corrected.
 
 **Accepted limits are not here**, for the same reason they are not in the numbered items: they are not
-outstanding work. They are at the end of `backlog.md`.
+outstanding work. They are at the end of `backlog.md`. **Neither is open discussion** — ideas nobody has
+committed to building, in their own section beside the accepted limits. Both are excluded from this file on
+purpose: it answers "what is outstanding", and neither of them is.
 
 | Section                                                 | Count |
 | ------------------------------------------------------- | ----: |
-| [Missing components](#missing-components)               |     7 |
-| [Pending abstractions](#pending-abstractions)           |    12 |
-| [Blockers and known issues](#blockers-and-known-issues) |    16 |
-| [Accessibility gaps](#accessibility-gaps)               |     5 |
+| [Missing components](#missing-components)               |     5 |
+| [Pending abstractions](#pending-abstractions)           |     6 |
+| [Blockers and known issues](#blockers-and-known-issues) |    14 |
+| [Accessibility gaps](#accessibility-gaps)               |     2 |
 | [Planned projects](#planned-projects)                   |     1 |
 
 ---
@@ -22,68 +24,55 @@ outstanding work. They are at the end of `backlog.md`.
 Ordered by the user on 2026-08-15. A toolbar, a segmented control, a rating input, `Skeleton`, `Avatar`,
 `Badge`, `Card` and `Icon` were dropped on the same day and are not listed anywhere.
 
-| #     | What                                                     | Standing                                                                                                            |
-| ----- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| 7     | **A date-and-time value**                                | Nothing composes the two fields, and which signal owns the pair is undecided                                        |
-| 7, 14 | **Range variants**                                       | `RangeCalendar`, `DateRangePicker`; decide once for both                                                            |
-| 9     | **A field section / fieldset**                           | Nothing groups fields into sections with their own validity; `Stepper` sidesteps it by being told each step's state |
-| 15    | **Eyedropper**                                           | **Postponed until browser support exists.** Chromium-only at 27%; re-open when Firefox or Safari ships it           |
-| 6     | **`menuitemcheckbox` / `menuitemradio`, context opener** | Stateful items are the line `Menu` sits on the other side of                                                        |
-| 8     | **`Table` / data grid**                                  | **Bottom of the list.** A project rather than a component                                                           |
-| 8     | **A command palette**                                    | **Bottom of the list.** `Select`'s autocomplete in a `Modal`, plus grouped sources and a page-wide hotkey           |
+| #   | What                                     | Standing                                                                                                            |
+| --- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| 6   | **A field section / fieldset**           | Nothing groups fields into sections with their own validity; `Stepper` sidesteps it by being told each step's state |
+| 11  | **Eyedropper**                           | **Postponed until browser support exists.** Chromium-only at 27%; re-open when Firefox or Safari ships it           |
+| 4   | **`menuitemcheckbox` / `menuitemradio`** | Stateful items are the line `Menu` sits on the other side of                                                        |
+| 5   | **`Table` / data grid**                  | **Bottom of the list.** A project rather than a component                                                           |
+| 5   | **A command palette**                    | **Bottom of the list.** `Select`'s autocomplete in a `Modal`, plus grouped sources and a page-wide hotkey           |
 
 ## Pending abstractions
 
-| #      | What                                            | What it would serve                                          |
-| ------ | ----------------------------------------------- | ------------------------------------------------------------ |
-| 2, 9   | **One-shot pointer geometry**                   | Where a single activation landed, for ripples                |
-| 13     | **A shared measuring abstract**                 | Neighbour heights for a toast pile, auto-height elsewhere    |
-| 19     | **One flattener instead of two**                | `SelectUtils.getFlatOptions` and `TreeUtils.getVisibleRows`  |
-| 11     | **Geometry split out of markup**                | Three SVG defs files, ~950 lines currently untestable        |
-| 5, 19  | **Shared `CheckedState`**                       | `Select`'s group header and a multi-select `Tree`            |
-| 5, 19  | **Windowing over nested lists**                 | A group box straddling the window edge, unanswered for both  |
-| 20, 23 | **Outward position signals**                    | `SlideButton`'s progress, `Scroller`'s scroll position       |
-| 9      | **Getter-plus-setter on controls**              | Today a consumer wraps one in a `SignalMirror` first         |
-| 4      | **Easing on the cell timeline**                 | Cell animation is linear-only                                |
-| 7      | **A typed sign, a non-uniform group pattern**   | No negative currency; `en-IN` groups wrong today             |
-| 7      | **`TextSyncUtils` exported**                    | Three in-library consumers now argue for it                  |
-| 28     | **A plain value where an accessor is required** | Every constant prop is wrapped in `() =>` at every call site |
+| #     | What                               | What it would serve                                         |
+| ----- | ---------------------------------- | ----------------------------------------------------------- |
+| 1, 6  | **One-shot pointer geometry**      | Where a single activation landed, for ripples               |
+| 9     | **A shared measuring abstract**    | Neighbour heights for a toast pile, auto-height elsewhere   |
+| 15    | **One flattener instead of two**   | `SelectUtils.getFlatOptions` and `TreeUtils.getVisibleRows` |
+| 3, 15 | **Shared `CheckedState`**          | `Select`'s group header and a multi-select `Tree`           |
+| 3, 15 | **Windowing over nested lists**    | A group box straddling the window edge, unanswered for both |
+| 6     | **Getter-plus-setter on controls** | Today a consumer wraps one in a `SignalMirror` first        |
 
 ## Blockers and known issues
 
-| #      | Where                           | What happens                                                                                |
-| ------ | ------------------------------- | ------------------------------------------------------------------------------------------- |
-| 10     | **`AudioSwitcher`, `RichText`** | No Playground page; `AudioSwitcher`'s `playbackSignal` has never been run                   |
-| 10     | **Every popup layer**           | Opens one frame behind; the first placement depends on the frame poll                       |
-| 18     | **`Viewport`**                  | A fast scroll shows a frame of drift                                                        |
-| 18     | **`Viewport`, nested**          | An unsized host renders nothing and says nothing                                            |
-| 18     | **`Toasts`**                    | Fixed `z-index: 200`, outside the anchor-relative rule; nested-viewport case unexamined     |
-| 5      | **`Select`, windowed**          | Rows sit a hairline apart under rounding, visible with a per-row background                 |
-| 5      | **`Select`, filtered**          | A filter injecting a non-matching option lands the highlight on it                          |
-| 6      | **`Menu`**                      | `Tab` returns to the trigger rather than moving past it                                     |
-| 14     | **`Calendar`**                  | The disabled predicate runs 42 times per render; 42 `InteractionWrapper`s unmeasured        |
-| 16, 24 | **`Accordion`, `Carousel`**     | Every panel and every slide is built; forced by the track width in `Carousel`               |
-| 19     | **`Tree`**                      | Cannot express a branch whose children have not loaded                                      |
-| 22     | **`Scroller`**                  | A second press mid-scroll advances less than a page                                         |
-| 13     | **`Toasts`**                    | An id re-added while leaving fades back in instead of restarting                            |
-| 25     | **`DrumWheel`**                 | Girth arithmetic replaced a tuned constant; the user recalls it misbehaving and will retest |
-| 26     | **`Typewriter`**                | Cannot render a blank line; a break-collapsing bug in `ss-utils`, fix parked in-repo        |
-| 25     | **`FlatWheel`**                 | Hit-tests up to 70px outside its circle; nothing visible, a trap for a control in a wedge   |
+| #      | Where                           | What happens                                                                                 |
+| ------ | ------------------------------- | -------------------------------------------------------------------------------------------- |
+| 7      | **`AudioSwitcher`, `RichText`** | **Deprioritised.** No Playground page; `AudioSwitcher`'s `playbackSignal` has never been run |
+| 7      | **Every popup layer**           | Opens one frame behind; the first placement depends on the frame poll                        |
+| 14     | **`Viewport`**                  | A fast scroll shows a frame of drift                                                         |
+| 14     | **`Viewport`, nested**          | An unsized host renders nothing and says nothing                                             |
+| 3      | **`Select`, filtered**          | A filter injecting a non-matching option lands the highlight on it                           |
+| 4      | **`Menu`**                      | `Tab` returns to the trigger rather than moving past it                                      |
+| 10     | **`Calendar`**                  | A consumer's disabled predicate is called once per cell, so 42 times per render              |
+| 12, 20 | **`Accordion`, `Carousel`**     | Every panel and every slide is built; forced by the track width in `Carousel`                |
+| 15     | **`Tree`**                      | Cannot express a branch whose children have not loaded                                       |
+| 18     | **`Scroller`**                  | A second press mid-scroll advances less than a page                                          |
+| 9      | **`Toasts`**                    | An id re-added while leaving fades back in instead of restarting                             |
+| 21     | **`DrumWheel`**                 | Girth arithmetic replaced a tuned constant; the user recalls it misbehaving and will retest  |
+| 22     | **`Typewriter`**                | Cannot render a blank line; a break-collapsing bug in `ss-utils`, fix parked in-repo         |
+| 21     | **`FlatWheel`**                 | Hit-tests up to 70px outside its circle; nothing visible, a trap for a control in a wedge    |
 
 ## Accessibility gaps
 
 They cluster, and no single item owns them.
 
-| #          | Where                                      | What is missing                                                                                               |
-| ---------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| 20, 21, 14 | **`SlideButton`, `Spotlight`, `Calendar`** | Nothing announces progress, a step change or a month change; `LiveAnnouncer` exists, the wording is undecided |
-| 13         | **`Toasts`**                               | No keyboard route into the stack; urgency is per region, not per toast                                        |
-| 21         | **`Spotlight`**                            | `prompt` cannot hide the page from a screen reader — `inert` cannot be lifted off a descendant                |
-| 17         | **`Tabs`**                                 | No automatic activation; arrows move focus and only Enter or Space selects                                    |
-| 24         | **`Carousel`**                             | With no `renderControls` there is no keyboard route at all                                                    |
+| #   | Where           | What is missing                                                                                |
+| --- | --------------- | ---------------------------------------------------------------------------------------------- |
+| 17  | **`Spotlight`** | `prompt` cannot hide the page from a screen reader — `inert` cannot be lifted off a descendant |
+| 20  | **`Carousel`**  | With no `renderControls` there is no keyboard route at all                                     |
 
 ## Planned projects
 
 | #   | What                                          | Standing                                                                                                    |
 | --- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| 12  | **A consumer-facing layer above the library** | **Deferred indefinitely, not a focus, do not raise it.** The `style.css` strip and the theme are both built |
+| 8   | **A consumer-facing layer above the library** | **Deferred indefinitely, not a focus, do not raise it.** The `style.css` strip and the theme are both built |

@@ -31,6 +31,11 @@ export type DateValueParts = {
     day: number;
 };
 
+export type DateValueRange = {
+    start: DateValue;
+    end: DateValue;
+};
+
 export type DateValueWeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export type DateValueWeekdayWidth = "narrow" | "short" | "long";

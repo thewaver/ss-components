@@ -1,16 +1,22 @@
 import type { JSX } from "solid-js";
-import { createMemo, createSignal } from "solid-js";
+import { createMemo, createSignal, createUniqueId } from "solid-js";
 
 import type { AnchorPlacement } from "../../../../Lib/Abstracts/Anchor/Anchor.types";
 import { Viewport } from "../../../../Lib/Exotics/Viewport/Viewport";
 import { useViewportContext } from "../../../../Lib/Exotics/Viewport/Viewport.context";
+import { Button } from "../../../../Lib/Fundamentals/Button/Button";
 import { Range } from "../../../../Lib/Fundamentals/Input/Range/Range";
 import { Select } from "../../../../Lib/Fundamentals/Input/Select/Select";
 import type { SelectOption } from "../../../../Lib/Fundamentals/Input/Select/Select.types";
+import { Toasts } from "../../../../Lib/Fundamentals/Toasts/Toasts";
+import type { Toast } from "../../../../Lib/Fundamentals/Toasts/Toasts.types";
+import { PageButtonContent } from "../../StyledComponents/ButtonContent/ButtonContent";
 import { PagePopoverSurface } from "../../StyledComponents/PopoverSurface/PopoverSurface";
 import { PageRangeContent } from "../../StyledComponents/RangeContent/RangeContent";
 import { PageSelectContent } from "../../StyledComponents/SelectContent/SelectContent";
 import { PageSelectOptionContent } from "../../StyledComponents/SelectOptionContent/SelectOptionContent";
+import { PageToastContent } from "../../StyledComponents/ToastContent/ToastContent";
+import type { ToastDefs } from "../../StyledComponents/ToastContent/ToastContent.types";
 import { PageTooltipContent } from "../../StyledComponents/TooltipContent/TooltipContent";
 
 import { RANGE_THUMB_SIZE } from "../../StyledComponents/RangeContent/RangeContent.css";
@@ -37,6 +43,8 @@ const SCALE_STEP = 10;
 const PERCENT = 100;
 
 const SCROLL_SIZE = { width: styles.HOST_SIZE, height: styles.HOST_SIZE };
+const INNER_TOAST_MARGIN = 10;
+const INNER_TOAST_MESSAGE = "Raised inside the square.";
 
 const renderTooltip = (text: string) => ({
     placement: () => ({ x: "center", y: "top-out" }) as const,
@@ -78,6 +86,7 @@ export const ViewportPage = () => {
     const [getRoamerY, setRoamerY] = createSignal(50);
     const [getScalePercent, setScalePercent] = createSignal(PERCENT);
     const [getRoamingValue, setRoamingValue] = createSignal<string | undefined>();
+    const innerToasts = createSignal<Toast<ToastDefs>[]>([]);
     const [getScrolledValue, setScrolledValue] = createSignal<string | undefined>();
 
     const getStageSize = createMemo(() => {
@@ -164,6 +173,46 @@ export const ViewportPage = () => {
                                 renderPopup={renderCountryPopup}
                             />
                         </div>
+
+                        <div class={styles.toastRaiser}>
+                            <Button
+                                id={"raiseInnerToast"}
+                                ariaLabel={"Raise a notification inside the viewport"}
+                                renderContent={(getFlags) => (
+                                    <PageButtonContent flags={getFlags}>Notify</PageButtonContent>
+                                )}
+                                onClick={() => {
+                                    innerToasts[1]((prev) => [
+                                        ...prev,
+                                        { id: createUniqueId(), value: { kind: "info", message: INNER_TOAST_MESSAGE } },
+                                    ]);
+                                }}
+                            />
+                        </div>
+
+                        <Toasts
+                            toastsSignal={innerToasts}
+                            ariaLabel={"Viewport notifications"}
+                            alignment={"bottom-center"}
+                            margins={() => ({
+                                marginTop: INNER_TOAST_MARGIN,
+                                marginRight: INNER_TOAST_MARGIN,
+                                marginBottom: INNER_TOAST_MARGIN,
+                                marginLeft: INNER_TOAST_MARGIN,
+                            })}
+                            renderToast={(getToast, getVisibilityTarget, getTransitionDurationMs, getState) => (
+                                <PageToastContent
+                                    toast={getToast}
+                                    state={getState}
+                                    animation={"fade"}
+                                    visibilityTarget={getVisibilityTarget}
+                                    transitionDurationMs={getTransitionDurationMs}
+                                    onDismiss={() => {
+                                        innerToasts[1]((prev) => prev.filter((toast) => toast.id !== getToast().id));
+                                    }}
+                                />
+                            )}
+                        />
 
                         <ViewportReadout />
                     </Viewport>

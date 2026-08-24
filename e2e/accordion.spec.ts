@@ -4,6 +4,7 @@ import { activeText, demo, offsetHeight, readout, scrollTop, tabIndex } from "./
 
 const MULTI = demo("multi");
 const SINGLE = demo("single");
+const REQUIRED = demo("required");
 const GROWING = demo("growing");
 
 /**
@@ -88,6 +89,31 @@ test("single-expand mode closes the previous section itself", async ({ page }) =
     await expect
         .poll(() => offsetHeight(page.locator(panel(SINGLE)).nth(0)), { timeout: TRANSITION_TIMEOUT_MS })
         .toBe(0);
+});
+
+/**
+ * The third state of the same question: single-expand allows zero open, because pressing the open header
+ * closes it. Requiring one turns that press into a no-op — the open header is still a real button and still
+ * says it is expanded, the way an already-selected radio is still pressable and does nothing.
+ */
+test("a required expansion refuses to close the last open section", async ({ page }) => {
+    expect(await readout(page, "required"), "it starts with one open").toContain('["Shipping"]');
+
+    await page.locator(header(REQUIRED)).nth(0).click();
+
+    expect(await readout(page, "required"), "and pressing that header leaves it open").toContain('["Shipping"]');
+    await expect(page.locator(header(REQUIRED)).nth(0), "which the header still reports").toHaveAttribute(
+        "aria-expanded",
+        "true",
+    );
+
+    await page.locator(header(REQUIRED)).nth(1).click();
+
+    expect(await readout(page, "required"), "the way out is into another section").toContain('["Returns"]');
+
+    await page.locator(header(REQUIRED)).nth(1).click();
+
+    expect(await readout(page, "required"), "which is then the one that cannot be closed").toContain('["Returns"]');
 });
 
 test("an open panel follows content that appears after it opened", async ({ page }) => {

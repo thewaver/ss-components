@@ -40,6 +40,7 @@ export type AccordionProps<T> = AccessorProps<{
     sizing?: AccordionSizing;
     headingLevel?: number;
     isSingleExpand?: boolean;
+    isExpandRequired?: boolean;
     isScrolledIntoViewOnExpand?: boolean;
     transitionDurationMs?: number;
 }> & {

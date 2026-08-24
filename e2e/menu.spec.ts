@@ -348,3 +348,88 @@ test.describe("typeahead", () => {
         expect(await readout(page, "default"), "and nothing reached the owner").toContain("nothing run yet");
     });
 });
+
+/**
+ * A right-click menu is the same menu with a different opener, which is why it is a second component over the
+ * same level rather than a mode on the first: there is no trigger button to press, so there is no button to
+ * render, and the popup is positioned against the point the pointer was at rather than against an element.
+ * Everything else — the items, the keyboard, dismissal — is the machinery already under `Menu`.
+ */
+test.describe("a menu opened by a right-click", () => {
+    const REGION = `${demo("context")} div:not([role])`;
+    const CORNER_INSET = 5;
+    const MOVE_MARGIN = 20;
+    const PLACEMENT_TOLERANCE = 4;
+
+    test("has no trigger anywhere, and opens at the pointer", async ({ page }) => {
+        await expect(page.locator(`${demo("context")} button`), "nothing is rendered to press").toHaveCount(0);
+        await expect(page.locator(MENU), "and nothing is open yet").toHaveCount(0);
+
+        const box = (await page.locator(REGION).first().boundingBox())!;
+        const x = box.x + box.width * 0.4;
+        const y = box.y + box.height * 0.4;
+
+        await page.mouse.click(x, y, { button: "right" });
+
+        await expect(page.locator(MENU)).toHaveCount(1);
+        await expect(
+            page.locator(MENU),
+            "the menu is named by its own label, having no trigger to borrow",
+        ).toHaveAttribute("aria-label", "Edit actions");
+
+        await expect
+            .poll(
+                async () => {
+                    const menuBox = (await page.locator(MENU).boundingBox())!;
+
+                    return Math.max(Math.abs(menuBox.x - x), Math.abs(menuBox.y - y));
+                },
+                {
+                    message:
+                        "the menu's near corner settles on the pointer — polled because every layer's first placement is provisional",
+                },
+            )
+            .toBeLessThan(PLACEMENT_TOLERANCE);
+    });
+
+    test("moves to the next point rather than staying where it was", async ({ page }) => {
+        const box = (await page.locator(REGION).first().boundingBox())!;
+        const y = box.y + box.height * 0.4;
+        const near = box.x + box.width * 0.2;
+        const far = box.x + box.width * 0.6;
+
+        await page.mouse.click(near, y, { button: "right" });
+        await expect(page.locator(MENU)).toBeFocused();
+
+        await page.mouse.click(far, y, { button: "right" });
+
+        await expect(page.locator(MENU), "one menu, not two").toHaveCount(1);
+
+        await expect
+            .poll(async () => (await page.locator(MENU).boundingBox())!.x, {
+                message: "the second press re-anchors it, once the placement has settled",
+            })
+            .toBeGreaterThan(near + MOVE_MARGIN);
+    });
+
+    test("runs an item and closes, and a plain click outside dismisses it", async ({ page }) => {
+        const box = (await page.locator(REGION).first().boundingBox())!;
+
+        await page.mouse.click(box.x + box.width * 0.4, box.y + box.height * 0.4, { button: "right" });
+        await expect(page.locator(MENU)).toBeFocused();
+        await page.locator(ITEM).filter({ hasText: "Copy" }).first().click();
+
+        await expect(page.locator(MENU), "activating closes it").toHaveCount(0);
+        expect(await readout(page, "context")).toContain("Copy");
+
+        await page.mouse.click(box.x + box.width * 0.4, box.y + box.height * 0.4, { button: "right" });
+        await expect(page.locator(MENU)).toHaveCount(1);
+
+        await page.mouse.click(box.x + CORNER_INSET, box.y + CORNER_INSET);
+
+        await expect(
+            page.locator(MENU),
+            "a left-click in the same box, clear of the menu itself, is still outside it",
+        ).toHaveCount(0);
+    });
+});

@@ -1,10 +1,11 @@
-import { For, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import { For, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { Portal } from "solid-js/web";
 
 import { CSSUtils, StringUtils } from "@thewaver/ss-utils";
 
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
+import { LiveAnnouncer } from "../../Abstracts/LiveAnnouncer/LiveAnnouncer";
 import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
 import { access } from "../../Utils/propUtils";
 import type {
@@ -27,11 +28,14 @@ const DEFAULT_TOASTS_DIR: ToastsDir = "column";
 const DEFAULT_TOASTS_ARIA_LIVE: ToastsAriaLive = "polite";
 const DEFAULT_TOASTS_OVERFLOW: ToastsOverflow = "dismiss-oldest";
 const DEFAULT_TOASTS_GAP = 10;
+const DEFAULT_TOASTS_HOTKEY = "F8";
 const TOASTS_Z_INDEX = 200;
 
 const ToastsItem = <T,>(props: ToastsItemProps<T>) => {
     const { getTransitionTarget, getHasTransitionFinished } = ElementFader.createFader(() => !access(props.isExiting), {
         getTransitionDurationMs: () => access(props.transitionDurationMs),
+        onShow: () => access(props.toast).onShow?.(),
+        onHide: () => access(props.toast).onHide?.(),
     });
 
     const getDurationMs = createMemo(() => access(props.toast).durationMs);
@@ -107,6 +111,17 @@ export const Toasts = <T,>(props: ToastsProps<T>) => {
 
     const getIsPaused = InteractionUtils.trackHold(getRootRef);
 
+    const getHotkey = createMemo(() => access(props.hotkey) ?? DEFAULT_TOASTS_HOTKEY);
+
+    const getAnnouncementPoliteness = createMemo(() => access(props.ariaLive) ?? DEFAULT_TOASTS_ARIA_LIVE);
+
+    onMount(() => {
+        if (props.computeAnnouncement === undefined) return;
+
+        LiveAnnouncer.reserve("polite");
+        LiveAnnouncer.reserve("assertive");
+    });
+
     const getAdmitted = createMemo(() => {
         const toasts = props.toastsSignal[0]();
         const limit = access(props.limit);
@@ -140,6 +155,58 @@ export const Toasts = <T,>(props: ToastsProps<T>) => {
         });
     });
 
+    createEffect<string[]>((previous) => {
+        const entryIds = getEntryIds();
+        const computeAnnouncement = props.computeAnnouncement;
+
+        if (!computeAnnouncement) return entryIds;
+
+        for (const id of entryIds) {
+            if (previous.includes(id)) continue;
+
+            const toast = getAdmitted().find((entry) => entry.id === id);
+
+            if (!toast) continue;
+
+            LiveAnnouncer.announce(computeAnnouncement(toast), toast.ariaLive ?? getAnnouncementPoliteness());
+        }
+
+        return entryIds;
+    }, []);
+
+    createEffect(() => {
+        const hotkey = getHotkey();
+        const root = getRootRef();
+
+        if (!root || hotkey.length === 0) return;
+
+        let restoreRef: HTMLElement | undefined;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === hotkey) {
+                if (root.contains(document.activeElement)) return;
+
+                e.preventDefault();
+                restoreRef = document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
+                root.focus();
+
+                return;
+            }
+
+            if (e.key !== "Escape" || !root.contains(document.activeElement)) return;
+
+            e.preventDefault();
+            restoreRef?.focus();
+            restoreRef = undefined;
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+
+        onCleanup(() => {
+            document.removeEventListener("keydown", handleKeyDown);
+        });
+    });
+
     createEffect(() => {
         const [getToasts, setToasts] = props.toastsSignal;
         const limit = access(props.limit);
@@ -169,7 +236,8 @@ export const Toasts = <T,>(props: ToastsProps<T>) => {
                     "z-index": TOASTS_Z_INDEX,
                 }}
                 role="region"
-                aria-live={access(props.ariaLive) ?? DEFAULT_TOASTS_ARIA_LIVE}
+                tabindex={-1}
+                aria-live={props.computeAnnouncement === undefined ? getAnnouncementPoliteness() : undefined}
                 aria-label={access(props.ariaLabel)}
             >
                 <For each={getEntryIds()}>

@@ -50,6 +50,9 @@ export const GuideExample = (props: Props) => {
                 elementRef={() => stepRefs[access(props.step)]}
                 padding={() => PADDING}
                 ariaLabel={"Product tour"}
+                announcement={() =>
+                    `Step ${access(props.step) + 1} of ${TOUR_STEPS.length}. ${TOUR_STEPS[access(props.step)].title}.`
+                }
                 visibilitySignal={props.visibilitySignal}
                 renderHighlight={renderHighlight}
                 renderOverlay={renderOverlay}

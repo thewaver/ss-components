@@ -1,7 +1,7 @@
 import { MathUtils, ObjectUtils } from "@thewaver/ss-utils";
 
-import { SVGAnimationUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Animation/SVGAnimationDefs.utils";
 import { SVGGradientDefsUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
+import { SVGAnimations } from "../../SVGAnimations.const";
 import type { GradientConfig } from "../../SVGDefs.types";
 import { SVGDefsUtils } from "../../SVGDefs.utils";
 
@@ -23,7 +23,7 @@ export const snake_inter_2: GradientConfig = {
                             ],
                             angle: 90,
                         },
-                        SVGAnimationUtils.Linear.rotate(
+                        SVGAnimations.Linear.rotate(
                             [
                                 ...MathUtils.getIntermediateValues(90, 90, 12),
                                 ...MathUtils.getIntermediateValues(90, 90, 12),
@@ -42,7 +42,7 @@ export const snake_inter_2: GradientConfig = {
                 id: `clip1-${id}`,
                 renderDefsElement: () => (
                     <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                        {SVGAnimationUtils.Path.rotatingArc(
+                        {SVGAnimations.Path.rotatingArc(
                             ObjectUtils.zipArray(
                                 "stretch",
                                 [
@@ -76,7 +76,7 @@ export const snake_inter_2: GradientConfig = {
                             ],
                             angle: 270,
                         },
-                        SVGAnimationUtils.Linear.rotate(
+                        SVGAnimations.Linear.rotate(
                             [
                                 ...MathUtils.getIntermediateValues(90, 180, 12),
                                 ...MathUtils.getIntermediateValues(180, 270, 12),
@@ -95,7 +95,7 @@ export const snake_inter_2: GradientConfig = {
                 id: `clip2-${id}`,
                 renderDefsElement: () => (
                     <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                        {SVGAnimationUtils.Path.rotatingArc(
+                        {SVGAnimations.Path.rotatingArc(
                             ObjectUtils.zipArray(
                                 "stretch",
                                 [

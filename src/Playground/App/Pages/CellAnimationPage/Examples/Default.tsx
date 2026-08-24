@@ -6,7 +6,7 @@ import { CellAnimationBreakpoints } from "../../../Samples/CellAnimationBreakpoi
 import { CellAnimationKeyframes } from "../../../Samples/CellAnimationKeyframes/CellAnimationKeyframes.const";
 import { CellAnimationOrigins } from "../../../Samples/CellAnimationOrigins/CellAnimationOrigins.const";
 import { CellAnimationWeights } from "../../../Samples/CellAnimationWeights/CellAnimationWeights.const";
-import type { CellAnimationExampleProps } from "../CellAnimationPage.types";
+import type { CellAnimationSourcedExampleProps } from "../CellAnimationPage.types";
 
 export const DefaultExample = ({
     animationType,
@@ -15,7 +15,7 @@ export const DefaultExample = ({
     weightType,
     weightOpts,
     ...otherProps
-}: CellAnimationExampleProps) => {
+}: CellAnimationSourcedExampleProps) => {
     const getOrigin = createMemo(() =>
         CellAnimationOrigins.computeOrigin(access(originType), access(otherProps.cellCount)),
     );
@@ -32,6 +32,7 @@ export const DefaultExample = ({
                     CellAnimationBreakpoints.computeBreakpoints(defs.weight, access(breakpointOpts)),
                     { ...defs, origin: getOrigin() },
                     timeline,
+                    access(breakpointOpts).easing,
                 )
             }
         />

@@ -10,7 +10,6 @@ import type { CellAnimationWeights } from "../../Samples/CellAnimationWeights/Ce
 import type { WeightOpts } from "../../Samples/CellAnimationWeights/CellAnimationWeights.types";
 
 export type CellAnimationExampleProps = AccessorProps<{
-    src: string;
     cellCount: Point2d;
     originType: CellAnimationOrigins.OriginType;
     weightType: CellAnimationWeights.WeightType;
@@ -21,3 +20,5 @@ export type CellAnimationExampleProps = AccessorProps<{
     animationIterationDelayMs: number;
     playbackSignal: Signal<boolean>;
 }>;
+
+export type CellAnimationSourcedExampleProps = CellAnimationExampleProps & AccessorProps<{ src: string }>;

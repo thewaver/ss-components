@@ -98,8 +98,8 @@ component-driven. Not outstanding work — the argument, so it is not re-derived
 
 **Never staged, by category**: anything shaped around a component's own record (`SelectUtils`,
 `TreeUtils`, `ToastsUtils`); anything bound to a framework (`Interaction`, `Focus`, `FPS`,
-`ElementFader`, the three SVG defs modules returning JSX — the arithmetic item 11 in `backlog.md`
-wants split from its markup, which would make the arithmetic half a candidate); anything adapting a
+`ElementFader`, the SVG defs modules that return JSX — the arithmetic that used to be tangled into them has
+since moved to the Playground samples instead, so what is left here is markup and nothing else); anything adapting a
 third-party package (`DateValue`, `Virtualizer` over `@tanstack/solid-virtual`); and three near misses
 blocked only by a pure type sharing a file with Solid props — `NumberInputUtils`,
 `RichTextUtils.parseContent`, `compileStops` / `sampleTrack`.
@@ -1326,7 +1326,7 @@ is its own input, absolutely positioned `inset: 0` over the same painter, so a p
 rendered twice and the two modes cannot diverge in paint, keyboard or ARIA. Native also keeps `step`,
 `Home`/`End`, `PageUp`/`PageDown`, drag and the track-click jump.
 
-`Range` therefore did **not** need `backlog.md` #2's pointer primitive, and item 2 stays open for the
+`Range` therefore did **not** need `backlog.md` #2's pointer primitive, and item 1 stays open for the
 thing that does — a two-dimensional colour surface, which has no native equivalent.
 
 **Crossing is prevented by the inputs' own `min` and `max`, not by JS.** Thumb `n`'s `min` is thumb
@@ -1445,6 +1445,19 @@ problem. `aria-orientation="vertical"` is set whenever `dir` is `column`: a tab 
 default, so a stacked one that does not say so tells a screen reader user to press the wrong arrows. Not a
 general rule about `dir` — it is stated here because `tablist` has a published default a column
 contradicts.
+
+**Arrows move the focus and `hasAutoActivation` makes them move the selection too, off by default.** The
+published pattern allows both, and calls the second one automatic activation. Manual stays the default
+because the cost of guessing wrong is asymmetric: a panel that fetches or builds something expensive is
+built once per tab arrowed _past_ under automatic, and the person walking a list to reach the far end pays
+for every stop on the way. Automatic is the better behaviour for a panel already in the document, which is
+why it is a prop rather than a rejection — and it is one flag rather than a mode string, because there are
+exactly two behaviours and no third one is coming.
+
+**The flag rides on the same key handler and changes nothing else.** The arrow already sets the focused
+value and moves focus; automatic activation reports that value through `onSelectionChange` afterwards, so
+selection still travels the one road, and a consumer who ignores the callback still gets the focus walk.
+Nothing new is announced, because the selection change is what a screen reader is already told about.
 
 ### `TabPanel`: the pairing is written on the record, and read from both ends
 
@@ -1729,6 +1742,39 @@ filter, and it is why the left menu's keep-the-selected-item rule must not be co
 `createValueSync(ref, value, opts)` — the element/value sync, the caret restore after a transforming setter,
 the IME composition gating. Exactly `TextInput.syncElement`'s code; extracting beat duplicating fifteen
 lines of caret arithmetic.
+
+### Grouping and windowing compose, and the group box is what makes it possible
+
+**The window runs over rows, not options.** `SelectUtils.getRows` flattens the item list into one row per group
+header and one per option, each carrying the option's flat index so the highlight, the ids, typeahead and the
+keyboard walk keep counting options the way they always did. `getIsVirtualized` no longer refuses a grouped
+list; the only condition left is that the consumer supplied an estimate.
+
+**A `role="group"` box holds whatever slice of its group is in the window, and that is correct rather than a
+compromise.** The obstacle recorded against this was that a box wraps its options, so a window opening halfway
+down a group would have to draw a box whose header is above the window and whose end is below it. It dissolves
+once the box's own entry above is taken seriously: the box is **not paintable** — the library owns
+`<div role="group" aria-label>` and the consumer fills only the header. A box with no paint has no visual
+extent to preserve, so wrapping only the mounted rows changes nothing a reader can see, and the group's name
+travels on `aria-label`, which is present whether or not the header row is in the window.
+
+**Visible rows are cut into runs of one group.** Consecutive rows sharing a group get one box; a run beginning
+mid-group is ordinary. The box is a static element, so the rows inside keep resolving their `position:
+absolute` against the sizer and their transforms are untouched — wrapping them costs no layout.
+
+**The header is not sticky, and that is not a taste call.** Windowing is an optimisation, so the windowed list
+must look like the mounted one, and in the mounted list a header scrolls away with its group. Repeating or
+pinning a header would make the two renderings differ by whether the consumer happened to pass an estimate.
+If sticky headers are ever wanted they belong to both renderings at once.
+
+**The pinned row keeps its own box.** `getPinnedRows` already held the highlighted option mounted so typeahead
+and the active-descendant id survive scrolling; converted to a row index it now also pulls that option's group
+box along, which is why a scrolled list can show two boxes — the group under the window and the one holding the
+pinned row.
+
+**`computeEstimatedGroupHeight` is optional and falls back to the option estimate.** A header is usually
+shorter than an option, and an estimate that is wrong only shifts the scrollbar until the row is measured, so
+requiring it would be ceremony; getting it right is worth doing when the headers are tall.
 
 ### Controls: option groups, and `Select` / `MultiSelect` as presets
 
@@ -2745,6 +2791,100 @@ reasoned, not observed.
 `(pos, count, origin)`, and `computeBreakpoints(weight, opts)` turns that into the slice of the global
 timeline the cell owns — direction is weight inversion, smoothness is the width of the window.
 
+**The timing curve is the sample's, and it shapes a cell's own window rather than the whole timeline.**
+`computeLocalTimeline` takes one of the five CSS timing functions — `linear`, `ease`, `ease-in`, `ease-out`,
+`ease-in-out` — and applies it to the ratio a cell has travelled through its own slice, so the stagger keeps
+the arrival order the weights decided and only the playback within each cell bends. It is solved as CSS
+solves it, a cubic bezier inverted by Newton with a bisection fallback, so `ease` here and `ease` in a
+stylesheet are the same curve rather than two approximations of it.
+
+**Per-keyframe easing stays out, because the keyframe data can already express it.** CSS puts a timing
+function on each keyframe, and that was the shape the React-era component had — but a stop list interpolated
+linearly is exactly what `linear()` is, so an eased segment is written as denser stops in the sample rather
+than as a second easing mechanism in the sampler. What denser stops cannot express is a curve over the
+cell's whole window, which is why that is the half that got built.
+
+**A source that is drawn rather than photographed is a data URI, and it needs nothing from the library.** The
+component slices whatever URL it is handed, so an SVG written as a string — a gradient, a solid, a pattern —
+is a first-class source: `data:image/svg+xml,` followed by `encodeURIComponent` of the markup. No base64 step;
+the Playground has been doing this for its `Mosaic` samples all along, and `Samples/CellAnimationSources` is
+the same trick for this component. Two things the SVG must do: declare `xmlns`, and state a `width` and
+`height`, because the invisible anchor takes the box's aspect ratio from the image's intrinsic size — a
+400×200 source at `width: 100%` in a 300px box measures 300×150, exactly as a photograph would.
+
+**The cell's background URL is quoted, and that is what makes a drawn source work at all.** `encodeURIComponent`
+escapes the quotes in the markup but leaves parentheses alone, and every interesting SVG has them — `hsl(...)`,
+`rgb(...)`, an internal `url(#id)` reference. An unquoted CSS `url()` cannot take a literal parenthesis, so the
+whole declaration is dropped: measured, **zero** cells painted a background while the anchor still sized the box
+correctly, which is the failure that looks like the animation having broken rather than the source. Quoting the
+value costs nothing for a path or a `blob:` URL and is what makes the drawn case reachable.
+
+**The Playground shows three source kinds as three examples, each owning the one setting only it can
+answer.** A photograph is picked per example rather than per page — `ScanlineAnimationPage`'s arrangement —
+and the two drawn examples each carry a dropdown over `Shape`'s own gradient and pattern samples. Everything
+the three share, the grid and the weights and the timing, stays in the page's own panel, since changing it is
+meant to change all of them.
+
+**The palette and the animation length come from the same places the Shape page gets them.** The four
+colours are `SVGDefsSamples.SAMPLE_COLORS`, which `ShapePage` now seeds its own editable store from rather
+than declaring a second copy; the duration is the cell animation's own, passed in per call. What a sample then
+does with that duration is the sample's business and is not normalised — the pointy-top hexagon runs its fill
+cycle at four times what it is given, on the Shape page and here alike, so the numbers agree at the input
+rather than at the output.
+
+**A `Shape` def becomes a source by being rendered and serialised, which is `SVGDefsSources`.** The samples
+are Solid callbacks returning live elements, so the helper renders them into a detached `<svg>`, adds a
+full-size rect per entry filled from that entry's colour or `url(#id)`, serialises with `XMLSerializer`, and
+disposes the reactive root. Nothing about the samples changes; the Shape page and the animation page ask the
+same registry for the same thing.
+
+**Whether a def still moves inside a source is decided by how its animation begins.** Loading an SVG through
+an `src` runs no script but does run SMIL — measured: an `<animate>` with `begin="0s"` kept animating inside a
+data URI while the same animation with `begin="indefinite"` sat frozen. The pattern samples carry a `dur` and
+no `begin`, which defaults to zero, so they were always going to move. The gradient samples are driven by
+`createAnimateDefs`, which sets `begin="indefinite"` on purpose and starts it from a ref that reads the
+document's own clock, so that the iteration patterns can be sequenced.
+
+**So the serialiser writes the timing into the markup, which is the whole of what a script would have done for
+the common case.** With no iteration delay asked for, every `begin="indefinite"` becomes `begin="0s"` on the
+way out. That is exact rather than
+approximate wherever the iteration config is `constant`, because `constant` supplies no patterns at all: the
+repeat count is already `indefinite` and the only thing missing was the start. It is a serialisation-time
+rewrite rather than a change to the builders, and it is only correct because a source is a document nothing
+will ever drive — the live `Shape` on a page still needs the script, which is what sequences its stages.
+
+**The cell timeline is keyed on the picture as well as the iteration, so a new source starts it over.** Two
+clocks are in play and only one of them can be restarted: the cells run on the page's frame loop, a drawn
+source runs on the image's own timeline, which begins when the image loads. Rebuilding a source hands it a
+fresh timeline while the cells carry on, so the offset between them becomes whatever the cells happened to be
+doing — visible as a sweep sliding against the slicing. Treating a changed `src` as a reason to begin again
+puts both back near zero together. Near, not exactly: the image's clock starts on load, so a slow source still
+lands a frame or two behind, and nothing can hold them together after that.
+
+**The pause between repeats is a begin that refers to the animation's own end.** The component waits on a
+timer between runs; a document nothing drives has no timer, so the wait has to be stated. SMIL says it
+declaratively: one repeat, and `begin="0s;<id>.end+<delay>ms"` — measured, the animation runs, freezes at its
+end, holds through the pause and starts again. Every animation in the source is given an id and that begin
+when a delay is asked for, which is why an overridden `repeatCount="indefinite"` is part of it: an animation
+that never ends never reaches an end to start again from, so a repeat that never stops and a pause between
+repeats are not two things that can both be true. At a delay of zero there is nothing to express and the
+simpler continuous form comes back.
+
+**Only the gradients take the pause; the patterns flow on.** Settled by the user, and the reason is what each
+one looks like when it is out of step. A repeating fill has no beat — it tiles and cycles, so there is nothing
+in it that can be seen to happen at the wrong moment, and a pause would only make it stutter against cells
+that are resting for their own reasons. A gradient does have a beat: a sweep crosses the box once, and a sweep
+crossing while the cells sit still reads as two things that were meant to agree and do not. So the delay is
+passed for a gradient and pinned to zero for a pattern.
+
+**What that does not reach is a multi-stage iteration pattern**, where the script advances a repeat count and
+re-begins the animations after each stage ends. As a source, a def built that way plays its first stage and
+freezes. Expressing the rest declaratively is possible — SMIL's syncbase timing works inside an image source,
+measured: an animation beginning at `one.end+0.2s` ran after the one it names — so the chain would be one
+`<animate>` per stage with a begin referring to the previous one's end, and a begin list to loop it. That is a
+second variant of the builders rather than a rewrite of the existing one, and nothing has asked: the Playground
+uses `constant` everywhere.
+
 **The library names no weight and knows nothing about origins.** `CellAnimation` took
 `getOriginType`, `getWeightType` and `getWeightOpts`, so the nine named origins and thirty-seven named
 weights were the only ones a consumer could have. Wrong ownership: a consumer wanting an origin the library
@@ -2843,6 +2983,46 @@ function argument.
 `isolation: isolate` on the container those values escape into the nearest ancestor stacking context. In the
 Playground they landed in the stress test modal's context and painted over its FPS counter.
 
+### The animation sample collections: `_fromZones`, and why a fifth circle is not worth adding
+
+**Adding members to an existing family stops paying off, and the reason is structural rather than a matter of
+taste.** A weight function is one number per cell that does not change while the animation runs, so any weight
+that falls away smoothly from a point is a wipe, and there are only so many shapes a wipe can be — round,
+square, diamond, banded, spiral. A keyframe sample is a function of one cell's own progress that ends with the
+cell in place, so it is always an entrance. Two batches of new entries were built against the existing
+collection and the user's verdict on most of them was that they look repetitive, which is the expected outcome
+of adding a fifth circle rather than a failure of the individual samples. **What pays off instead is machinery
+that recombines what is already there**: an operator over any weight, or a combinator over any two animations,
+multiplies the collection without adding anything that looks like its neighbour. `shouldMakeUnique` and
+`shouldNormalize` on `computeCellWeights` are already this pattern, and `_fromZones` is the first one on the
+animation side. Ideas of that kind, graded but not built, are in `backlog.md` under **_Open discussion_**.
+
+**`_fromZones` takes an ordered list and an explicit fallback**, not a record keyed by zone. Zones overlap by
+design — `top` is every cell above the origin including the corners, and the four quadrants exclude the two
+axes entirely — so first-match-wins is the only contract that stays predictable, and the order is part of what
+a sample is saying. The fallback is required rather than defaulting to no animation: a cell that matched
+nothing would otherwise sit fully visible and motionless while the rest of the grid assembles, which reads as
+a defect rather than as a choice.
+
+**A zone entry picks the family member of the same name, and where no such member exists the family does not
+get a zone entry.** So the `top` zone takes `carouselTop`, `hingeTop`, `elasticUp` and `pullUp`, and the
+top-left quadrant takes `popTopLeft` and `rollUpLeft`. `spin` is the family deliberately left without one: its
+four members are two directions times two handednesses rather than four positions, so any mapping onto
+quadrants would be invented here rather than read off the names.
+
+**A diagonal family needs the four axis zones as well as the four quadrants.** The quadrants leave out every
+cell sharing a row or a column with the origin, which on an odd grid with a centred origin is a cross of
+twenty-one cells out of a hundred and twenty-one — enough to look broken if they all fall through to the
+fallback. `_rollQuadrant` maps each axis to the quadrant member clockwise after it, and only the origin cell
+itself reaches the fallback. A family with a centre member — `pop` has `popCenter` — needs no axis entries,
+because the fallback is already the right answer for the whole cross.
+
+**Entries the user has not yet groomed carry a leading underscore.** Asked for so that a batch of new samples
+can be found and judged against the existing collection in one pass; it is a review marker rather than a
+naming convention, and it comes off when an entry is kept. The Playground's option grouping strips it before
+grouping, so `_carouselQuadrant` appears inside the `carousel` group next to the four members it dispatches
+to, rather than in a group of its own — which is the comparison the prefix exists to make possible.
+
 ### Controls: `Toasts`, and a queue the consumer owns
 
 The shape question `backlog.md` parked toasts on rested on a premise that does not
@@ -2912,6 +3092,37 @@ the button someone is reaching for. The listeners are `mouseover` / `mouseout` a
 the region with a `relatedTarget` containment guard, **not** `mouseenter` / `mouseleave`, because the region
 is `pointer-events: none` and is never itself a hit-test target; bubbling from the entries is the only thing
 that reaches it.
+
+**Urgency is per toast, and announcing is the announcer's job rather than the visible region's.** A live
+region carries one politeness for everything inside it and there is no way to mark one child as more urgent
+than its box, so an error could not interrupt while a confirmation waited its turn. `computeAnnouncement` is
+the way out: given it, `Toasts` announces each arrival through `LiveAnnouncer` at that toast's own
+`ariaLive` — falling back to the region-wide `ariaLive` as the default — and the visible region carries no
+politeness at all. This is Radix's arrangement, reached from the same constraint.
+
+**It is a branch on prop presence, and the branch is deliberate rather than lazy.** Without
+`computeAnnouncement` the region keeps its own `aria-live` and behaves exactly as before, because the library
+does not own the toast's text and cannot start announcing on a consumer's behalf — and silently _stopping_
+announcements for a consumer who has already shipped would be an accessibility regression they would never
+see. So the mode is chosen by whether the consumer has said what to announce.
+
+**Both announcer regions are reserved when the stack mounts.** A live region only announces what is inserted
+after it is already in the document, so a region created by the first message may be silent for exactly that
+message — the failure that is hardest to notice, because everything after it works. `LiveAnnouncer.reserve`
+exists for this: it creates a region without saying anything into it.
+
+**The keyboard route in is `F8`, and `Escape` is the way back.** A toast is portalled to the end of the
+document, so nothing tabs to it in any order a reader would expect; the published answer is a hotkey, and
+Radix's default is the one adopted. The region takes `tabindex="-1"` so the key can focus it, the element
+focused before the press is remembered, and `Escape` from anywhere inside hands focus back there. A consumer
+with two stacks on one page sets `hotkey` to an empty string on the one that should not answer — the only
+spelling for "no hotkey", since an absent prop has to mean the default.
+
+**A toast's own `onShow` and `onHide` are `Modal`'s pair, at the same two boundaries.** They fire when the
+entry transition starts and when the exit transition starts, not when either finishes, because that is what
+`ElementFader` reports and what `Modal` already means by those names. The consumer owns the list, so arrivals
+and departures are already visible to them; what an effect over their own array cannot see is the transition
+boundary, which is the whole of what these two add.
 
 ### `Toasts`: what the painter gets, and why position is not fully delegated
 
@@ -3044,6 +3255,19 @@ out of the tab order and the accessibility tree while leaving it laid out, as `P
 The cost is that a collapsed panel's content is still built, so an accordion of a hundred expensive panels
 builds all hundred.
 
+**"Always exactly one open" is a second boolean, not a third state on the first one.** `isSingleExpand`
+allows zero expanded — pressing the open header closes it — and `isExpandRequired` is what refuses that last
+close. Two flags rather than a mode string, which is Radix's spelling of the same pair and the shape that
+does not break a prop already shipped. It reads on its own terms in either mode: with single expansion it
+means the only way out of a section is into another one, and with several open at once it means the last one
+standing stays.
+
+**A refused press changes nothing and says nothing.** The header is still a real button, still reports
+`aria-expanded="true"`, and is not marked disabled — the same arrangement as pressing the radio that is
+already selected, which is also a no-op nobody labels. Marking it disabled would make the one open section
+look like the unavailable one, and the parity rule says disabled and disabled-but-reachable must look
+identical.
+
 **Headers are all in the tab order, and the arrows are an extra rather than a roving order.** The published
 accordion pattern, and the opposite of `Tabs` and `RadioGroup`. The difference is what the collection means: a
 tab list or radio group is one control with several states, so it gets one stop; an accordion is several
@@ -3151,6 +3375,75 @@ being kept for a possible component that folds in the literal sense, growing or 
 `Spoiler` was rejected for meaning content concealed until revealed, `Summary` because `<summary>` is the
 **trigger** half of a native disclosure, and `Excerpt` because a name has to be spellable from memory.
 
+### A SMIL animation resets by being rebuilt, and the defs record is what says so
+
+Settled by the user, closing the `Show ... keyed` item `backlog.md` had parked. SMIL cannot be rewound in
+place, so an animation restarts by being **built again** — and what rebuilds it is a new defs record: the
+consumer's callback returns fresh objects, `Shape` inserts new elements, and the old ones are discarded
+mid-flight. That is the whole mechanism, and it is now the stated contract rather than a side effect nobody
+had written down.
+
+**What was removed is the thing that pretended to own it.** Every animation builder wrapped its `animate`
+elements in `<Show when={defs.animationIterationPatterns ?? EMPTY_ARRAY} keyed>`, whose intent was exactly
+this remount. It could never fire: `defs` is a plain object, so reading a field off it tracks nothing, the
+memo behind `Show` has no dependencies, and the children were built once and never again. Deleting it changed
+nothing — measured, the `animate` elements are replaced on a duration change and on an iteration-pattern
+change with the wrapper gone exactly as with it there. Three builders wrapped sibling elements, so a fragment
+took the wrapper's place; the rest lost a level of nesting.
+
+**An animation is started by asking for a delay from now, never by naming a moment.** `createAnimateDefs`
+used to work out the document's current time and write it into `begin`; switching iteration pattern while one
+was running then produced an animation that looked perfectly healthy — connected, right duration, right repeat
+count, a real interval — and never animated, then reverted at the end of that interval. The instant had
+already passed by the time the browser read the attribute, and an interval that begins in the past is not the
+same thing as one beginning now. `beginElementAt(delay)` is the call the sequencing already used for every
+later stage, so both paths now start the same way and the clock is never consulted. Measured across the
+sequence that reaches it — pick a repeating pattern, let it run, switch mid-run — twenty-four runs clean where
+the old path failed roughly one in three.
+
+**The guard is a spec rather than a note**, because the failure mode is silent: memoise the defs so the same
+record survives a change and the animation simply carries on with the old timing, looking like a component
+that ignores its props. `shape.spec.ts` holds an element, changes the duration, and asserts the one it held is
+neither the current one nor still connected.
+
+**This is the same shape as the cell timeline being keyed on its source**, and worth reading together: in both
+cases the restart is owned by an identity that changes, and in both cases the thing to avoid is a restart that
+happens by accident somewhere up the tree. The difference is which document owns the clock — a `Shape` on the
+page rebuilds its own elements, while a serialised source gets a new clock only by being a new image.
+
+### The SVG defs vocabulary is sample code, and the arithmetic is a file with no JSX in it
+
+Settled by the user, applying the `CellAnimation` ownership rule to the one place it had not reached.
+
+**The library never used any of it.** Seven named tilings, four families of animation builder, and the shared
+helpers under them were exported from `src/Lib` and called by nothing except Playground samples. `Shape`
+takes `computeFillDefs` and `computeStrokeDefs` from its consumer and renders whatever it is handed, which is
+the same seam `CellAnimation` has for weights — so a named set of tilings is vocabulary, and vocabulary
+belongs where the origins and the weights already went.
+
+**What moved and what stayed.** The seven tilings and the `Linear` / `Radial` / `Path` / `Gradient` builders
+are now `Samples/SVGDefs`. `computePattern` — place N cells in a tile and repeat it — stays, along with
+`createAnimateDefs` and `unrollSelfReferencingPatterns`, because those are what a consumer writing a tiling of
+their own would build on. The gradient file stays whole.
+
+**The split the move was for is a file extension.** `vitest` runs `src/**/*.test.ts` in a node environment
+with no JSX transform, which is the rule _"Unit tests"_ already states — so a test cannot import a file
+containing an element. That makes the separation mandatory rather than stylistic: `SVGPatternLayouts.const.ts`
+and `SVGAnimationTracks.const.ts` hold the arithmetic and no markup, `SVGPatterns.const.tsx` and
+`SVGAnimations.const.tsx` hold the builders that consume them. This is what `backlog.md` asked for and could
+not get while the numbers lived inside the callback that emitted the element.
+
+**A tiling is now four pure functions rather than a closure.** Each entry in `SVGPatternLayouts.ALL` answers
+how many cells the requested count rounds to, how big one tile is, where a cell sits, and whether it straddles
+the seam. A wrong tiling still tiles — that is the whole reason this arithmetic could be wrong for months —
+and now the pointy-top hexagon's rows can be asserted to sit at −15, 7.5 and 30 for a 30px cell, which is the
+three-quarter overlap that makes hexagons interlock rather than merely repeat.
+
+**One thing the extraction found immediately.** `computeGrowTracks` assumes its two ends are given in order;
+handed them reversed it walks outside the segment instead of mirroring. No call site does that, so it is a
+precondition rather than a defect, and it is pinned by a test rather than changed — the behaviour is what
+ships and nothing has asked for the other one.
+
 ### `LiveAnnouncer`: the region that belongs to no component
 
 Settled, on the user's call, for `Calendar`'s month change.
@@ -3160,6 +3453,12 @@ records — which is why a component cannot mount one when it needs to speak. Tw
 and assertive, created on first use and kept, sidestep that. They live on `document.body` rather than in the
 `Viewport` portal: nothing about them is painted, so the scale factor is irrelevant, and they must outlive any
 subtree that might announce through them.
+
+**A region can be reserved before there is anything to say.** `reserve(politeness)` creates one without
+announcing, for a consumer that knows it will speak later and cannot afford the first message to be the one
+that creates the region — `Toasts` calls it for both politeness levels when its stack mounts. Nothing else
+needs it: a `Calendar` cannot announce a month change until someone has already paged it, by which time the
+region has existed for as long as the page.
 
 **Each message is its own node, removed a second later.** Setting the text of one persistent node does not
 re-announce an identical string, so paging back to a month you were just on would be silent. Appending a fresh
@@ -3190,6 +3489,126 @@ first or last day. `x` is always in range, because carrying is what puts it ther
 **Page keys mean a page of rows, and a caller for whom they mean something else turns them off.** A month is
 not six weeks, so `Calendar` passes `hasPageKeys: false` and does month arithmetic itself. `hasEdgeKeys`
 works as before, and `Home` / `End` are the ends of the **row**, not of the grid.
+
+### Controls: `RangeCalendar`, `DateRangePicker`, and the half-entered state
+
+**`RangeCalendar` is a second component beside `Calendar`, not a mode on it**, on the precedent `MultiSelect`
+already set: the shared work moved into a `CalendarComposite` — the grid, the roving day, the keyboard, the
+month announcement — and the two thin components over it own only their value shape and answer three hooks,
+`computeIsSelected`, `computeAnchorDay` and `onPick`. `SelectComposite` is the same arrangement, so a reader
+who knows one knows both. `DateRangePicker` sits beside `DatePicker` the same way.
+
+**The half-entered state is the component's, and never reaches the consumer.** `RangeCalendar` holds the first
+end in a private signal; while it is set, the outward value is `undefined` and the grid paints the span from
+that end to the roving day, so keyboard movement previews the range without a pointer. The second press
+commits `orderRange(first, second)`, which sorts the ends — so picking backwards gives the same span, and a
+consumer never receives a record of which end was clicked first. A third press starts again rather than
+extending, which is the behaviour that needs no rule to remember.
+
+**Three flags carry the band: `isInRange`, `isRangeStart`, `isRangeEnd`.** `isInRange` is inclusive of both
+ends, so a painter can lay a continuous band and then round the two caps; the ends are marked separately
+rather than inferred from position, because the first and last day of a visible week are not the ends of the
+span. The Playground's day painter writes them out as `data-in-range`, `data-range-start` and `data-range-end`
+so the suite can read the flag rather than a hashed class or a computed colour.
+
+**`DateRangePicker` derives its two fields from the one signal.** A start typed on its own leaves the outward
+value `undefined`, exactly as a single press on the calendar does, and the grid and the fields are two ways
+into the same value rather than two values kept in step.
+
+### A typed sign is opt-in, and only the grouped mask has one
+
+**`TextSyncGroupDefs` gained `hasSign`, and nothing else can hold a sign.** `applyGroupedMask` takes a minus
+wherever it appears in the text, moves it to the front, and keeps it while the digits regroup; `applyMask`, the
+fixed-pattern one, has no notion of it. That asymmetry is the point rather than an omission: a date's ISO
+spelling is `2026-08-10`, so a fixed-pattern field that read a hyphen as a sign would misread every date it
+was given. The flag is off by default, so an unsigned field drops a typed minus rather than refusing the
+keystroke — the digits still land, which is what a consumer who did not ask for signed amounts wants.
+
+**A lone minus is held rather than dropped**, because otherwise the sign could never be typed before the
+digits, which is the order everybody types it in. The mask returns the sign alone with the caret behind it,
+and `MaskedField` reports no value until digits arrive — a sign is not an amount.
+
+**The sign rides in the digit string, and `MaskedField` gained one optional def to allow it.** `readDigits`
+overrides how the field reads digits out of its text, defaulting to `TextSyncUtils.getMaskedDigits`, which
+strips everything that is not a digit. `CurrencyInput` passes `readSignedDigits` when signed, so `fromDigits`
+receives `"-123456"` and `toDigits` returns it. Widening the shared digit reader instead was rejected for the
+same reason the mask flag exists: `DateInput` would have started reading its ISO separators as signs.
+
+**`DecimalUtils.toDigits` drops the sign**, which is documented in `ss-utils` and is correct there — it
+converts a magnitude. `CurrencyInput` re-attaches the sign around it rather than asking that utility to
+change, because the sign belongs to the field's spelling and not to the decimal shift.
+
+### Group sizes are read from the decimal point outwards, and the last one repeats
+
+**`TextSyncGroupDefs.groupSizes` is a list, read from the point outwards.** `[3]` is every locale that groups
+in threes, `[4]` is a group of four, and `[3, 2]` is the Indian grouping: three digits nearest the point, then
+twos for as long as the digits last. The last entry repeating is what lets a fixed-length list describe a
+number of any size — the alternative, a list as long as the value has groups, would have to be recomputed
+every keystroke by whoever supplied it.
+
+**An empty list means no grouping at all**, which is the same rule read at its limit: there is no size to
+repeat, so the whole run is one group. A size below one is treated the same way, because the alternative is a
+loop that never advances.
+
+**`getGroupSizes` reads the pattern off `Intl` rather than carrying a table of locales.** It formats a
+ten-digit sample, measures each group the locale produced, reverses them and drops the leading one — which is
+a remainder rather than a group — then collapses the repeated tail to a single entry. Ten digits is chosen
+because it divides evenly by none of the group sizes in use, so the leftmost part is always a partial group
+and dropping it is always safe. A locale that produced no groups at all falls back to threes, matching what
+`DecimalUtils.getSeparators` does when a locale names no separator.
+
+### `DateTimeValue`, and why a missing half is no value
+
+**`DateTimeValue` is `{ date: DateValue; time: TimeValue }` in `Abstracts`**, joining the calendar-aware date
+this library owns to the `TimeValue` from `ss-utils`. `DateTimeValueUtils` covers the operations the two
+halves cannot answer between them — `isSame` ignores the seconds shape the way `TimeUtils` does, `compare`
+orders by date and falls back to time, and `toDate` flattens to a real `Date`.
+
+**`createSplit` is the composition, and `DateTimePicker` is the control over it.** The helper takes the one
+signal and returns a date signal and a time signal for the existing fields; the control pairs `DatePicker`
+with `TimePicker` over them, so the consumer holds one value and the two fields are an implementation detail.
+The helper is exported in its own right, because pairing a plain `DateInput` with a `TimeInput` needs the
+split without the two popups.
+
+**The control passes its shared props to both halves and overrides what cannot be shared.** The props type is
+`Omit<DatePickerProps, "valueSignal" | "ariaLabel" | "visibilitySignal">` plus the time-only knobs, so the
+field paint, the layer placement and the locale are written once. Three things collide and are named apart:
+`renderTimeTrailing`, `renderTimePopup`, and the two visibility signals. One collides silently and is
+overridden — `renderLeading` on the date side takes an era as its second argument, which the time field has
+no notion of, so the time half is given `undefined` rather than the date half's renderer.
+
+**Both composed pickers set `width: fit-content` and stop their children shrinking.** Without it the two
+picker roots are flex items that shrink below their content and overlap, which puts the second field's trigger
+underneath the first field's input — clickable by coordinate, unclickable by pointer. `DateRangePicker` has the
+same rule for the same reason. The Playground pages give these examples `span: 2`, because a control about
+460px wide otherwise overflows a 320px grid column and the neighbouring card paints over its trigger.
+
+**A pair with a half missing reports nothing, and this was corrected mid-build.** The first version filled the
+absent half from a default, so typing a date alone produced a value at midnight. That is wrong twice over: it
+disagrees with `RangeCalendar`, where half a range is explicitly not a range, and it made editing destructive,
+because clearing a field to retype it dropped the other half. The split now remembers each half privately and
+emits only when both are present — so clearing one clears the value, and retyping it brings the other back.
+
+### A control whose value is a pair holds one composite value, not two signals
+
+**Decided by the user.** Whenever a control's value is naturally a pair — a range's two ends, or a date paired
+with a time — the pair is **one value in one signal**, never two signals the consumer is expected to keep in
+step. Nothing of this shape is built yet; the decision is recorded ahead of the work because it is the same
+question in two unbuilt places and answering it differently in each would be the expensive outcome.
+
+**What follows from it.** A date range is one `{ start, end }` value, reusing the field names `Range` already
+ships and that this file argued for on published precedent — so a range `Calendar` takes one signal, and the
+half-entered state while the first end is being picked is the component's to hold, not the consumer's. A date
+paired with a time is a new value type in `Abstracts` rather than a `{ date, time }` record assembled at the
+call site.
+
+**Why it was worth settling before either is built.** The two look independent — a range needs
+`isInRange` / `isRangeStart` / `isRangeEnd` on the day flags and touches nothing about time, and a date-time
+needs a value type and has no half-entered state at all. What connects them is the third thing neither piece of
+outstanding work names: a date-time **range**. If the pair question were answered one way for ranges and the
+other way for date-and-time, that composition would inherit both shapes at once, and whichever was built first
+would be rewritten. React Aria answers both the same way for the same reason — `{ start, end }` for ranges, a
+value type for the date-time pair.
 
 ### Controls: `Calendar`, and the date value the library owns
 
@@ -3253,6 +3672,23 @@ worse than one reporting the value as not yet valid.
 stops the calendar changing height as months are paged. The neighbouring days make the keyboard walk work
 without a special case — the grid is a continuous run of dates, so the next cell from `computeNextCell` maps
 back as `addDays(gridStart, y * 7 + x)` whatever `y` is.
+
+**The page keys move a month, and held Shift moves a year.** `PageUp` and `PageDown` step the roving day by
+one month, `Shift` with either steps it by one year, and both go through the same `moveTo` — so both clamp to
+`min` and `max`, both pull the visible month along, and both are announced by the month effect already
+watching it. This is the one part of the grid's keyboard a consumer cannot supply from outside: the grid owns
+its `keydown` handler, so a caption can offer a year jump as a button but nothing outside can bind a key to
+one. Note that the year step is `addYears` rather than twelve `addMonths`, which is what keeps 29 February on
+a year that has no 29 February from walking somewhere unexpected.
+
+**Forty-two `InteractionWrapper`s per month is the cost of consistency, and it has been measured rather than
+worried about.** Building a whole calendar — which is what opening a `DatePicker` popup does — takes about
+3ms of work, and changing month takes about 1.7ms, worst case under 3ms; both are the synchronous update, so
+the frame they land in is not otherwise at risk. That is a headless Chromium on one machine over a production
+build rather than a guarantee, but it settles the shape of the answer: a three-month view would be roughly
+9ms to build and 5ms to page, still inside a frame, and the per-cell wrapper is not what would make a
+multi-month calendar expensive. The remaining per-cell cost worth caring about is a consumer's own disabled
+predicate, which is called once per cell and is theirs to make cheap.
 
 **The visible month is a `Signal` the consumer owns, and `Calendar` renders no header.** `monthSignal` is
 required, and the month title and paging buttons are the consumer's markup outside the component. The
@@ -3329,7 +3765,7 @@ Settled, closing the primitive `backlog.md` #2 asked for.
 `InteractionUtils.trackDrag(ref, disabled, opts)` reports where a pointer is inside an element for as long as
 a drag lasts.
 
-**It is a separate call rather than part of `wrapElement`**, as item 2 asked: most controls want no listener
+**It is a separate call rather than part of `wrapElement`**, as item 1 asked: most controls want no listener
 at all, and a two-dimensional surface is the one shape that cannot borrow a native input the way `Range`
 borrows one per thumb.
 
@@ -3605,8 +4041,19 @@ consumer draws the title and paging buttons.
 
 ### The mask: only digits are typed, and the caret is computed rather than preserved
 
-Settled, on the user's call to try a mask rather than the element-per-segment shape every other
-library uses (`backlog.md` item 7's survey). The primitive two shipped fields were waiting on.
+Settled, on the user's call to try a mask rather than the element-per-segment shape every other library uses.
+The primitive two shipped fields were waiting on.
+
+**What the survey found, kept here because it is the argument against the shape that was chosen.** React Aria
+renders one focusable, editable segment per date unit, each a spin button in its own right, and says so as the
+point of the design: any locale order, in any calendar system, without a browser input mask. MUI moved to the
+same shape in v7, replacing the single `<input>` with a list of sections behind an
+`enableAccessibleFieldDOMStructure` prop, so that ARIA attributes can sit on each section. An element per
+segment does not solve the display-form-versus-value-form problem; it makes it not arise, because there is no
+single string to be in two forms. **And no component library owns a mask at all** — MUI's own text-field
+documentation covers formatting by swapping the inner input for `react-imask` or `react-number-format`, so
+everywhere it appears it is a dependency rather than a component. That is the gap this primitive fills, and it
+is why exporting it was worth doing.
 
 **`TextSyncUtils.applyMask(pattern, previous, next, caret)` is a pure function, so the caret arithmetic is
 reachable from `npm test`.** A pattern is `#` for a digit slot and any other character as a literal, so
@@ -3732,6 +4179,40 @@ reads it inside a tracking scope, so a format change re-renders it anyway.
 The prop behind it is `getPlaceholderHint` on `TextField`, `Omit`ted by `DateInput` and `TimeInput` for the
 reason they omit `getMask` — they own the format. A hand-built `TextField` or `TextInput` sets neither and its
 painter is handed `undefined`.
+
+### `ContextMenu`: the same menu, opened by a right-click at a point
+
+Settled while closing the last of `backlog.md` item 4's opener bullets. What differs between a menu on a
+button and a menu on a right-click is the opener, not the menu — so the level, the items, the submenus, the
+typeahead, the keyboard and the dismissal are all the ones `Menu` already has.
+
+**It is a second component rather than a mode, because a right-click menu has no button to render.** `Menu`
+is a trigger plus a root level, and its trigger is a real `<button>` with a name, a tab stop and an
+`aria-expanded` — none of which a context menu has any use for. A `hasTrigger` flag would have left an empty
+button in the tab order, or an `InteractionWrapper` wrapping a control that is not there. `ContextMenu`
+renders the level and nothing else. This is also what the published libraries do: Radix ships a whole
+`ContextMenu` over the same menu internals, and Ark UI adds a second trigger part rather than a second menu.
+
+**The region is the consumer's element, handed over as `regionRef`.** The library cannot render it — it is
+whatever area the menu belongs to, a canvas, a row, a whole page — so it is a ref, and the component attaches
+the `contextmenu` listener to it. That the listener is the library's rather than the consumer's is the point:
+the point has to be converted out of client coordinates into the space the positioner works in, and a
+consumer cannot be expected to know that a `Viewport` may be scaling everything around them.
+
+**The point is a rect of no size, which is what let this be built with nothing new underneath.**
+`Anchor.createPortalPosition` already took an optional `getAnchorRect` for `Spotlight`, so a zero-size rect at
+the pointer is an anchor like any other: the default placement puts the popup's near corner on it, and the
+same edge-safety logic flips it near a screen edge. `Popover` gained the one prop that threads it through.
+
+**A popup with an explicit rect drops its anchor from the dismiss roots, and that reversal is deliberate.**
+`Popover` normally treats the anchor element as part of its own layer, so pressing a toggle button does not
+dismiss the popup before the button's handler can toggle it. A point-anchored popup is the opposite case: the
+anchor is a whole region rather than a button, and a plain left-click inside it has to dismiss the menu like
+any other press outside. The right-click that re-opens the menu elsewhere in the region is unaffected —
+`pointerdown` dismisses first and `contextmenu` opens again at the new point, so the menu appears to move.
+
+**The menu names itself, because there is no trigger to be named by.** `MenuLevel` labelled its popup with
+the trigger's id; it now takes an `ariaLabel` beside that, and `ContextMenu` requires one.
 
 ### Dismissal is one stack, and `Popover` is the layer
 
@@ -4043,9 +4524,11 @@ rather than a conflict.
 **`Button` gained `getType`.** A submit button has to be `<button type="submit">` and the leaf hardcoded
 `"button"`. It defaults to `"button"`, so nothing changed for existing call sites.
 
-**Only `TextField` and `BinarySwitch` read the description context so far**, covering `TextInput`, `TextArea`,
-`NumberInput`, `DateInput`, `TimeInput`, `Checkbox`, `Toggle` and `Radio`. `Select`, `ColorInput`, `FileInput`
-and `Range` still need the same one-line call.
+**Every field reads the description context, and so does `SlideButton`.** `TextField` and `BinarySwitch` cover
+`TextInput`, `TextArea`, `NumberInput`, `CurrencyInput`, `DateInput`, `TimeInput`, `Checkbox`, `Toggle` and
+`Radio`; `Select`, `ColorInput`, `FileInput` and `Range` each make the same one-line call. `SlideButton` is the
+one control that is not a field and reads it anyway — see the entry under its own heading. The plain `Button`,
+`Menu` and the navigational controls do not, and nothing has asked.
 
 ### `Button` reports the pointer, and `NumberInput` repeats while held
 
@@ -4194,6 +4677,21 @@ measures against, once per frame.
 **The transform stays local.** CSS already composes an ancestor's transform, so each root writes its own
 `translate` and `scale` in its host's coordinates and nothing accumulates twice.
 
+**That the two factors multiply is now driven rather than only unit-tested**, and the trick is to shrink the
+window. The Playground's own viewport is drawn at `1` whenever the window's height matches the size it
+anchors to, which is every machine it has ever run on — its fit works out to the window's height over that
+anchor whichever way the aspect ratio falls, because the design size is derived from the ratio too. So
+`viewport.spec.ts` sets the inner square to half, halves the window, and reads a quarter back off both the
+viewport's own report and a control measured two levels in: its painted height over its layout height.
+Without the resize the outer factor is `1` and any product looks like the inner factor alone.
+
+**A stack of toasts raised inside a nested viewport stays inside it**, examined rather than assumed. It
+portals into that viewport's own portal like every other layer, is clipped by the same `overflow: hidden`,
+and is the thing painted at its own position — so its fixed `z-index`, chosen against `Modal`'s and never put
+through the anchor-relative rule the popups use, costs nothing here: the region is a child of the portal, and
+what a portal paints over is decided by the portal's own place in the tree rather than by a number inside it.
+`ViewportPage` raises one so the case stays driven.
+
 **An earlier attempt had a nested viewport fill its parent instead**, mounted into the parent's content box by
 a portal. It was wrong for the case that matters: a viewport you cannot place cannot be the boundary of
 anything smaller than the window, and the boundary is the point.
@@ -4261,7 +4759,7 @@ above is not read as absolute.
 Settled by the user, choosing to take `@internationalized/date` as a dependency rather than
 read the calendars out of `Intl` by hand, and to support as many calendar systems as the package really
 implements. The measured reasoning — what the platform contains, what the reverse conversion costs, why
-`chinese` cannot be done this way — is in the entry below and in `backlog.md`.
+`chinese` cannot be done this way — is in the entry below.
 
 **`DateValue` is `CalendarDate`, aliased rather than wrapped.** A value carries its calendar, an era, a **year
 within that era**, a month index and a day. The old `{ year, month, day }` record with a signed year is gone,
@@ -4345,6 +4843,29 @@ function with a different body, and a grouped number has no pattern to state bec
 as its value needs. The transform stays where `getMask` was — inside `TextSync.createValueSync` — because _"a
 mask owns the caret"_ is unchanged.
 
+### `TextSyncUtils` is public, so the mask is a contract rather than an implementation
+
+Settled by the user, choosing to export it over leaving it internal. `TextSync.utils` now leaves through
+`index.ts` beside `TextSync` itself: `applyMask`, `applyGroupedMask`, `getGroupSizes`, the two `formatWith*`
+helpers, the digit readers and both types.
+
+**The argument that decided it is what a consumer is left with otherwise.** Three fields in this library are
+built on it and a fourth kind — a phone number, a card number, a postcode — is an ordinary thing to want. A
+consumer who cannot reach the mask reaches for a package instead, and the caret arithmetic is the part that
+is hard to get right and easy to get subtly wrong: which digit a backspace over a separator takes, where the
+caret lands when the groups shift under it. Withholding it does not stop that field being built; it only
+stops it being built on the answer already tested here.
+
+**What that commits to, stated so the next change to it is a deliberate one.** The caret rules are now
+observable behaviour: where the caret lands after an insertion, a deletion or a paste is part of the
+contract, not an internal detail. So is the mask vocabulary — `#` as the digit slot, a minus as the only
+sign, group sizes read from the decimal point outwards. Changing any of those is a change a consumer can
+see, and belongs in the same class as changing a prop's meaning.
+
+**Nothing is annotated on the way out.** A utility's contract here is its signature, which is the rule for
+this repo rather than for `ss-utils`; exporting it does not change that, and the entry above is where the
+reasoning lives.
+
 ### Controls: `CurrencyInput`, and why it is not `NumberInput` with grouping
 
 Settled by the user, choosing a separate control over widening `NumberInput`.
@@ -4362,10 +4883,18 @@ reads back as the same number, so moving the point along that string rounds on w
 than on its binary approximation. A magnitude printing in exponential form falls back to multiplying; an amount
 field is not where `1e21` belongs.
 
-**The separators come from the locale, not from props.** `Intl.NumberFormat` already knows them and the
-consumer has already said which locale they are in; asking twice invites the two to disagree. `getGroupSize`
-stays a prop because it is a layout choice rather than a locale fact — and because uniform groups are all
-`applyGroupedMask` can express, which is the limit `backlog.md` records.
+**The separators come from the locale, not from props**, and so does the grouping. `Intl.NumberFormat`
+already knows both and the consumer has already said which locale they are in; asking twice invites the two to
+disagree. The grouping used to be the exception — a `groupSize` prop defaulting to three, on the grounds that
+how wide a group is is a layout choice rather than a locale fact. That reasoning was wrong in the one place it
+mattered: `en-IN` writes `12,34,567`, three digits nearest the point and twos above it, so a field that took
+that locale's comma and grouped in threes anyway was spelling the locale wrong in the very place it had been
+told what the locale is. `TextSyncUtils.getGroupSizes` reads the answer out of `Intl` beside the separators,
+and `groupSizes` is now an override rather than the source.
+
+**The override is a list of sizes because a single number cannot say what a locale can.** A prop meant for a
+consumer who wants something other than their locale's grouping would otherwise be strictly less expressive
+than the default it replaces, which is the argument for the shape rather than any current call site.
 
 **There is no sign and no currency symbol.** The mask is digits-only, so a negative amount cannot be typed;
 the symbol is paint in a leading slot, because a library holding no colours does not hold currencies either.
@@ -4390,7 +4919,7 @@ and labels itself with `name`. Nothing may render `id`.
 
 ### A popup's open state is private until a consumer asks for it
 
-Settled by the user, closing the `openSignal` question items 5, 6, 7 and 15 of `backlog.md`
+Settled by the user, closing the `openSignal` question items 3, 4 and 11 of `backlog.md`
 were waiting on. `Select`, `MultiSelect`, `Menu`, `ColorInput` and `DatePicker` each take an optional
 `visibilitySignal`, which is `Modal`'s prop under `Modal`'s name and rules.
 
@@ -4398,6 +4927,15 @@ were waiting on. `Select`, `MultiSelect`, `Menu`, `ColorInput` and `DatePicker` 
 proved it on this kind of state: it reads `visibilitySignal` and writes `false` when it dismisses itself. A
 popup opens and closes for its own reasons, so a one-way "here is a boolean, obey it" prop would fight the
 component. A consumer with no signal uses `SignalMirror`.
+
+**`SignalMirror.createPassThrough` is the third shape, and it holds nothing at all.** It takes a getter and
+a setter and returns a `Signal` whose reads go straight to the source and whose writes go straight out, with
+no inner value between them. That matters wherever a write can be **refused**: a mirror keeps its own copy,
+and a copy that has already flipped never hears about a refusal, because the outer value it would compare
+against never changed. `Accordion`'s sections use it for exactly that — a section whose expansion is required
+must stay open when its own header is pressed, and with a mirror underneath it the header said closed while
+the list said open. Same caveat as every setter of this shape: a `T` that is itself a function cannot be
+written as a value, only through an updater.
 
 **`SignalMirror.createOptional` is how a control stays private by default.** It returns the signal the
 component was handed or one of its own, reading the prop through on every access, so there is one code path
@@ -4418,7 +4956,7 @@ click outside would leave it.
 **What this does not buy is an opener the dismiss layer knows about.** A consumer's own button sits outside the
 popup, so pressing it while open dismisses the popup and the handler then re-opens it: a toggle button appears
 not to close. The Playground demonstrates open and close as two separate buttons for that reason. Fixing it
-means `Menu` accepting an anchor and an opener, which is what `backlog.md` item 6 asks for next.
+means `Menu` accepting an anchor and an opener, which is what `backlog.md` item 4 asks for next.
 
 ### Playback is a signal; a rewind is a command
 
@@ -4473,7 +5011,7 @@ half does its own work, and the consumer's own signal opens the menu.
 
 **A right-click context menu is still not possible**: it opens at the pointer rather than against an element,
 and `Anchor` positions against a ref only. That needs a virtual anchor — a rect standing in for an element —
-which is a change to `Anchor` rather than to `Menu`, and it is the last piece. `backlog.md` item 6.
+which is a change to `Anchor` rather than to `Menu`, and it is the last piece. `backlog.md` item 4.
 
 ### A list the consumer has not finished handing over: `getHasMoreOptions`, `onReachEnd`, and a marker
 
@@ -4520,7 +5058,7 @@ description is not — so the moment a jump to the end forces the skipped rows t
 height above the highlight is corrected at once and the scroll offset no longer points where it did. `End` then
 leaves the highlighted option below the visible box. The user removed the switch. What it
 bought was the cost of _painting_ options, which is a different and smaller cost than _mounting_ them;
-`backlog.md` item 5 holds what is left.
+`backlog.md` item 3 holds what is left.
 
 **The marker is keyed on the options array, and that is load-bearing.** An intersection observer reports only
 _changes_, so a batch too small to push the marker off screen would deliver no callback and the list would
@@ -4590,6 +5128,15 @@ untouched — only what is in the document changes.
 options inside it, so a window opening halfway down one would have to draw a box for a group whose header is
 above the window and whose end is below it, and repeat the header as the reader scrolls. Passing an estimate
 for a list containing a group mounts everything, silently and correctly.
+
+**Row heights are taken as fractions, which is one line of the package's default replaced.** TanStack's own
+`measureElement` rounds the observed border box to a whole pixel. A row is rarely a whole number of pixels
+tall — a two-line option here measures 97.5 — so every rounded row gives its slot half a pixel the row does
+not fill, and consecutive rows sit with a hairline between them: invisible against an unpainted row, obvious
+the moment a consumer gives their options a background. The override returns the unrounded `blockSize` when a
+`ResizeObserver` entry is present and delegates to the package's own function otherwise, so every fallback
+path — the cache lookup, the estimate, the synchronous first measure — behaves exactly as before. The
+observed box is in layout pixels, so this is also the one measurement `Viewport`'s scale cannot distort.
 
 **Four things the package's documentation does not cover, all from one root: this library is a guest inside
 somebody else's popup.**
@@ -4702,6 +5249,26 @@ Wrapping is what `Select`, `Menu`, `Tabs` and `RadioGroup` all do through `compu
 that stopped would be the one list here behaving differently — consistency inside the library won over the
 published behaviour, recorded here rather than being discoverable only by pressing `ArrowUp` on the first row.
 
+### A windowed `Tree` is flat, and that is the opposite of a windowed `Select`
+
+**`computeEstimatedNodeHeight` opts a tree into windowing**, over the flat walking order `TreeUtils.getFlatRows`
+already produced for the keyboard. Both renderings share one `renderRow`, so a windowed tree and a mounted one
+differ only in what wraps the rows.
+
+**The windowed rendering emits no `role="group"` at all.** This is the reverse of the grouped `Select`
+decision recorded above, and the difference is worth holding onto. A `Select` group box is a sibling of
+nothing — it carries the group's name on `aria-label`, so a box around part of a group is still a correct,
+named box. A tree's group box means something only as the child of the treeitem that owns it; a box for a
+subtree whose parent is outside the window would be **detached** rather than partial, which is worse than
+having none. The published pattern answers this case directly: when the nodes are not all in the DOM because
+the reader is scrolling, every node states `aria-level`, `aria-posinset` and `aria-setsize`. Every treeitem
+here already did, for the keyboard's sake, so windowing needed no new attribute.
+
+**The roving row is pinned, and focus scrolls before it moves.** `focusRow` asks the window to bring the row
+in before calling `focus`, and the roving row is in `getPinnedRows` so it stays mounted once reached —
+otherwise arrowing to a row outside the window would call `focus` on an element that does not exist and
+silently drop focus to the body.
+
 ### `Tree` nodes can be links, on `Tab<T>`'s terms
 
 Added, at the user's request, after the left menu was weighed as a tree. A hierarchical menu is
@@ -4763,6 +5330,31 @@ harms VoiceOver users, Apple's guidance is to override `accessibilityActivate` s
 same logic **without** the swipe; the iOS lock screen behaves that way. What is built here is that answer with
 the timing put back in — the part their platform gets from the assistive technology's own confirmation step and
 a web control does not.
+
+**What a screen reader is told is the field's hint, said once, and the library invents no words.** A person
+who cannot see the fill hears the button's name and then nothing — so the gap was never a running commentary
+on the bar, it was not being told what the control wants before starting. `SlideButton` reads the `FormField`
+description context like every input does, so wrapping it in a field with "hold or slide to send" makes that
+the button's description, read after its name when it takes focus. Nothing is announced during the gesture:
+speech inside a one-second hold is the stutter `LiveAnnouncer` exists to avoid, and it would still be talking
+when the action fired.
+
+**Why that is the whole of what is owed here, rather than a compromise.** The gesture exists to resist an
+_accidental_ activation, and a screen reader already supplies that protection by construction: reaching a
+control and then activating it are two separate deliberate acts, which is not the case for a stray click or a
+misplaced tap. Apple's guidance for the pattern says the same thing from the other end — collapse the swipe to
+a single activation for VoiceOver — and the iOS lock screen does exactly that. So the assistive route wants
+_less_ gesture, not a described one, and a consumer who agrees already has the switch: `getHoldDurationMs` of
+`0` makes the first frame complete the hold, so a plain press activates. The library cannot make that choice
+itself, because detecting a screen reader is neither possible nor something to attempt.
+
+**The progress is a flag and a signal, and the signal is optional.** `progressSignal` is the ratio the fill
+is drawn from, taken through `SignalMirror.createOptional` exactly as a popup's `visibilitySignal` is: with no
+prop the control keeps the number to itself, and with one the consumer holds the same variable the painter
+reads. It exists because a flag only reaches `renderContent` — a readout beside the control, a second control
+that reacts half-way, or a warning that appears at eighty per cent is outside that slot and had no route to
+the number at all. A consumer write lands, and the next frame of a hold or a drag overwrites it, which is the
+same bargain `Select` makes when it writes `false` back into a visibility signal it did not open.
 
 **A press on the thumb starts both, and movement decides which.** A hold begins on every press; a press that
 landed on the thumb converts to a drag once the pointer travels past a few pixels, and the abandoned hold snaps
@@ -4906,7 +5498,7 @@ turn a list of keyframe stops into the evaluation function `CellAnimation` asks 
 keyframes rather than a formula writes their own. That is real, and it is still not the library's: the
 component's contract is already the smaller and more general thing — a function from timeline to result — and a
 stop list with `at`, `depth` and origin keys is one **opinion about how to author** such a function. Shipping it
-would freeze that opinion as API for a consumer nobody has met, which is the layer item 12 in `backlog.md`
+would freeze that opinion as API for a consumer nobody has met, which is the layer item 8 in `backlog.md`
 plans. The matrix half is a different case: it needs only the language to work, which is the `ss-utils` test,
 and that package has `Vec2d` and `Vec4d` but no matrix — noted as a candidate rather than moved, because one
 consumer is a thin case for an export in another repo.
@@ -4975,7 +5567,7 @@ rather than a scrollbar. The user asked for it as a `Carousel`; the name was cor
 built, because **a carousel is a different pattern with an accessibility contract this does not implement** —
 one slide at a time, wrapping, `aria-roledescription` of `carousel` and `slide`, and a pause control the moment
 it rotates by itself. Naming a component after what it resembles is the trap already recorded for the segmented
-control. The real carousel is `backlog.md` item 8.
+control. The real carousel is `Carousel`, which has since been built.
 
 **The track holds arbitrary children, and that is the user's call.** It renders nothing and types nothing: the
 consumer's markup goes in as `children` and comes out untouched. A list of records — `Tabs`' shape — was
@@ -5003,6 +5595,19 @@ called once per button with which step it is and with a `ScrollerStepper` — `g
 consumer composes with `Button` and inherits naming, the focus ring, tooltips and the disabled treatment, and
 the library owns only what nobody else can know: how far a step goes and whether there is anywhere left to go.
 `getButtonPlacement` is `split`, `start` or `end`, since "together" cannot be placed without saying which side.
+
+**The position is reported as a ratio, and a written ratio scrolls the strip.** `progressSignal` is optional
+and goes through `SignalMirror.createOptional` like every other `*Signal`, and it carries `scrollLeft` divided
+by the distance there is to travel — zero when nothing overflows. Reporting it is what the stepper cannot do:
+page dots, a progress bar or a "3 of 12" readout all sit outside `renderButton`, and none of them could reach
+the number. Accepting a write is the other half of the same variable, and it is what makes those dots
+pressable rather than decorative.
+
+**Which way a change came from is remembered rather than inferred**, because the track scrolls smoothly and
+every intermediate frame reports itself. The component keeps the last ratio it wrote and ignores exactly that
+value coming back; anything else is the consumer's and is scrolled to. Without it a consumer's write would be
+cancelled by the first frame of its own animation — the report would land back in the signal, look like a new
+instruction, and scroll to where the strip had got to instead of where it was sent.
 
 **`getPadding` exists because a scroll container clips a focus ring, and only the consumer knows how big the
 ring is.** A ring is drawn outside the border box and a scrolling box clips at its own edges, so a focused
@@ -5174,8 +5779,8 @@ keeps neither.
 ### Turning a page's variants into examples, settled on the four `Exotics` pages
 
 `Formation`, `Satellite`, `Staircase` and `Wheel` were the first pages whose demos moved from `PageVariants` to
-`PageExamples`, which is the first slice of the project `backlog.md` item 21 describes. The question that item
-left open — where a variant's file lives and what it is given — is answered here, and the answer is the shape
+`PageExamples`, which was the first slice of the Playground rollout `backlog.md` used to carry as its own item.
+The question that item left open — where a variant's file lives and what it is given — is answered here, and the answer is the shape
 `ShapePage`, `TypewriterPage` and `ScanlineAnimationPage` already had rather than a new one.
 
 **The split is the library call on one side and the Playground's furniture on the other.** The example file
@@ -5249,7 +5854,7 @@ honest reading of what the test was always claiming.
 
 ### Every Playground page is examples now, and two things had to change to finish it
 
-The rollout `backlog.md` item 21 described is done: all thirty-three pages that still used `PageVariants`
+The rollout `backlog.md` used to carry as its own item is done: all thirty-three pages that still used `PageVariants`
 carry the source-code button, and `PageVariants` itself has no consumers left. What the four `Exotics` pages
 settled held for the rest; two things they never exercised did not.
 
@@ -5454,6 +6059,18 @@ means an element already fully visible is not moved at all, which is what keeps 
 in the common case. No `behavior: "smooth"`: the rect is re-read every frame while the spotlight is open, so a
 smooth scroll would work, but an instant one has no reduced-motion question to answer and matches the three
 controls above.
+
+**A step change is announced, and the words are the consumer's.** Focus deliberately stays where the reader
+put it when a step changes — moving it is worse, for the reasons above — but that leaves a screen reader
+hearing nothing at all as the popup's content is replaced under held focus. `announcement` is a string the
+consumer sets per step, spoken politely through `LiveAnnouncer` whenever it changes while the spotlight is
+open. The library owns neither the step count nor the title, exactly as it owns no toast's text, so it holds
+no wording of its own; and the announcer's region is reserved on mount for the same reason `Toasts` reserves
+its two, since a live region created by its first message may be silent for that message.
+
+**It is announced on a change and never on the first show**, because the popup takes focus once it is placed
+and a reader is already reading it there. Announcing the first step as well would say it twice, which is the
+stutter this mechanism exists to avoid rather than cause.
 
 **The Playground's guide example holds its steps in a strip one step tall, and that is deliberate.** The demo
 page is short enough that both tour steps were always on screen, which made the scroll unobservable and the
@@ -5886,11 +6503,11 @@ can know.
 **The cost is stated rather than mitigated: a library that renders no button cannot promise one is reachable or
 named.** A consumer who wires up no control has a wheel that can only be driven from elsewhere through
 `indexSignal`, exactly as `Carousel` with no `renderControls` has no keyboard route. That is the same exposure
-item 23 records for `Scroller` and it is now the wheel's too.
+item 18 records for `Scroller` and it is now the wheel's too.
 
 **No slot survives either, and the one that briefly did was kept for a bad reason.** A `renderHub` was left on
-the flat wheel out of deference to the choice `backlog.md` item 27 records — that a flat wheel has one control
-slot and it is the hub. The user axed it. That choice was about where a **button** goes and there is no button
+the flat wheel out of deference to an earlier choice — that a flat wheel has one control slot and it is the
+hub. The user axed it. That choice was about where a **button** goes and there is no button
 now; intrinsically the slot contributed one number, `inset: 35%`, which is paint, and a consumer who wraps the
 wheel in a positioned box writes it themselves. The Playground does exactly that. `FlatWheel` renders wedges
 and nothing else, `DrumWheel` renders a barrel and nothing else.
@@ -6070,7 +6687,8 @@ that renders and measures as zero rather than one that errors.
 
 ### The suite finds a demo by a key it was given, never by the caption it displays
 
-The fault `backlog.md` item 29 describes, for the part of it that is now closed. A locator built out of
+The fault `backlog.md` used to carry about locators built from caption text, for the part of it that is now
+closed. A locator built out of
 editorial text answers two questions in one red — did the behaviour change, and has anybody edited the
 copy — and the second answer is worthless. Every variant, example and props row on a Playground page now
 carries a key that is chosen once and never displayed.

@@ -1,7 +1,7 @@
 import { MathUtils, ObjectUtils } from "@thewaver/ss-utils";
 
-import { SVGAnimationUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Animation/SVGAnimationDefs.utils";
 import { SVGGradientDefsUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
+import { SVGAnimations } from "../../SVGAnimations.const";
 import type { GradientConfig } from "../../SVGDefs.types";
 import { SVGDefsUtils } from "../../SVGDefs.utils";
 
@@ -23,14 +23,14 @@ export const snake_async_3: GradientConfig = {
                             ],
                             angle: 90,
                         },
-                        SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
+                        SVGAnimations.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
                     ),
             },
             clipPath: {
                 id: `clip1-${id}`,
                 renderDefsElement: () => (
                     <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                        {SVGAnimationUtils.Path.rotatingArc(
+                        {SVGAnimations.Path.rotatingArc(
                             ObjectUtils.zipArray("stretch", MathUtils.getIntermediateValues(90, 450, 12), [180]),
                             defs,
                         )}
@@ -51,7 +51,7 @@ export const snake_async_3: GradientConfig = {
                             ],
                             angle: 90,
                         },
-                        SVGAnimationUtils.Linear.rotate(
+                        SVGAnimations.Linear.rotate(
                             [
                                 ...MathUtils.getIntermediateValues(90, 450, 12),
                                 ...MathUtils.getIntermediateValues(90, 450, 12),
@@ -64,7 +64,7 @@ export const snake_async_3: GradientConfig = {
                 id: `clip2-${id}`,
                 renderDefsElement: () => (
                     <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                        {SVGAnimationUtils.Path.rotatingArc(
+                        {SVGAnimations.Path.rotatingArc(
                             ObjectUtils.zipArray(
                                 "stretch",
                                 [
@@ -92,7 +92,7 @@ export const snake_async_3: GradientConfig = {
                             ],
                             angle: 90,
                         },
-                        SVGAnimationUtils.Linear.rotate(
+                        SVGAnimations.Linear.rotate(
                             [
                                 ...MathUtils.getIntermediateValues(90, 450, 12),
                                 ...MathUtils.getIntermediateValues(90, 450, 12),
@@ -106,7 +106,7 @@ export const snake_async_3: GradientConfig = {
                 id: `clip3-${id}`,
                 renderDefsElement: () => (
                     <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
-                        {SVGAnimationUtils.Path.rotatingArc(
+                        {SVGAnimations.Path.rotatingArc(
                             ObjectUtils.zipArray(
                                 "stretch",
                                 [

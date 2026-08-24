@@ -1,4 +1,4 @@
-import { Index, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import { Index, Show, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { Portal } from "solid-js/web";
 
 import { Rect } from "@thewaver/ss-utils";
@@ -8,6 +8,7 @@ import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
 import { ElementFader } from "../../Abstracts/ElementFader/ElementFader";
 import { ElementObserver } from "../../Abstracts/ElementObserver/ElementObserver";
 import { FocusUtils } from "../../Abstracts/Focus/Focus.utils";
+import { LiveAnnouncer } from "../../Abstracts/LiveAnnouncer/LiveAnnouncer";
 import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
 import { access } from "../../Utils/propUtils";
 import type { SpotlightProps } from "./Spotlight.types";
@@ -153,6 +154,23 @@ export const Spotlight = (props: SpotlightProps) => {
         onCleanup(() => {
             for (const sibling of sealed) sibling.inert = false;
         });
+    });
+
+    onMount(() => {
+        if (props.announcement === undefined) return;
+
+        LiveAnnouncer.reserve("polite");
+    });
+
+    createEffect<string | undefined>((previous) => {
+        const announcement = access(props.announcement);
+
+        if (!getIsVisible()) return previous;
+        if (previous !== undefined && announcement !== undefined && announcement !== previous) {
+            LiveAnnouncer.announce(announcement);
+        }
+
+        return announcement;
     });
 
     const [getHasPlaced, setHasPlaced] = createSignal(false);

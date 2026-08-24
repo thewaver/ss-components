@@ -10,24 +10,29 @@ import { TextField } from "../TextField/TextField";
 import type { CurrencyInputProps } from "./CurrencyInput.types";
 
 const DEFAULT_CURRENCY_INPUT_DECIMALS = 2;
-const DEFAULT_CURRENCY_INPUT_GROUP_SIZE = 3;
 
 export const CurrencyInput = (props: CurrencyInputProps) => {
     const getDecimals = createMemo(() => access(props.decimals) ?? DEFAULT_CURRENCY_INPUT_DECIMALS);
 
+    const getHasSign = () => access(props.hasSign) ?? false;
+
     const getGroupDefs = createMemo((): TextSyncGroupDefs => ({
         ...DecimalUtils.getSeparators(access(props.locale)),
-        groupSize: access(props.groupSize) ?? DEFAULT_CURRENCY_INPUT_GROUP_SIZE,
+        groupSizes: access(props.groupSizes) ?? TextSyncUtils.getGroupSizes(access(props.locale)),
         decimals: getDecimals(),
+        hasSign: getHasSign(),
     }));
 
     const getHint = () =>
         TextSyncUtils.formatWithGroups(getGroupDefs(), "0".repeat(getDecimals() + 1)).replace(/\d/g, "0");
 
     const fromDigits = (digits: string) => {
-        const parsed = DecimalUtils.fromDigits(digits, getDecimals());
+        const isNegative = digits.startsWith(TextSyncUtils.MASK_MINUS);
+        const magnitude = DecimalUtils.fromDigits(isNegative ? digits.slice(1) : digits, getDecimals());
 
-        if (parsed === undefined) return undefined;
+        if (magnitude === undefined) return undefined;
+
+        const parsed = isNegative ? -magnitude : magnitude;
 
         const min = access(props.min);
         const max = access(props.max);
@@ -39,8 +44,11 @@ export const CurrencyInput = (props: CurrencyInputProps) => {
         getValue: () => props.valueSignal[0](),
         setValue: (next) => props.valueSignal[1](next),
         formatDigits: (digits) => TextSyncUtils.formatWithGroups(getGroupDefs(), digits),
+        readDigits: (text) =>
+            getHasSign() ? TextSyncUtils.readSignedDigits(text) : TextSyncUtils.getMaskedDigits(text),
         getDigitCount: () => undefined,
-        toDigits: (value) => DecimalUtils.toDigits(value, getDecimals()),
+        toDigits: (value) =>
+            (value < 0 && getHasSign() ? TextSyncUtils.MASK_MINUS : "") + DecimalUtils.toDigits(value, getDecimals()),
         fromDigits,
         getHasImpossibleDigits: (digits) => digits.length > 0 && fromDigits(digits) === undefined,
         getIsSame: (a, b) => a === b,

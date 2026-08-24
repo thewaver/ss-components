@@ -1,12 +1,13 @@
 import type { JSX, Signal } from "solid-js";
 
 import { Select } from "../../../../../Lib/Fundamentals/Input/Select/Select";
-import type { SelectOption } from "../../../../../Lib/Fundamentals/Input/Select/Select.types";
+import type { SelectItem } from "../../../../../Lib/Fundamentals/Input/Select/Select.types";
 import type { MaybeAccessor } from "../../../../../Lib/Utils/typeUtils";
 import { PageProp } from "../../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../../PageComponents/PropsPanel/PropsPanel";
 import { PageNumberField } from "../../../StyledComponents/Field/Field";
 import { PageSelectContent } from "../../../StyledComponents/SelectContent/SelectContent";
+import { PageSelectGroupContent } from "../../../StyledComponents/SelectGroupContent/SelectGroupContent";
 import { PageSelectOptionContent } from "../../../StyledComponents/SelectOptionContent/SelectOptionContent";
 import { PLACEHOLDER, renderSelectPopup } from "../SelectPage.const";
 import type { Delivery } from "../SelectPage.types";
@@ -18,11 +19,13 @@ const MAX_STRESS_COUNT = 200000;
 const STRESS_COUNT_STEP = 1000;
 const STRESS_COUNT_FIELD_WIDTH = 120;
 const STRESS_OPTION_HEIGHT = 100;
+const STRESS_GROUP_HEIGHT = 32;
 
 type Props = {
     valueSignal: Signal<Delivery | undefined>;
     visibilitySignal: Signal<boolean>;
-    options: MaybeAccessor<SelectOption<Delivery>[]>;
+    options: MaybeAccessor<SelectItem<Delivery>[]>;
+    hasGroups?: MaybeAccessor<boolean>;
     count: MaybeAccessor<number>;
     onCountChange: (count: number) => void;
     measureOpen: (renderOptions: () => JSX.Element) => JSX.Element;
@@ -37,6 +40,8 @@ export const VirtualizedExample = (props: Props) => {
                 options={props.options}
                 ariaLabel={"Route"}
                 computeEstimatedOptionHeight={() => STRESS_OPTION_HEIGHT}
+                computeEstimatedGroupHeight={() => STRESS_GROUP_HEIGHT}
+                renderGroup={(getGroup) => <PageSelectGroupContent>{getGroup().label}</PageSelectGroupContent>}
                 computeCustomText={(option) => option.value.name}
                 renderContent={(getSelectedOption, getFlags) => (
                     <PageSelectContent flags={getFlags}>

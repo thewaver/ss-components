@@ -246,3 +246,73 @@ test.describe("typeahead", () => {
         expect(await rows.count(), "the branches opened rather than a query starting").toBeGreaterThan(before);
     });
 });
+
+/**
+ * A windowed tree is flat on purpose. `role="group"` only means anything inside the treeitem that owns it, so
+ * a box for a subtree whose parent is outside the window would be detached rather than partial — which is the
+ * opposite of the grouped `Select`, where the box is a sibling of nothing and its name lives on `aria-label`.
+ * The published tree pattern covers this case directly: when the nodes are not all in the DOM because the
+ * reader is scrolling, every node states its level, position and set size. These check that they do.
+ */
+test.describe("a windowed tree", () => {
+    const VIRTUALIZED = demo("virtualized");
+    const tree = `${VIRTUALIZED} [role="tree"]`;
+    const item = `${tree} [role="treeitem"]`;
+
+    test("mounts a window rather than every row, and draws no group boxes", async ({ page }) => {
+        const items = page.locator(item);
+
+        expect(await items.count(), "far fewer than the three hundred and fifty rows on show").toBeLessThan(40);
+
+        await expect(
+            page.locator(`${tree} [role="group"]`),
+            "nesting is carried by the attributes instead",
+        ).toHaveCount(0);
+    });
+
+    test("every mounted row states its level, position and set size", async ({ page }) => {
+        const stated = await page.locator(item).evaluateAll((items) =>
+            items.map((node) => ({
+                level: node.getAttribute("aria-level"),
+                position: node.getAttribute("aria-posinset"),
+                setSize: node.getAttribute("aria-setsize"),
+            })),
+        );
+
+        expect(stated.length).toBeGreaterThan(0);
+        expect(
+            stated.every((row) => row.level !== null && row.position !== null && row.setSize !== null),
+            "no row leaves the reader to infer its place from the DOM",
+        ).toBe(true);
+    });
+
+    test("depth survives the flattening, so a child still reads as one level down", async ({ page }) => {
+        const levels = await page
+            .locator(item)
+            .evaluateAll((items) => [...new Set(items.map((node) => node.getAttribute("aria-level")))]);
+
+        expect(levels, "the first window holds an open branch and its children").toContain("2");
+    });
+
+    test("scrolling moves the window rather than growing it", async ({ page }) => {
+        const items = page.locator(item);
+        const before = await items.evaluateAll((nodes) => nodes.map((node) => node.textContent));
+
+        await page.locator(tree).hover();
+
+        for (let step = 0; step < 8; step += 1) await page.mouse.wheel(0, 600);
+
+        await expect
+            .poll(
+                async () => {
+                    const after = await items.evaluateAll((nodes) => nodes.map((node) => node.textContent));
+
+                    return after.some((text) => !before.includes(text));
+                },
+                { message: "rows further down have taken the window's place" },
+            )
+            .toBe(true);
+
+        expect(await items.count(), "and the mounted count stays small").toBeLessThan(40);
+    });
+});

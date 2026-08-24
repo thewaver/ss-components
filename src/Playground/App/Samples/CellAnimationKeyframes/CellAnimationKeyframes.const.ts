@@ -6,6 +6,22 @@ import type {
 } from "../../../../Lib/Exotics/CellAnimation/CellAnimation.types";
 import { CellAnimationBreakpoints } from "../CellAnimationBreakpoints/CellAnimationBreakpoints.const";
 import type { CellAnimationFn } from "./CellAnimationKeyframes.types";
+import { _carouselQuadrant } from "./Samples/_carouselQuadrant";
+import { _cubeBottom } from "./Samples/_cubeBottom";
+import { _cubeLeft } from "./Samples/_cubeLeft";
+import { _cubeRight } from "./Samples/_cubeRight";
+import { _cubeTop } from "./Samples/_cubeTop";
+import { _developDefault } from "./Samples/_developDefault";
+import { _elasticQuadrant } from "./Samples/_elasticQuadrant";
+import { _flipHorizontal } from "./Samples/_flipHorizontal";
+import { _flipVertical } from "./Samples/_flipVertical";
+import { _hingeQuadrant } from "./Samples/_hingeQuadrant";
+import { _invertFlash } from "./Samples/_invertFlash";
+import { _popQuadrant } from "./Samples/_popQuadrant";
+import { _pullQuadrant } from "./Samples/_pullQuadrant";
+import { _rollQuadrant } from "./Samples/_rollQuadrant";
+import { _stampDefault } from "./Samples/_stampDefault";
+import { _swingDefault } from "./Samples/_swingDefault";
 import { blurDefault } from "./Samples/blurDefault";
 import { bounceDefault } from "./Samples/bounceDefault";
 import { carouselBottom } from "./Samples/carouselBottom";
@@ -113,6 +129,22 @@ export namespace CellAnimationKeyframes {
         "tumbleRight",
         "zoomIn",
         "zoomOut",
+        "_developDefault",
+        "_invertFlash",
+        "_flipHorizontal",
+        "_flipVertical",
+        "_cubeLeft",
+        "_cubeRight",
+        "_cubeTop",
+        "_cubeBottom",
+        "_swingDefault",
+        "_stampDefault",
+        "_carouselQuadrant",
+        "_hingeQuadrant",
+        "_elasticQuadrant",
+        "_pullQuadrant",
+        "_popQuadrant",
+        "_rollQuadrant",
     ] as const;
     export type AnimationType = (typeof ANIMATION_TYPES)[number];
 
@@ -169,6 +201,22 @@ export namespace CellAnimationKeyframes {
         tumbleRight,
         zoomIn,
         zoomOut,
+        _developDefault,
+        _invertFlash,
+        _flipHorizontal,
+        _flipVertical,
+        _cubeLeft,
+        _cubeRight,
+        _cubeTop,
+        _cubeBottom,
+        _swingDefault,
+        _stampDefault,
+        _carouselQuadrant,
+        _hingeQuadrant,
+        _elasticQuadrant,
+        _pullQuadrant,
+        _popQuadrant,
+        _rollQuadrant,
     };
 
     export const computeAnimation = (
@@ -176,6 +224,7 @@ export namespace CellAnimationKeyframes {
         breakpoints: CellAnimationBreakpoints.BreakpointTupleTriple,
         defs: CellAnimationEvaluationDefs & { origin: Point2d },
         timeline: number,
+        easing?: CellAnimationBreakpoints.Easing,
     ): CellAnimationEvaluationResult =>
-        animationRegistry[type](CellAnimationBreakpoints.computeLocalTimeline(breakpoints, timeline), defs);
+        animationRegistry[type](CellAnimationBreakpoints.computeLocalTimeline(breakpoints, timeline, easing), defs);
 }

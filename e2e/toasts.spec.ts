@@ -7,6 +7,8 @@ const TOASTS = `${REGION} > *`;
 const COUNTDOWN = "[data-countdown]";
 const QUEUED = "[data-readout]";
 const OPTION = '[role="listbox"] [role="option"]';
+const POLITE_LOG = '[role="log"][aria-live="polite"]';
+const ASSERTIVE_LOG = '[role="log"][aria-live="assertive"]';
 
 const DISMISS_TIMEOUT_MS = 10_000;
 
@@ -24,13 +26,76 @@ test.beforeEach(async ({ page }) => {
     await expect(page.locator("#raiseInfo")).toBeVisible();
 });
 
-test("the live region exists before there is anything to announce", async ({ page }) => {
-    await expect(page.locator(REGION), "the region is mounted with an empty queue").toHaveCount(1);
+/**
+ * Announcing is the announcer's job rather than the visible region's, so that one toast can be urgent while
+ * the next is not: a region carries one politeness for everything inside it, and there is no way to mark one
+ * child as more urgent than its box. Both announcer regions are therefore created when the stack mounts —
+ * a live region only announces what is inserted after it is already in the document, so one that arrives
+ * with the first message may be silent for exactly that message.
+ */
+test("both announcer regions exist before there is anything to announce", async ({ page }) => {
+    await expect(page.locator(REGION), "the visible region is mounted with an empty queue").toHaveCount(1);
     await expect(
         page.locator(REGION),
-        "and is a live region, since one only announces content inserted after it exists",
-    ).toHaveAttribute("aria-live", "polite");
-    await expect(page.locator(TOASTS), "with nothing in it yet").toHaveCount(0);
+        "and carries no politeness of its own, because it cannot carry two",
+    ).not.toHaveAttribute("aria-live", /.*/);
+    await expect(page.locator(POLITE_LOG), "the polite announcer is waiting").toHaveCount(1);
+    await expect(page.locator(ASSERTIVE_LOG), "and so is the assertive one").toHaveCount(1);
+    await expect(page.locator(TOASTS), "with nothing in either yet").toHaveCount(0);
+});
+
+test("a toast is announced at its own urgency rather than the region's", async ({ page }) => {
+    await page.locator("#raiseSuccess").click();
+
+    await expect(page.locator(POLITE_LOG), "an ordinary toast waits its turn").toContainText("Settings saved.");
+    await expect(page.locator(ASSERTIVE_LOG), "and does not interrupt anything").not.toContainText("Settings saved.");
+
+    await page.locator("#raiseError").click();
+
+    await expect(page.locator(ASSERTIVE_LOG), "a failure interrupts").toContainText("Upload failed");
+    await expect(page.locator(POLITE_LOG), "and is not also announced politely").not.toContainText("Upload failed");
+});
+
+test("the stack has a keyboard route into it, and one back out", async ({ page }) => {
+    await page.locator("#raiseInfo").click();
+    await expect(page.locator(TOASTS)).toHaveCount(1);
+
+    await page.locator("#raiseInfo").focus();
+    await page.keyboard.press("F8");
+
+    expect(
+        await page.evaluate((selector) => document.activeElement?.matches(selector) ?? false, REGION),
+        "the hotkey puts the focus on the stack, which nothing could otherwise tab to",
+    ).toBe(true);
+
+    await page.keyboard.press("Tab");
+
+    expect(
+        await page.evaluate(
+            (selector) => document.querySelector(selector)?.contains(document.activeElement) ?? false,
+            REGION,
+        ),
+        "and from there the toast's own controls are reachable",
+    ).toBe(true);
+
+    await page.keyboard.press("Escape");
+
+    await expect(page.locator("#raiseInfo"), "Escape hands the focus back where it came from").toBeFocused();
+});
+
+test("the owner is told when a toast starts arriving and when it starts leaving", async ({ page }) => {
+    await expect(page.locator(QUEUED)).toContainText("shown: 0");
+
+    await page.locator("#raiseSuccess").click();
+
+    await expect(page.locator(QUEUED), "the entry transition is a boundary the list alone cannot show").toContainText(
+        "shown: 1",
+    );
+    await expect(page.locator(QUEUED), "and nothing has left yet").toContainText("hidden: 0");
+
+    await page.locator("#clearToasts").click();
+
+    await expect(page.locator(QUEUED), "removing it reports the other boundary").toContainText("hidden: 1");
 });
 
 test("raising one puts the consumer's own message inside the region", async ({ page }) => {

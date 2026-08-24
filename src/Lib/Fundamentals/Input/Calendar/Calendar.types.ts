@@ -2,6 +2,7 @@ import type { Accessor, JSX, Signal } from "solid-js";
 
 import type {
     DateValue,
+    DateValueRange,
     DateValueWeekStart,
     DateValueWeekdayWidth,
 } from "../../../Abstracts/DateValue/DateValue.types";
@@ -15,6 +16,9 @@ export type CalendarFlags = {
     isToday: boolean;
     isOutsideMonth: boolean;
     isHighlighted: boolean;
+    isInRange: boolean;
+    isRangeStart: boolean;
+    isRangeEnd: boolean;
 };
 
 export type CalendarDayRenderer = (
@@ -33,7 +37,7 @@ export type CalendarDayProps = AccessorProps<
     onSelect: () => void;
 };
 
-export type CalendarProps = AccessorProps<{
+export type CalendarBaseProps = AccessorProps<{
     ariaLabel?: string;
     locale?: string;
     weekStartsOn?: DateValueWeekStart;
@@ -45,8 +49,22 @@ export type CalendarProps = AccessorProps<{
     gap?: number;
     computeIsDayDisabled?: (day: DateValue) => boolean;
 }> & {
-    valueSignal: Signal<DateValue | undefined>;
     monthSignal: Signal<DateValue>;
     renderDay: CalendarDayRenderer;
     renderWeekday?: CalendarWeekdayRenderer;
+};
+
+export type CalendarCompositeProps = CalendarBaseProps & {
+    computeIsSelected: (day: DateValue) => boolean;
+    computeAnchorDay?: () => DateValue | undefined;
+    computeRange?: (highlighted: DateValue) => DateValueRange | undefined;
+    onPick: (day: DateValue) => void;
+};
+
+export type CalendarProps = CalendarBaseProps & {
+    valueSignal: Signal<DateValue | undefined>;
+};
+
+export type RangeCalendarProps = CalendarBaseProps & {
+    valueSignal: Signal<DateValueRange | undefined>;
 };

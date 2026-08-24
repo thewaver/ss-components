@@ -1,6 +1,13 @@
 import { type CSSAnimationKey, MathUtils, Matrix3dUtils, type Point3d } from "@thewaver/ss-utils";
 
-import type { CellAnimationFn, CellStop, CellStopTrack, CompiledCellStops } from "./CellAnimationKeyframes.types";
+import { CellAnimationZones } from "../CellAnimationZones/CellAnimationZones.const";
+import type {
+    CellAnimationFn,
+    CellStop,
+    CellStopTrack,
+    CompiledCellStops,
+    _CellZone,
+} from "./CellAnimationKeyframes.types";
 
 export namespace CellAnimationKeyframeUtils {
     const RESULT_DECIMAL_PLACES = 3;
@@ -105,4 +112,14 @@ export namespace CellAnimationKeyframeUtils {
             return result;
         };
     };
+
+    export const _fromZones =
+        (zones: _CellZone[], fallback: CellAnimationFn): CellAnimationFn =>
+        (timeline, defs) => {
+            for (const { zone, animation } of zones) {
+                if (CellAnimationZones.isInZone(zone, defs)) return animation(timeline, defs);
+            }
+
+            return fallback(timeline, defs);
+        };
 }

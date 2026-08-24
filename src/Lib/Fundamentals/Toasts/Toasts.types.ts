@@ -25,6 +25,9 @@ export type Toast<T> = {
     id: string;
     value: T;
     durationMs?: number;
+    ariaLive?: ToastsAriaLive;
+    onShow?: () => void;
+    onHide?: () => void;
 };
 
 export type ToastState = {
@@ -56,6 +59,7 @@ export type ToastsItemProps<T> = AccessorProps<{
 export type ToastsProps<T> = AccessorProps<{
     ariaLabel: string;
     ariaLive?: ToastsAriaLive;
+    hotkey?: string;
     alignment?: ToastsAlignment;
     dir?: ToastsDir;
     gap?: number;
@@ -65,5 +69,6 @@ export type ToastsProps<T> = AccessorProps<{
 }> & {
     limit?: MaybeAccessor<number | undefined>;
     toastsSignal: Signal<Toast<T>[]>;
+    computeAnnouncement?: (toast: Toast<T>) => string;
     renderToast: ToastRenderer<T>;
 };

@@ -1,4 +1,4 @@
-import type { Accessor, JSX, ParentProps } from "solid-js";
+import type { Accessor, JSX, ParentProps, Signal } from "solid-js";
 
 import type { AccessorProps } from "../../Utils/typeUtils";
 
@@ -19,6 +19,7 @@ export type ScrollerProps = ParentProps<
         padding?: number;
         buttonPlacement?: ScrollerButtonPlacement;
     }> & {
+        progressSignal?: Signal<number>;
         renderButton: (getStep: Accessor<ScrollerStep>, stepper: ScrollerStepper) => JSX.Element;
     }
 >;

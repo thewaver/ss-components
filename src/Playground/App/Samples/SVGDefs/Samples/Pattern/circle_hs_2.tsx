@@ -1,8 +1,8 @@
 import { MathUtils } from "@thewaver/ss-utils";
 
-import { SVGPatternDefsUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Pattern/SVGPatternDefs.utils";
 import type { PatternConfig } from "../../SVGDefs.types";
 import { SVGDefsUtils } from "../../SVGDefs.utils";
+import { SVGPatterns } from "../../SVGPatterns.const";
 
 export const circle_hs_2: PatternConfig = {
     computeSVGDefs: (id, __, defs) => {
@@ -16,7 +16,7 @@ export const circle_hs_2: PatternConfig = {
                 gradientOrPattern: {
                     id: `pattern1-${id}`,
                     renderDefsElement: () =>
-                        SVGPatternDefsUtils.computeHalfShiftPattern(
+                        SVGPatterns.computeHalfShiftPattern(
                             `pattern1-${id}`,
                             cellCount,
                             cellSize,

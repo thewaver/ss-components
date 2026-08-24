@@ -63,6 +63,12 @@ export const roamer = style({
     position: "absolute",
 });
 
+export const toastRaiser = style({
+    position: "absolute",
+    left: themeVars.spacing.half,
+    bottom: themeVars.spacing.half,
+});
+
 export const cornerReadout = style({
     position: "absolute",
     right: themeVars.spacing.half,

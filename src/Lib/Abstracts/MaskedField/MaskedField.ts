@@ -17,7 +17,7 @@ export namespace MaskedField {
 
         const textSignal = createSignal(untrack(getText));
 
-        const getDigits = () => TextSyncUtils.getMaskedDigits(textSignal[0]());
+        const getDigits = () => (defs.readDigits ?? TextSyncUtils.getMaskedDigits)(textSignal[0]());
 
         const getHasIssue = createMemo(() => {
             const digits = getDigits();

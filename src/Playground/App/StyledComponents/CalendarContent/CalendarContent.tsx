@@ -15,7 +15,13 @@ export const PageCalendarDay = (props: CalendarDayProps) => {
                 [styles.isOutsideMonth]: access(props.flags).isOutsideMonth,
                 [styles.isHovered]: access(props.flags).isHovered,
                 [styles.isDisabled]: access(props.flags).isDisabled,
+                [styles.isInRange]: access(props.flags).isInRange,
+                [styles.isRangeStart]: access(props.flags).isRangeStart,
+                [styles.isRangeEnd]: access(props.flags).isRangeEnd,
             }}
+            data-in-range={access(props.flags).isInRange || undefined}
+            data-range-start={access(props.flags).isRangeStart || undefined}
+            data-range-end={access(props.flags).isRangeEnd || undefined}
             aria-hidden
         >
             {access(props.flags).day.day}

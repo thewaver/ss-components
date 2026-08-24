@@ -190,6 +190,11 @@ export const Tabs = <T,>(props: TabsProps<T>) => {
 
         setFocusedValue(() => nextValue);
         getItemRefs()[next]?.focus();
+
+        if (!access(props.hasAutoActivation)) return;
+        if (nextValue === access(props.selectedValue)) return;
+
+        props.onSelectionChange?.(nextValue);
     };
 
     return (

@@ -3,7 +3,7 @@ import { createMemo, createSignal } from "solid-js";
 import { PageExamples } from "../../PageComponents/Examples/Examples";
 import { PageProp } from "../../PageComponents/Prop/Prop";
 import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
-import { PageSelectField } from "../../StyledComponents/Field/Field";
+import { PageCheckField, PageSelectField } from "../../StyledComponents/Field/Field";
 import { BUDGET_MAX } from "./CurrencyInputPage.const";
 import type { CurrencyInputExampleProps } from "./CurrencyInputPage.types";
 import { BoundedExample } from "./Examples/Bounded";
@@ -11,32 +11,40 @@ import { DefaultExample } from "./Examples/Default";
 import { SymbolExample } from "./Examples/Symbol";
 
 const LOCALE_FIELD_WIDTH = 120;
-const LOCALES = ["en-GB", "en-US", "de-DE", "fr-FR", "ja-JP"];
+const LOCALES = ["en-GB", "en-US", "de-DE", "fr-FR", "ja-JP", "en-IN"];
 const DECIMALS = [0, 2, 3];
-const GROUP_SIZES = [3, 4];
+const LOCALE_GROUPING = "locale";
+const GROUPINGS: (number[] | undefined)[] = [undefined, [3], [4], [3, 2]];
 const EXAMPLES_ROOT = "/src/Playground/App/Pages/CurrencyInputPage/Examples";
 
 const STARTING_PRICE = 1234.56;
 const STARTING_BUDGET = 4999.99;
 const STARTING_BIG = 9876543210.12;
+const STARTING_ADJUSTMENT = -250.5;
 
 const describe = (value: number | undefined) => (value === undefined ? "none" : `${value}`);
+
+const describeGrouping = (sizes: number[] | undefined) =>
+    sizes === undefined ? LOCALE_GROUPING : sizes.join(" then ");
 
 export const CurrencyInputPage = () => {
     const [getLocale, setLocale] = createSignal("en-GB");
     const [getDecimals, setDecimals] = createSignal(2);
-    const [getGroupSize, setGroupSize] = createSignal(3);
+    const [getGrouping, setGrouping] = createSignal<number[] | undefined>();
+    const [getHasSign, setHasSign] = createSignal(false);
 
     const priceSignal = createSignal<number | undefined>(STARTING_PRICE);
     const emptySignal = createSignal<number | undefined>();
     const budgetSignal = createSignal<number | undefined>(STARTING_BUDGET);
     const bigSignal = createSignal<number | undefined>(STARTING_BIG);
+    const negativeSignal = createSignal<number | undefined>(STARTING_ADJUSTMENT);
 
     const getExamples = createMemo(() => {
         const commonProps: Omit<CurrencyInputExampleProps, "valueSignal"> = {
             locale: getLocale,
             decimals: getDecimals,
-            groupSize: getGroupSize,
+            groupSizes: getGrouping,
+            hasSign: getHasSign,
         };
 
         return [
@@ -72,6 +80,21 @@ export const CurrencyInputPage = () => {
                 path: `${EXAMPLES_ROOT}/Bounded.tsx`,
             },
             {
+                key: "negative",
+                name: "Signed",
+                readout: () =>
+                    `value: ${describe(negativeSignal[0]())} — a minus is only accepted where the field was told to hold one`,
+                component: () => (
+                    <DefaultExample
+                        {...commonProps}
+                        valueSignal={negativeSignal}
+                        ariaLabel={"Adjustment"}
+                        hasSign={true}
+                    />
+                ),
+                path: `${EXAMPLES_ROOT}/Default.tsx`,
+            },
+            {
                 key: "big",
                 name: "Many groups",
                 readout: () =>
@@ -104,12 +127,17 @@ export const CurrencyInputPage = () => {
                     />
                 </PageProp>
 
-                <PageProp key={"groupSize"} label={"Group size"}>
+                <PageProp key={"hasSign"} label={"Signed"}>
+                    <PageCheckField value={getHasSign} ariaLabel={"Signed"} onChange={setHasSign} />
+                </PageProp>
+
+                <PageProp key={"grouping"} label={"Grouping"}>
                     <PageSelectField
-                        value={getGroupSize}
-                        values={() => GROUP_SIZES}
-                        ariaLabel={"Group size"}
-                        onChange={setGroupSize}
+                        value={getGrouping}
+                        values={() => GROUPINGS}
+                        computeLabel={describeGrouping}
+                        ariaLabel={"Grouping"}
+                        onChange={(sizes) => setGrouping(() => sizes)}
                     />
                 </PageProp>
             </PagePropsPanel>

@@ -35,6 +35,7 @@ export type TabsItemProps<T> = AccessorProps<
 
 export type TabsProps<T> = AccessorProps<{
     dir?: TabsDir;
+    hasAutoActivation?: boolean;
     tabGap?: number;
     transitionDurationMs?: number;
     ariaLabel?: string;

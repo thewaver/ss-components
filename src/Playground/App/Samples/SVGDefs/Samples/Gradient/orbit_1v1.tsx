@@ -1,7 +1,7 @@
 import { MathUtils } from "@thewaver/ss-utils";
 
-import { SVGAnimationUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Animation/SVGAnimationDefs.utils";
 import { SVGGradientDefsUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
+import { SVGAnimations } from "../../SVGAnimations.const";
 import type { GradientConfig } from "../../SVGDefs.types";
 import { SVGDefsUtils } from "../../SVGDefs.utils";
 
@@ -23,7 +23,7 @@ export const orbit_1v1: GradientConfig = {
                                 { value: `rgb(from ${defs.colors.primary} r g b / 0)` },
                             ],
                         },
-                        SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
+                        SVGAnimations.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                     ),
             },
             filter: SVGDefsUtils.getBaseBlur(id, defs),
@@ -42,7 +42,7 @@ export const orbit_1v1: GradientConfig = {
                             ],
                             angle: 360,
                         },
-                        SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
+                        SVGAnimations.Linear.rotate(MathUtils.getIntermediateValues(360, 0, 12), defs),
                     ),
             },
             filter: SVGDefsUtils.getBaseBlur(id, defs),

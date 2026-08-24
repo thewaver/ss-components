@@ -20,6 +20,13 @@ export const ROW_TABS = withIds("row", [
     { value: "Export" },
 ]);
 
+export const AUTOMATIC_TABS = withIds("automatic", [
+    { value: "Render" },
+    { value: "Source" },
+    { value: "Metrics", isDisabled: true },
+    { value: "Export" },
+]);
+
 export const COLUMN_TABS = withIds("column", [
     { value: "Overview" },
     { value: "Details" },

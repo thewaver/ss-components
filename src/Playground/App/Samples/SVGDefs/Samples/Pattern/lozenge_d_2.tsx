@@ -1,8 +1,8 @@
 import { MathUtils, ShapeConst, ShapeUtils } from "@thewaver/ss-utils";
 
-import { SVGPatternDefsUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Pattern/SVGPatternDefs.utils";
 import type { PatternConfig } from "../../SVGDefs.types";
 import { SVGDefsUtils } from "../../SVGDefs.utils";
+import { SVGPatterns } from "../../SVGPatterns.const";
 
 export const lozenge_d_2: PatternConfig = {
     computeSVGDefs: (id, __, defs) => {
@@ -24,7 +24,7 @@ export const lozenge_d_2: PatternConfig = {
                     renderDefsElement: () => (
                         <>
                             {shape}
-                            {SVGPatternDefsUtils.computeDiagonalPattern(
+                            {SVGPatterns.computeDiagonalPattern(
                                 `pattern1-${id}`,
                                 cellCount,
                                 cellSize,

@@ -1,5 +1,6 @@
 import { Index, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
+import { SignalMirror } from "../../Abstracts/SignalMirror/SignalMirror";
 import { access } from "../../Utils/propUtils";
 import type { ScrollerButtonPlacement, ScrollerProps, ScrollerStep, ScrollerStepper } from "./Scroller.types";
 
@@ -10,12 +11,22 @@ const DEFAULT_SCROLLER_PADDING = 0;
 const DEFAULT_SCROLLER_BUTTON_PLACEMENT: ScrollerButtonPlacement = "split";
 
 const SCROLL_EPSILON = 1;
+const RATIO_MIN = 0;
 
 const readMetrics = (track: HTMLElement) => ({
     start: track.scrollLeft,
     visible: track.clientWidth,
     total: track.scrollWidth,
 });
+
+const computeScrollRange = (metrics: { visible: number; total: number }) =>
+    Math.max(metrics.total - metrics.visible, 0);
+
+const computeProgressRatio = (metrics: { start: number; visible: number; total: number }) => {
+    const range = computeScrollRange(metrics);
+
+    return range === 0 ? RATIO_MIN : Math.min(Math.max(metrics.start / range, RATIO_MIN), 1);
+};
 
 const computeOffsetWithin = (element: HTMLElement, ancestor: HTMLElement) => {
     let offset = 0;
@@ -78,6 +89,25 @@ export const Scroller = (props: ScrollerProps) => {
     };
 
     const getIsScrollable = createMemo(() => getMetrics().total > getMetrics().visible + SCROLL_EPSILON);
+
+    const [getProgressRatio, setProgressRatio] = SignalMirror.createOptional(() => props.progressSignal, RATIO_MIN);
+
+    let reportedRatio = RATIO_MIN;
+
+    createEffect(() => {
+        reportedRatio = computeProgressRatio(getMetrics());
+
+        setProgressRatio(reportedRatio);
+    });
+
+    createEffect(() => {
+        const ratio = getProgressRatio();
+        const track = getTrackRef();
+
+        if (!track || ratio === reportedRatio) return;
+
+        track.scrollTo({ left: ratio * computeScrollRange(readMetrics(track)) });
+    });
 
     const getLeadingSteps = createMemo((): ScrollerStep[] => {
         const placement = getButtonPlacement();

@@ -100,6 +100,8 @@ export const CellAnimation = (props: CellAnimationProps) => {
         });
     });
 
+    const getTimeline = createMemo(() => ({ source: access(props.src), iteration: getCurrentIteration() }));
+
     const getEvaluationDefs = createMemo<CellAnimationEvaluationDefs[]>(() =>
         getCellDefs().map((defs) => {
             const bounds = getCellBounds(defs.pos);
@@ -122,12 +124,12 @@ export const CellAnimation = (props: CellAnimationProps) => {
         const duration = getAnimationDurationMs();
         const iterationDelay = getAnimationIterationDelayMs();
         const maxIterations = getAnimationIterationCount();
-        const currentIteration = getCurrentIteration();
+        const { iteration } = getTimeline();
         const isWindowVisible = getIsWindowVisible();
         const isPlaying = getIsPlaying();
         const cellDefs = getEvaluationDefs();
 
-        if (!isWindowVisible || !isPlaying || !rootRef || !containerRef || currentIteration >= maxIterations) return;
+        if (!isWindowVisible || !isPlaying || !rootRef || !containerRef || iteration >= maxIterations) return;
 
         const cells = Array.from(containerRef.querySelectorAll(":scope > div")) as HTMLElement[];
         const start = performance.now();
@@ -217,7 +219,7 @@ export const CellAnimation = (props: CellAnimationProps) => {
                 class={styles.cellAnimationContainer}
                 style={{
                     ...assignInlineVars({
-                        [styles.cellSrcVar]: `url(${access(props.src)})`,
+                        [styles.cellSrcVar]: `url("${access(props.src)}")`,
                         [styles.cellSizeVar]: `${getRootSize().width}px ${getRootSize().height}px`,
                     }),
                     width: `${getRootSize().width}px`,

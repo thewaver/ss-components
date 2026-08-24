@@ -16,7 +16,10 @@ const MAX_ITEM_COUNT = 40;
 const ITEM_COUNT_STEP = 1;
 const STARTING_ITEM_COUNT = 12;
 const MIN_COLUMN_WIDTH = 460;
+const MIN_POSITION = 0;
+const POSITION_STEP = 10;
 const EXAMPLES_ROOT = "/src/Playground/App/Pages/ScrollerPage/Examples";
+const PERCENT = 100;
 
 const MONTHS = [
     "January",
@@ -36,6 +39,7 @@ const MONTHS = [
 export const ScrollerPage = () => {
     const [getItemCount, setItemCount] = createSignal(STARTING_ITEM_COUNT);
     const [getSelectedMonth, setSelectedMonth] = createSignal(MONTHS[0]);
+    const progressSignal = createSignal(0);
 
     const getLabels = createMemo(() => Array.from({ length: getItemCount() }, (_, index) => `Item ${index + 1}`));
 
@@ -48,8 +52,8 @@ export const ScrollerPage = () => {
             key: "split",
             name: "One button at each end",
             readout: () =>
-                `${getItemCount()} items — the buttons stop at the ends rather than wrapping round, and leave altogether once everything fits`,
-            component: () => <ChipsExample labels={getLabels} />,
+                `${getItemCount()} items, ${Math.round(progressSignal[0]() * PERCENT)}% along — the buttons stop at the ends rather than wrapping round, and leave altogether once everything fits`,
+            component: () => <ChipsExample labels={getLabels} progressSignal={progressSignal} />,
             path: `${EXAMPLES_ROOT}/Chips.tsx`,
         },
         {
@@ -100,6 +104,17 @@ export const ScrollerPage = () => {
                         step={() => ITEM_COUNT_STEP}
                         ariaLabel={"Item count"}
                         onInput={setItemCount}
+                    />
+                </PageProp>
+
+                <PageProp key={"position"} label={"First strip (%)"}>
+                    <PageNumberField
+                        value={() => Math.round(progressSignal[0]() * PERCENT)}
+                        min={() => MIN_POSITION}
+                        max={() => PERCENT}
+                        step={() => POSITION_STEP}
+                        ariaLabel={"First strip position"}
+                        onInput={(value) => progressSignal[1](value / PERCENT)}
                     />
                 </PageProp>
             </PagePropsPanel>

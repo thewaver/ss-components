@@ -22,7 +22,9 @@ import {
     COUNTRIES_WITH_DISABLED,
     COUNTRIES_WITH_REACHABLE,
     GROUPED_COUNTRIES,
+    STRESS_GROUP_SIZE,
     createStressDeliveries,
+    createStressDeliveryGroups,
 } from "./SelectPage.const";
 import type { Airport, Delivery } from "./SelectPage.types";
 
@@ -77,6 +79,8 @@ export const SelectPage = () => {
     const labelledSignal = createSignal<string | undefined>();
     const stressSignal = createSignal<Delivery | undefined>();
     const stressVisibility = createSignal(false);
+    const groupedStressSignal = createSignal<Delivery | undefined>();
+    const groupedStressVisibility = createSignal(false);
     const pagedSignal = createSignal<Delivery | undefined>();
 
     const [getPagedRoutes, setPagedRoutes] = createSignal<SelectOption<Delivery>[]>([]);
@@ -135,6 +139,8 @@ export const SelectPage = () => {
     const { getFPS } = FPSUtils.createMonitor(() => !stressVisibility[0]());
 
     const getStressDeliveries = createMemo(() => createStressDeliveries(getStressCount()));
+
+    const getStressDeliveryGroups = createMemo(() => createStressDeliveryGroups(getStressCount()));
 
     const measureOpen = (renderOptions: () => JSX.Element) => {
         const startedAt = performance.now();
@@ -261,6 +267,26 @@ export const SelectPage = () => {
                         setStressCount(count);
                         setOpenMs(undefined);
                     }}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Virtualized.tsx`,
+        },
+        {
+            key: "virtualizedGroups",
+            span: 2,
+            name: "Virtualized, in groups",
+            readout: () =>
+                `${getStressCount().toLocaleString("en-GB")} options in ${Math.ceil(getStressCount() / STRESS_GROUP_SIZE).toLocaleString("en-GB")} groups — ${
+                    groupedStressVisibility[0]() ? "open" : "closed"
+                }`,
+            component: () => (
+                <VirtualizedExample
+                    valueSignal={groupedStressSignal}
+                    visibilitySignal={groupedStressVisibility}
+                    options={getStressDeliveryGroups}
+                    count={getStressCount}
+                    measureOpen={(renderOptions) => renderOptions()}
+                    onCountChange={(count) => setStressCount(count)}
                 />
             ),
             path: `${EXAMPLES_ROOT}/Virtualized.tsx`,

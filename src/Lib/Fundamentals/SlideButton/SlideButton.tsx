@@ -1,7 +1,9 @@
 import { createMemo, createRenderEffect, createSignal, onCleanup } from "solid-js";
 
 import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
+import { SignalMirror } from "../../Abstracts/SignalMirror/SignalMirror";
 import { access } from "../../Utils/propUtils";
+import { FormFieldUtils } from "../Input/FormField/FormField.utils";
 import { LabelUtils } from "../Input/Label/Label.utils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import type {
@@ -24,6 +26,7 @@ const SlideButtonElement = (props: SlideButtonElementProps) => {
     const getAriaLabel = LabelUtils.resolveAriaLabel(
         props.ariaLabel === undefined ? undefined : () => access(props.ariaLabel)!,
     );
+    const getAriaDescribedBy = FormFieldUtils.resolveAriaDescribedBy();
 
     const [getTrackRef, setTrackRef] = createSignal<HTMLElement>();
     const [getPress, setPress] = createSignal<SlideButtonPress>();
@@ -157,6 +160,7 @@ const SlideButtonElement = (props: SlideButtonElementProps) => {
             type="button"
             class={styles.slideButtonElement}
             aria-label={getAriaLabel()}
+            aria-describedby={getAriaDescribedBy()}
             aria-disabled={getIsDisabled() || undefined}
             onKeyDown={(e) => {
                 if (getIsDisabled()) return;
@@ -188,7 +192,7 @@ const SlideButtonElement = (props: SlideButtonElementProps) => {
 };
 
 export const SlideButton = (props: SlideButtonProps) => {
-    const [getProgressRatio, setProgressRatio] = createSignal(RATIO_MIN);
+    const [getProgressRatio, setProgressRatio] = SignalMirror.createOptional(() => props.progressSignal, RATIO_MIN);
     const [getIsDragging, setIsDragging] = createSignal(false);
     const [getIsHolding, setIsHolding] = createSignal(false);
 

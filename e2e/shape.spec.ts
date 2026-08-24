@@ -90,3 +90,83 @@ test("changing a joint radius redraws the path", async ({ page }) => {
         })
         .not.toBe(before);
 });
+
+/**
+ * SMIL cannot be rewound in place — an animation restarts by being built again — so what resets a `Shape`'s
+ * animation is that a new defs record produces new `animate` elements. That is the contract and it has never
+ * had a guard: the builders used to carry a `Show ... keyed` that looked like it owned the reset and could
+ * never fire, because it read a plain object rather than anything reactive. It is gone, and this is what
+ * takes its place. If the defs are ever memoised so the same record survives a change, this fails.
+ */
+test("an animated def is rebuilt when its animation changes, which is what resets it", async ({ page }) => {
+    const hold = () =>
+        page.evaluate(() => {
+            (window as unknown as { probe?: Element | null }).probe = document.querySelector("animate");
+
+            return document.querySelectorAll("animate").length;
+        });
+
+    const compare = () =>
+        page.evaluate(() => {
+            const previous = (window as unknown as { probe?: Element | null }).probe;
+
+            return { isSame: previous === document.querySelector("animate"), isConnected: previous?.isConnected };
+        });
+
+    expect(await hold(), "the default fill animates").toBeGreaterThan(0);
+
+    const duration = page.locator(`${prop("animationDurationMs")} input`);
+
+    await duration.fill("3000");
+    await duration.press("Enter");
+
+    await expect
+        .poll(async () => (await compare()).isSame, { message: "a new duration builds new animate elements" })
+        .toBe(false);
+    expect((await compare()).isConnected, "and drops the ones that were running").toBe(false);
+
+    await hold();
+    await page.locator(`${prop("iterationConfigKey")} [role="combobox"]`).click();
+    await page.locator('[role="listbox"] [role="option"]').nth(1).click();
+
+    await expect
+        .poll(async () => (await compare()).isSame, { message: "and so does a new iteration pattern" })
+        .toBe(false);
+});
+
+/**
+ * Switching iteration pattern while one is running used to leave the animation dead: the new elements were
+ * started by writing a begin time worked out from the document's clock, and an instant that had already
+ * passed by the time the browser read it produced an interval that ran without ever animating, then reverted.
+ * They are started through the same call the sequencing already used — `beginElementAt` — which asks for a
+ * delay from now rather than naming a moment. The switch here is deliberately made mid-run, because that is
+ * the only way to reach it.
+ */
+test("switching iteration pattern mid-run leaves the animation running", async ({ page }) => {
+    const chooseIteration = async (name: string) => {
+        await page.locator(`${prop("iterationConfigKey")} [role="combobox"]`).click();
+        await page.locator('[role="listbox"] [role="option"]', { hasText: name }).first().click();
+    };
+
+    await chooseIteration("repeat3_3");
+    await page.waitForTimeout(1000);
+    await chooseIteration("repeat1_1");
+
+    const distinct = await page.evaluate(async () => {
+        const seen = new Set<string>();
+
+        for (let i = 0; i < 30; i++) {
+            seen.add(
+                [...document.querySelectorAll("linearGradient")]
+                    .map((node) => (node as SVGLinearGradientElement).x1.animVal.value.toFixed(3))
+                    .join(","),
+            );
+
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+
+        return seen.size;
+    });
+
+    expect(distinct, "the gradient moved through its sweep rather than sitting on one value").toBeGreaterThan(3);
+});

@@ -1,7 +1,7 @@
 import { MathUtils, ObjectUtils } from "@thewaver/ss-utils";
 
-import { SVGAnimationUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Animation/SVGAnimationDefs.utils";
 import { SVGGradientDefsUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
+import { SVGAnimations } from "../../SVGAnimations.const";
 import type { GradientConfig } from "../../SVGDefs.types";
 import { SVGDefsUtils } from "../../SVGDefs.utils";
 
@@ -23,14 +23,14 @@ export const snake_4: GradientConfig = {
                                 { value: `rgb(from ${defs.colors.secondary} r g b / 0)`, stop: 50 },
                             ],
                         },
-                        SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
+                        SVGAnimations.Linear.rotate(MathUtils.getIntermediateValues(0, 360, 12), defs),
                     ),
             },
             clipPath: {
                 id: `clip1-${id}`,
                 renderDefsElement: () => (
                     <clipPath id={`clip1-${id}`} clipPathUnits="objectBoundingBox">
-                        {SVGAnimationUtils.Path.rotatingArc(
+                        {SVGAnimations.Path.rotatingArc(
                             ObjectUtils.zipArray("stretch", MathUtils.getIntermediateValues(0, 360, 12), [180]),
                             defs,
                         )}
@@ -52,14 +52,14 @@ export const snake_4: GradientConfig = {
                             ],
                             angle: 90,
                         },
-                        SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
+                        SVGAnimations.Linear.rotate(MathUtils.getIntermediateValues(90, 450, 12), defs),
                     ),
             },
             clipPath: {
                 id: `clip2-${id}`,
                 renderDefsElement: () => (
                     <clipPath id={`clip2-${id}`} clipPathUnits="objectBoundingBox">
-                        {SVGAnimationUtils.Path.rotatingArc(
+                        {SVGAnimations.Path.rotatingArc(
                             ObjectUtils.zipArray("stretch", MathUtils.getIntermediateValues(90, 450, 12), [180]),
                             defs,
                         )}
@@ -81,14 +81,14 @@ export const snake_4: GradientConfig = {
                             ],
                             angle: 180,
                         },
-                        SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(180, 540, 12), defs),
+                        SVGAnimations.Linear.rotate(MathUtils.getIntermediateValues(180, 540, 12), defs),
                     ),
             },
             clipPath: {
                 id: `clip3-${id}`,
                 renderDefsElement: () => (
                     <clipPath id={`clip3-${id}`} clipPathUnits="objectBoundingBox">
-                        {SVGAnimationUtils.Path.rotatingArc(
+                        {SVGAnimations.Path.rotatingArc(
                             ObjectUtils.zipArray("stretch", MathUtils.getIntermediateValues(180, 540, 12), [180]),
                             defs,
                         )}
@@ -110,14 +110,14 @@ export const snake_4: GradientConfig = {
                             ],
                             angle: 270,
                         },
-                        SVGAnimationUtils.Linear.rotate(MathUtils.getIntermediateValues(270, 630, 12), defs),
+                        SVGAnimations.Linear.rotate(MathUtils.getIntermediateValues(270, 630, 12), defs),
                     ),
             },
             clipPath: {
                 id: `clip4-${id}`,
                 renderDefsElement: () => (
                     <clipPath id={`clip4-${id}`} clipPathUnits="objectBoundingBox">
-                        {SVGAnimationUtils.Path.rotatingArc(
+                        {SVGAnimations.Path.rotatingArc(
                             ObjectUtils.zipArray("stretch", MathUtils.getIntermediateValues(270, 630, 12), [180]),
                             defs,
                         )}

@@ -23,7 +23,8 @@ export const DefaultExample = (props: Props) => {
             gap={() => FIELD_GAP}
             locale={props.locale}
             decimals={props.decimals}
-            groupSize={props.groupSize}
+            groupSizes={props.groupSizes}
+            hasSign={props.hasSign}
             computeTextStyle={computePageTextFieldTextStyle}
             renderContent={(getFlags) => <PageTextFieldContent flags={getFlags} width={() => FIELD_WIDTH} />}
             renderPlaceholder={(getFlags, hint) => (

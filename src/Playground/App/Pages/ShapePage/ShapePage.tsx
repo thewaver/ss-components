@@ -12,7 +12,6 @@ import { PagePropsPanel } from "../../PageComponents/PropsPanel/PropsPanel";
 import { StressTest } from "../../PageComponents/StressTest/StressTest";
 import type { StressTestDefs } from "../../PageComponents/StressTest/StressText.types";
 import { SVGDefsSamples } from "../../Samples/SVGDefs/SVGDefs.const";
-import type { SVGDefsColors } from "../../Samples/SVGDefs/SVGDefs.types";
 import {
     PageCheckField,
     PageColorField,
@@ -100,12 +99,6 @@ const STRESS_ITEMS: (StressTestDefs & { size: number })[] = [
     },
 ];
 
-const STARTING_COLORS: SVGDefsColors = {
-    background: "#282420",
-    primary: "#FFFF00",
-    secondary: "#00FFFF",
-    tertiary: "#FF00FF",
-};
 const DEFAULT_EXAMPLE_PATH = "/src/Playground/App/Pages/ShapePage/Examples/Default.tsx";
 
 const StressTestWrapper = ({
@@ -211,7 +204,7 @@ export const ShapePage = () => {
     const [getFillConfigKey, setFillConfigKey] = createSignal<SVGDefsSamples.Pattern.SampleKey>("plain");
     const [getIterationConfigKey, setIterationConfigKey] = createSignal<SVGDefsSamples.Iteration.SampleKey>("constant");
     const [getCellSize, setCellSize] = createSignal(40);
-    const [colors, setColors] = createStore(STARTING_COLORS);
+    const [colors, setColors] = createStore({ ...SVGDefsSamples.SAMPLE_COLORS });
 
     const getShapePointCount = createMemo(
         () => ShapeConst.getDefaultShapePoints(getShapeKind(), { width: 0, height: 0 }).length,

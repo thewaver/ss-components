@@ -1,5 +1,7 @@
 import { Tabs } from "../../../../../Lib/Fundamentals/Tabs/Tabs";
+import type { Tab } from "../../../../../Lib/Fundamentals/Tabs/Tabs.types";
 import { access } from "../../../../../Lib/Utils/propUtils";
+import type { MaybeAccessor } from "../../../../../Lib/Utils/typeUtils";
 import {
     PageTabContent,
     PageTabFloater,
@@ -11,16 +13,24 @@ import type { TabsExampleProps } from "../TabsPage.types";
 
 import * as styles from "../TabsPage.css";
 
-type Props = TabsExampleProps;
+const DEFAULT_ID_PREFIX = "row";
+
+type Props = TabsExampleProps & {
+    tabs?: MaybeAccessor<Tab<string>[]>;
+    idPrefix?: MaybeAccessor<string>;
+};
 
 export const RowExample = (props: Props) => {
+    const getIdPrefix = () => access(props.idPrefix) ?? DEFAULT_ID_PREFIX;
+
     return (
         <div class={styles.rowDemo}>
             <Tabs
                 dir={"row"}
                 tabGap={() => ROW_TAB_GAP}
                 ariaLabel={"Example views"}
-                tabs={() => ROW_TABS}
+                hasAutoActivation={props.hasAutoActivation}
+                tabs={() => access(props.tabs) ?? ROW_TABS}
                 selectedValue={props.selectedValue}
                 onSelectionChange={props.onSelectionChange}
                 renderGutter={() => <PageTabGutter dir={"row"} />}
@@ -43,8 +53,8 @@ export const RowExample = (props: Props) => {
             />
 
             <PageTabPanel
-                id={() => getPanelId("row", access(props.selectedValue) ?? "")}
-                tabId={() => getTabId("row", access(props.selectedValue) ?? "")}
+                id={() => getPanelId(getIdPrefix(), access(props.selectedValue) ?? "")}
+                tabId={() => getTabId(getIdPrefix(), access(props.selectedValue) ?? "")}
             >
                 {PANEL_BODIES[access(props.selectedValue) ?? ""]}
             </PageTabPanel>

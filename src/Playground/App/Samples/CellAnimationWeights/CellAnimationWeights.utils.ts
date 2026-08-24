@@ -17,6 +17,52 @@ export namespace CellAnimationWeightUtils {
 
     export const fromOrderedIndex = (ordered: number, total: number) => (total <= 1 ? 1 : 1 - ordered / (total - 1));
 
+    const HASH_OFFSET = 1;
+
+    const HASH_MULTIPLIER_X = 374761393;
+
+    const HASH_MULTIPLIER_Y = 668265263;
+
+    const HASH_MULTIPLIER_MIX = 1274126177;
+
+    const HASH_LOW_SHIFT = 13;
+
+    const HASH_HIGH_SHIFT = 16;
+
+    const HASH_RANGE = 4294967296;
+
+    export const _hashToUnit = (x: number, y: number) => {
+        const mixed = Math.imul(x + HASH_OFFSET, HASH_MULTIPLIER_X) ^ Math.imul(y + HASH_OFFSET, HASH_MULTIPLIER_Y);
+        const folded = Math.imul(mixed ^ (mixed >>> HASH_LOW_SHIFT), HASH_MULTIPLIER_MIX);
+
+        return ((folded ^ (folded >>> HASH_HIGH_SHIFT)) >>> 0) / HASH_RANGE;
+    };
+
+    export const _interleaveBits = (x: number, y: number, bits: number) => {
+        let result = 0;
+
+        for (let bit = 0; bit < bits; bit++) {
+            result |= ((x >> bit) & 1) << (bit * 2);
+            result |= ((y >> bit) & 1) << (bit * 2 + 1);
+        }
+
+        return result;
+    };
+
+    export const _greatestCommonDivisor = (a: number, b: number) => {
+        let high = Math.max(a, b);
+        let low = Math.min(a, b);
+
+        while (low > 0) {
+            const remainder = high % low;
+
+            high = low;
+            low = remainder;
+        }
+
+        return high;
+    };
+
     export const radar = (
         pos: Point2d,
         count: Point2d,

@@ -7,6 +7,7 @@ import { ColumnExample } from "./Examples/Column";
 import { LinkComponentExample } from "./Examples/LinkComponent";
 import { LinksExample } from "./Examples/Links";
 import { RowExample } from "./Examples/Row";
+import { AUTOMATIC_TABS } from "./TabsPage.const";
 
 const EXAMPLES_ROOT = "/src/Playground/App/Pages/TabsPage/Examples";
 
@@ -15,6 +16,7 @@ export const TabsPage = () => {
     const [getColumnValue, setColumnValue] = createSignal("Overview");
     const [getLinkValue, setLinkValue] = createSignal("Docs");
     const [getCustomLinkValue, setCustomLinkValue] = createSignal("Docs");
+    const [getAutoValue, setAutoValue] = createSignal("Render");
     const [getDisabledValue, setDisabledValue] = createSignal("Draft");
     const [getClearableValue, setClearableValue] = createSignal<string | undefined>("One");
 
@@ -34,6 +36,23 @@ export const TabsPage = () => {
             readout: () => `selected: ${getColumnValue()}`,
             component: () => <ColumnExample selectedValue={getColumnValue} onSelectionChange={setColumnValue} />,
             path: `${EXAMPLES_ROOT}/Column.tsx`,
+        },
+        {
+            key: "automatic",
+            span: 2,
+            name: "Arrows that select as they move",
+            readout: () =>
+                `selected: ${getAutoValue()} — an arrow both moves the focus and takes the selection with it, which suits a panel that is already loaded`,
+            component: () => (
+                <RowExample
+                    selectedValue={getAutoValue}
+                    tabs={() => AUTOMATIC_TABS}
+                    idPrefix={"automatic"}
+                    hasAutoActivation={true}
+                    onSelectionChange={setAutoValue}
+                />
+            ),
+            path: `${EXAMPLES_ROOT}/Row.tsx`,
         },
         {
             key: "links",

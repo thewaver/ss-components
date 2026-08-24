@@ -1,6 +1,6 @@
 import type { Signal } from "solid-js";
 
-import type { AccessorProps } from "../../../Utils/typeUtils";
+import type { AccessorProps, MaybeAccessor } from "../../../Utils/typeUtils";
 import type { TextFieldProps } from "../TextField/TextField.types";
 
 export type CurrencyInputProps = Omit<
@@ -21,8 +21,9 @@ export type CurrencyInputProps = Omit<
 > &
     AccessorProps<{
         decimals?: number;
-        groupSize?: number;
         locale?: string;
+        hasSign?: boolean;
     }> & {
+        groupSizes?: MaybeAccessor<number[] | undefined>;
         valueSignal: Signal<number | undefined>;
     };

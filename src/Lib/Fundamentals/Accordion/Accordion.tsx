@@ -15,7 +15,7 @@ const DEFAULT_ACCORDION_SIZING: AccordionSizing = "fill";
 const AccordionSection = <T,>(props: AccordionSectionProps<T>) => {
     const headerId = createUniqueId();
 
-    const expandedSignal = SignalMirror.createValueMirror(
+    const expandedSignal = SignalMirror.createPassThrough(
         () => access(props.isExpanded),
         () => props.onToggle(),
     );
@@ -67,6 +67,9 @@ export const Accordion = <T,>(props: AccordionProps<T>) => {
     const handleToggle = (value: T) => {
         props.expandedSignal[1]((prev) => {
             const isExpanded = prev.includes(value);
+            const isLastExpanded = isExpanded && prev.length === 1;
+
+            if (isLastExpanded && (access(props.isExpandRequired) ?? false)) return prev;
 
             if (access(props.isSingleExpand)) return isExpanded ? [] : [value];
 

@@ -11,6 +11,7 @@ const EXAMPLES_ROOT = "/src/Playground/App/Pages/AccordionPage/Examples";
 export const AccordionPage = () => {
     const multiSignal = createSignal<string[]>(["Shipping"]);
     const singleSignal = createSignal<string[]>([]);
+    const requiredSignal = createSignal<string[]>(["Shipping"]);
     const growingSignal = createSignal<string[]>(["Shipping"]);
     const scrolledSignal = createSignal<string[]>([]);
 
@@ -31,6 +32,16 @@ export const AccordionPage = () => {
             name: "One at a time",
             readout: () => `expanded: ${JSON.stringify(singleSignal[0]())} — the component keeps at most one`,
             component: () => <SectionsExample expandedSignal={singleSignal} isSingleExpand={true} />,
+            path: `${EXAMPLES_ROOT}/Sections.tsx`,
+        },
+        {
+            key: "required",
+            name: "One at a time, and always one",
+            readout: () =>
+                `expanded: ${JSON.stringify(requiredSignal[0]())} — pressing the open header does nothing, because the only way out of a section is into another one`,
+            component: () => (
+                <SectionsExample expandedSignal={requiredSignal} isSingleExpand={true} isExpandRequired={true} />
+            ),
             path: `${EXAMPLES_ROOT}/Sections.tsx`,
         },
         {

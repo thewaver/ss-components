@@ -37,6 +37,13 @@ export type SelectOptionGroup<T> = {
 
 export type SelectItem<T> = SelectOption<T> | SelectOptionGroup<T>;
 
+export type SelectRow<T> = {
+    group: SelectOptionGroup<T> | undefined;
+    groupIndex: number | undefined;
+    option: SelectOption<T> | undefined;
+    optionIndex: number | undefined;
+};
+
 export type SelectFieldProps = AccessorProps<
     InteractionControlProps<SelectFlags> & {
         listboxId: string;
@@ -81,6 +88,7 @@ export type SelectCompositeProps<T> = Omit<InteractionWrapperProps<SelectFlags>,
         computeIsSelected: (value: T) => boolean;
         computeCustomText?: (option: SelectOption<T>) => string;
         computeEstimatedOptionHeight?: (index: number) => number;
+        computeEstimatedGroupHeight?: (index: number) => number;
         renderContent: (
             getSelectedOptions: Accessor<SelectOption<T>[]>,
             getFlags: () => InteractionFlags<SelectFlags>,

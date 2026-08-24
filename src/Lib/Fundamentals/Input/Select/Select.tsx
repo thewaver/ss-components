@@ -11,6 +11,7 @@ import { TextSync } from "../../../Abstracts/TextSync/TextSync";
 import { Typeahead } from "../../../Abstracts/Typeahead/Typeahead";
 import { TypeaheadUtils } from "../../../Abstracts/Typeahead/Typeahead.utils";
 import { Virtualizer } from "../../../Abstracts/Virtualizer/Virtualizer";
+import type { VirtualizerRow } from "../../../Abstracts/Virtualizer/Virtualizer.types";
 import { access } from "../../../Utils/propUtils";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
 import { Popover } from "../../Popover/Popover";
@@ -203,9 +204,9 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
 
     const getFlatOptions = createMemo(() => SelectUtils.getFlatOptions(access(props.options)));
 
-    const getIsVirtualized = createMemo(
-        () => props.computeEstimatedOptionHeight !== undefined && !access(props.options).some(SelectUtils.getIsGroup),
-    );
+    const getRows = createMemo(() => SelectUtils.getRows(access(props.options)));
+
+    const getIsVirtualized = createMemo(() => props.computeEstimatedOptionHeight !== undefined);
 
     const getIsAtEnd = ElementObserver.createViewportIntersectionObserver(getEndMarkerRef, getIsOpen);
 
@@ -260,13 +261,25 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
         return navigable[0];
     });
 
-    const rowWindow = Virtualizer.createRowWindow(getSizerRef, () => getFlatOptions().length, {
+    const rowWindow = Virtualizer.createRowWindow(getSizerRef, () => getRows().length, {
         getIsEnabled: () => getIsVirtualized() && getIsOpen(),
-        computeEstimatedSize: (index) => props.computeEstimatedOptionHeight?.(index) ?? 0,
+        computeEstimatedSize: (index) => {
+            const row = getRows()[index];
+
+            return row?.option === undefined
+                ? (props.computeEstimatedGroupHeight?.(row?.groupIndex ?? 0) ??
+                      props.computeEstimatedOptionHeight?.(0) ??
+                      0)
+                : (props.computeEstimatedOptionHeight?.(row.optionIndex ?? 0) ?? 0);
+        },
         getPinnedRows: () => {
             const highlightedIndex = getHighlightedIndex();
 
-            return highlightedIndex === undefined ? EMPTY_SELECTION : [highlightedIndex];
+            if (highlightedIndex === undefined) return EMPTY_SELECTION;
+
+            const rowIndex = SelectUtils.getRowIndexOfOption(getRows(), highlightedIndex);
+
+            return rowIndex === -1 ? EMPTY_SELECTION : [rowIndex];
         },
     });
 
@@ -330,7 +343,11 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
 
         if (highlightedIndex === undefined) return;
 
-        rowWindow.scrollToRow(highlightedIndex);
+        const rowIndex = SelectUtils.getRowIndexOfOption(getRows(), highlightedIndex);
+
+        if (rowIndex === -1) return;
+
+        rowWindow.scrollToRow(rowIndex);
     });
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -457,20 +474,62 @@ export const SelectComposite = <T,>(props: SelectCompositeProps<T>) => {
         </Index>
     );
 
+    const renderWindowedRow = (row: VirtualizerRow) => {
+        const getRow = () => getRows()[row.index];
+
+        return (
+            <div
+                class={styles.selectSizerRow}
+                style={{ transform: `translateY(${rowWindow.getRowStart(row)}px)` }}
+                ref={(element) => rowWindow.measureRow(element, row.index)}
+            >
+                <Show
+                    when={getRow().option !== undefined}
+                    fallback={props.renderGroup?.(() => getRow().group as SelectOptionGroup<T>)}
+                >
+                    {renderOptionSlot(
+                        () => getRow().option as SelectOption<T>,
+                        () => getRow().optionIndex as number,
+                    )}
+                </Show>
+            </div>
+        );
+    };
+
+    const getWindowedRuns = createMemo(() => {
+        const runs: {
+            groupIndex: number | undefined;
+            group: SelectOptionGroup<T> | undefined;
+            rows: VirtualizerRow[];
+        }[] = [];
+
+        for (const row of rowWindow.getRows()) {
+            const source = getRows()[row.index];
+            const last = runs[runs.length - 1];
+
+            if (last && last.groupIndex === source?.groupIndex) {
+                last.rows.push(row);
+
+                continue;
+            }
+
+            runs.push({ groupIndex: source?.groupIndex, group: source?.group, rows: [row] });
+        }
+
+        return runs;
+    });
+
     const renderWindowedOptions = () => (
         <div ref={setSizerRef} class={styles.selectSizer} style={{ height: `${rowWindow.getTotalSize()}px` }}>
-            <For each={rowWindow.getRows()}>
-                {(row) => (
-                    <div
-                        class={styles.selectSizerRow}
-                        style={{ transform: `translateY(${rowWindow.getRowStart(row)}px)` }}
-                        ref={(element) => rowWindow.measureRow(element, row.index)}
-                    >
-                        {renderOptionSlot(
-                            () => getFlatOptions()[row.index],
-                            () => row.index,
+            <For each={getWindowedRuns()}>
+                {(run) => (
+                    <Show when={run.group} fallback={<For each={run.rows}>{renderWindowedRow}</For>} keyed>
+                        {(group: SelectOptionGroup<T>) => (
+                            <div role="group" aria-label={group.label}>
+                                <For each={run.rows}>{renderWindowedRow}</For>
+                            </div>
                         )}
-                    </div>
+                    </Show>
                 )}
             </For>
         </div>

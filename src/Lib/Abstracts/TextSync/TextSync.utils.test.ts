@@ -137,8 +137,11 @@ describe("formatWithMask", () => {
     });
 });
 
-const MONEY: TextSyncGroupDefs = { groupSize: 3, groupSeparator: ",", decimalSeparator: ".", decimals: 2 };
-const PLAIN: TextSyncGroupDefs = { groupSize: 3, groupSeparator: " ", decimalSeparator: ".", decimals: 0 };
+const MONEY: TextSyncGroupDefs = { groupSizes: [3], groupSeparator: ",", decimalSeparator: ".", decimals: 2 };
+const PLAIN: TextSyncGroupDefs = { groupSizes: [3], groupSeparator: " ", decimalSeparator: ".", decimals: 0 };
+const SIGNED: TextSyncGroupDefs = { ...MONEY, hasSign: true };
+const LAKH: TextSyncGroupDefs = { ...PLAIN, groupSizes: [3, 2], groupSeparator: "," };
+const UNGROUPED: TextSyncGroupDefs = { ...PLAIN, groupSizes: [] };
 
 const typeGrouped = (defs: TextSyncGroupDefs, keys: string) => {
     let text = "";
@@ -203,10 +206,103 @@ describe("applyGroupedMask", () => {
     });
 });
 
+/**
+ * The sizes are read from the decimal point outwards and the last one repeats, so `[3]` is every locale that
+ * groups in threes and `[3, 2]` is the Indian grouping — three digits nearest the point, twos above it. An
+ * empty list is the third reading of the same rule: there is no size to repeat, so nothing is grouped at all.
+ */
+describe("applyGroupedMask over a grouping that is not uniform", () => {
+    it("repeats the last size rather than the first, so only the nearest group is three digits", () => {
+        expect(typeGrouped(LAKH, "1234").text).toBe("1,234");
+        expect(typeGrouped(LAKH, "12345").text).toBe("12,345");
+        expect(typeGrouped(LAKH, "1234567").text).toBe("12,34,567");
+        expect(typeGrouped(LAKH, "1234567890").text).toBe("1,23,45,67,890");
+    });
+
+    it("leaves the whole run alone when there is no size to repeat", () => {
+        expect(typeGrouped(UNGROUPED, "1234567").text).toBe("1234567");
+    });
+
+    it("keeps the caret behind the digit just typed while the separators shift under it", () => {
+        expect(typeGrouped(LAKH, "1234567")).toEqual({ text: "12,34,567", caret: 9 });
+    });
+});
+
+/**
+ * The separators already come from `Intl` rather than from a prop, on the grounds that a consumer who has
+ * named their locale has answered the question. The grouping is the same question: `en-IN` writes its commas
+ * every two digits above the first three, and a field that took the locale's comma and grouped in threes
+ * anyway would be spelling the locale wrong in the one place it had been told what the locale is.
+ */
+describe("getGroupSizes", () => {
+    it("reads threes for a locale that groups in threes", () => {
+        expect(TextSyncUtils.getGroupSizes("en-GB")).toEqual([3]);
+        expect(TextSyncUtils.getGroupSizes("de-DE")).toEqual([3]);
+    });
+
+    it("reads three then twos for the Indian grouping", () => {
+        expect(TextSyncUtils.getGroupSizes("en-IN")).toEqual([3, 2]);
+        expect(TextSyncUtils.getGroupSizes("hi-IN")).toEqual([3, 2]);
+    });
+
+    it("collapses the repeat rather than reporting one size per group the sample happened to have", () => {
+        expect(TextSyncUtils.getGroupSizes("en-US").length).toBe(1);
+    });
+});
+
 describe("formatWithGroups", () => {
     it("groups digits without a caret to preserve", () => {
         expect(TextSyncUtils.formatWithGroups(MONEY, "123456")).toBe("1,234.56");
         expect(TextSyncUtils.formatWithGroups(PLAIN, "1234567")).toBe("1 234 567");
+        expect(TextSyncUtils.formatWithGroups(LAKH, "1234567")).toBe("12,34,567");
         expect(TextSyncUtils.formatWithGroups(MONEY, "")).toBe("");
+    });
+});
+
+/**
+ * The sign is opt-in because most masked fields cannot hold one: a date's ISO spelling already uses the hyphen
+ * as a separator, so a mask that treated one as a sign would misread every date it was given.
+ */
+describe("applyGroupedMask with a sign", () => {
+    it("keeps a minus in front of the grouped amount", () => {
+        expect(typeGrouped(SIGNED, "-123456").text).toBe("-1,234.56");
+    });
+
+    it("holds a lone minus, so the sign can be typed before the digits", () => {
+        expect(typeGrouped(SIGNED, "-")).toEqual({ text: "-", caret: 1 });
+    });
+
+    it("takes the minus wherever it is typed and leaves the digits alone, because a sign has one place", () => {
+        expect(typeGrouped(SIGNED, "12-34").text).toBe("-12.34");
+    });
+
+    it("drops the sign entirely when the field is not signed", () => {
+        expect(typeGrouped(MONEY, "-123456").text).toBe("1,234.56");
+        expect(typeGrouped(MONEY, "-")).toEqual({ text: "", caret: 0 });
+    });
+
+    it("puts the caret after the sign rather than before it once digits arrive", () => {
+        const result = typeGrouped(SIGNED, "-1");
+
+        expect(result.text).toBe("-0.01");
+        expect(result.caret).toBe(result.text.length);
+    });
+});
+
+describe("formatWithGroups with a sign", () => {
+    it("round-trips a signed run of digits", () => {
+        expect(TextSyncUtils.formatWithGroups(SIGNED, "-123456")).toBe("-1,234.56");
+        expect(TextSyncUtils.formatWithGroups(SIGNED, "123456")).toBe("1,234.56");
+    });
+
+    it("ignores a sign the defs did not ask for", () => {
+        expect(TextSyncUtils.formatWithGroups(MONEY, "-123456")).toBe("1,234.56");
+    });
+});
+
+describe("readSignedDigits", () => {
+    it("keeps the sign and drops everything else that is not a digit", () => {
+        expect(TextSyncUtils.readSignedDigits("-1,234.56")).toBe("-123456");
+        expect(TextSyncUtils.readSignedDigits("1,234.56")).toBe("123456");
     });
 });

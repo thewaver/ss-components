@@ -13,6 +13,7 @@ const LINKS = demo("links");
 const LINK_COMPONENT = demo("linkComponent");
 const CLEARABLE = demo("clearable");
 const DISABLED = demo("disabled");
+const AUTOMATIC = demo("automatic");
 
 const list = (scope: string) => `${scope} [role="tablist"]`;
 const tab = (scope: string) => `${scope} [role="tab"]`;
@@ -108,6 +109,31 @@ test("moving the focus does not move the selection, and the tab itself does the 
 
     await page.locator(tab(ROW)).nth(2).click({ force: true });
     expect(await readout(page, "row"), "and a disabled tab refuses both").toBe("selected: Export");
+});
+
+/**
+ * The other half of the published pattern: arrowing onto a tab selects it as it lands. Manual is still the
+ * default here, because a panel that costs something to build should not be built on the way past — this is
+ * the opt-in for the case where the panel is already there.
+ */
+test("automatic activation takes the selection along with the focus", async ({ page }) => {
+    await page.locator(`${tab(AUTOMATIC)}[tabindex="0"]`).focus();
+    expect(await activeText(page)).toBe("Render");
+
+    await page.keyboard.press("ArrowRight");
+
+    expect(await activeText(page), "the focus moves as it always did").toBe("Source");
+    expect(await readout(page, "automatic"), "and the selection comes with it, unasked").toContain("selected: Source");
+
+    await page.keyboard.press("ArrowRight");
+
+    expect(await readout(page, "automatic"), "the disabled tab is skipped by both").toContain("selected: Export");
+
+    await page.keyboard.press("ArrowRight");
+
+    expect(await readout(page, "automatic"), "and the wrap selects the first tab again").toContain("selected: Render");
+
+    expect(await readout(page, "row"), "the manual list beside it is untouched").toBe("selected: Render");
 });
 
 test("a tab and its panel point at each other, and the pair moves with the selection", async ({ page }) => {

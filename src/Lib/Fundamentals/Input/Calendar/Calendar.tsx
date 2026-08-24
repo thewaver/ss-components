@@ -10,7 +10,7 @@ import { LiveAnnouncer } from "../../../Abstracts/LiveAnnouncer/LiveAnnouncer";
 import { NavigationUtils } from "../../../Abstracts/Navigation/Navigation.utils";
 import { access } from "../../../Utils/propUtils";
 import { InteractionWrapper } from "../../InteractionWrapper/InteractionWrapper";
-import type { CalendarDayProps, CalendarFlags, CalendarProps } from "./Calendar.types";
+import type { CalendarCompositeProps, CalendarDayProps, CalendarFlags, CalendarProps } from "./Calendar.types";
 
 import * as styles from "./Calendar.css";
 
@@ -20,6 +20,7 @@ const DEFAULT_CALENDAR_GAP = 0;
 const DAYS_PER_WEEK = 7;
 const GRID_WEEKS = 6;
 const MONTH_STEP = 1;
+const YEAR_STEP = 1;
 const SELECT_KEYS = ["Enter", " "];
 
 const DAY_LABEL_OPTIONS: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
@@ -51,7 +52,7 @@ const CalendarDay = (props: CalendarDayProps) => {
     );
 };
 
-export const Calendar = (props: CalendarProps) => {
+export const CalendarComposite = (props: CalendarCompositeProps) => {
     const gridId = createUniqueId();
 
     const [getRootRef, setRootRef] = createSignal<HTMLElement>();
@@ -100,9 +101,9 @@ export const Calendar = (props: CalendarProps) => {
 
         if (highlighted && DateValueUtils.getCellOf(getGrid(), highlighted)) return highlighted;
 
-        const value = props.valueSignal[0]();
+        const anchor = props.computeAnchorDay?.();
 
-        if (value && DateValueUtils.getCellOf(getGrid(), value)) return value;
+        if (anchor && DateValueUtils.getCellOf(getGrid(), anchor)) return anchor;
 
         const today = getToday();
 
@@ -137,15 +138,17 @@ export const Calendar = (props: CalendarProps) => {
         if (getIsDayDisabled(day)) return;
 
         setHighlighted(() => day);
-        props.valueSignal[1](() => day);
+        props.onPick(day);
     };
 
+    const getPaintedRange = createMemo(() => props.computeRange?.(getRovingDay()));
+
     createEffect(() => {
-        const value = props.valueSignal[0]();
+        const anchor = props.computeAnchorDay?.();
 
-        if (!value) return;
+        if (!anchor) return;
 
-        setHighlighted(() => value);
+        setHighlighted(() => anchor);
     });
 
     createEffect<DateValue | undefined>((previous) => {
@@ -187,8 +190,14 @@ export const Calendar = (props: CalendarProps) => {
         }
 
         if (e.key === "PageUp" || e.key === "PageDown") {
+            const direction = e.key === "PageUp" ? -1 : 1;
+
             e.preventDefault();
-            moveTo(DateValueUtils.addMonths(roving, e.key === "PageUp" ? -MONTH_STEP : MONTH_STEP));
+            moveTo(
+                e.shiftKey
+                    ? DateValueUtils.addYears(roving, direction * YEAR_STEP)
+                    : DateValueUtils.addMonths(roving, direction * MONTH_STEP),
+            );
 
             return;
         }
@@ -242,10 +251,13 @@ export const Calendar = (props: CalendarProps) => {
                                     isTabbable={() => DateValueUtils.isSame(getDay(), getRovingDay())}
                                     extraFlags={(): CalendarFlags => ({
                                         day: getDay(),
-                                        isSelected: DateValueUtils.isSame(getDay(), props.valueSignal[0]()),
+                                        isSelected: props.computeIsSelected(getDay()),
                                         isToday: DateValueUtils.isSame(getDay(), getToday()),
                                         isOutsideMonth: getDay().month !== getMonth().month,
                                         isHighlighted: DateValueUtils.isSame(getDay(), getRovingDay()),
+                                        isInRange: DateValueUtils.getIsWithin(getDay(), getPaintedRange()),
+                                        isRangeStart: DateValueUtils.isSame(getDay(), getPaintedRange()?.start),
+                                        isRangeEnd: DateValueUtils.isSame(getDay(), getPaintedRange()?.end),
                                     })}
                                     ref={(element) => setDayRef(weekIndex * DAYS_PER_WEEK + dayIndex, element)}
                                     renderControl={(setElementRef, getFlags) => (
@@ -273,3 +285,12 @@ export const Calendar = (props: CalendarProps) => {
         </div>
     );
 };
+
+export const Calendar = (props: CalendarProps) => (
+    <CalendarComposite
+        {...props}
+        computeIsSelected={(day) => DateValueUtils.isSame(day, props.valueSignal[0]())}
+        computeAnchorDay={() => props.valueSignal[0]()}
+        onPick={(day) => props.valueSignal[1](() => day)}
+    />
+);

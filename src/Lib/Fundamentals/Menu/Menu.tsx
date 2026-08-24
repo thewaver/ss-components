@@ -1,5 +1,7 @@
 import type { JSX } from "solid-js";
-import { Index, Show, createEffect, createMemo, createSignal, createUniqueId } from "solid-js";
+import { Index, Show, createEffect, createMemo, createSignal, createUniqueId, onCleanup } from "solid-js";
+
+import { Rect } from "@thewaver/ss-utils";
 
 import type { AnchorPlacement } from "../../Abstracts/Anchor/Anchor.types";
 import { InteractionUtils } from "../../Abstracts/Interaction/Interaction.utils";
@@ -7,11 +9,14 @@ import { NavigationUtils } from "../../Abstracts/Navigation/Navigation.utils";
 import { SignalMirror } from "../../Abstracts/SignalMirror/SignalMirror";
 import { Typeahead } from "../../Abstracts/Typeahead/Typeahead";
 import { TypeaheadUtils } from "../../Abstracts/Typeahead/Typeahead.utils";
+import { useViewportContext } from "../../Exotics/Viewport/Viewport.context";
+import { ViewportUtils } from "../../Exotics/Viewport/Viewport.utils";
 import { access } from "../../Utils/propUtils";
 import { LabelUtils } from "../Input/Label/Label.utils";
 import { InteractionWrapper } from "../InteractionWrapper/InteractionWrapper";
 import { Popover } from "../Popover/Popover";
 import type {
+    ContextMenuProps,
     MenuHighlightPosition,
     MenuItemViewProps,
     MenuLevelProps,
@@ -328,6 +333,7 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
             role={"menu"}
             ariaAttributes={() => ({
                 "aria-labelledby": access(props.labelledBy),
+                "aria-label": access(props.ariaLabel),
                 "aria-activedescendant": getActiveItemId(),
             })}
             placement={props.placement}
@@ -337,6 +343,7 @@ const MenuLevel = <T,>(props: MenuLevelProps<T>): JSX.Element => {
             hasAutoFocus={true}
             isOpen={props.isOpen}
             anchorRef={props.anchorRef}
+            anchorRect={props.anchorRect}
             onKeyDown={handleKeyDown}
             onDismiss={() => props.onClose()}
             renderContent={(getVisibilityTarget, getTransitionDurationMs, getPlacement) =>
@@ -442,6 +449,78 @@ export const Menu = <T,>(props: MenuProps<T>) => {
                     />
                 </>
             )}
+        />
+    );
+};
+
+export const ContextMenu = <T,>(props: ContextMenuProps<T>) => {
+    const viewportContext = useViewportContext();
+    const menuId = createUniqueId();
+
+    const [getAnchorRect, setAnchorRect] = createSignal<Rect | undefined>(undefined, { equals: Rect.isSame });
+    const [getIsOpen, setIsOpen] = SignalMirror.createOptional(() => props.visibilitySignal, false);
+
+    const getIsDisabled = createMemo(() => access(props.isDisabled) ?? false);
+
+    const close = () => {
+        setIsOpen(false);
+    };
+
+    createEffect(() => {
+        if (!getIsOpen() || !getIsDisabled()) return;
+
+        setIsOpen(false);
+    });
+
+    createEffect(() => {
+        const region = access(props.regionRef);
+
+        if (!region) return;
+
+        const handleContextMenu = (e: MouseEvent) => {
+            if (getIsDisabled()) return;
+
+            const point = ViewportUtils.getAdjustedClientPoint({ x: e.clientX, y: e.clientY }, viewportContext);
+
+            e.preventDefault();
+            setAnchorRect({ x: point.x, y: point.y, width: 0, height: 0 });
+            setIsOpen(true);
+        };
+
+        region.addEventListener("contextmenu", handleContextMenu);
+
+        onCleanup(() => {
+            region.removeEventListener("contextmenu", handleContextMenu);
+        });
+    });
+
+    return (
+        <MenuLevel
+            id={() => menuId}
+            ariaLabel={props.ariaLabel}
+            items={props.items}
+            isOpen={getIsOpen}
+            isSubmenu={false}
+            anchorRef={props.regionRef}
+            anchorRect={getAnchorRect}
+            triggerRef={props.regionRef}
+            placement={props.placement}
+            offset={props.offset}
+            submenuPlacement={() => access(props.submenuPlacement) ?? DEFAULT_SUBMENU_PLACEMENT}
+            submenuOffset={props.submenuOffset}
+            reservedScreenSize={props.reservedScreenSize}
+            transitionDurationMs={props.transitionDurationMs}
+            openerFlags={() => ({ isOpen: getIsOpen() })}
+            computeCustomText={props.computeCustomText}
+            renderItem={props.renderItem}
+            renderPopup={props.renderPopup}
+            onActivate={(value) => {
+                props.onActivate(value);
+
+                close();
+            }}
+            onClose={close}
+            onDismiss={close}
         />
     );
 };

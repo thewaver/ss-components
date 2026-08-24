@@ -29,6 +29,7 @@ export type SpotlightSlots = {
 
 export type SpotlightPopupState = {
     ariaLabel?: string;
+    announcement?: string;
     popupPlacement?: AnchorPlacement;
     popupOffset?: { x: number; y: number };
 };

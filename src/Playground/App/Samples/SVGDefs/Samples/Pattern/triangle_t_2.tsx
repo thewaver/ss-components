@@ -1,8 +1,8 @@
 import { MathUtils, ShapeConst, ShapeUtils } from "@thewaver/ss-utils";
 
-import { SVGPatternDefsUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Pattern/SVGPatternDefs.utils";
 import type { PatternConfig } from "../../SVGDefs.types";
 import { SVGDefsUtils } from "../../SVGDefs.utils";
+import { SVGPatterns } from "../../SVGPatterns.const";
 
 export const triangle_t_2: PatternConfig = {
     computeSVGDefs: (id, __, defs) => {
@@ -32,7 +32,7 @@ export const triangle_t_2: PatternConfig = {
                         <>
                             {upTriangle}
                             {downTriangle}
-                            {SVGPatternDefsUtils.computeTrianglePattern(
+                            {SVGPatterns.computeTrianglePattern(
                                 `pattern1-${id}`,
                                 cellCount,
                                 cellSize,

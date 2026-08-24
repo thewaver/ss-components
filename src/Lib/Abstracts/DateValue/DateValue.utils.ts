@@ -15,6 +15,7 @@ import type {
     DateValueEra,
     DateValueMonthGrid,
     DateValueParts,
+    DateValueRange,
     DateValueWeekStart,
     DateValueWeekdayWidth,
 } from "./DateValue.types";
@@ -133,6 +134,15 @@ export namespace DateValueUtils {
 
         return value;
     };
+
+    export const orderRange = (a: DateValue, b: DateValue): DateValueRange =>
+        compare(a, b) <= 0 ? { start: a, end: b } : { start: b, end: a };
+
+    export const isSameRange = (a: DateValueRange | undefined, b: DateValueRange | undefined) =>
+        a === b || (a !== undefined && b !== undefined && isSame(a.start, b.start) && isSame(a.end, b.end));
+
+    export const getIsWithin = (value: DateValue, range: DateValueRange | undefined) =>
+        range !== undefined && compare(value, range.start) >= 0 && compare(value, range.end) <= 0;
 
     export const getIsInRange = (value: DateValue, min?: DateValue, max?: DateValue) =>
         (!min || compare(value, min) >= 0) && (!max || compare(value, max) <= 0);

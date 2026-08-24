@@ -39,6 +39,7 @@ export const Popover = (props: PopoverProps) => {
             getOffset: props.offset === undefined ? undefined : () => access(props.offset)!,
             getReservedScreenSize:
                 props.reservedScreenSize === undefined ? undefined : () => access(props.reservedScreenSize)!,
+            getAnchorRect: props.anchorRect === undefined ? undefined : () => access(props.anchorRect),
         },
     );
 
@@ -59,7 +60,7 @@ export const Popover = (props: PopoverProps) => {
     FocusUtils.autoFocus(getRootRef, getHasFocus, { getInitialRef: getRootRef });
 
     DismissStack.createLayer(() => access(props.isOpen), {
-        getRoots: () => [getRootRef(), access(props.anchorRef)],
+        getRoots: () => [getRootRef(), props.anchorRect === undefined ? access(props.anchorRef) : undefined],
         onDismiss: (reason) => props.onDismiss?.(reason),
     });
 

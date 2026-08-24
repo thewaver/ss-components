@@ -60,6 +60,7 @@ const MESSAGES: Record<ToastKind, string> = {
 };
 
 const toastQueue = createRoot(() => createSignal<Toast<ToastDefs>[]>([]));
+const toastBoundaries = createRoot(() => createSignal({ shown: 0, hidden: 0 }));
 
 const raiseToast = (kind: ToastKind, durationMs: number) => {
     toastQueue[1]((prev) => [
@@ -68,6 +69,9 @@ const raiseToast = (kind: ToastKind, durationMs: number) => {
             id: createUniqueId(),
             value: { kind, message: MESSAGES[kind] },
             durationMs: durationMs === STICKY ? undefined : durationMs,
+            ariaLive: kind === "error" ? "assertive" : "polite",
+            onShow: () => toastBoundaries[1]((prev) => ({ ...prev, shown: prev.shown + 1 })),
+            onHide: () => toastBoundaries[1]((prev) => ({ ...prev, hidden: prev.hidden + 1 })),
         },
     ]);
 };
@@ -84,6 +88,7 @@ export const ToastsPage = () => {
     const [getTransitionDurationMs, setTransitionDurationMs] = createSignal(STARTING_TRANSITION_DURATION_MS);
 
     const [getToasts, setToasts] = toastQueue;
+    const [getBoundaries] = toastBoundaries;
 
     return (
         <div class={styles.root}>
@@ -211,13 +216,15 @@ export const ToastsPage = () => {
             </div>
 
             <div class={styles.note} data-readout>
-                queued: {getToasts().length} — the queue lives at module scope, so raising a notification does not need
-                the raiser to still be mounted. Hover the stack to hold every countdown.
+                queued: {getToasts().length}, shown: {getBoundaries().shown}, hidden: {getBoundaries().hidden} — the
+                queue lives at module scope, so raising a notification does not need the raiser to still be mounted.
+                Hover the stack to hold every countdown, or press F8 to put the keyboard in it.
             </div>
 
             <Toasts
                 toastsSignal={toastQueue}
                 ariaLabel={"Notifications"}
+                computeAnnouncement={(toast) => toast.value.message}
                 alignment={getAlignment}
                 dir={getDir}
                 limit={() => (getLimit() === NO_LIMIT ? undefined : getLimit())}

@@ -4,6 +4,7 @@ import { activeMatches, demo, readout, tabIndex } from "./helpers";
 
 const DEFAULT = demo("default");
 const HELD = demo("held");
+const DESCRIBED = demo("described");
 const DISABLED = demo("disabled");
 const REACHABLE = demo("reachable");
 
@@ -161,6 +162,28 @@ test("a reachable slide button keeps its tab stop and still refuses to activate"
 });
 
 /**
+ * A person who cannot see the fill hears "button" and then silence, so what was missing was never a running
+ * commentary — it was being told what the control wants before starting. That is a description, and the
+ * library already had the mechanism: `FormField` renders the hint, owns its id, and every field inside it
+ * points at that id. `SlideButton` simply was not one of the controls reading it.
+ */
+test("the field's hint is the button's description, so the gesture is stated up front", async ({ page }) => {
+    const described = page.locator(track(DESCRIBED));
+    const hintId = await described.getAttribute("aria-describedby");
+
+    expect(hintId, "the control points at something").toBeTruthy();
+    await expect(
+        page.locator(`#${hintId}`),
+        "and what it points at is the hint the consumer wrote, not a string the library invented",
+    ).toHaveText(/Hold the button, or slide it all the way/);
+
+    await expect(
+        page.locator(track(DEFAULT)),
+        "a control with no field around it describes itself as nothing rather than inventing a description",
+    ).not.toHaveAttribute("aria-describedby", /.+/);
+});
+
+/**
  * WCAG 2.2's 2.5.7 wants a route that is neither a drag nor a keypress, and the published one is a long
  * press — so a press held anywhere on the control runs the same confirmation the drag does. Held over the
  * empty track here, which is also the case that must not be a grab.
@@ -174,6 +197,37 @@ test("a press held on the track confirms without any dragging at all", async ({ 
     await page.mouse.up();
 
     expect(await readout(page, "default"), "holding still is the whole gesture").toContain("activations: 1");
+});
+
+/**
+ * The progress is a flag the painter reads, and now also a signal the owner can hold — which is the whole
+ * point of the second route: a readout beside the control, or a warning that appears half-way, cannot be
+ * painted from inside `renderContent`. Read mid-hold rather than after it, because the number returns to
+ * zero the moment the gesture ends.
+ */
+test("the owner is told how far along the gesture is while it is still running", async ({ page }) => {
+    const box = (await page.locator(track(DEFAULT)).boundingBox())!;
+
+    expect(await readout(page, "default"), "at rest there is nothing to report").toContain("progress 0%");
+
+    await page.mouse.move(box.x + box.width * 0.6, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.waitForTimeout(HOLD_DURATION_MS / 2);
+
+    const midway = await readout(page, "default");
+
+    await page.mouse.up();
+
+    const percent = Number(/progress (\d+)%/.exec(midway)?.[1]);
+
+    expect(percent, `half way through a hold is about half filled, and the readout said ${percent}%`).toBeGreaterThan(
+        20,
+    );
+    expect(percent).toBeLessThan(80);
+
+    await expect
+        .poll(() => readout(page, "default"), { message: "and letting go puts it back to nothing" })
+        .toContain("progress 0%");
 });
 
 test("a press let go before the hold completes confirms nothing", async ({ page }) => {

@@ -374,3 +374,35 @@ describe("every era of every calendar gets a real name", () => {
         }
     });
 });
+
+describe("orderRange, isSameRange and getIsWithin", () => {
+    it("orders the two ends whichever way round they were picked", () => {
+        const forwards = DateValueUtils.orderRange(gregorian(2026, 3, 1), gregorian(2026, 3, 9));
+        const backwards = DateValueUtils.orderRange(gregorian(2026, 3, 9), gregorian(2026, 3, 1));
+
+        expect(DateValueUtils.isSameRange(forwards, backwards)).toBe(true);
+        expect(forwards.start.day).toBe(1);
+        expect(forwards.end.day).toBe(9);
+    });
+
+    it("treats a single day as a range of one, rather than as no range", () => {
+        const single = DateValueUtils.orderRange(gregorian(2026, 3, 4), gregorian(2026, 3, 4));
+
+        expect(DateValueUtils.getIsWithin(gregorian(2026, 3, 4), single)).toBe(true);
+    });
+
+    it("counts both ends as inside the span, so a painter can mark them", () => {
+        const range = DateValueUtils.orderRange(gregorian(2026, 3, 1), gregorian(2026, 3, 9));
+
+        expect(DateValueUtils.getIsWithin(gregorian(2026, 3, 1), range)).toBe(true);
+        expect(DateValueUtils.getIsWithin(gregorian(2026, 3, 5), range)).toBe(true);
+        expect(DateValueUtils.getIsWithin(gregorian(2026, 3, 9), range)).toBe(true);
+        expect(DateValueUtils.getIsWithin(gregorian(2026, 2, 28), range)).toBe(false);
+        expect(DateValueUtils.getIsWithin(gregorian(2026, 3, 10), range)).toBe(false);
+    });
+
+    it("holds no day at all when there is no range", () => {
+        expect(DateValueUtils.getIsWithin(gregorian(2026, 3, 1), undefined)).toBe(false);
+        expect(DateValueUtils.isSameRange(undefined, undefined)).toBe(true);
+    });
+});

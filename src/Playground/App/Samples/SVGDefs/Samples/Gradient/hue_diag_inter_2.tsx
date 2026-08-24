@@ -1,5 +1,5 @@
-import { SVGAnimationUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Animation/SVGAnimationDefs.utils";
 import { SVGGradientDefsUtils } from "../../../../../../Lib/Abstracts/SVG/Defs/Gradient/SVGGradientDefs.utils";
+import { SVGAnimations } from "../../SVGAnimations.const";
 import type { GradientConfig } from "../../SVGDefs.types";
 import { SVGDefsUtils } from "../../SVGDefs.utils";
 
@@ -18,7 +18,7 @@ export const hue_diag_inter_2: GradientConfig = {
                             colors: [{ value: defs.colors.primary }, { value: defs.colors.secondary }],
                             angle: 45,
                         },
-                        SVGAnimationUtils.Gradient.cycleSmoothColors(
+                        SVGAnimations.Gradient.cycleSmoothColors(
                             `gradient1-${id}`,
                             [
                                 [

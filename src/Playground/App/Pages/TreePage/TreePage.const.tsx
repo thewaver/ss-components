@@ -98,3 +98,14 @@ export const ASSETS: TreeNode<Asset>[] = [
     },
     { value: { name: "credits.txt", kind: "text" } },
 ];
+
+export const STRESS_BRANCH_COUNT = 200;
+export const STRESS_LEAF_COUNT = 50;
+
+export const createStressFiles = (): TreeNode<string>[] =>
+    Array.from({ length: STRESS_BRANCH_COUNT }, (_unused, branchIndex) => ({
+        value: `package-${branchIndex + 1}`,
+        children: Array.from({ length: STRESS_LEAF_COUNT }, (_leafUnused, leafIndex) => ({
+            value: `package-${branchIndex + 1}/file-${leafIndex + 1}.ts`,
+        })),
+    }));

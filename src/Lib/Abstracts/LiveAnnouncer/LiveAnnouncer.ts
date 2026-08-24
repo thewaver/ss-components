@@ -37,6 +37,10 @@ const getRegion = (politeness: LiveAnnouncerPoliteness) => {
 };
 
 export namespace LiveAnnouncer {
+    export const reserve = (politeness: LiveAnnouncerPoliteness = "polite") => {
+        getRegion(politeness);
+    };
+
     export const announce = (message: string, politeness: LiveAnnouncerPoliteness = "polite") => {
         if (!message) return;
 

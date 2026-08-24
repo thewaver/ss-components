@@ -106,6 +106,26 @@ test("Home and End are the ends of the week, and the page keys are months", asyn
     expect(await activeLabel(page)).toBe("16 August 2026");
 });
 
+/**
+ * The year step is the one part of this keyboard a consumer cannot add from outside: the grid owns its own
+ * `keydown`, so a caption button can jump a year but a key cannot be bound to it. Held Shift is what the
+ * published pattern asks for, and it lands on the same day of the same month a year away.
+ */
+test("Shift with the page keys is a year rather than a month", async ({ page }) => {
+    await page.locator(day(DEFAULT, "12 August 2026")).click();
+    await page.locator(roving(DEFAULT)).focus();
+
+    await page.keyboard.press("Shift+PageDown");
+    expect(await activeLabel(page), "the same day and month, a year on").toBe("12 August 2027");
+    expect(await readout(page, "default"), "and the visible month follows it").toContain("month: 2027-08-01");
+
+    await page.keyboard.press("Shift+PageUp");
+    expect(await activeLabel(page)).toBe("12 August 2026");
+
+    await page.keyboard.press("Shift+PageUp");
+    expect(await activeLabel(page), "and it steps back across the year boundary too").toBe("12 August 2025");
+});
+
 test("Enter picks the day the keyboard is on", async ({ page }) => {
     await page.locator(roving(DEFAULT)).focus();
     await page.keyboard.press("ArrowRight");

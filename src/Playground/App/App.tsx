@@ -18,6 +18,8 @@ import { ColorAreaPage } from "./Pages/ColorAreaPage/ColorAreaPage";
 import { ColorInputPage } from "./Pages/ColorInputPage/ColorInputPage";
 import { CurrencyInputPage } from "./Pages/CurrencyInputPage/CurrencyInputPage";
 import { DatePickerPage } from "./Pages/DatePickerPage/DatePickerPage";
+import { DateRangePickerPage } from "./Pages/DateRangePickerPage/DateRangePickerPage";
+import { DateTimePickerPage } from "./Pages/DateTimePickerPage/DateTimePickerPage";
 import { DrawerPage } from "./Pages/DrawerPage/DrawerPage";
 import { ElementMosaicPage } from "./Pages/ElementMosaicPage/ElementMosaicPage";
 import { FileInputPage } from "./Pages/FileInputPage/FileInputPage";
@@ -33,6 +35,7 @@ import { PaginatorPage } from "./Pages/PaginatorPage/PaginatorPage";
 import { PreviewPage } from "./Pages/PreviewPage/PreviewPage";
 import { ProgressPage } from "./Pages/ProgressPage/ProgressPage";
 import { RadioPage } from "./Pages/RadioPage/RadioPage";
+import { RangeCalendarPage } from "./Pages/RangeCalendarPage/RangeCalendarPage";
 import { RangePage } from "./Pages/RangePage/RangePage";
 import { SatellitePage } from "./Pages/SatellitePage/SatellitePage";
 import { ScanlineAnimationPage } from "./Pages/ScanLineAnimationPage/ScanLineAnimationPage";
@@ -235,6 +238,18 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
                 component: () => <DatePickerPage />,
             },
             {
+                name: "DateRangePicker",
+                description:
+                    "Two date fields and a range calendar over a single { start, end } signal. The two fields are the component's own, derived from that one value rather than handed to the consumer as a pair to keep in step.",
+                component: () => <DateRangePickerPage />,
+            },
+            {
+                name: "DateTimePicker",
+                description:
+                    "A date and a time as one value rather than two. The control pairs the date and time pickers over a single signal, split for the two fields and rejoined on the way back, so a consumer never holds two halves and never has to keep them in step. A pair with a half missing is not a value, the same rule the range calendar follows.",
+                component: () => <DateTimePickerPage />,
+            },
+            {
                 name: "Drawer",
                 description:
                     "A modal that arrives from an edge. It is a preset rather than a mode, because a panel cannot become a centred dialog while it is open.",
@@ -311,6 +326,12 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
                 description:
                     "A slider with one or two thumbs, on either axis. The drag arrives as a ratio along the track rather than as pixels.",
                 component: () => <RangePage />,
+            },
+            {
+                name: "RangeCalendar",
+                description:
+                    "The same month grid over a span rather than a day. The value is one { start, end } signal, and the state while only the first end has been picked belongs to the component rather than to the consumer, so a half-entered range is never something a caller has to hold.",
+                component: () => <RangeCalendarPage />,
             },
             {
                 name: "Scroller",
