@@ -52,7 +52,6 @@ reading.
 19. `Paginator` — four things deliberately not built — _open_
 20. `Carousel` — four things deliberately not built — _open_
 21. The four components ported from React — one thing to retest, one deliberately not built — _open_
-22. `Typewriter` cannot render a blank line, and the fix is in `ss-utils` — _open_
 
 ### Build order
 
@@ -953,36 +952,6 @@ their own button, and a library that renders no button cannot promise it is name
 alternatives were a second slot beneath the wheel, rejected because the flat wheel is a square and anything
 under it changes the box it reserves, and a slot with a position prop, rejected because `Toasts` had already
 settled that a component does not fully delegate position. Recorded so it is not re-proposed as an oversight.
-
----
-
-## 22. `Typewriter` cannot render a blank line, and the fix is in `ss-utils`
-
-**What a consumer sees.** Text containing `"a\n\nb"` renders as two lines with no blank line between them, and a
-stray blank line after the last one instead. It is on the Playground's second Typewriter example, whose starting
-text is `"Line one\n\nline two"`.
-
-**Where it comes from.** `JSXTextParser.getSegmentTokens` splits the text node into `"Line one"`, `"\n"`, `"\n"`,
-`"line two"` and pushes a break token for each newline — but through a helper that drops a break whose predecessor
-is already a break. So the second break is lost, while the wrapping element's own closing edge later pushes one
-that survives, because by then the last token is text. `Typewriter` renders the token list in order and cannot
-recover what is no longer in it.
-
-**The collapse is right for the case it was written for and wrong for two others.** Its own comment says so: two
-blocks in a row would otherwise close one and open the next. Block edges should collapse. A break the author
-wrote — a literal newline, or a `<br>` — is content, and a browser renders `<div>a</div><br>b` with a blank line.
-So the two explicit call sites push unconditionally and the two structural ones keep the helper.
-
-**It is a regression, and where it came from is known.** `git log -S'linebreak'` puts it in the commit that
-deleted this repo's own `src/Lib/Abstracts/JSX/Text/Parser/JSXTextParser.utils.ts` and moved the parser to
-`ss-utils`. The version deleted there had four unconditional pushes, with the block edges additionally guarded by
-`isBlockLike && tokens.length > 0`; the copy introduced the helper and routed all four through it. Both guards
-came across verbatim, so the only change was the two explicit sites gaining a condition they never had.
-
-**Nothing in this repo can fix it**, which is why this is carried rather than closed: the token is dropped before
-`Typewriter` is handed the list. The corrected file is parked at `src/Lib/JSXTextParser.utils.ts`, commented out —
-see _"A file in transit"_ in `conventions.md` — and this item closes when `ss-utils` ships it and the dependency
-is bumped.
 
 ---
 

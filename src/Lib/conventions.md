@@ -213,17 +213,19 @@ Nothing in `src` may import from there.
 
 ### A file in transit sits commented out, rather than excluded in config
 
-`src/Lib/JSXTextParser.utils.ts` is not this library's code and is not compiled. It is a copy of `ss-utils`'
-parser carrying a fix that has to be applied in that repo, parked here so it survives a change of machine, and
-**every line of it is commented out** — the user's instruction, and the reason is that the alternative leaves
-litter: a `tsconfig.json` exclusion outlives the file it was written for, and the next person to read the config
-finds a rule pointing at nothing. A commented file needs no rule at all, and one editor keystroke over a
-select-all restores it.
+A file that is not this library's code and must not be compiled — a copy of another repo's module, carrying a
+fix that has to be applied over there — is parked here so it survives a change of machine, and **every line of
+it is commented out**. The user's instruction, and the reason is that the alternative leaves litter: a
+`tsconfig.json` exclusion outlives the file it was written for, and the next person to read the config finds a
+rule pointing at nothing. A commented file needs no rule at all, and one editor keystroke over a select-all
+restores it.
 
-**Line comments, not a block comment**, because the file carries `/** … */` documentation of its own and the
+**Line comments, not a block comment**, where the file carries `/** … */` documentation of its own, because the
 first `*/` inside would close the wrapper early.
 
 **It is committed rather than ignored**, unlike `external/`, because the whole point is that it travels.
+
+**Nothing is parked at present**, and the rule stands for the next file that needs somewhere to wait.
 
 ### Compatibility arguments cite `src/Lib` and nothing else
 
